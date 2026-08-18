@@ -1,10 +1,10 @@
-package com.stk_broadcast.stk_broadcast;
+package com.sextelecomleague.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class StkBroadcastApplicationTests {
+class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
