@@ -8,7 +8,11 @@ Known public endpoints to start with:
 
 - `https://draft.premierleague.com/api/bootstrap-static`
 - `https://draft.premierleague.com/api/league/{leagueId}/details`
+- `https://draft.premierleague.com/api/league/{leagueId}/element-status`
+- `https://draft.premierleague.com/api/draft/league/{leagueId}/transactions`
 - `https://draft.premierleague.com/api/draft/{draftId}/choices`
+- `https://draft.premierleague.com/api/entry/{entryId}/event/{eventId}`
+- `https://draft.premierleague.com/api/event/{eventId}/live`
 - `https://fantasy.premierleague.com/api/event/{eventId}/live/`
 - `https://fantasy.premierleague.com/api/fixtures/?event={eventId}`
 - `https://fantasy.premierleague.com/api/event-status/`
@@ -53,6 +57,13 @@ With the backend running:
 curl http://localhost:8080/api/fpl/discovery/players?limit=5
 curl http://localhost:8080/api/fpl/discovery/event/1/live?limit=5
 curl http://localhost:8080/api/fpl/discovery/league/YOUR_LEAGUE_ID
+curl http://localhost:8080/api/fpl/discovery/league/YOUR_LEAGUE_ID/raw
+curl http://localhost:8080/api/fpl/discovery/league/YOUR_LEAGUE_ID/element-status/raw
+curl http://localhost:8080/api/fpl/discovery/league/YOUR_LEAGUE_ID/transactions/raw
+curl http://localhost:8080/api/fpl/discovery/entry/YOUR_ENTRY_ID/event/1/raw
+curl http://localhost:8080/api/fpl/discovery/draft/YOUR_DRAFT_ID/choices/raw
+curl http://localhost:8080/api/fpl/discovery/event/1/live/raw
+curl http://localhost:8080/api/fpl/discovery/draft/event/1/live/raw
 ```
 
 If the league endpoint returns `401`, `403`, or a login-shaped response, we need to add optional cookie-based auth outside source control.

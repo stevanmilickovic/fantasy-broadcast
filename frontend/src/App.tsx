@@ -1,4 +1,4 @@
-import { Activity, Radio, RotateCcw, SkipForward, Trophy } from 'lucide-react'
+import { Activity, Database, Radio, RotateCcw, Search, SkipForward, Trophy } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
@@ -74,12 +74,111 @@ type LiveStateResponse = {
   commentary: CommentaryView[]
 }
 
+type FplLeagueEntry = {
+  id: number
+  entry_id: number
+  entry_name: string
+  player_first_name: string
+  player_last_name: string
+  short_name: string
+}
+
+type FplLeagueMatch = {
+  id: number
+  event: number
+  league_entry_1?: number
+  league_entry_2?: number
+  firstLeagueEntryId?: number
+  secondLeagueEntryId?: number
+  league_entry_1_points?: number
+  league_entry_2_points?: number
+  firstPoints?: number
+  secondPoints?: number
+  finished: boolean
+}
+
+type FplStanding = {
+  league_entry?: number
+  leagueEntryId?: number
+  rank: number
+  total?: number
+  headToHeadPoints?: number
+  points_for?: number
+  pointsFor?: number
+}
+
+type FplLeagueDetailsRaw = {
+  league?: {
+    id: number
+    name: string
+    draft_status: string
+    draft_dt: string
+    max_entries: number
+    min_entries: number
+    scoring: string
+    start_event: number
+    stop_event: number
+  }
+  league_entries: FplLeagueEntry[]
+  matches: FplLeagueMatch[]
+  standings: FplStanding[]
+}
+
+type FplElementStatusRaw = {
+  element_status: Array<{
+    element: number
+    owner: number | null
+    status: string
+    in_accepted_trade: boolean
+  }>
+}
+
+type FplPlayer = {
+  id: number
+  webName: string
+  fullName: string
+  premierLeagueClub: string
+  position: string
+}
+
+type LeagueDiscoveryState = {
+  details: FplLeagueDetailsRaw
+  elementStatus: FplElementStatusRaw
+  players: FplPlayer[]
+}
+
+type DiscoveryTab = 'teams' | 'compositions' | 'matchups' | 'standings'
+
 const loadLiveState = async (): Promise<LiveStateResponse> => {
   const response = await fetch('/api/live-state')
   if (!response.ok) {
     throw new Error(`Live state request failed with ${response.status}`)
   }
   return response.json()
+}
+
+const loadLeagueDiscovery = async (leagueId: string): Promise<LeagueDiscoveryState> => {
+  const [detailsResponse, elementStatusResponse, playersResponse] = await Promise.all([
+    fetch(`/api/fpl/discovery/league/${leagueId}/raw`),
+    fetch(`/api/fpl/discovery/league/${leagueId}/element-status/raw`),
+    fetch('/api/fpl/discovery/players?limit=1000'),
+  ])
+
+  if (!detailsResponse.ok) {
+    throw new Error(`League request failed with ${detailsResponse.status}`)
+  }
+  if (!elementStatusResponse.ok) {
+    throw new Error(`Element status request failed with ${elementStatusResponse.status}`)
+  }
+  if (!playersResponse.ok) {
+    throw new Error(`Players request failed with ${playersResponse.status}`)
+  }
+
+  return {
+    details: (await detailsResponse.json()) as FplLeagueDetailsRaw,
+    elementStatus: (await elementStatusResponse.json()) as FplElementStatusRaw,
+    players: (await playersResponse.json()) as FplPlayer[],
+  }
 }
 
 const postMockAction = async (action: 'start' | 'advance' | 'reset'): Promise<LiveStateResponse> => {
@@ -95,6 +194,10 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
   const [isStreamConnected, setIsStreamConnected] = useState(false)
+  const [leagueId, setLeagueId] = useState('49824')
+  const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
+  const [leagueError, setLeagueError] = useState<string | null>(null)
+  const [isLeagueLoading, setIsLeagueLoading] = useState(false)
 
   useEffect(() => {
     loadLiveState()
@@ -151,6 +254,25 @@ function App() {
     }
   }
 
+  const inspectLeague = async () => {
+    const normalizedLeagueId = leagueId.trim()
+    if (!normalizedLeagueId) {
+      setLeagueError('Enter a league id.')
+      return
+    }
+
+    setIsLeagueLoading(true)
+    try {
+      const nextDiscovery = await loadLeagueDiscovery(normalizedLeagueId)
+      setLeagueDiscovery(nextDiscovery)
+      setLeagueError(null)
+    } catch (requestError) {
+      setLeagueError(requestError instanceof Error ? requestError.message : 'Unknown league request error')
+    } finally {
+      setIsLeagueLoading(false)
+    }
+  }
+
   if (!liveState || !matchup) {
     return (
       <main className="broadcast-shell loading-shell">
@@ -186,6 +308,39 @@ function App() {
           </small>
         </div>
       </header>
+
+      <section className="league-discovery" aria-label="FPL Draft league discovery">
+        <div className="discovery-form">
+          <div>
+            <span className="kicker">
+              <Database size={16} />
+              FPL Discovery
+            </span>
+            <h2>League Data Check</h2>
+          </div>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void inspectLeague()
+            }}
+          >
+            <label htmlFor="league-id">League ID</label>
+            <input
+              id="league-id"
+              inputMode="numeric"
+              value={leagueId}
+              onChange={(event) => setLeagueId(event.target.value)}
+              placeholder="49824"
+            />
+            <button type="submit" disabled={isLeagueLoading}>
+              <Search size={18} />
+              Load
+            </button>
+          </form>
+        </div>
+        {leagueError && <p className="discovery-error">{leagueError}</p>}
+        {leagueDiscovery ? <LeagueDiscoverySummary discovery={leagueDiscovery} /> : null}
+      </section>
 
       <section className="controls-row" aria-label="Mock broadcast controls">
         <button type="button" onClick={() => runAction('start')} disabled={isBusy}>
@@ -268,6 +423,250 @@ function App() {
         </section>
       </section>
     </main>
+  )
+}
+
+function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscoveryState }) {
+  const [activeTab, setActiveTab] = useState<DiscoveryTab>('teams')
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
+  const { details, elementStatus } = discovery
+  const entries = details.league_entries ?? []
+  const matches = details.matches ?? []
+  const standings = details.standings ?? []
+  const playerStatuses = elementStatus.element_status ?? []
+  const ownedPlayers = playerStatuses.filter((status) => status.owner !== null)
+  const freeAgents = playerStatuses.length - ownedPlayers.length
+  const entryNamesById = new Map(entries.map((entry) => [entry.id, entry.entry_name]))
+  const entryNamesByEntryId = new Map(entries.map((entry) => [entry.entry_id, entry.entry_name]))
+  const playersById = new Map(discovery.players.map((player) => [player.id, player]))
+  const hasCompositions = ownedPlayers.length > 0
+  const hasMatchups = matches.length > 0
+  const hasStandings = standings.length > 0
+  const selectedEntry = entries.find((entry) => entry.entry_id === selectedEntryId) ?? null
+  const selectedPlayers = selectedEntry
+    ? ownedPlayers
+        .filter((status) => status.owner === selectedEntry.entry_id)
+        .map((status) => ({ status, player: playersById.get(status.element) }))
+        .sort((first, second) => {
+          const firstName = first.player?.webName ?? String(first.status.element)
+          const secondName = second.player?.webName ?? String(second.status.element)
+          return firstName.localeCompare(secondName)
+        })
+    : []
+
+  return (
+    <div className="discovery-results">
+      <div className="discovery-title">
+        <div>
+          <h3>{details.league?.name ?? 'Draft League'}</h3>
+          <p>
+            Draft {details.league?.draft_status ?? 'unknown'} · {entries.length} teams · scoring{' '}
+            {details.league?.scoring ?? 'unknown'}
+          </p>
+        </div>
+        <span>{details.league?.id ?? 'Unknown ID'}</span>
+      </div>
+
+      <div className="readiness-grid">
+        <ReadinessItem
+          label="Team compositions"
+          value={hasCompositions ? `${ownedPlayers.length} owned players` : 'Not available yet'}
+          ready={hasCompositions}
+        />
+        <ReadinessItem
+          label="Matchups"
+          value={hasMatchups ? `${matches.length} scheduled` : 'Not prepared yet'}
+          ready={hasMatchups}
+        />
+        <ReadinessItem
+          label="Standings"
+          value={hasStandings ? `${standings.length} rows` : 'Not available yet'}
+          ready={hasStandings}
+        />
+        <ReadinessItem
+          label="Free agents"
+          value={playerStatuses.length > 0 ? `${freeAgents} players` : 'Unknown'}
+          ready={playerStatuses.length > 0}
+        />
+      </div>
+
+      <div className="discovery-tabs" role="tablist" aria-label="League discovery sections">
+        <DiscoveryTabButton activeTab={activeTab} tab="teams" label="Teams" onSelect={setActiveTab} />
+        <DiscoveryTabButton
+          activeTab={activeTab}
+          tab="compositions"
+          label="Compositions"
+          onSelect={setActiveTab}
+        />
+        <DiscoveryTabButton activeTab={activeTab} tab="matchups" label="Matchups" onSelect={setActiveTab} />
+        <DiscoveryTabButton activeTab={activeTab} tab="standings" label="Standings" onSelect={setActiveTab} />
+      </div>
+
+      <div className="discovery-panel">
+        {activeTab === 'teams' && (
+          <section>
+            <h4>Teams Present</h4>
+            <div className="compact-list">
+              {entries.map((entry) => (
+                <button
+                  className="compact-row compact-button"
+                  type="button"
+                  key={entry.id}
+                  onClick={() => {
+                    setSelectedEntryId(entry.entry_id)
+                    setActiveTab('compositions')
+                  }}
+                >
+                  <strong>{entry.entry_name}</strong>
+                  <span>
+                    {entry.player_first_name} {entry.player_last_name} · entry {entry.entry_id} · league entry{' '}
+                    {entry.id}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'compositions' && (
+          <section>
+            <h4>Team Compositions</h4>
+            {!hasCompositions ? (
+              <p className="empty-text compact-empty">No owned players returned by FPL yet.</p>
+            ) : (
+              <div className="composition-layout">
+                <div className="team-picker">
+                  {entries.map((entry) => {
+                    const squadSize = ownedPlayers.filter((status) => status.owner === entry.entry_id).length
+                    return (
+                      <button
+                        type="button"
+                        key={entry.entry_id}
+                        className={selectedEntryId === entry.entry_id ? 'selected-team' : ''}
+                        onClick={() => setSelectedEntryId(entry.entry_id)}
+                      >
+                        <strong>{entry.entry_name}</strong>
+                        <span>{squadSize} players</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="player-composition">
+                  {selectedEntry ? (
+                    <>
+                      <div className="composition-heading">
+                        <strong>{selectedEntry.entry_name}</strong>
+                        <span>{selectedPlayers.length} owned players</span>
+                      </div>
+                      <div className="compact-list">
+                        {selectedPlayers.map(({ status, player }) => (
+                          <div className="compact-row player-composition-row" key={status.element}>
+                            <strong>{player?.webName ?? `Player ${status.element}`}</strong>
+                            <span>
+                              {player?.fullName ?? 'Unknown player'} · {player?.premierLeagueClub ?? 'Unknown club'} ·{' '}
+                              {player?.position ?? 'Unknown position'} · status {status.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="empty-text compact-empty">Select a team to inspect its players.</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'matchups' && (
+          <section>
+            <h4>Matchups</h4>
+            <div className="compact-list">
+              {matches.length === 0 ? (
+                <p className="empty-text compact-empty">No matchups returned by FPL yet.</p>
+              ) : (
+                matches.map((match, index) => {
+                  const firstEntryId = match.league_entry_1 ?? match.firstLeagueEntryId ?? 0
+                  const secondEntryId = match.league_entry_2 ?? match.secondLeagueEntryId ?? 0
+                  const firstPoints = match.league_entry_1_points ?? match.firstPoints ?? 0
+                  const secondPoints = match.league_entry_2_points ?? match.secondPoints ?? 0
+                  return (
+                    <div className="compact-row" key={`${match.event}-${firstEntryId}-${secondEntryId}-${index}`}>
+                      <strong>
+                        GW{match.event}: {entryNamesById.get(firstEntryId) ?? firstEntryId} vs{' '}
+                        {entryNamesById.get(secondEntryId) ?? secondEntryId}
+                      </strong>
+                      <span>
+                        {firstPoints}-{secondPoints} · {match.finished ? 'finished' : 'not finished'}
+                      </span>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'standings' && (
+          <section>
+            <h4>Standings</h4>
+            <div className="standings-table">
+              {standings.length === 0 ? (
+                <p className="empty-text compact-empty">No standings returned by FPL yet.</p>
+              ) : (
+                standings
+                  .slice()
+                  .sort((first, second) => first.rank - second.rank)
+                  .map((standing, index) => {
+                    const entryId = standing.league_entry ?? standing.leagueEntryId ?? 0
+                    const points = standing.total ?? standing.headToHeadPoints ?? 0
+                    const pointsFor = standing.points_for ?? standing.pointsFor ?? 0
+                    return (
+                      <div className="standings-row" key={`${entryId}-${index}`}>
+                        <strong>{standing.rank || index + 1}</strong>
+                        <span>{entryNamesById.get(entryId) ?? entryNamesByEntryId.get(entryId) ?? entryId}</span>
+                        <small>{points} pts</small>
+                        <small>{pointsFor} PF</small>
+                      </div>
+                    )
+                  })
+              )}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DiscoveryTabButton({
+  activeTab,
+  tab,
+  label,
+  onSelect,
+}: {
+  activeTab: DiscoveryTab
+  tab: DiscoveryTab
+  label: string
+  onSelect: (tab: DiscoveryTab) => void
+}) {
+  return (
+    <button type="button" className={activeTab === tab ? 'active-tab' : ''} onClick={() => onSelect(tab)}>
+      {label}
+    </button>
+  )
+}
+
+function ReadinessItem({ label, value, ready }: { label: string; value: string; ready: boolean }) {
+  return (
+    <div className="readiness-item">
+      <span className={ready ? 'ready-dot' : 'waiting-dot'} />
+      <div>
+        <strong>{label}</strong>
+        <small>{value}</small>
+      </div>
+    </div>
   )
 }
 

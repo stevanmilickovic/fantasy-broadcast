@@ -31,8 +31,24 @@ public class FplDraftClient {
 		return getJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details");
 	}
 
+	public JsonNode getLeagueElementStatus(long leagueId) {
+		return getJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/element-status");
+	}
+
+	public JsonNode getLeagueTransactions(long leagueId) {
+		return getJson(properties.getDraftBaseUrl() + "/draft/league/" + leagueId + "/transactions");
+	}
+
 	public JsonNode getDraftChoices(long draftId) {
 		return getJson(properties.getDraftBaseUrl() + "/draft/" + draftId + "/choices");
+	}
+
+	public JsonNode getEntryEvent(long entryId, int eventId) {
+		return getJson(properties.getDraftBaseUrl() + "/entry/" + entryId + "/event/" + eventId);
+	}
+
+	public JsonNode getDraftEventLive(int eventId) {
+		return getJson(properties.getDraftBaseUrl() + "/event/" + eventId + "/live");
 	}
 
 	public JsonNode getFantasyEventLive(int eventId) {
@@ -48,7 +64,11 @@ public class FplDraftClient {
 		try {
 			var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() < 200 || response.statusCode() >= 300) {
-				throw new FplDraftClientException("FPL request failed: " + response.statusCode() + " " + url);
+				throw new FplDraftClientException(
+						"FPL request failed: " + response.statusCode() + " " + url,
+						response.statusCode(),
+						url,
+						preview(response.body()));
 			}
 			return objectMapper.readTree(response.body());
 		}
@@ -59,5 +79,16 @@ public class FplDraftClient {
 			Thread.currentThread().interrupt();
 			throw new FplDraftClientException("FPL request interrupted: " + url, exception);
 		}
+	}
+
+	private String preview(String body) {
+		if (body == null || body.isBlank()) {
+			return "";
+		}
+		var compactBody = body.replaceAll("\\s+", " ").trim();
+		if (compactBody.length() <= 500) {
+			return compactBody;
+		}
+		return compactBody.substring(0, 500);
 	}
 }
