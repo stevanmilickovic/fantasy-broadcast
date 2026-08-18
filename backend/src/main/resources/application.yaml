@@ -1,3 +1,7 @@
 spring:
   application:
     name: backend
+
+fpl:
+  draft-base-url: https://draft.premierleague.com/api
+  fantasy-base-url: https://fantasy.premierleague.com/api

@@ -1,0 +1,40 @@
+{
+  "teams": [
+    {
+      "id": 1,
+      "name": "Arsenal"
+    },
+    {
+      "id": 14,
+      "name": "Liverpool"
+    }
+  ],
+  "element_types": [
+    {
+      "id": 2,
+      "singular_name_short": "DEF"
+    },
+    {
+      "id": 3,
+      "singular_name_short": "MID"
+    }
+  ],
+  "elements": [
+    {
+      "id": 328,
+      "web_name": "Salah",
+      "first_name": "Mohamed",
+      "second_name": "Salah",
+      "team": 14,
+      "element_type": 3
+    },
+    {
+      "id": 3,
+      "web_name": "Saliba",
+      "first_name": "William",
+      "second_name": "Saliba",
+      "team": 1,
+      "element_type": 2
+    }
+  ]
+}

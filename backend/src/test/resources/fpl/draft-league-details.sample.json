@@ -1,0 +1,43 @@
+{
+  "league_entries": [
+    {
+      "id": 101,
+      "entry_id": 9001,
+      "entry_name": "Stevan FC",
+      "player_first_name": "Stevan",
+      "player_last_name": "Petrovic"
+    },
+    {
+      "id": 102,
+      "entry_id": 9002,
+      "entry_name": "Luka Athletic",
+      "player_first_name": "Luka",
+      "player_last_name": "Markovic"
+    }
+  ],
+  "matches": [
+    {
+      "id": 501,
+      "event": 1,
+      "league_entry_1": 101,
+      "league_entry_2": 102,
+      "league_entry_1_points": 39,
+      "league_entry_2_points": 37,
+      "finished": false
+    }
+  ],
+  "standings": [
+    {
+      "league_entry": 101,
+      "rank": 1,
+      "total": 3,
+      "points_for": 39
+    },
+    {
+      "league_entry": 102,
+      "rank": 2,
+      "total": 0,
+      "points_for": 37
+    }
+  ]
+}
