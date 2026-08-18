@@ -60,8 +60,24 @@
 }
 
 .status-panel strong {
+  display: block;
   color: var(--text-strong);
   font-size: 16px;
+}
+
+.status-panel small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stream-on {
+  color: var(--accent);
+}
+
+.stream-off {
+  color: var(--danger);
 }
 
 .controls-row {

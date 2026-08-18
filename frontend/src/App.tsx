@@ -94,6 +94,7 @@ function App() {
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
+  const [isStreamConnected, setIsStreamConnected] = useState(false)
 
   useEffect(() => {
     loadLiveState()
@@ -102,6 +103,27 @@ function App() {
         setError(null)
       })
       .catch((requestError: Error) => setError(requestError.message))
+  }, [])
+
+  useEffect(() => {
+    const events = new EventSource('/api/live-state/stream')
+
+    events.onopen = () => {
+      setIsStreamConnected(true)
+    }
+
+    events.addEventListener('live-state', (event) => {
+      setLiveState(JSON.parse(event.data) as LiveStateResponse)
+      setError(null)
+    })
+
+    events.onerror = () => {
+      setIsStreamConnected(false)
+    }
+
+    return () => {
+      events.close()
+    }
   }, [])
 
   const matchup = liveState?.matchups[0]
@@ -159,6 +181,9 @@ function App() {
           <strong>
             Step {liveState.sequence.currentStep}/{liveState.sequence.totalSteps}
           </strong>
+          <small className={isStreamConnected ? 'stream-on' : 'stream-off'}>
+            {isStreamConnected ? 'Stream connected' : 'Stream reconnecting'}
+          </small>
         </div>
       </header>
 
