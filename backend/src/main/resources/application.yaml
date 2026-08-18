@@ -1,7 +1,26 @@
 spring:
   application:
     name: backend
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration
 
 fpl:
   draft-base-url: https://draft.premierleague.com/api
   fantasy-base-url: https://fantasy.premierleague.com/api
+
+---
+spring:
+  config:
+    activate:
+      on-profile: db
+  autoconfigure:
+    exclude: []
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/stk_broadcast}
+    username: ${DB_USERNAME:stk_broadcast}
+    password: ${DB_PASSWORD:stk_broadcast}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml

@@ -1,0 +1,211 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-service-tables
+      author: codex
+      changes:
+        - createTable:
+            tableName: app_user
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(320)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: display_name
+                  type: VARCHAR(160)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: league
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fpl_league_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: display_name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_user_id
+                  type: BIGINT
+              - column:
+                  name: service_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: league
+            baseColumnNames: owner_user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_league_owner_user
+
+        - createTable:
+            tableName: league_context
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: league_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: context_markdown
+                  type: LONGTEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: league_context
+            baseColumnNames: league_id
+            referencedTableName: league
+            referencedColumnNames: id
+            constraintName: fk_league_context_league
+            onDelete: CASCADE
+
+        - createTable:
+            tableName: subscription
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: league_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: billing_provider
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: billing_customer_id
+                  type: VARCHAR(160)
+              - column:
+                  name: billing_subscription_id
+                  type: VARCHAR(160)
+              - column:
+                  name: plan_code
+                  type: VARCHAR(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ai_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ai_monthly_limit
+                  type: INT
+              - column:
+                  name: current_period_start
+                  type: TIMESTAMP
+              - column:
+                  name: current_period_end
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: subscription
+            baseColumnNames: league_id
+            referencedTableName: league
+            referencedColumnNames: id
+            constraintName: fk_subscription_league
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: subscription
+            indexName: ix_subscription_league_status
+            columns:
+              - column:
+                  name: league_id
+              - column:
+                  name: status
