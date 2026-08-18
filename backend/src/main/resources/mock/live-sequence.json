@@ -1,0 +1,517 @@
+{
+  "snapshots": [
+    {
+      "status": {
+        "mode": "MOCK_PRE_MATCH",
+        "updatedAt": "2026-08-18T13:00:00+02:00",
+        "message": "Mock sequence ready"
+      },
+      "sequence": {
+        "currentStep": 1,
+        "totalSteps": 4,
+        "started": false,
+        "complete": false
+      },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-stevan-luka",
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan",
+            "clubName": "Stevan FC",
+            "shortName": "STE",
+            "color": "#d71920",
+            "score": 4,
+            "activePlayers": [
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              },
+              {
+                "id": "saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka",
+            "clubName": "Luka Athletic",
+            "shortName": "LUK",
+            "color": "#1d4ed8",
+            "score": 5,
+            "activePlayers": [
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 0
+              },
+              {
+                "id": "gabriel",
+                "displayName": "Gabriel Magalhaes",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "mitoma",
+                "displayName": "Kaoru Mitoma",
+                "premierLeagueClub": "Brighton",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "leaderManagerId": "luka",
+          "scoreline": "4-5"
+        }
+      ],
+      "events": [],
+      "commentary": [
+        {
+          "id": "com-001",
+          "createdAt": "2026-08-18T13:00:00+02:00",
+          "text": "The mock broadcast is ready. Stevan and Luka are separated by a single point, with both sides still carrying active players.",
+          "priority": 20,
+          "status": "READY"
+        }
+      ]
+    },
+    {
+      "status": {
+        "mode": "MOCK_LIVE",
+        "updatedAt": "2026-08-18T13:08:20+02:00",
+        "message": "Salah goal applied"
+      },
+      "sequence": {
+        "currentStep": 2,
+        "totalSteps": 4,
+        "started": true,
+        "complete": false
+      },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-stevan-luka",
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan",
+            "clubName": "Stevan FC",
+            "shortName": "STE",
+            "color": "#d71920",
+            "score": 9,
+            "activePlayers": [
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 7,
+                "status": "PLAYING",
+                "recentDelta": 5
+              },
+              {
+                "id": "saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka",
+            "clubName": "Luka Athletic",
+            "shortName": "LUK",
+            "color": "#1d4ed8",
+            "score": 5,
+            "activePlayers": [
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 0
+              },
+              {
+                "id": "gabriel",
+                "displayName": "Gabriel Magalhaes",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "mitoma",
+                "displayName": "Kaoru Mitoma",
+                "premierLeagueClub": "Brighton",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "9-5"
+        }
+      ],
+      "events": [
+        {
+          "id": "evt-001",
+          "occurredAt": "2026-08-18T13:08:20+02:00",
+          "type": "PLAYER_POINT_INCREASE",
+          "managerId": "stevan",
+          "playerId": "salah",
+          "summary": "Mohamed Salah gained 5 points for Stevan.",
+          "pointDelta": 5,
+          "priority": 80
+        },
+        {
+          "id": "evt-002",
+          "occurredAt": "2026-08-18T13:08:20+02:00",
+          "type": "LEAD_CHANGE",
+          "managerId": "stevan",
+          "playerId": "salah",
+          "summary": "Stevan took the lead over Luka, 9-5.",
+          "pointDelta": 0,
+          "priority": 90
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-002",
+          "createdAt": "2026-08-18T13:08:25+02:00",
+          "text": "Salah has flipped the matchup. Stevan jumps from one point behind to four clear, and Luka suddenly has to chase this gameweek.",
+          "priority": 90,
+          "status": "READY"
+        }
+      ]
+    },
+    {
+      "status": {
+        "mode": "MOCK_LIVE",
+        "updatedAt": "2026-08-18T13:26:42+02:00",
+        "message": "Palmer assist applied"
+      },
+      "sequence": {
+        "currentStep": 3,
+        "totalSteps": 4,
+        "started": true,
+        "complete": false
+      },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-stevan-luka",
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan",
+            "clubName": "Stevan FC",
+            "shortName": "STE",
+            "color": "#d71920",
+            "score": 9,
+            "activePlayers": [
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 7,
+                "status": "PLAYING",
+                "recentDelta": 0
+              },
+              {
+                "id": "saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka",
+            "clubName": "Luka Athletic",
+            "shortName": "LUK",
+            "color": "#1d4ed8",
+            "score": 8,
+            "activePlayers": [
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 6,
+                "status": "PLAYING",
+                "recentDelta": 3
+              },
+              {
+                "id": "gabriel",
+                "displayName": "Gabriel Magalhaes",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "PLAYING",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "mitoma",
+                "displayName": "Kaoru Mitoma",
+                "premierLeagueClub": "Brighton",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "9-8"
+        }
+      ],
+      "events": [
+        {
+          "id": "evt-003",
+          "occurredAt": "2026-08-18T13:26:42+02:00",
+          "type": "PLAYER_POINT_INCREASE",
+          "managerId": "luka",
+          "playerId": "palmer",
+          "summary": "Cole Palmer gained 3 points for Luka.",
+          "pointDelta": 3,
+          "priority": 70
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-003",
+          "createdAt": "2026-08-18T13:26:47+02:00",
+          "text": "Luka is right back in it. Palmer's assist cuts the gap to a single point, and this matchup has tightened again.",
+          "priority": 70,
+          "status": "READY"
+        }
+      ]
+    },
+    {
+      "status": {
+        "mode": "MOCK_POST_MATCH",
+        "updatedAt": "2026-08-18T14:50:00+02:00",
+        "message": "Mock sequence complete"
+      },
+      "sequence": {
+        "currentStep": 4,
+        "totalSteps": 4,
+        "started": true,
+        "complete": true
+      },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-stevan-luka",
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan",
+            "clubName": "Stevan FC",
+            "shortName": "STE",
+            "color": "#d71920",
+            "score": 10,
+            "activePlayers": [
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 8,
+                "status": "FINISHED",
+                "recentDelta": 1
+              },
+              {
+                "id": "saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "FINISHED",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka",
+            "clubName": "Luka Athletic",
+            "shortName": "LUK",
+            "color": "#1d4ed8",
+            "score": 8,
+            "activePlayers": [
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 6,
+                "status": "FINISHED",
+                "recentDelta": 0
+              },
+              {
+                "id": "gabriel",
+                "displayName": "Gabriel Magalhaes",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 2,
+                "status": "FINISHED",
+                "recentDelta": 0
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "mitoma",
+                "displayName": "Kaoru Mitoma",
+                "premierLeagueClub": "Brighton",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "NOT_STARTED",
+                "recentDelta": 0
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "10-8"
+        }
+      ],
+      "events": [
+        {
+          "id": "evt-004",
+          "occurredAt": "2026-08-18T14:50:00+02:00",
+          "type": "BONUS_POINT_SWING",
+          "managerId": "stevan",
+          "playerId": "salah",
+          "summary": "Mohamed Salah gained 1 late bonus point for Stevan.",
+          "pointDelta": 1,
+          "priority": 50
+        },
+        {
+          "id": "evt-005",
+          "occurredAt": "2026-08-18T14:50:00+02:00",
+          "type": "MATCHUP_EFFECTIVELY_DECIDED",
+          "managerId": "stevan",
+          "playerId": "salah",
+          "summary": "Stevan leads Luka 10-8 as the mock sequence ends.",
+          "pointDelta": 0,
+          "priority": 75
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-004",
+          "createdAt": "2026-08-18T14:50:05+02:00",
+          "text": "A late Salah bonus point gives Stevan breathing room. Luka made it uncomfortable, but Stevan finishes this mock run two points clear.",
+          "priority": 75,
+          "status": "READY"
+        }
+      ]
+    }
+  ]
+}
