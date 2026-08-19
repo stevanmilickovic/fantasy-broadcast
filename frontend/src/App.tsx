@@ -351,6 +351,32 @@ const playerCardName = (player: PlayerView): [string, string] => {
   return player.shortName ? [player.shortName, ''] : splitPlayerName(player.displayName)
 }
 
+const generatedTeamShortName = (teamName: string): string => {
+  const fillerWords = new Set(['OF', 'THE'])
+  const words = teamName
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .match(/[A-Z0-9]+/g) ?? []
+  const meaningfulWords = words.filter((word) => !fillerWords.has(word))
+
+  if (meaningfulWords.length === 0) {
+    return 'TBD'
+  }
+
+  if (meaningfulWords.length === 1) {
+    return meaningfulWords[0].slice(0, 3).padEnd(3, meaningfulWords[0][0])
+  }
+
+  if (meaningfulWords.length === 2) {
+    return `${meaningfulWords[0][0]}${meaningfulWords[1].slice(0, 2)}`.slice(0, 3)
+  }
+
+  return meaningfulWords.slice(0, 3).map((word) => word[0]).join('')
+}
+
+const teamShortName = (team: TeamView): string => generatedTeamShortName(team.clubName)
+
 function App() {
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -1039,7 +1065,7 @@ function MatchSelectorChip({
       type="button"
       onClick={onSelect}
     >
-      <span className="match-chip-team">{matchup.home.shortName}</span>
+      <span className="match-chip-team">{teamShortName(matchup.home)}</span>
       <MatchChipScore
         changed={homeChanged}
         delta={homeChanged && latestEvent ? latestEvent.pointDelta : 0}
@@ -1055,7 +1081,7 @@ function MatchSelectorChip({
         score={matchup.away.score}
         side="right"
       />
-      <span className="match-chip-team">{matchup.away.shortName}</span>
+      <span className="match-chip-team">{teamShortName(matchup.away)}</span>
     </button>
   )
 }
@@ -1144,7 +1170,7 @@ function BroadcastTeamColumn({
   return (
     <section className={`broadcast-team-column ${side}`} style={teamStyle}>
       <div className="broadcast-team-heading">
-        <span>{team.shortName}</span>
+        <span>{teamShortName(team)}</span>
         <h2 ref={headingRef}>{team.clubName}</h2>
         <p>{team.displayName}</p>
         <strong className={isLeader ? '' : 'leader-placeholder'}>Leading</strong>
