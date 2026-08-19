@@ -1,517 +1,273 @@
 {
   "snapshots": [
     {
-      "status": {
-        "mode": "MOCK_PRE_MATCH",
-        "updatedAt": "2026-08-18T13:00:00+02:00",
-        "message": "Mock sequence ready"
-      },
-      "sequence": {
-        "currentStep": 1,
-        "totalSteps": 4,
-        "started": false,
-        "complete": false
-      },
+      "status": { "mode": "MATCHDAY_READY", "updatedAt": "2026-08-22T13:00:00+02:00", "message": "Mock matchday ready. Two Draft matchups are kicking off." },
+      "sequence": { "currentStep": 1, "totalSteps": 6, "started": false, "complete": false },
       "gameweek": 1,
       "matchups": [
         {
-          "id": "gw1-stevan-luka",
-          "home": {
-            "managerId": "stevan",
-            "displayName": "Stevan",
-            "clubName": "Stevan FC",
-            "shortName": "STE",
-            "color": "#d71920",
-            "score": 4,
+          "id": "gw1-red-blue",
+          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 0,
             "activePlayers": [
-              {
-                "id": "salah",
-                "displayName": "Mohamed Salah",
-                "premierLeagueClub": "Liverpool",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              },
-              {
-                "id": "saliba",
-                "displayName": "William Saliba",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              }
+              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
             ],
             "benchPlayers": [
-              {
-                "id": "watkins",
-                "displayName": "Ollie Watkins",
-                "premierLeagueClub": "Aston Villa",
-                "position": "FWD",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "away": {
-            "managerId": "luka",
-            "displayName": "Luka",
-            "clubName": "Luka Athletic",
-            "shortName": "LUK",
-            "color": "#1d4ed8",
-            "score": 5,
+              { "id": "raya", "displayName": "David Raya", "premierLeagueClub": "Arsenal", "position": "GKP", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
+              { "id": "rice", "displayName": "Declan Rice", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
+            ] },
+          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
             "activePlayers": [
-              {
-                "id": "palmer",
-                "displayName": "Cole Palmer",
-                "premierLeagueClub": "Chelsea",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 3,
-                "status": "PLAYING",
-                "recentDelta": 0
-              },
-              {
-                "id": "gabriel",
-                "displayName": "Gabriel Magalhaes",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              }
+              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
             ],
             "benchPlayers": [
-              {
-                "id": "mitoma",
-                "displayName": "Kaoru Mitoma",
-                "premierLeagueClub": "Brighton",
-                "position": "MID",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "leaderManagerId": "luka",
-          "scoreline": "4-5"
+              { "id": "gakpo", "displayName": "Cody Gakpo", "premierLeagueClub": "Liverpool", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
+              { "id": "szoboszlai", "displayName": "Dominik Szoboszlai", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
+            ] },
+          "leaderManagerId": "", "scoreline": "0-0"
+        },
+        {
+          "id": "gw1-north-riverside",
+          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 0,
+            "activePlayers": [
+              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ],
+            "benchPlayers": [
+              { "id": "jackson", "displayName": "Nicolas Jackson", "premierLeagueClub": "Chelsea", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
+            ] },
+          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 0,
+            "activePlayers": [
+              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ],
+            "benchPlayers": [
+              { "id": "son", "displayName": "Heung-Min Son", "premierLeagueClub": "Tottenham Hotspur", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
+            ] },
+          "leaderManagerId": "", "scoreline": "0-0"
         }
       ],
       "events": [],
-      "commentary": [
-        {
-          "id": "com-001",
-          "createdAt": "2026-08-18T13:00:00+02:00",
-          "text": "The mock broadcast is ready. Stevan and Luka are separated by a single point, with both sides still carrying active players.",
-          "priority": 20,
-          "status": "READY"
-        }
-      ]
+      "commentary": [{ "id": "com-001", "createdAt": "2026-08-22T13:00:00+02:00", "text": "The mock matchday has kicked off with two Draft fixtures live at the same time.", "priority": 20, "status": "READY" }]
     },
     {
-      "status": {
-        "mode": "MOCK_LIVE",
-        "updatedAt": "2026-08-18T13:08:20+02:00",
-        "message": "Salah goal applied"
-      },
-      "sequence": {
-        "currentStep": 2,
-        "totalSteps": 4,
-        "started": true,
-        "complete": false
-      },
+      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:05+02:00", "message": "Saka goal detected from mock FPL poll." },
+      "sequence": { "currentStep": 2, "totalSteps": 6, "started": true, "complete": false },
       "gameweek": 1,
       "matchups": [
         {
-          "id": "gw1-stevan-luka",
-          "home": {
-            "managerId": "stevan",
-            "displayName": "Stevan",
-            "clubName": "Stevan FC",
-            "shortName": "STE",
-            "color": "#d71920",
-            "score": 9,
+          "id": "gw1-red-blue",
+          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
             "activePlayers": [
-              {
-                "id": "salah",
-                "displayName": "Mohamed Salah",
-                "premierLeagueClub": "Liverpool",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 7,
-                "status": "PLAYING",
-                "recentDelta": 5
-              },
-              {
-                "id": "saliba",
-                "displayName": "William Saliba",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              }
-            ],
-            "benchPlayers": [
-              {
-                "id": "watkins",
-                "displayName": "Ollie Watkins",
-                "premierLeagueClub": "Aston Villa",
-                "position": "FWD",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "away": {
-            "managerId": "luka",
-            "displayName": "Luka",
-            "clubName": "Luka Athletic",
-            "shortName": "LUK",
-            "color": "#1d4ed8",
-            "score": 5,
+              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 5 },
+              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [
+              { "id": "raya", "displayName": "David Raya", "premierLeagueClub": "Arsenal", "position": "GKP", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
+              { "id": "rice", "displayName": "Declan Rice", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
+            ] },
+          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
             "activePlayers": [
-              {
-                "id": "palmer",
-                "displayName": "Cole Palmer",
-                "premierLeagueClub": "Chelsea",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 3,
-                "status": "PLAYING",
-                "recentDelta": 0
-              },
-              {
-                "id": "gabriel",
-                "displayName": "Gabriel Magalhaes",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              }
-            ],
-            "benchPlayers": [
-              {
-                "id": "mitoma",
-                "displayName": "Kaoru Mitoma",
-                "premierLeagueClub": "Brighton",
-                "position": "MID",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "leaderManagerId": "stevan",
-          "scoreline": "9-5"
-        }
-      ],
-      "events": [
-        {
-          "id": "evt-001",
-          "occurredAt": "2026-08-18T13:08:20+02:00",
-          "type": "PLAYER_POINT_INCREASE",
-          "managerId": "stevan",
-          "playerId": "salah",
-          "summary": "Mohamed Salah gained 5 points for Stevan.",
-          "pointDelta": 5,
-          "priority": 80
+              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [
+              { "id": "gakpo", "displayName": "Cody Gakpo", "premierLeagueClub": "Liverpool", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
+              { "id": "szoboszlai", "displayName": "Dominik Szoboszlai", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
+            ] },
+          "leaderManagerId": "stevan", "scoreline": "5-0"
         },
         {
-          "id": "evt-002",
-          "occurredAt": "2026-08-18T13:08:20+02:00",
-          "type": "LEAD_CHANGE",
-          "managerId": "stevan",
-          "playerId": "salah",
-          "summary": "Stevan took the lead over Luka, 9-5.",
-          "pointDelta": 0,
-          "priority": 90
+          "id": "gw1-north-riverside",
+          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 0,
+            "activePlayers": [
+              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 0,
+            "activePlayers": [
+              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "", "scoreline": "0-0"
         }
       ],
-      "commentary": [
-        {
-          "id": "com-002",
-          "createdAt": "2026-08-18T13:08:25+02:00",
-          "text": "Salah has flipped the matchup. Stevan jumps from one point behind to four clear, and Luka suddenly has to chase this gameweek.",
-          "priority": 90,
-          "status": "READY"
-        }
-      ]
+      "events": [{ "id": "evt-001", "occurredAt": "2026-08-22T13:00:05+02:00", "type": "GOAL", "managerId": "stevan", "playerId": "saka", "summary": "Bukayo Saka scores for Arsenal and gives Red Star Draft five points.", "pointDelta": 5, "priority": 90 }],
+      "commentary": [{ "id": "com-002", "createdAt": "2026-08-22T13:00:05+02:00", "text": "Saka strikes first. Red Star Draft jump ahead through Stevan's midfielder.", "priority": 90, "status": "READY" }]
     },
     {
-      "status": {
-        "mode": "MOCK_LIVE",
-        "updatedAt": "2026-08-18T13:26:42+02:00",
-        "message": "Palmer assist applied"
-      },
-      "sequence": {
-        "currentStep": 3,
-        "totalSteps": 4,
-        "started": true,
-        "complete": false
-      },
+      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:10+02:00", "message": "Palmer assist detected on the other matchup." },
+      "sequence": { "currentStep": 3, "totalSteps": 6, "started": true, "complete": false },
       "gameweek": 1,
       "matchups": [
         {
-          "id": "gw1-stevan-luka",
-          "home": {
-            "managerId": "stevan",
-            "displayName": "Stevan",
-            "clubName": "Stevan FC",
-            "shortName": "STE",
-            "color": "#d71920",
-            "score": 9,
+          "id": "gw1-red-blue",
+          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
             "activePlayers": [
-              {
-                "id": "salah",
-                "displayName": "Mohamed Salah",
-                "premierLeagueClub": "Liverpool",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 7,
-                "status": "PLAYING",
-                "recentDelta": 0
-              },
-              {
-                "id": "saliba",
-                "displayName": "William Saliba",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              }
-            ],
-            "benchPlayers": [
-              {
-                "id": "watkins",
-                "displayName": "Ollie Watkins",
-                "premierLeagueClub": "Aston Villa",
-                "position": "FWD",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "away": {
-            "managerId": "luka",
-            "displayName": "Luka",
-            "clubName": "Luka Athletic",
-            "shortName": "LUK",
-            "color": "#1d4ed8",
-            "score": 8,
+              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
             "activePlayers": [
-              {
-                "id": "palmer",
-                "displayName": "Cole Palmer",
-                "premierLeagueClub": "Chelsea",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 6,
-                "status": "PLAYING",
-                "recentDelta": 3
-              },
-              {
-                "id": "gabriel",
-                "displayName": "Gabriel Magalhaes",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "PLAYING",
-                "recentDelta": 0
-              }
-            ],
-            "benchPlayers": [
-              {
-                "id": "mitoma",
-                "displayName": "Kaoru Mitoma",
-                "premierLeagueClub": "Brighton",
-                "position": "MID",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "leaderManagerId": "stevan",
-          "scoreline": "9-8"
-        }
-      ],
-      "events": [
-        {
-          "id": "evt-003",
-          "occurredAt": "2026-08-18T13:26:42+02:00",
-          "type": "PLAYER_POINT_INCREASE",
-          "managerId": "luka",
-          "playerId": "palmer",
-          "summary": "Cole Palmer gained 3 points for Luka.",
-          "pointDelta": 3,
-          "priority": 70
-        }
-      ],
-      "commentary": [
-        {
-          "id": "com-003",
-          "createdAt": "2026-08-18T13:26:47+02:00",
-          "text": "Luka is right back in it. Palmer's assist cuts the gap to a single point, and this matchup has tightened again.",
-          "priority": 70,
-          "status": "READY"
-        }
-      ]
-    },
-    {
-      "status": {
-        "mode": "MOCK_POST_MATCH",
-        "updatedAt": "2026-08-18T14:50:00+02:00",
-        "message": "Mock sequence complete"
-      },
-      "sequence": {
-        "currentStep": 4,
-        "totalSteps": 4,
-        "started": true,
-        "complete": true
-      },
-      "gameweek": 1,
-      "matchups": [
-        {
-          "id": "gw1-stevan-luka",
-          "home": {
-            "managerId": "stevan",
-            "displayName": "Stevan",
-            "clubName": "Stevan FC",
-            "shortName": "STE",
-            "color": "#d71920",
-            "score": 10,
-            "activePlayers": [
-              {
-                "id": "salah",
-                "displayName": "Mohamed Salah",
-                "premierLeagueClub": "Liverpool",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 8,
-                "status": "FINISHED",
-                "recentDelta": 1
-              },
-              {
-                "id": "saliba",
-                "displayName": "William Saliba",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "FINISHED",
-                "recentDelta": 0
-              }
-            ],
-            "benchPlayers": [
-              {
-                "id": "watkins",
-                "displayName": "Ollie Watkins",
-                "premierLeagueClub": "Aston Villa",
-                "position": "FWD",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "away": {
-            "managerId": "luka",
-            "displayName": "Luka",
-            "clubName": "Luka Athletic",
-            "shortName": "LUK",
-            "color": "#1d4ed8",
-            "score": 8,
-            "activePlayers": [
-              {
-                "id": "palmer",
-                "displayName": "Cole Palmer",
-                "premierLeagueClub": "Chelsea",
-                "position": "MID",
-                "lineupSlot": "ACTIVE",
-                "points": 6,
-                "status": "FINISHED",
-                "recentDelta": 0
-              },
-              {
-                "id": "gabriel",
-                "displayName": "Gabriel Magalhaes",
-                "premierLeagueClub": "Arsenal",
-                "position": "DEF",
-                "lineupSlot": "ACTIVE",
-                "points": 2,
-                "status": "FINISHED",
-                "recentDelta": 0
-              }
-            ],
-            "benchPlayers": [
-              {
-                "id": "mitoma",
-                "displayName": "Kaoru Mitoma",
-                "premierLeagueClub": "Brighton",
-                "position": "MID",
-                "lineupSlot": "BENCH",
-                "points": 0,
-                "status": "NOT_STARTED",
-                "recentDelta": 0
-              }
-            ]
-          },
-          "leaderManagerId": "stevan",
-          "scoreline": "10-8"
-        }
-      ],
-      "events": [
-        {
-          "id": "evt-004",
-          "occurredAt": "2026-08-18T14:50:00+02:00",
-          "type": "BONUS_POINT_SWING",
-          "managerId": "stevan",
-          "playerId": "salah",
-          "summary": "Mohamed Salah gained 1 late bonus point for Stevan.",
-          "pointDelta": 1,
-          "priority": 50
+              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "stevan", "scoreline": "5-0"
         },
         {
-          "id": "evt-005",
-          "occurredAt": "2026-08-18T14:50:00+02:00",
-          "type": "MATCHUP_EFFECTIVELY_DECIDED",
-          "managerId": "stevan",
-          "playerId": "salah",
-          "summary": "Stevan leads Luka 10-8 as the mock sequence ends.",
-          "pointDelta": 0,
-          "priority": 75
+          "id": "gw1-north-riverside",
+          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+            "activePlayers": [
+              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 3 },
+              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 0,
+            "activePlayers": [
+              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "marko", "scoreline": "3-0"
         }
       ],
-      "commentary": [
+      "events": [{ "id": "evt-002", "occurredAt": "2026-08-22T13:00:10+02:00", "type": "ASSIST", "managerId": "marko", "playerId": "palmer", "summary": "Cole Palmer assists and adds three points for North Bank FC.", "pointDelta": 3, "priority": 70 }],
+      "commentary": [{ "id": "com-003", "createdAt": "2026-08-22T13:00:10+02:00", "text": "The broadcast jumps across to North Bank FC, where Palmer has opened Marko's account with an assist.", "priority": 70, "status": "READY" }]
+    },
+    {
+      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:15+02:00", "message": "Haaland goal and lead change detected." },
+      "sequence": { "currentStep": 4, "totalSteps": 6, "started": true, "complete": false },
+      "gameweek": 1,
+      "matchups": [
         {
-          "id": "com-004",
-          "createdAt": "2026-08-18T14:50:05+02:00",
-          "text": "A late Salah bonus point gives Stevan breathing room. Luka made it uncomfortable, but Stevan finishes this mock run two points clear.",
-          "priority": 75,
-          "status": "READY"
+          "id": "gw1-red-blue",
+          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
+            "activePlayers": [
+              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
+            "activePlayers": [
+              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "stevan", "scoreline": "5-0"
+        },
+        {
+          "id": "gw1-north-riverside",
+          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+            "activePlayers": [
+              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 4,
+            "activePlayers": [
+              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 4, "status": "PLAYING", "recentDelta": 4 },
+              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "nikola", "scoreline": "3-4"
         }
-      ]
+      ],
+      "events": [
+        { "id": "evt-003", "occurredAt": "2026-08-22T13:00:15+02:00", "type": "GOAL", "managerId": "nikola", "playerId": "haaland", "summary": "Erling Haaland scores and gives Riverside Rovers four points.", "pointDelta": 4, "priority": 90 },
+        { "id": "evt-004", "occurredAt": "2026-08-22T13:00:15+02:00", "type": "LEAD_CHANGE", "managerId": "nikola", "playerId": "haaland", "summary": "Riverside Rovers move ahead of North Bank FC, 4-3.", "pointDelta": 0, "priority": 95 }
+      ],
+      "commentary": [{ "id": "com-004", "createdAt": "2026-08-22T13:00:15+02:00", "text": "Haaland answers immediately, and Riverside Rovers have turned that second matchup around.", "priority": 95, "status": "READY" }]
+    },
+    {
+      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:20+02:00", "message": "Salah yellow card detected on the first matchup." },
+      "sequence": { "currentStep": 5, "totalSteps": 6, "started": true, "complete": false },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-red-blue",
+          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
+            "activePlayers": [
+              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": -1,
+            "activePlayers": [
+              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": -1, "status": "PLAYING", "recentDelta": -1 },
+              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "stevan", "scoreline": "5--1"
+        },
+        {
+          "id": "gw1-north-riverside",
+          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+            "activePlayers": [
+              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 4,
+            "activePlayers": [
+              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 4, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "nikola", "scoreline": "3-4"
+        }
+      ],
+      "events": [{ "id": "evt-005", "occurredAt": "2026-08-22T13:00:20+02:00", "type": "YELLOW_CARD", "managerId": "luka", "playerId": "salah", "summary": "Mohamed Salah is booked and loses one point for Blue Moon XI.", "pointDelta": -1, "priority": 60 }],
+      "commentary": [{ "id": "com-005", "createdAt": "2026-08-22T13:00:20+02:00", "text": "Back to the first matchup, where Salah's booking pushes Blue Moon XI into negative territory.", "priority": 60, "status": "READY" }]
+    },
+    {
+      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:25+02:00", "message": "Foden assist detected. Mock sequence complete." },
+      "sequence": { "currentStep": 6, "totalSteps": 6, "started": true, "complete": true },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-red-blue",
+          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
+            "activePlayers": [
+              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": -1,
+            "activePlayers": [
+              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": -1, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "stevan", "scoreline": "5--1"
+        },
+        {
+          "id": "gw1-north-riverside",
+          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+            "activePlayers": [
+              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 7,
+            "activePlayers": [
+              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 4, "status": "PLAYING", "recentDelta": 0 },
+              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 3 },
+              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+            ], "benchPlayers": [] },
+          "leaderManagerId": "nikola", "scoreline": "3-7"
+        }
+      ],
+      "events": [{ "id": "evt-006", "occurredAt": "2026-08-22T13:00:25+02:00", "type": "ASSIST", "managerId": "nikola", "playerId": "foden", "summary": "Phil Foden assists and adds three more points for Riverside Rovers.", "pointDelta": 3, "priority": 70 }],
+      "commentary": [{ "id": "com-006", "createdAt": "2026-08-22T13:00:25+02:00", "text": "Foden adds the next swing, and Riverside Rovers now have the clearest early advantage on the board.", "priority": 70, "status": "READY" }]
     }
   ]
 }

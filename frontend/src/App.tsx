@@ -1,6 +1,6 @@
-import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward, Trophy } from 'lucide-react'
-import type { CSSProperties } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { Activity, ArrowLeft, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward, Trophy } from 'lucide-react'
+import type { CSSProperties, RefObject } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './App.css'
 
 type SequenceState = {
@@ -198,6 +198,24 @@ type LeagueDiscoveryState = {
 }
 
 type DiscoveryTab = 'teams' | 'compositions' | 'matchups' | 'standings'
+type AppView = 'setup' | 'broadcast'
+type RevealRect = {
+  left: number
+  top: number
+  width: number
+  height: number
+  revealX: number
+  revealY: number
+}
+type RevealLayout = {
+  home: RevealRect
+  away: RevealRect
+  score: RevealRect
+}
+
+const SCENE_WIPE_MS = 1600
+const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
+const MATCH_REVEAL_MS = 1900
 
 const loadLiveState = async (): Promise<LiveStateResponse> => {
   const response = await fetch('/api/live-state')
@@ -247,6 +265,58 @@ const postMockAction = async (action: 'start' | 'advance' | 'reset'): Promise<Li
   return response.json()
 }
 
+const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView | undefined => {
+  if (!state) {
+    return undefined
+  }
+
+  const latestEvent = state.events[0]
+  return latestEvent
+    ? state.matchups.find((candidate) =>
+        [candidate.home.managerId, candidate.away.managerId].includes(latestEvent.managerId),
+      ) ?? state.matchups[0]
+    : state.matchups[0]
+}
+
+const formatScoreline = (scoreline: string): string => {
+  const scoreMatch = scoreline.match(/^(-?\d+)-(-?\d+)$/)
+  if (!scoreMatch) {
+    return scoreline
+  }
+
+  const firstScore = Number(scoreMatch[1])
+  const secondScore = Number(scoreMatch[2])
+  return firstScore < 0 || secondScore < 0 ? `${firstScore} to ${secondScore}` : `${firstScore}-${secondScore}`
+}
+
+const toRevealRect = (rect: DOMRect, startCenterX: number): RevealRect => ({
+  left: rect.left,
+  top: rect.top,
+  width: rect.width,
+  height: rect.height,
+  revealX: startCenterX - (rect.left + rect.width / 2),
+  revealY: window.innerHeight / 2 - (rect.top + rect.height / 2),
+})
+
+const toScoreRevealRect = (rect: DOMRect): RevealRect => ({
+  left: rect.left,
+  top: rect.top,
+  width: rect.width,
+  height: rect.height,
+  revealX: window.innerWidth / 2 - (rect.left + rect.width / 2),
+  revealY: window.innerHeight / 2 - (rect.top + rect.height / 2),
+})
+
+const revealCopyStyle = (rect: RevealRect, scale: number): CSSProperties & Record<string, string | number> => ({
+  left: rect.left,
+  top: rect.top,
+  width: rect.width,
+  height: rect.height,
+  '--reveal-x': `${rect.revealX}px`,
+  '--reveal-y': `${rect.revealY}px`,
+  '--reveal-scale': scale,
+})
+
 function App() {
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -256,6 +326,17 @@ function App() {
   const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
   const [leagueError, setLeagueError] = useState<string | null>(null)
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
+  const [appView, setAppView] = useState<AppView>('setup')
+  const [broadcastLiveState, setBroadcastLiveState] = useState<LiveStateResponse | null>(null)
+  const [transitioningToMatch, setTransitioningToMatch] = useState(false)
+  const [revealingMatch, setRevealingMatch] = useState(false)
+  const [revealLayout, setRevealLayout] = useState<RevealLayout | null>(null)
+  const [visibleEventId, setVisibleEventId] = useState<string | null>(null)
+  const lastFocusedMatchupIdRef = useRef<string | null>(null)
+  const transitionTimersRef = useRef<number[]>([])
+  const homeHeadingRef = useRef<HTMLHeadingElement>(null)
+  const awayHeadingRef = useRef<HTMLHeadingElement>(null)
+  const scoreRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     loadLiveState()
@@ -287,23 +368,98 @@ function App() {
     }
   }, [])
 
-  const matchup = liveState?.matchups[0]
-  const latestCommentary = liveState?.commentary[0]
-  const allPlayers = useMemo(() => {
-    if (!matchup) {
-      return []
+  const clearTransitionTimers = () => {
+    transitionTimersRef.current.forEach((timer) => window.clearTimeout(timer))
+    transitionTimersRef.current = []
+  }
+
+  const targetLatestEvent = liveState?.events[0]
+  const targetMatchup = findFocusedMatchup(liveState)
+  const focusedMatchupId = targetMatchup?.id ?? null
+
+  useEffect(() => {
+    clearTransitionTimers()
+
+    if (!liveState || !focusedMatchupId || appView !== 'broadcast') {
+      lastFocusedMatchupIdRef.current = null
+      setBroadcastLiveState(liveState)
+      setTransitioningToMatch(false)
+      setRevealingMatch(false)
+      setRevealLayout(null)
+      setVisibleEventId(targetLatestEvent?.id ?? null)
+      return
     }
-    return [
-      ...matchup.home.activePlayers.map((player) => ({ ...player, managerName: matchup.home.displayName })),
-      ...matchup.away.activePlayers.map((player) => ({ ...player, managerName: matchup.away.displayName })),
-    ]
-  }, [matchup])
+
+    const previousFocusedMatchupId = lastFocusedMatchupIdRef.current
+    const firstBroadcastFocus = previousFocusedMatchupId === null
+    const focusChanged = previousFocusedMatchupId !== null && previousFocusedMatchupId !== focusedMatchupId
+    lastFocusedMatchupIdRef.current = focusedMatchupId
+
+    if (firstBroadcastFocus) {
+      setBroadcastLiveState(liveState)
+      setVisibleEventId(null)
+      setTransitioningToMatch(false)
+      setRevealLayout(null)
+      setRevealingMatch(true)
+      const revealTimer = window.setTimeout(() => {
+        setRevealingMatch(false)
+        setVisibleEventId(targetLatestEvent?.id ?? null)
+      }, MATCH_REVEAL_MS)
+      transitionTimersRef.current = [revealTimer]
+      return clearTransitionTimers
+    }
+
+    if (focusChanged) {
+      setVisibleEventId(null)
+      setTransitioningToMatch(true)
+      setRevealingMatch(false)
+      const swapTimer = window.setTimeout(() => {
+        setBroadcastLiveState(liveState)
+        setRevealLayout(null)
+        setRevealingMatch(true)
+      }, SCENE_SWAP_MS)
+      const endTimer = window.setTimeout(() => {
+        setTransitioningToMatch(false)
+      }, SCENE_WIPE_MS)
+      const revealTimer = window.setTimeout(() => {
+        setRevealingMatch(false)
+        setVisibleEventId(targetLatestEvent?.id ?? null)
+      }, SCENE_SWAP_MS + MATCH_REVEAL_MS)
+      transitionTimersRef.current = [swapTimer, endTimer, revealTimer]
+      return clearTransitionTimers
+    }
+
+    setBroadcastLiveState(liveState)
+    setTransitioningToMatch(false)
+    setRevealingMatch(false)
+    setVisibleEventId(targetLatestEvent?.id ?? null)
+
+    return clearTransitionTimers
+  }, [appView, focusedMatchupId, targetLatestEvent?.id])
+
+  useLayoutEffect(() => {
+    if (appView !== 'broadcast' || !homeHeadingRef.current || !awayHeadingRef.current || !scoreRef.current) {
+      return
+    }
+
+    setRevealLayout({
+      home: toRevealRect(homeHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.27),
+      score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
+      away: toRevealRect(awayHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.73),
+    })
+  }, [appView, focusedMatchupId, broadcastLiveState])
 
   const runAction = async (action: 'start' | 'advance' | 'reset') => {
     setIsBusy(true)
     try {
       const nextState = await postMockAction(action)
       setLiveState(nextState)
+      if (action === 'start') {
+        setAppView('broadcast')
+      }
+      if (action === 'reset') {
+        setAppView('setup')
+      }
       setError(null)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unknown request error')
@@ -345,7 +501,7 @@ function App() {
     }
   }
 
-  if (!liveState || !matchup) {
+  if (!liveState || !targetMatchup) {
     return (
       <main className="broadcast-shell loading-shell">
         <div>
@@ -357,8 +513,67 @@ function App() {
     )
   }
 
+  const displayLiveState = appView === 'broadcast' ? broadcastLiveState ?? liveState : liveState
+  const displayLatestEvent = displayLiveState.events[0]
+  const matchup = findFocusedMatchup(displayLiveState) ?? targetMatchup
+  const latestCommentary = displayLiveState.commentary[0]
   const leaderName =
-    matchup.leaderManagerId === matchup.home.managerId ? matchup.home.displayName : matchup.away.displayName
+    matchup.leaderManagerId === matchup.home.managerId
+      ? matchup.home.displayName
+      : matchup.leaderManagerId === matchup.away.managerId
+        ? matchup.away.displayName
+        : 'No one'
+
+  if (appView === 'broadcast') {
+    const displayEvent = visibleEventId === displayLatestEvent?.id ? displayLatestEvent : undefined
+
+    return (
+      <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`}>
+        {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
+        {revealingMatch && <MatchReveal layout={revealLayout} matchup={matchup} />}
+        <button className="floating-back" type="button" onClick={() => setAppView('setup')}>
+          <ArrowLeft size={18} />
+          Back
+        </button>
+        <div className="live-indicator">
+          <Radio size={16} />
+          <span>Live</span>
+        </div>
+
+        <section className="matchday-stage" aria-label="Focused matchup broadcast">
+          <BroadcastTeamColumn
+            side="left"
+            team={matchup.home}
+            latestEvent={displayEvent}
+            isLeader={matchup.leaderManagerId === matchup.home.managerId}
+            headingRef={homeHeadingRef}
+          />
+          <MatchPitch
+            gameweek={displayLiveState.gameweek}
+            scoreline={matchup.scoreline}
+            leaderName={leaderName}
+            latestEvent={displayEvent}
+            scoreRef={scoreRef}
+          />
+          <BroadcastTeamColumn
+            side="right"
+            team={matchup.away}
+            latestEvent={displayEvent}
+            isLeader={matchup.leaderManagerId === matchup.away.managerId}
+            headingRef={awayHeadingRef}
+          />
+        </section>
+
+        <section className="panel commentary-panel">
+          <div className="panel-heading">
+            <h2>Now On Air</h2>
+            <span>{latestCommentary?.status ?? 'WAITING'}</span>
+          </div>
+          <blockquote>{latestCommentary?.text ?? 'Waiting for commentary.'}</blockquote>
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="broadcast-shell">
@@ -368,7 +583,7 @@ function App() {
             <Radio size={16} />
             Gameweek {liveState.gameweek}
           </span>
-          <h1>Seks Telecom League</h1>
+          <h1>Draft Broadcast</h1>
         </div>
         <div className="status-panel">
           <span>{liveState.status.mode}</span>
@@ -423,6 +638,12 @@ function App() {
           <Activity size={18} />
           Start
         </button>
+        {liveState.sequence.started && !liveState.sequence.complete && (
+          <button type="button" onClick={() => setAppView('broadcast')} disabled={isBusy}>
+            <Radio size={18} />
+            Live
+          </button>
+        )}
         <button type="button" onClick={() => runAction('advance')} disabled={isBusy || liveState.sequence.complete}>
           <SkipForward size={18} />
           Advance
@@ -432,71 +653,6 @@ function App() {
           Reset
         </button>
         <p>{error ? error : liveState.status.message}</p>
-      </section>
-
-      <section className="scoreboard" aria-label="Current matchup">
-        <TeamScore team={matchup.home} isLeader={matchup.leaderManagerId === matchup.home.managerId} />
-        <div className="versus">
-          <span>VS</span>
-          <strong>{matchup.scoreline}</strong>
-          <small>
-            <Trophy size={14} />
-            {leaderName} leads
-          </small>
-        </div>
-        <TeamScore team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} />
-      </section>
-
-      <section className="content-grid">
-        <section className="panel">
-          <div className="panel-heading">
-            <h2>Live Players</h2>
-            <span>{allPlayers.length} active</span>
-          </div>
-          <div className="player-list">
-            {allPlayers.map((player) => (
-              <div className="player-row" key={`${player.managerName}-${player.id}`}>
-                <div>
-                  <strong>{player.displayName}</strong>
-                  <span>
-                    {player.managerName} · {player.premierLeagueClub} · {player.position}
-                  </span>
-                </div>
-                <div className="points-cell">
-                  {player.recentDelta > 0 && <span className="delta">+{player.recentDelta}</span>}
-                  <strong>{player.points}</strong>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="panel-heading">
-            <h2>Recent Events</h2>
-            <span>{liveState.events.length}</span>
-          </div>
-          <div className="event-list">
-            {liveState.events.length === 0 ? (
-              <p className="empty-text">No fantasy events yet.</p>
-            ) : (
-              liveState.events.map((event) => (
-                <article className="event-row" key={event.id}>
-                  <span>{event.type.replaceAll('_', ' ')}</span>
-                  <p>{event.summary}</p>
-                </article>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section className="panel commentary-panel">
-          <div className="panel-heading">
-            <h2>Now On Air</h2>
-            <span>{latestCommentary?.status ?? 'WAITING'}</span>
-          </div>
-          <blockquote>{latestCommentary?.text ?? 'Waiting for commentary.'}</blockquote>
-        </section>
       </section>
     </main>
   )
@@ -765,21 +921,127 @@ function ReadinessItem({ label, value, ready }: { label: string; value: string; 
   )
 }
 
-function TeamScore({ team, isLeader }: { team: TeamView; isLeader: boolean }) {
+function BroadcastTeamColumn({
+  side,
+  team,
+  latestEvent,
+  isLeader,
+  headingRef,
+}: {
+  side: 'left' | 'right'
+  team: TeamView
+  latestEvent?: FantasyEventView
+  isLeader: boolean
+  headingRef: RefObject<HTMLHeadingElement | null>
+}) {
   const teamStyle: CSSProperties & Record<'--team-color', string> = {
     '--team-color': team.color,
   }
 
   return (
-    <article className="team-score" style={teamStyle}>
-      <div>
+    <section className={`broadcast-team-column ${side}`} style={teamStyle}>
+      <div className="broadcast-team-heading">
         <span>{team.shortName}</span>
-        <h2>{team.clubName}</h2>
+        <h2 ref={headingRef}>{team.clubName}</h2>
         <p>{team.displayName}</p>
+        <strong className={isLeader ? '' : 'leader-placeholder'}>Leading</strong>
       </div>
-      <strong>{team.score}</strong>
-      {isLeader && <small>Leading</small>}
-    </article>
+      <div className="broadcast-player-list">
+        {team.activePlayers.map((player) => {
+          const isChangedPlayer = latestEvent?.managerId === team.managerId && latestEvent.playerId === player.id
+          return (
+            <div className={`broadcast-player ${isChangedPlayer ? 'broadcast-player-event' : ''}`} key={player.id}>
+              <div className="broadcast-player-name">
+                <strong>{player.displayName}</strong>
+                <span>
+                  {player.premierLeagueClub} · {player.position}
+                </span>
+              </div>
+              <div className="broadcast-player-points">
+                <strong>{player.points}</strong>
+              </div>
+              <div className="broadcast-player-notification">
+                {isChangedPlayer && (
+                  <div className="event-badge">
+                    <strong>{latestEvent.type.replaceAll('_', ' ')}</strong>
+                    <span>
+                      {latestEvent.pointDelta > 0 ? '+' : ''}
+                      {latestEvent.pointDelta} pts
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function MatchPitch({
+  gameweek,
+  scoreline,
+  leaderName,
+  latestEvent,
+  scoreRef,
+}: {
+  gameweek: number
+  scoreline: string
+  leaderName: string
+  latestEvent?: FantasyEventView
+  scoreRef: RefObject<HTMLElement | null>
+}) {
+  const eventText = latestEvent
+    ? `${latestEvent.type.replaceAll('_', ' ')} ${latestEvent.pointDelta > 0 ? '+' : ''}${latestEvent.pointDelta}`
+    : 'KICKOFF'
+
+  return (
+    <section className="pitch-panel" aria-label="Fantasy pitch">
+      <div className="match-score-strip">
+        <span>GW{gameweek}</span>
+        <strong ref={scoreRef}>{formatScoreline(scoreline)}</strong>
+        <small>
+          <Trophy size={14} />
+          {leaderName === 'No one' ? 'Level' : leaderName}
+        </small>
+      </div>
+      <div className="css-pitch">
+        <span className="pitch-line halfway" />
+        <span className="pitch-box left-box" />
+        <span className="pitch-box right-box" />
+        <span className="pitch-circle" />
+        <span className="moving-dot dot-one" />
+        <span className="moving-dot dot-two" />
+        <span className="moving-dot dot-three" />
+        <span className="moving-dot dot-four" />
+        <span className="moving-dot dot-five" />
+        <span className="moving-dot dot-six" />
+        <span className="moving-dot dot-ball" />
+      </div>
+      <div className="pitch-event-ticker">{eventText}</div>
+    </section>
+  )
+}
+
+function MatchReveal({ layout, matchup }: { layout: RevealLayout | null; matchup: MatchupView }) {
+  return (
+    <div className="match-reveal-overlay" aria-hidden="true">
+      <div className="match-reveal-sheet" />
+      {layout && (
+        <>
+          <strong className="match-reveal-copy match-reveal-team reveal-home" style={revealCopyStyle(layout.home, 1.08)}>
+            {matchup.home.clubName}
+          </strong>
+          <strong className="match-reveal-copy match-reveal-score" style={revealCopyStyle(layout.score, 1.08)}>
+            {formatScoreline(matchup.scoreline)}
+          </strong>
+          <strong className="match-reveal-copy match-reveal-team reveal-away" style={revealCopyStyle(layout.away, 1.08)}>
+            {matchup.away.clubName}
+          </strong>
+        </>
+      )}
+    </div>
   )
 }
 

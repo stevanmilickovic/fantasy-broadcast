@@ -19,7 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 public class MockLiveStateService {
 
 	private static final long STREAM_TIMEOUT = Long.MAX_VALUE;
-	private static final long STEP_INTERVAL_SECONDS = 3L;
+	private static final long STEP_INTERVAL_SECONDS = 10L;
 
 	private final List<LiveStateResponse> snapshots;
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
