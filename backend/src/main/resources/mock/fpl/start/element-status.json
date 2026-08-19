@@ -1,28 +1,364 @@
 {
   "element_status": [
-    { "element": 101, "owner": 9001, "status": "o", "in_accepted_trade": false },
-    { "element": 102, "owner": 9001, "status": "o", "in_accepted_trade": false },
-    { "element": 103, "owner": 9001, "status": "o", "in_accepted_trade": false },
-    { "element": 104, "owner": 9001, "status": "o", "in_accepted_trade": false },
-    { "element": 105, "owner": 9001, "status": "o", "in_accepted_trade": false },
-    { "element": 106, "owner": 9001, "status": "o", "in_accepted_trade": false },
-    { "element": 201, "owner": 9002, "status": "o", "in_accepted_trade": false },
-    { "element": 202, "owner": 9002, "status": "o", "in_accepted_trade": false },
-    { "element": 203, "owner": 9002, "status": "o", "in_accepted_trade": false },
-    { "element": 204, "owner": 9002, "status": "o", "in_accepted_trade": false },
-    { "element": 205, "owner": 9002, "status": "o", "in_accepted_trade": false },
-    { "element": 206, "owner": 9002, "status": "o", "in_accepted_trade": false },
-    { "element": 301, "owner": 9003, "status": "o", "in_accepted_trade": false },
-    { "element": 302, "owner": 9003, "status": "o", "in_accepted_trade": false },
-    { "element": 303, "owner": 9003, "status": "o", "in_accepted_trade": false },
-    { "element": 304, "owner": 9003, "status": "o", "in_accepted_trade": false },
-    { "element": 305, "owner": 9003, "status": "o", "in_accepted_trade": false },
-    { "element": 306, "owner": 9003, "status": "o", "in_accepted_trade": false },
-    { "element": 401, "owner": 9004, "status": "o", "in_accepted_trade": false },
-    { "element": 402, "owner": 9004, "status": "o", "in_accepted_trade": false },
-    { "element": 403, "owner": 9004, "status": "o", "in_accepted_trade": false },
-    { "element": 404, "owner": 9004, "status": "o", "in_accepted_trade": false },
-    { "element": 405, "owner": 9004, "status": "o", "in_accepted_trade": false },
-    { "element": 406, "owner": 9004, "status": "o", "in_accepted_trade": false }
+    {
+      "element": 101,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 102,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 103,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 104,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 105,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 106,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 107,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 108,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 109,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 110,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 111,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 112,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 113,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 114,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 115,
+      "owner": 9001,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 201,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 202,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 203,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 204,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 205,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 206,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 207,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 208,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 209,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 210,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 211,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 212,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 213,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 214,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 215,
+      "owner": 9002,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 301,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 302,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 303,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 304,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 305,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 306,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 307,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 308,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 309,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 310,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 311,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 312,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 313,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 314,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 315,
+      "owner": 9003,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 401,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 402,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 403,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 404,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 405,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 406,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 407,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 408,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 409,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 410,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 411,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 412,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 413,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 414,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    },
+    {
+      "element": 415,
+      "owner": 9004,
+      "status": "o",
+      "in_accepted_trade": false
+    }
   ]
 }

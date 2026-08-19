@@ -1,273 +1,4533 @@
 {
   "snapshots": [
     {
-      "status": { "mode": "MATCHDAY_READY", "updatedAt": "2026-08-22T13:00:00+02:00", "message": "Mock matchday ready. Two Draft matchups are kicking off." },
-      "sequence": { "currentStep": 1, "totalSteps": 6, "started": false, "complete": false },
+      "status": {
+        "mode": "MATCHDAY_READY",
+        "updatedAt": "2026-08-22T13:00:00+02:00",
+        "message": "Mock matchday ready. Two Draft matchups are kicking off."
+      },
+      "sequence": {
+        "currentStep": 1,
+        "totalSteps": 6,
+        "started": false,
+        "complete": false
+      },
       "gameweek": 1,
       "matchups": [
         {
           "id": "gw1-red-blue",
-          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 0,
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan Milic",
+            "clubName": "Red Star Draft",
+            "shortName": "RSD",
+            "color": "#d71920",
+            "score": 0,
             "activePlayers": [
-              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+              {
+                "id": "kai-havertz",
+                "displayName": "Kai Havertz",
+                "premierLeagueClub": "Arsenal",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Havertz"
+              },
+              {
+                "id": "alexander-isak",
+                "displayName": "Alexander Isak",
+                "premierLeagueClub": "Newcastle United",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Isak"
+              },
+              {
+                "id": "saka",
+                "displayName": "Bukayo Saka",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saka"
+              },
+              {
+                "id": "declan-rice",
+                "displayName": "Declan Rice",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Rice"
+              },
+              {
+                "id": "bruno-guimaraes",
+                "displayName": "Bruno Guimaraes",
+                "premierLeagueClub": "Newcastle United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bruno G."
+              },
+              {
+                "id": "alex-iwobi",
+                "displayName": "Alex Iwobi",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Iwobi"
+              },
+              {
+                "id": "william-saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saliba"
+              },
+              {
+                "id": "jurrien-timber",
+                "displayName": "Jurrien Timber",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Timber"
+              },
+              {
+                "id": "fabian-schar",
+                "displayName": "Fabian Schar",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Schar"
+              },
+              {
+                "id": "lucas-digne",
+                "displayName": "Lucas Digne",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Digne"
+              },
+              {
+                "id": "david-raya",
+                "displayName": "David Raya",
+                "premierLeagueClub": "Arsenal",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Raya"
+              }
             ],
             "benchPlayers": [
-              { "id": "raya", "displayName": "David Raya", "premierLeagueClub": "Arsenal", "position": "GKP", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
-              { "id": "rice", "displayName": "Declan Rice", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
-            ] },
-          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
+              {
+                "id": "alphonse-areola",
+                "displayName": "Alphonse Areola",
+                "premierLeagueClub": "West Ham United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Areola"
+              },
+              {
+                "id": "vitalii-mykolenko",
+                "displayName": "Vitalii Mykolenko",
+                "premierLeagueClub": "Everton",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mykolenko"
+              },
+              {
+                "id": "mohammed-kudus",
+                "displayName": "Mohammed Kudus",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Kudus"
+              },
+              {
+                "id": "ollie-watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Watkins"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka Markovic",
+            "clubName": "Blue Moon XI",
+            "shortName": "BMX",
+            "color": "#1d4ed8",
+            "score": 0,
             "activePlayers": [
-              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+              {
+                "id": "cody-gakpo",
+                "displayName": "Cody Gakpo",
+                "premierLeagueClub": "Liverpool",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gakpo"
+              },
+              {
+                "id": "yoane-wissa",
+                "displayName": "Yoane Wissa",
+                "premierLeagueClub": "Brentford",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Wissa"
+              },
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Salah"
+              },
+              {
+                "id": "dominik-szoboszlai",
+                "displayName": "Dominik Szoboszlai",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Szoboszlai"
+              },
+              {
+                "id": "bruno-fernandes",
+                "displayName": "Bruno Fernandes",
+                "premierLeagueClub": "Manchester United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Fernandes"
+              },
+              {
+                "id": "bryan-mbeumo",
+                "displayName": "Bryan Mbeumo",
+                "premierLeagueClub": "Brentford",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Mbeumo"
+              },
+              {
+                "id": "van-dijk",
+                "displayName": "Virgil van Dijk",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Van Dijk"
+              },
+              {
+                "id": "andrew-robertson",
+                "displayName": "Andrew Robertson",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Robertson"
+              },
+              {
+                "id": "diogo-dalot",
+                "displayName": "Diogo Dalot",
+                "premierLeagueClub": "Manchester United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dalot"
+              },
+              {
+                "id": "pervis-estupinan",
+                "displayName": "Pervis Estupinan",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Estupinan"
+              },
+              {
+                "id": "alisson-becker",
+                "displayName": "Alisson Becker",
+                "premierLeagueClub": "Liverpool",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Alisson"
+              }
             ],
             "benchPlayers": [
-              { "id": "gakpo", "displayName": "Cody Gakpo", "premierLeagueClub": "Liverpool", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
-              { "id": "szoboszlai", "displayName": "Dominik Szoboszlai", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
-            ] },
-          "leaderManagerId": "", "scoreline": "0-0"
+              {
+                "id": "bart-verbruggen",
+                "displayName": "Bart Verbruggen",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Verbruggen"
+              },
+              {
+                "id": "joachim-andersen",
+                "displayName": "Joachim Andersen",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Andersen"
+              },
+              {
+                "id": "andreas-pereira",
+                "displayName": "Andreas Pereira",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pereira"
+              },
+              {
+                "id": "joao-pedro",
+                "displayName": "Joao Pedro",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Joao Pedro"
+              }
+            ]
+          },
+          "leaderManagerId": "",
+          "scoreline": "0-0"
         },
         {
           "id": "gw1-north-riverside",
-          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 0,
+          "home": {
+            "managerId": "marko",
+            "displayName": "Marko Jovanovic",
+            "clubName": "North Bank FC",
+            "shortName": "NBF",
+            "color": "#15803d",
+            "score": 0,
             "activePlayers": [
-              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+              {
+                "id": "nicolas-jackson",
+                "displayName": "Nicolas Jackson",
+                "premierLeagueClub": "Chelsea",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Jackson"
+              },
+              {
+                "id": "dominic-solanke",
+                "displayName": "Dominic Solanke",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Solanke"
+              },
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Palmer"
+              },
+              {
+                "id": "moises-caicedo",
+                "displayName": "Moises Caicedo",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Caicedo"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "morgan-gibbs-white",
+                "displayName": "Morgan Gibbs-White",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gibbs-White"
+              },
+              {
+                "id": "james",
+                "displayName": "Reece James",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "James"
+              },
+              {
+                "id": "levi-colwill",
+                "displayName": "Levi Colwill",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Colwill"
+              },
+              {
+                "id": "pedro-porro",
+                "displayName": "Pedro Porro",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Porro"
+              },
+              {
+                "id": "ola-aina",
+                "displayName": "Ola Aina",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Aina"
+              },
+              {
+                "id": "sanchez",
+                "displayName": "Robert Sanchez",
+                "premierLeagueClub": "Chelsea",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Sanchez"
+              }
             ],
             "benchPlayers": [
-              { "id": "jackson", "displayName": "Nicolas Jackson", "premierLeagueClub": "Chelsea", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
-            ] },
-          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 0,
+              {
+                "id": "jordan-pickford",
+                "displayName": "Jordan Pickford",
+                "premierLeagueClub": "Everton",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pickford"
+              },
+              {
+                "id": "marcos-senesi",
+                "displayName": "Marcos Senesi",
+                "premierLeagueClub": "Bournemouth",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Senesi"
+              },
+              {
+                "id": "antoine-semenyo",
+                "displayName": "Antoine Semenyo",
+                "premierLeagueClub": "Bournemouth",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Semenyo"
+              },
+              {
+                "id": "evanilson",
+                "displayName": "Evanilson",
+                "premierLeagueClub": "Bournemouth",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Evanilson"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "nikola",
+            "displayName": "Nikola Ilic",
+            "clubName": "Riverside Rovers",
+            "shortName": "RIV",
+            "color": "#a16207",
+            "score": 0,
             "activePlayers": [
-              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
+              {
+                "id": "haaland",
+                "displayName": "Erling Haaland",
+                "premierLeagueClub": "Manchester City",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Haaland"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "foden",
+                "displayName": "Phil Foden",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Foden"
+              },
+              {
+                "id": "kevin-de-bruyne",
+                "displayName": "Kevin De Bruyne",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "De Bruyne"
+              },
+              {
+                "id": "eberechi-eze",
+                "displayName": "Eberechi Eze",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Eze"
+              },
+              {
+                "id": "jarrod-bowen",
+                "displayName": "Jarrod Bowen",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bowen"
+              },
+              {
+                "id": "dias",
+                "displayName": "Ruben Dias",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dias"
+              },
+              {
+                "id": "josko-gvardiol",
+                "displayName": "Josko Gvardiol",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gvardiol"
+              },
+              {
+                "id": "max-kilman",
+                "displayName": "Max Kilman",
+                "premierLeagueClub": "West Ham United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Kilman"
+              },
+              {
+                "id": "ezri-konsa",
+                "displayName": "Ezri Konsa",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Konsa"
+              },
+              {
+                "id": "guglielmo-vicario",
+                "displayName": "Guglielmo Vicario",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Vicario"
+              }
             ],
             "benchPlayers": [
-              { "id": "son", "displayName": "Heung-Min Son", "premierLeagueClub": "Tottenham Hotspur", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
-            ] },
-          "leaderManagerId": "", "scoreline": "0-0"
+              {
+                "id": "nick-pope",
+                "displayName": "Nick Pope",
+                "premierLeagueClub": "Newcastle United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pope"
+              },
+              {
+                "id": "dan-burn",
+                "displayName": "Dan Burn",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Burn"
+              },
+              {
+                "id": "lucas-paqueta",
+                "displayName": "Lucas Paqueta",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Paqueta"
+              },
+              {
+                "id": "jean-philippe-mateta",
+                "displayName": "Jean-Philippe Mateta",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mateta"
+              }
+            ]
+          },
+          "leaderManagerId": "",
+          "scoreline": "0-0"
         }
       ],
       "events": [],
-      "commentary": [{ "id": "com-001", "createdAt": "2026-08-22T13:00:00+02:00", "text": "The mock matchday has kicked off with two Draft fixtures live at the same time.", "priority": 20, "status": "READY" }]
-    },
-    {
-      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:05+02:00", "message": "Saka goal detected from mock FPL poll." },
-      "sequence": { "currentStep": 2, "totalSteps": 6, "started": true, "complete": false },
-      "gameweek": 1,
-      "matchups": [
+      "commentary": [
         {
-          "id": "gw1-red-blue",
-          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
-            "activePlayers": [
-              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 5 },
-              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [
-              { "id": "raya", "displayName": "David Raya", "premierLeagueClub": "Arsenal", "position": "GKP", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
-              { "id": "rice", "displayName": "Declan Rice", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
-            ] },
-          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
-            "activePlayers": [
-              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [
-              { "id": "gakpo", "displayName": "Cody Gakpo", "premierLeagueClub": "Liverpool", "position": "FWD", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 },
-              { "id": "szoboszlai", "displayName": "Dominik Szoboszlai", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "BENCH", "points": 0, "status": "BENCHED", "recentDelta": 0 }
-            ] },
-          "leaderManagerId": "stevan", "scoreline": "5-0"
-        },
-        {
-          "id": "gw1-north-riverside",
-          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 0,
-            "activePlayers": [
-              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 0,
-            "activePlayers": [
-              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "", "scoreline": "0-0"
+          "id": "com-001",
+          "createdAt": "2026-08-22T13:00:00+02:00",
+          "text": "The mock matchday has kicked off with two Draft fixtures live at the same time.",
+          "priority": 20,
+          "status": "READY"
         }
-      ],
-      "events": [{ "id": "evt-001", "occurredAt": "2026-08-22T13:00:05+02:00", "type": "GOAL", "managerId": "stevan", "playerId": "saka", "summary": "Bukayo Saka scores for Arsenal and gives Red Star Draft five points.", "pointDelta": 5, "priority": 90 }],
-      "commentary": [{ "id": "com-002", "createdAt": "2026-08-22T13:00:05+02:00", "text": "Saka strikes first. Red Star Draft jump ahead through Stevan's midfielder.", "priority": 90, "status": "READY" }]
+      ]
     },
     {
-      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:10+02:00", "message": "Palmer assist detected on the other matchup." },
-      "sequence": { "currentStep": 3, "totalSteps": 6, "started": true, "complete": false },
+      "status": {
+        "mode": "MATCHDAY_LIVE",
+        "updatedAt": "2026-08-22T13:00:05+02:00",
+        "message": "Saka goal detected from mock FPL poll."
+      },
+      "sequence": {
+        "currentStep": 2,
+        "totalSteps": 6,
+        "started": true,
+        "complete": false
+      },
       "gameweek": 1,
       "matchups": [
         {
           "id": "gw1-red-blue",
-          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan Milic",
+            "clubName": "Red Star Draft",
+            "shortName": "RSD",
+            "color": "#d71920",
+            "score": 5,
             "activePlayers": [
-              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
+              {
+                "id": "kai-havertz",
+                "displayName": "Kai Havertz",
+                "premierLeagueClub": "Arsenal",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Havertz"
+              },
+              {
+                "id": "alexander-isak",
+                "displayName": "Alexander Isak",
+                "premierLeagueClub": "Newcastle United",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Isak"
+              },
+              {
+                "id": "saka",
+                "displayName": "Bukayo Saka",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 5,
+                "status": "PLAYING",
+                "recentDelta": 5,
+                "shortName": "Saka"
+              },
+              {
+                "id": "declan-rice",
+                "displayName": "Declan Rice",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Rice"
+              },
+              {
+                "id": "bruno-guimaraes",
+                "displayName": "Bruno Guimaraes",
+                "premierLeagueClub": "Newcastle United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bruno G."
+              },
+              {
+                "id": "alex-iwobi",
+                "displayName": "Alex Iwobi",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Iwobi"
+              },
+              {
+                "id": "william-saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saliba"
+              },
+              {
+                "id": "jurrien-timber",
+                "displayName": "Jurrien Timber",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Timber"
+              },
+              {
+                "id": "fabian-schar",
+                "displayName": "Fabian Schar",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Schar"
+              },
+              {
+                "id": "lucas-digne",
+                "displayName": "Lucas Digne",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Digne"
+              },
+              {
+                "id": "david-raya",
+                "displayName": "David Raya",
+                "premierLeagueClub": "Arsenal",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Raya"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "alphonse-areola",
+                "displayName": "Alphonse Areola",
+                "premierLeagueClub": "West Ham United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Areola"
+              },
+              {
+                "id": "vitalii-mykolenko",
+                "displayName": "Vitalii Mykolenko",
+                "premierLeagueClub": "Everton",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mykolenko"
+              },
+              {
+                "id": "mohammed-kudus",
+                "displayName": "Mohammed Kudus",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Kudus"
+              },
+              {
+                "id": "ollie-watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Watkins"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka Markovic",
+            "clubName": "Blue Moon XI",
+            "shortName": "BMX",
+            "color": "#1d4ed8",
+            "score": 0,
             "activePlayers": [
-              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "stevan", "scoreline": "5-0"
+              {
+                "id": "cody-gakpo",
+                "displayName": "Cody Gakpo",
+                "premierLeagueClub": "Liverpool",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gakpo"
+              },
+              {
+                "id": "yoane-wissa",
+                "displayName": "Yoane Wissa",
+                "premierLeagueClub": "Brentford",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Wissa"
+              },
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Salah"
+              },
+              {
+                "id": "dominik-szoboszlai",
+                "displayName": "Dominik Szoboszlai",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Szoboszlai"
+              },
+              {
+                "id": "bruno-fernandes",
+                "displayName": "Bruno Fernandes",
+                "premierLeagueClub": "Manchester United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Fernandes"
+              },
+              {
+                "id": "bryan-mbeumo",
+                "displayName": "Bryan Mbeumo",
+                "premierLeagueClub": "Brentford",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Mbeumo"
+              },
+              {
+                "id": "van-dijk",
+                "displayName": "Virgil van Dijk",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Van Dijk"
+              },
+              {
+                "id": "andrew-robertson",
+                "displayName": "Andrew Robertson",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Robertson"
+              },
+              {
+                "id": "diogo-dalot",
+                "displayName": "Diogo Dalot",
+                "premierLeagueClub": "Manchester United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dalot"
+              },
+              {
+                "id": "pervis-estupinan",
+                "displayName": "Pervis Estupinan",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Estupinan"
+              },
+              {
+                "id": "alisson-becker",
+                "displayName": "Alisson Becker",
+                "premierLeagueClub": "Liverpool",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Alisson"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "bart-verbruggen",
+                "displayName": "Bart Verbruggen",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Verbruggen"
+              },
+              {
+                "id": "joachim-andersen",
+                "displayName": "Joachim Andersen",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Andersen"
+              },
+              {
+                "id": "andreas-pereira",
+                "displayName": "Andreas Pereira",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pereira"
+              },
+              {
+                "id": "joao-pedro",
+                "displayName": "Joao Pedro",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Joao Pedro"
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "5-0"
         },
         {
           "id": "gw1-north-riverside",
-          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+          "home": {
+            "managerId": "marko",
+            "displayName": "Marko Jovanovic",
+            "clubName": "North Bank FC",
+            "shortName": "NBF",
+            "color": "#15803d",
+            "score": 0,
             "activePlayers": [
-              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 3 },
-              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 0,
+              {
+                "id": "nicolas-jackson",
+                "displayName": "Nicolas Jackson",
+                "premierLeagueClub": "Chelsea",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Jackson"
+              },
+              {
+                "id": "dominic-solanke",
+                "displayName": "Dominic Solanke",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Solanke"
+              },
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Palmer"
+              },
+              {
+                "id": "moises-caicedo",
+                "displayName": "Moises Caicedo",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Caicedo"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "morgan-gibbs-white",
+                "displayName": "Morgan Gibbs-White",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gibbs-White"
+              },
+              {
+                "id": "james",
+                "displayName": "Reece James",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "James"
+              },
+              {
+                "id": "levi-colwill",
+                "displayName": "Levi Colwill",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Colwill"
+              },
+              {
+                "id": "pedro-porro",
+                "displayName": "Pedro Porro",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Porro"
+              },
+              {
+                "id": "ola-aina",
+                "displayName": "Ola Aina",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Aina"
+              },
+              {
+                "id": "sanchez",
+                "displayName": "Robert Sanchez",
+                "premierLeagueClub": "Chelsea",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Sanchez"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "jordan-pickford",
+                "displayName": "Jordan Pickford",
+                "premierLeagueClub": "Everton",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pickford"
+              },
+              {
+                "id": "marcos-senesi",
+                "displayName": "Marcos Senesi",
+                "premierLeagueClub": "Bournemouth",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Senesi"
+              },
+              {
+                "id": "antoine-semenyo",
+                "displayName": "Antoine Semenyo",
+                "premierLeagueClub": "Bournemouth",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Semenyo"
+              },
+              {
+                "id": "evanilson",
+                "displayName": "Evanilson",
+                "premierLeagueClub": "Bournemouth",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Evanilson"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "nikola",
+            "displayName": "Nikola Ilic",
+            "clubName": "Riverside Rovers",
+            "shortName": "RIV",
+            "color": "#a16207",
+            "score": 0,
             "activePlayers": [
-              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "marko", "scoreline": "3-0"
-        }
-      ],
-      "events": [{ "id": "evt-002", "occurredAt": "2026-08-22T13:00:10+02:00", "type": "ASSIST", "managerId": "marko", "playerId": "palmer", "summary": "Cole Palmer assists and adds three points for North Bank FC.", "pointDelta": 3, "priority": 70 }],
-      "commentary": [{ "id": "com-003", "createdAt": "2026-08-22T13:00:10+02:00", "text": "The broadcast jumps across to North Bank FC, where Palmer has opened Marko's account with an assist.", "priority": 70, "status": "READY" }]
-    },
-    {
-      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:15+02:00", "message": "Haaland goal and lead change detected." },
-      "sequence": { "currentStep": 4, "totalSteps": 6, "started": true, "complete": false },
-      "gameweek": 1,
-      "matchups": [
-        {
-          "id": "gw1-red-blue",
-          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
-            "activePlayers": [
-              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": 0,
-            "activePlayers": [
-              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "stevan", "scoreline": "5-0"
-        },
-        {
-          "id": "gw1-north-riverside",
-          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
-            "activePlayers": [
-              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 4,
-            "activePlayers": [
-              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 4, "status": "PLAYING", "recentDelta": 4 },
-              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "nikola", "scoreline": "3-4"
+              {
+                "id": "haaland",
+                "displayName": "Erling Haaland",
+                "premierLeagueClub": "Manchester City",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Haaland"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "foden",
+                "displayName": "Phil Foden",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Foden"
+              },
+              {
+                "id": "kevin-de-bruyne",
+                "displayName": "Kevin De Bruyne",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "De Bruyne"
+              },
+              {
+                "id": "eberechi-eze",
+                "displayName": "Eberechi Eze",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Eze"
+              },
+              {
+                "id": "jarrod-bowen",
+                "displayName": "Jarrod Bowen",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bowen"
+              },
+              {
+                "id": "dias",
+                "displayName": "Ruben Dias",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dias"
+              },
+              {
+                "id": "josko-gvardiol",
+                "displayName": "Josko Gvardiol",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gvardiol"
+              },
+              {
+                "id": "max-kilman",
+                "displayName": "Max Kilman",
+                "premierLeagueClub": "West Ham United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Kilman"
+              },
+              {
+                "id": "ezri-konsa",
+                "displayName": "Ezri Konsa",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Konsa"
+              },
+              {
+                "id": "guglielmo-vicario",
+                "displayName": "Guglielmo Vicario",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Vicario"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "nick-pope",
+                "displayName": "Nick Pope",
+                "premierLeagueClub": "Newcastle United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pope"
+              },
+              {
+                "id": "dan-burn",
+                "displayName": "Dan Burn",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Burn"
+              },
+              {
+                "id": "lucas-paqueta",
+                "displayName": "Lucas Paqueta",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Paqueta"
+              },
+              {
+                "id": "jean-philippe-mateta",
+                "displayName": "Jean-Philippe Mateta",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mateta"
+              }
+            ]
+          },
+          "leaderManagerId": "",
+          "scoreline": "0-0"
         }
       ],
       "events": [
-        { "id": "evt-003", "occurredAt": "2026-08-22T13:00:15+02:00", "type": "GOAL", "managerId": "nikola", "playerId": "haaland", "summary": "Erling Haaland scores and gives Riverside Rovers four points.", "pointDelta": 4, "priority": 90 },
-        { "id": "evt-004", "occurredAt": "2026-08-22T13:00:15+02:00", "type": "LEAD_CHANGE", "managerId": "nikola", "playerId": "haaland", "summary": "Riverside Rovers move ahead of North Bank FC, 4-3.", "pointDelta": 0, "priority": 95 }
+        {
+          "id": "evt-001",
+          "occurredAt": "2026-08-22T13:00:05+02:00",
+          "type": "GOAL",
+          "managerId": "stevan",
+          "playerId": "saka",
+          "summary": "Bukayo Saka scores for Arsenal and gives Red Star Draft five points.",
+          "pointDelta": 5,
+          "priority": 90
+        }
       ],
-      "commentary": [{ "id": "com-004", "createdAt": "2026-08-22T13:00:15+02:00", "text": "Haaland answers immediately, and Riverside Rovers have turned that second matchup around.", "priority": 95, "status": "READY" }]
+      "commentary": [
+        {
+          "id": "com-002",
+          "createdAt": "2026-08-22T13:00:05+02:00",
+          "text": "Saka strikes first. Red Star Draft jump ahead through Stevan's midfielder.",
+          "priority": 90,
+          "status": "READY"
+        }
+      ]
     },
     {
-      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:20+02:00", "message": "Salah yellow card detected on the first matchup." },
-      "sequence": { "currentStep": 5, "totalSteps": 6, "started": true, "complete": false },
+      "status": {
+        "mode": "MATCHDAY_LIVE",
+        "updatedAt": "2026-08-22T13:00:10+02:00",
+        "message": "Palmer assist detected on the other matchup."
+      },
+      "sequence": {
+        "currentStep": 3,
+        "totalSteps": 6,
+        "started": true,
+        "complete": false
+      },
       "gameweek": 1,
       "matchups": [
         {
           "id": "gw1-red-blue",
-          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan Milic",
+            "clubName": "Red Star Draft",
+            "shortName": "RSD",
+            "color": "#d71920",
+            "score": 5,
             "activePlayers": [
-              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": -1,
+              {
+                "id": "kai-havertz",
+                "displayName": "Kai Havertz",
+                "premierLeagueClub": "Arsenal",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Havertz"
+              },
+              {
+                "id": "alexander-isak",
+                "displayName": "Alexander Isak",
+                "premierLeagueClub": "Newcastle United",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Isak"
+              },
+              {
+                "id": "saka",
+                "displayName": "Bukayo Saka",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 5,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saka"
+              },
+              {
+                "id": "declan-rice",
+                "displayName": "Declan Rice",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Rice"
+              },
+              {
+                "id": "bruno-guimaraes",
+                "displayName": "Bruno Guimaraes",
+                "premierLeagueClub": "Newcastle United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bruno G."
+              },
+              {
+                "id": "alex-iwobi",
+                "displayName": "Alex Iwobi",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Iwobi"
+              },
+              {
+                "id": "william-saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saliba"
+              },
+              {
+                "id": "jurrien-timber",
+                "displayName": "Jurrien Timber",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Timber"
+              },
+              {
+                "id": "fabian-schar",
+                "displayName": "Fabian Schar",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Schar"
+              },
+              {
+                "id": "lucas-digne",
+                "displayName": "Lucas Digne",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Digne"
+              },
+              {
+                "id": "david-raya",
+                "displayName": "David Raya",
+                "premierLeagueClub": "Arsenal",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Raya"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "alphonse-areola",
+                "displayName": "Alphonse Areola",
+                "premierLeagueClub": "West Ham United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Areola"
+              },
+              {
+                "id": "vitalii-mykolenko",
+                "displayName": "Vitalii Mykolenko",
+                "premierLeagueClub": "Everton",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mykolenko"
+              },
+              {
+                "id": "mohammed-kudus",
+                "displayName": "Mohammed Kudus",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Kudus"
+              },
+              {
+                "id": "ollie-watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Watkins"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka Markovic",
+            "clubName": "Blue Moon XI",
+            "shortName": "BMX",
+            "color": "#1d4ed8",
+            "score": 0,
             "activePlayers": [
-              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": -1, "status": "PLAYING", "recentDelta": -1 },
-              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "stevan", "scoreline": "5--1"
+              {
+                "id": "cody-gakpo",
+                "displayName": "Cody Gakpo",
+                "premierLeagueClub": "Liverpool",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gakpo"
+              },
+              {
+                "id": "yoane-wissa",
+                "displayName": "Yoane Wissa",
+                "premierLeagueClub": "Brentford",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Wissa"
+              },
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Salah"
+              },
+              {
+                "id": "dominik-szoboszlai",
+                "displayName": "Dominik Szoboszlai",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Szoboszlai"
+              },
+              {
+                "id": "bruno-fernandes",
+                "displayName": "Bruno Fernandes",
+                "premierLeagueClub": "Manchester United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Fernandes"
+              },
+              {
+                "id": "bryan-mbeumo",
+                "displayName": "Bryan Mbeumo",
+                "premierLeagueClub": "Brentford",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Mbeumo"
+              },
+              {
+                "id": "van-dijk",
+                "displayName": "Virgil van Dijk",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Van Dijk"
+              },
+              {
+                "id": "andrew-robertson",
+                "displayName": "Andrew Robertson",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Robertson"
+              },
+              {
+                "id": "diogo-dalot",
+                "displayName": "Diogo Dalot",
+                "premierLeagueClub": "Manchester United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dalot"
+              },
+              {
+                "id": "pervis-estupinan",
+                "displayName": "Pervis Estupinan",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Estupinan"
+              },
+              {
+                "id": "alisson-becker",
+                "displayName": "Alisson Becker",
+                "premierLeagueClub": "Liverpool",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Alisson"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "bart-verbruggen",
+                "displayName": "Bart Verbruggen",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Verbruggen"
+              },
+              {
+                "id": "joachim-andersen",
+                "displayName": "Joachim Andersen",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Andersen"
+              },
+              {
+                "id": "andreas-pereira",
+                "displayName": "Andreas Pereira",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pereira"
+              },
+              {
+                "id": "joao-pedro",
+                "displayName": "Joao Pedro",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Joao Pedro"
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "5-0"
         },
         {
           "id": "gw1-north-riverside",
-          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+          "home": {
+            "managerId": "marko",
+            "displayName": "Marko Jovanovic",
+            "clubName": "North Bank FC",
+            "shortName": "NBF",
+            "color": "#15803d",
+            "score": 3,
             "activePlayers": [
-              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 4,
+              {
+                "id": "nicolas-jackson",
+                "displayName": "Nicolas Jackson",
+                "premierLeagueClub": "Chelsea",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Jackson"
+              },
+              {
+                "id": "dominic-solanke",
+                "displayName": "Dominic Solanke",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Solanke"
+              },
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 3,
+                "shortName": "Palmer"
+              },
+              {
+                "id": "moises-caicedo",
+                "displayName": "Moises Caicedo",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Caicedo"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "morgan-gibbs-white",
+                "displayName": "Morgan Gibbs-White",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gibbs-White"
+              },
+              {
+                "id": "james",
+                "displayName": "Reece James",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "James"
+              },
+              {
+                "id": "levi-colwill",
+                "displayName": "Levi Colwill",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Colwill"
+              },
+              {
+                "id": "pedro-porro",
+                "displayName": "Pedro Porro",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Porro"
+              },
+              {
+                "id": "ola-aina",
+                "displayName": "Ola Aina",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Aina"
+              },
+              {
+                "id": "sanchez",
+                "displayName": "Robert Sanchez",
+                "premierLeagueClub": "Chelsea",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Sanchez"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "jordan-pickford",
+                "displayName": "Jordan Pickford",
+                "premierLeagueClub": "Everton",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pickford"
+              },
+              {
+                "id": "marcos-senesi",
+                "displayName": "Marcos Senesi",
+                "premierLeagueClub": "Bournemouth",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Senesi"
+              },
+              {
+                "id": "antoine-semenyo",
+                "displayName": "Antoine Semenyo",
+                "premierLeagueClub": "Bournemouth",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Semenyo"
+              },
+              {
+                "id": "evanilson",
+                "displayName": "Evanilson",
+                "premierLeagueClub": "Bournemouth",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Evanilson"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "nikola",
+            "displayName": "Nikola Ilic",
+            "clubName": "Riverside Rovers",
+            "shortName": "RIV",
+            "color": "#a16207",
+            "score": 0,
             "activePlayers": [
-              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 4, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "nikola", "scoreline": "3-4"
+              {
+                "id": "haaland",
+                "displayName": "Erling Haaland",
+                "premierLeagueClub": "Manchester City",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Haaland"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "foden",
+                "displayName": "Phil Foden",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Foden"
+              },
+              {
+                "id": "kevin-de-bruyne",
+                "displayName": "Kevin De Bruyne",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "De Bruyne"
+              },
+              {
+                "id": "eberechi-eze",
+                "displayName": "Eberechi Eze",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Eze"
+              },
+              {
+                "id": "jarrod-bowen",
+                "displayName": "Jarrod Bowen",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bowen"
+              },
+              {
+                "id": "dias",
+                "displayName": "Ruben Dias",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dias"
+              },
+              {
+                "id": "josko-gvardiol",
+                "displayName": "Josko Gvardiol",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gvardiol"
+              },
+              {
+                "id": "max-kilman",
+                "displayName": "Max Kilman",
+                "premierLeagueClub": "West Ham United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Kilman"
+              },
+              {
+                "id": "ezri-konsa",
+                "displayName": "Ezri Konsa",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Konsa"
+              },
+              {
+                "id": "guglielmo-vicario",
+                "displayName": "Guglielmo Vicario",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Vicario"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "nick-pope",
+                "displayName": "Nick Pope",
+                "premierLeagueClub": "Newcastle United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pope"
+              },
+              {
+                "id": "dan-burn",
+                "displayName": "Dan Burn",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Burn"
+              },
+              {
+                "id": "lucas-paqueta",
+                "displayName": "Lucas Paqueta",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Paqueta"
+              },
+              {
+                "id": "jean-philippe-mateta",
+                "displayName": "Jean-Philippe Mateta",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mateta"
+              }
+            ]
+          },
+          "leaderManagerId": "marko",
+          "scoreline": "3-0"
         }
       ],
-      "events": [{ "id": "evt-005", "occurredAt": "2026-08-22T13:00:20+02:00", "type": "YELLOW_CARD", "managerId": "luka", "playerId": "salah", "summary": "Mohamed Salah is booked and loses one point for Blue Moon XI.", "pointDelta": -1, "priority": 60 }],
-      "commentary": [{ "id": "com-005", "createdAt": "2026-08-22T13:00:20+02:00", "text": "Back to the first matchup, where Salah's booking pushes Blue Moon XI into negative territory.", "priority": 60, "status": "READY" }]
+      "events": [
+        {
+          "id": "evt-002",
+          "occurredAt": "2026-08-22T13:00:10+02:00",
+          "type": "ASSIST",
+          "managerId": "marko",
+          "playerId": "palmer",
+          "summary": "Cole Palmer assists and adds three points for North Bank FC.",
+          "pointDelta": 3,
+          "priority": 70
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-003",
+          "createdAt": "2026-08-22T13:00:10+02:00",
+          "text": "The broadcast jumps across to North Bank FC, where Palmer has opened Marko's account with an assist.",
+          "priority": 70,
+          "status": "READY"
+        }
+      ]
     },
     {
-      "status": { "mode": "MATCHDAY_LIVE", "updatedAt": "2026-08-22T13:00:25+02:00", "message": "Foden assist detected. Mock sequence complete." },
-      "sequence": { "currentStep": 6, "totalSteps": 6, "started": true, "complete": true },
+      "status": {
+        "mode": "MATCHDAY_LIVE",
+        "updatedAt": "2026-08-22T13:00:15+02:00",
+        "message": "Haaland goal and lead change detected."
+      },
+      "sequence": {
+        "currentStep": 4,
+        "totalSteps": 6,
+        "started": true,
+        "complete": false
+      },
       "gameweek": 1,
       "matchups": [
         {
           "id": "gw1-red-blue",
-          "home": { "managerId": "stevan", "displayName": "Stevan Milic", "clubName": "Red Star Draft", "shortName": "RSD", "color": "#d71920", "score": 5,
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan Milic",
+            "clubName": "Red Star Draft",
+            "shortName": "RSD",
+            "color": "#d71920",
+            "score": 5,
             "activePlayers": [
-              { "id": "saka", "displayName": "Bukayo Saka", "premierLeagueClub": "Arsenal", "position": "MID", "lineupSlot": "ACTIVE", "points": 5, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "saliba", "displayName": "William Saliba", "premierLeagueClub": "Arsenal", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "havertz", "displayName": "Kai Havertz", "premierLeagueClub": "Arsenal", "position": "FWD", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "luka", "displayName": "Luka Markovic", "clubName": "Blue Moon XI", "shortName": "BMX", "color": "#1d4ed8", "score": -1,
+              {
+                "id": "kai-havertz",
+                "displayName": "Kai Havertz",
+                "premierLeagueClub": "Arsenal",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Havertz"
+              },
+              {
+                "id": "alexander-isak",
+                "displayName": "Alexander Isak",
+                "premierLeagueClub": "Newcastle United",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Isak"
+              },
+              {
+                "id": "saka",
+                "displayName": "Bukayo Saka",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 5,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saka"
+              },
+              {
+                "id": "declan-rice",
+                "displayName": "Declan Rice",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Rice"
+              },
+              {
+                "id": "bruno-guimaraes",
+                "displayName": "Bruno Guimaraes",
+                "premierLeagueClub": "Newcastle United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bruno G."
+              },
+              {
+                "id": "alex-iwobi",
+                "displayName": "Alex Iwobi",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Iwobi"
+              },
+              {
+                "id": "william-saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saliba"
+              },
+              {
+                "id": "jurrien-timber",
+                "displayName": "Jurrien Timber",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Timber"
+              },
+              {
+                "id": "fabian-schar",
+                "displayName": "Fabian Schar",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Schar"
+              },
+              {
+                "id": "lucas-digne",
+                "displayName": "Lucas Digne",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Digne"
+              },
+              {
+                "id": "david-raya",
+                "displayName": "David Raya",
+                "premierLeagueClub": "Arsenal",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Raya"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "alphonse-areola",
+                "displayName": "Alphonse Areola",
+                "premierLeagueClub": "West Ham United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Areola"
+              },
+              {
+                "id": "vitalii-mykolenko",
+                "displayName": "Vitalii Mykolenko",
+                "premierLeagueClub": "Everton",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mykolenko"
+              },
+              {
+                "id": "mohammed-kudus",
+                "displayName": "Mohammed Kudus",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Kudus"
+              },
+              {
+                "id": "ollie-watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Watkins"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka Markovic",
+            "clubName": "Blue Moon XI",
+            "shortName": "BMX",
+            "color": "#1d4ed8",
+            "score": 0,
             "activePlayers": [
-              { "id": "salah", "displayName": "Mohamed Salah", "premierLeagueClub": "Liverpool", "position": "MID", "lineupSlot": "ACTIVE", "points": -1, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "van-dijk", "displayName": "Virgil van Dijk", "premierLeagueClub": "Liverpool", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "alisson", "displayName": "Alisson Becker", "premierLeagueClub": "Liverpool", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "stevan", "scoreline": "5--1"
+              {
+                "id": "cody-gakpo",
+                "displayName": "Cody Gakpo",
+                "premierLeagueClub": "Liverpool",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gakpo"
+              },
+              {
+                "id": "yoane-wissa",
+                "displayName": "Yoane Wissa",
+                "premierLeagueClub": "Brentford",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Wissa"
+              },
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Salah"
+              },
+              {
+                "id": "dominik-szoboszlai",
+                "displayName": "Dominik Szoboszlai",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Szoboszlai"
+              },
+              {
+                "id": "bruno-fernandes",
+                "displayName": "Bruno Fernandes",
+                "premierLeagueClub": "Manchester United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Fernandes"
+              },
+              {
+                "id": "bryan-mbeumo",
+                "displayName": "Bryan Mbeumo",
+                "premierLeagueClub": "Brentford",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Mbeumo"
+              },
+              {
+                "id": "van-dijk",
+                "displayName": "Virgil van Dijk",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Van Dijk"
+              },
+              {
+                "id": "andrew-robertson",
+                "displayName": "Andrew Robertson",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Robertson"
+              },
+              {
+                "id": "diogo-dalot",
+                "displayName": "Diogo Dalot",
+                "premierLeagueClub": "Manchester United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dalot"
+              },
+              {
+                "id": "pervis-estupinan",
+                "displayName": "Pervis Estupinan",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Estupinan"
+              },
+              {
+                "id": "alisson-becker",
+                "displayName": "Alisson Becker",
+                "premierLeagueClub": "Liverpool",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Alisson"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "bart-verbruggen",
+                "displayName": "Bart Verbruggen",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Verbruggen"
+              },
+              {
+                "id": "joachim-andersen",
+                "displayName": "Joachim Andersen",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Andersen"
+              },
+              {
+                "id": "andreas-pereira",
+                "displayName": "Andreas Pereira",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pereira"
+              },
+              {
+                "id": "joao-pedro",
+                "displayName": "Joao Pedro",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Joao Pedro"
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "5-0"
         },
         {
           "id": "gw1-north-riverside",
-          "home": { "managerId": "marko", "displayName": "Marko Jovanovic", "clubName": "North Bank FC", "shortName": "NBF", "color": "#15803d", "score": 3,
+          "home": {
+            "managerId": "marko",
+            "displayName": "Marko Jovanovic",
+            "clubName": "North Bank FC",
+            "shortName": "NBF",
+            "color": "#15803d",
+            "score": 3,
             "activePlayers": [
-              { "id": "palmer", "displayName": "Cole Palmer", "premierLeagueClub": "Chelsea", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "james", "displayName": "Reece James", "premierLeagueClub": "Chelsea", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "sanchez", "displayName": "Robert Sanchez", "premierLeagueClub": "Chelsea", "position": "GKP", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "away": { "managerId": "nikola", "displayName": "Nikola Ilic", "clubName": "Riverside Rovers", "shortName": "RIV", "color": "#a16207", "score": 7,
+              {
+                "id": "nicolas-jackson",
+                "displayName": "Nicolas Jackson",
+                "premierLeagueClub": "Chelsea",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Jackson"
+              },
+              {
+                "id": "dominic-solanke",
+                "displayName": "Dominic Solanke",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Solanke"
+              },
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Palmer"
+              },
+              {
+                "id": "moises-caicedo",
+                "displayName": "Moises Caicedo",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Caicedo"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "morgan-gibbs-white",
+                "displayName": "Morgan Gibbs-White",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gibbs-White"
+              },
+              {
+                "id": "james",
+                "displayName": "Reece James",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "James"
+              },
+              {
+                "id": "levi-colwill",
+                "displayName": "Levi Colwill",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Colwill"
+              },
+              {
+                "id": "pedro-porro",
+                "displayName": "Pedro Porro",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Porro"
+              },
+              {
+                "id": "ola-aina",
+                "displayName": "Ola Aina",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Aina"
+              },
+              {
+                "id": "sanchez",
+                "displayName": "Robert Sanchez",
+                "premierLeagueClub": "Chelsea",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Sanchez"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "jordan-pickford",
+                "displayName": "Jordan Pickford",
+                "premierLeagueClub": "Everton",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pickford"
+              },
+              {
+                "id": "marcos-senesi",
+                "displayName": "Marcos Senesi",
+                "premierLeagueClub": "Bournemouth",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Senesi"
+              },
+              {
+                "id": "antoine-semenyo",
+                "displayName": "Antoine Semenyo",
+                "premierLeagueClub": "Bournemouth",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Semenyo"
+              },
+              {
+                "id": "evanilson",
+                "displayName": "Evanilson",
+                "premierLeagueClub": "Bournemouth",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Evanilson"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "nikola",
+            "displayName": "Nikola Ilic",
+            "clubName": "Riverside Rovers",
+            "shortName": "RIV",
+            "color": "#a16207",
+            "score": 4,
             "activePlayers": [
-              { "id": "haaland", "displayName": "Erling Haaland", "premierLeagueClub": "Manchester City", "position": "FWD", "lineupSlot": "ACTIVE", "points": 4, "status": "PLAYING", "recentDelta": 0 },
-              { "id": "foden", "displayName": "Phil Foden", "premierLeagueClub": "Manchester City", "position": "MID", "lineupSlot": "ACTIVE", "points": 3, "status": "PLAYING", "recentDelta": 3 },
-              { "id": "dias", "displayName": "Ruben Dias", "premierLeagueClub": "Manchester City", "position": "DEF", "lineupSlot": "ACTIVE", "points": 0, "status": "PLAYING", "recentDelta": 0 }
-            ], "benchPlayers": [] },
-          "leaderManagerId": "nikola", "scoreline": "3-7"
+              {
+                "id": "haaland",
+                "displayName": "Erling Haaland",
+                "premierLeagueClub": "Manchester City",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 4,
+                "status": "PLAYING",
+                "recentDelta": 4,
+                "shortName": "Haaland"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "foden",
+                "displayName": "Phil Foden",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Foden"
+              },
+              {
+                "id": "kevin-de-bruyne",
+                "displayName": "Kevin De Bruyne",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "De Bruyne"
+              },
+              {
+                "id": "eberechi-eze",
+                "displayName": "Eberechi Eze",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Eze"
+              },
+              {
+                "id": "jarrod-bowen",
+                "displayName": "Jarrod Bowen",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bowen"
+              },
+              {
+                "id": "dias",
+                "displayName": "Ruben Dias",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dias"
+              },
+              {
+                "id": "josko-gvardiol",
+                "displayName": "Josko Gvardiol",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gvardiol"
+              },
+              {
+                "id": "max-kilman",
+                "displayName": "Max Kilman",
+                "premierLeagueClub": "West Ham United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Kilman"
+              },
+              {
+                "id": "ezri-konsa",
+                "displayName": "Ezri Konsa",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Konsa"
+              },
+              {
+                "id": "guglielmo-vicario",
+                "displayName": "Guglielmo Vicario",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Vicario"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "nick-pope",
+                "displayName": "Nick Pope",
+                "premierLeagueClub": "Newcastle United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pope"
+              },
+              {
+                "id": "dan-burn",
+                "displayName": "Dan Burn",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Burn"
+              },
+              {
+                "id": "lucas-paqueta",
+                "displayName": "Lucas Paqueta",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Paqueta"
+              },
+              {
+                "id": "jean-philippe-mateta",
+                "displayName": "Jean-Philippe Mateta",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mateta"
+              }
+            ]
+          },
+          "leaderManagerId": "nikola",
+          "scoreline": "3-4"
         }
       ],
-      "events": [{ "id": "evt-006", "occurredAt": "2026-08-22T13:00:25+02:00", "type": "ASSIST", "managerId": "nikola", "playerId": "foden", "summary": "Phil Foden assists and adds three more points for Riverside Rovers.", "pointDelta": 3, "priority": 70 }],
-      "commentary": [{ "id": "com-006", "createdAt": "2026-08-22T13:00:25+02:00", "text": "Foden adds the next swing, and Riverside Rovers now have the clearest early advantage on the board.", "priority": 70, "status": "READY" }]
+      "events": [
+        {
+          "id": "evt-003",
+          "occurredAt": "2026-08-22T13:00:15+02:00",
+          "type": "GOAL",
+          "managerId": "nikola",
+          "playerId": "haaland",
+          "summary": "Erling Haaland scores and gives Riverside Rovers four points.",
+          "pointDelta": 4,
+          "priority": 90
+        },
+        {
+          "id": "evt-004",
+          "occurredAt": "2026-08-22T13:00:15+02:00",
+          "type": "LEAD_CHANGE",
+          "managerId": "nikola",
+          "playerId": "haaland",
+          "summary": "Riverside Rovers move ahead of North Bank FC, 4-3.",
+          "pointDelta": 0,
+          "priority": 95
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-004",
+          "createdAt": "2026-08-22T13:00:15+02:00",
+          "text": "Haaland answers immediately, and Riverside Rovers have turned that second matchup around.",
+          "priority": 95,
+          "status": "READY"
+        }
+      ]
+    },
+    {
+      "status": {
+        "mode": "MATCHDAY_LIVE",
+        "updatedAt": "2026-08-22T13:00:20+02:00",
+        "message": "Salah yellow card detected on the first matchup."
+      },
+      "sequence": {
+        "currentStep": 5,
+        "totalSteps": 6,
+        "started": true,
+        "complete": false
+      },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-red-blue",
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan Milic",
+            "clubName": "Red Star Draft",
+            "shortName": "RSD",
+            "color": "#d71920",
+            "score": 5,
+            "activePlayers": [
+              {
+                "id": "kai-havertz",
+                "displayName": "Kai Havertz",
+                "premierLeagueClub": "Arsenal",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Havertz"
+              },
+              {
+                "id": "alexander-isak",
+                "displayName": "Alexander Isak",
+                "premierLeagueClub": "Newcastle United",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Isak"
+              },
+              {
+                "id": "saka",
+                "displayName": "Bukayo Saka",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 5,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saka"
+              },
+              {
+                "id": "declan-rice",
+                "displayName": "Declan Rice",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Rice"
+              },
+              {
+                "id": "bruno-guimaraes",
+                "displayName": "Bruno Guimaraes",
+                "premierLeagueClub": "Newcastle United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bruno G."
+              },
+              {
+                "id": "alex-iwobi",
+                "displayName": "Alex Iwobi",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Iwobi"
+              },
+              {
+                "id": "william-saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saliba"
+              },
+              {
+                "id": "jurrien-timber",
+                "displayName": "Jurrien Timber",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Timber"
+              },
+              {
+                "id": "fabian-schar",
+                "displayName": "Fabian Schar",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Schar"
+              },
+              {
+                "id": "lucas-digne",
+                "displayName": "Lucas Digne",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Digne"
+              },
+              {
+                "id": "david-raya",
+                "displayName": "David Raya",
+                "premierLeagueClub": "Arsenal",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Raya"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "alphonse-areola",
+                "displayName": "Alphonse Areola",
+                "premierLeagueClub": "West Ham United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Areola"
+              },
+              {
+                "id": "vitalii-mykolenko",
+                "displayName": "Vitalii Mykolenko",
+                "premierLeagueClub": "Everton",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mykolenko"
+              },
+              {
+                "id": "mohammed-kudus",
+                "displayName": "Mohammed Kudus",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Kudus"
+              },
+              {
+                "id": "ollie-watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Watkins"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka Markovic",
+            "clubName": "Blue Moon XI",
+            "shortName": "BMX",
+            "color": "#1d4ed8",
+            "score": -1,
+            "activePlayers": [
+              {
+                "id": "cody-gakpo",
+                "displayName": "Cody Gakpo",
+                "premierLeagueClub": "Liverpool",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gakpo"
+              },
+              {
+                "id": "yoane-wissa",
+                "displayName": "Yoane Wissa",
+                "premierLeagueClub": "Brentford",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Wissa"
+              },
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": -1,
+                "status": "PLAYING",
+                "recentDelta": -1,
+                "shortName": "Salah"
+              },
+              {
+                "id": "dominik-szoboszlai",
+                "displayName": "Dominik Szoboszlai",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Szoboszlai"
+              },
+              {
+                "id": "bruno-fernandes",
+                "displayName": "Bruno Fernandes",
+                "premierLeagueClub": "Manchester United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Fernandes"
+              },
+              {
+                "id": "bryan-mbeumo",
+                "displayName": "Bryan Mbeumo",
+                "premierLeagueClub": "Brentford",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Mbeumo"
+              },
+              {
+                "id": "van-dijk",
+                "displayName": "Virgil van Dijk",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Van Dijk"
+              },
+              {
+                "id": "andrew-robertson",
+                "displayName": "Andrew Robertson",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Robertson"
+              },
+              {
+                "id": "diogo-dalot",
+                "displayName": "Diogo Dalot",
+                "premierLeagueClub": "Manchester United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dalot"
+              },
+              {
+                "id": "pervis-estupinan",
+                "displayName": "Pervis Estupinan",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Estupinan"
+              },
+              {
+                "id": "alisson-becker",
+                "displayName": "Alisson Becker",
+                "premierLeagueClub": "Liverpool",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Alisson"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "bart-verbruggen",
+                "displayName": "Bart Verbruggen",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Verbruggen"
+              },
+              {
+                "id": "joachim-andersen",
+                "displayName": "Joachim Andersen",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Andersen"
+              },
+              {
+                "id": "andreas-pereira",
+                "displayName": "Andreas Pereira",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pereira"
+              },
+              {
+                "id": "joao-pedro",
+                "displayName": "Joao Pedro",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Joao Pedro"
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "5--1"
+        },
+        {
+          "id": "gw1-north-riverside",
+          "home": {
+            "managerId": "marko",
+            "displayName": "Marko Jovanovic",
+            "clubName": "North Bank FC",
+            "shortName": "NBF",
+            "color": "#15803d",
+            "score": 3,
+            "activePlayers": [
+              {
+                "id": "nicolas-jackson",
+                "displayName": "Nicolas Jackson",
+                "premierLeagueClub": "Chelsea",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Jackson"
+              },
+              {
+                "id": "dominic-solanke",
+                "displayName": "Dominic Solanke",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Solanke"
+              },
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Palmer"
+              },
+              {
+                "id": "moises-caicedo",
+                "displayName": "Moises Caicedo",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Caicedo"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "morgan-gibbs-white",
+                "displayName": "Morgan Gibbs-White",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gibbs-White"
+              },
+              {
+                "id": "james",
+                "displayName": "Reece James",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "James"
+              },
+              {
+                "id": "levi-colwill",
+                "displayName": "Levi Colwill",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Colwill"
+              },
+              {
+                "id": "pedro-porro",
+                "displayName": "Pedro Porro",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Porro"
+              },
+              {
+                "id": "ola-aina",
+                "displayName": "Ola Aina",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Aina"
+              },
+              {
+                "id": "sanchez",
+                "displayName": "Robert Sanchez",
+                "premierLeagueClub": "Chelsea",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Sanchez"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "jordan-pickford",
+                "displayName": "Jordan Pickford",
+                "premierLeagueClub": "Everton",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pickford"
+              },
+              {
+                "id": "marcos-senesi",
+                "displayName": "Marcos Senesi",
+                "premierLeagueClub": "Bournemouth",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Senesi"
+              },
+              {
+                "id": "antoine-semenyo",
+                "displayName": "Antoine Semenyo",
+                "premierLeagueClub": "Bournemouth",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Semenyo"
+              },
+              {
+                "id": "evanilson",
+                "displayName": "Evanilson",
+                "premierLeagueClub": "Bournemouth",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Evanilson"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "nikola",
+            "displayName": "Nikola Ilic",
+            "clubName": "Riverside Rovers",
+            "shortName": "RIV",
+            "color": "#a16207",
+            "score": 4,
+            "activePlayers": [
+              {
+                "id": "haaland",
+                "displayName": "Erling Haaland",
+                "premierLeagueClub": "Manchester City",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 4,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Haaland"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "foden",
+                "displayName": "Phil Foden",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Foden"
+              },
+              {
+                "id": "kevin-de-bruyne",
+                "displayName": "Kevin De Bruyne",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "De Bruyne"
+              },
+              {
+                "id": "eberechi-eze",
+                "displayName": "Eberechi Eze",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Eze"
+              },
+              {
+                "id": "jarrod-bowen",
+                "displayName": "Jarrod Bowen",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bowen"
+              },
+              {
+                "id": "dias",
+                "displayName": "Ruben Dias",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dias"
+              },
+              {
+                "id": "josko-gvardiol",
+                "displayName": "Josko Gvardiol",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gvardiol"
+              },
+              {
+                "id": "max-kilman",
+                "displayName": "Max Kilman",
+                "premierLeagueClub": "West Ham United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Kilman"
+              },
+              {
+                "id": "ezri-konsa",
+                "displayName": "Ezri Konsa",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Konsa"
+              },
+              {
+                "id": "guglielmo-vicario",
+                "displayName": "Guglielmo Vicario",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Vicario"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "nick-pope",
+                "displayName": "Nick Pope",
+                "premierLeagueClub": "Newcastle United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pope"
+              },
+              {
+                "id": "dan-burn",
+                "displayName": "Dan Burn",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Burn"
+              },
+              {
+                "id": "lucas-paqueta",
+                "displayName": "Lucas Paqueta",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Paqueta"
+              },
+              {
+                "id": "jean-philippe-mateta",
+                "displayName": "Jean-Philippe Mateta",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mateta"
+              }
+            ]
+          },
+          "leaderManagerId": "nikola",
+          "scoreline": "3-4"
+        }
+      ],
+      "events": [
+        {
+          "id": "evt-005",
+          "occurredAt": "2026-08-22T13:00:20+02:00",
+          "type": "YELLOW_CARD",
+          "managerId": "luka",
+          "playerId": "salah",
+          "summary": "Mohamed Salah is booked and loses one point for Blue Moon XI.",
+          "pointDelta": -1,
+          "priority": 60
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-005",
+          "createdAt": "2026-08-22T13:00:20+02:00",
+          "text": "Back to the first matchup, where Salah's booking pushes Blue Moon XI into negative territory.",
+          "priority": 60,
+          "status": "READY"
+        }
+      ]
+    },
+    {
+      "status": {
+        "mode": "MATCHDAY_LIVE",
+        "updatedAt": "2026-08-22T13:00:25+02:00",
+        "message": "Foden assist detected. Mock sequence complete."
+      },
+      "sequence": {
+        "currentStep": 6,
+        "totalSteps": 6,
+        "started": true,
+        "complete": true
+      },
+      "gameweek": 1,
+      "matchups": [
+        {
+          "id": "gw1-red-blue",
+          "home": {
+            "managerId": "stevan",
+            "displayName": "Stevan Milic",
+            "clubName": "Red Star Draft",
+            "shortName": "RSD",
+            "color": "#d71920",
+            "score": 5,
+            "activePlayers": [
+              {
+                "id": "kai-havertz",
+                "displayName": "Kai Havertz",
+                "premierLeagueClub": "Arsenal",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Havertz"
+              },
+              {
+                "id": "alexander-isak",
+                "displayName": "Alexander Isak",
+                "premierLeagueClub": "Newcastle United",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Isak"
+              },
+              {
+                "id": "saka",
+                "displayName": "Bukayo Saka",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 5,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saka"
+              },
+              {
+                "id": "declan-rice",
+                "displayName": "Declan Rice",
+                "premierLeagueClub": "Arsenal",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Rice"
+              },
+              {
+                "id": "bruno-guimaraes",
+                "displayName": "Bruno Guimaraes",
+                "premierLeagueClub": "Newcastle United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bruno G."
+              },
+              {
+                "id": "alex-iwobi",
+                "displayName": "Alex Iwobi",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Iwobi"
+              },
+              {
+                "id": "william-saliba",
+                "displayName": "William Saliba",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Saliba"
+              },
+              {
+                "id": "jurrien-timber",
+                "displayName": "Jurrien Timber",
+                "premierLeagueClub": "Arsenal",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Timber"
+              },
+              {
+                "id": "fabian-schar",
+                "displayName": "Fabian Schar",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Schar"
+              },
+              {
+                "id": "lucas-digne",
+                "displayName": "Lucas Digne",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Digne"
+              },
+              {
+                "id": "david-raya",
+                "displayName": "David Raya",
+                "premierLeagueClub": "Arsenal",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Raya"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "alphonse-areola",
+                "displayName": "Alphonse Areola",
+                "premierLeagueClub": "West Ham United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Areola"
+              },
+              {
+                "id": "vitalii-mykolenko",
+                "displayName": "Vitalii Mykolenko",
+                "premierLeagueClub": "Everton",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mykolenko"
+              },
+              {
+                "id": "mohammed-kudus",
+                "displayName": "Mohammed Kudus",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Kudus"
+              },
+              {
+                "id": "ollie-watkins",
+                "displayName": "Ollie Watkins",
+                "premierLeagueClub": "Aston Villa",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Watkins"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "luka",
+            "displayName": "Luka Markovic",
+            "clubName": "Blue Moon XI",
+            "shortName": "BMX",
+            "color": "#1d4ed8",
+            "score": -1,
+            "activePlayers": [
+              {
+                "id": "cody-gakpo",
+                "displayName": "Cody Gakpo",
+                "premierLeagueClub": "Liverpool",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gakpo"
+              },
+              {
+                "id": "yoane-wissa",
+                "displayName": "Yoane Wissa",
+                "premierLeagueClub": "Brentford",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Wissa"
+              },
+              {
+                "id": "salah",
+                "displayName": "Mohamed Salah",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": -1,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Salah"
+              },
+              {
+                "id": "dominik-szoboszlai",
+                "displayName": "Dominik Szoboszlai",
+                "premierLeagueClub": "Liverpool",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Szoboszlai"
+              },
+              {
+                "id": "bruno-fernandes",
+                "displayName": "Bruno Fernandes",
+                "premierLeagueClub": "Manchester United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Fernandes"
+              },
+              {
+                "id": "bryan-mbeumo",
+                "displayName": "Bryan Mbeumo",
+                "premierLeagueClub": "Brentford",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Mbeumo"
+              },
+              {
+                "id": "van-dijk",
+                "displayName": "Virgil van Dijk",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Van Dijk"
+              },
+              {
+                "id": "andrew-robertson",
+                "displayName": "Andrew Robertson",
+                "premierLeagueClub": "Liverpool",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Robertson"
+              },
+              {
+                "id": "diogo-dalot",
+                "displayName": "Diogo Dalot",
+                "premierLeagueClub": "Manchester United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dalot"
+              },
+              {
+                "id": "pervis-estupinan",
+                "displayName": "Pervis Estupinan",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Estupinan"
+              },
+              {
+                "id": "alisson-becker",
+                "displayName": "Alisson Becker",
+                "premierLeagueClub": "Liverpool",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Alisson"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "bart-verbruggen",
+                "displayName": "Bart Verbruggen",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Verbruggen"
+              },
+              {
+                "id": "joachim-andersen",
+                "displayName": "Joachim Andersen",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Andersen"
+              },
+              {
+                "id": "andreas-pereira",
+                "displayName": "Andreas Pereira",
+                "premierLeagueClub": "Fulham",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pereira"
+              },
+              {
+                "id": "joao-pedro",
+                "displayName": "Joao Pedro",
+                "premierLeagueClub": "Brighton & Hove Albion",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Joao Pedro"
+              }
+            ]
+          },
+          "leaderManagerId": "stevan",
+          "scoreline": "5--1"
+        },
+        {
+          "id": "gw1-north-riverside",
+          "home": {
+            "managerId": "marko",
+            "displayName": "Marko Jovanovic",
+            "clubName": "North Bank FC",
+            "shortName": "NBF",
+            "color": "#15803d",
+            "score": 3,
+            "activePlayers": [
+              {
+                "id": "nicolas-jackson",
+                "displayName": "Nicolas Jackson",
+                "premierLeagueClub": "Chelsea",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Jackson"
+              },
+              {
+                "id": "dominic-solanke",
+                "displayName": "Dominic Solanke",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Solanke"
+              },
+              {
+                "id": "palmer",
+                "displayName": "Cole Palmer",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Palmer"
+              },
+              {
+                "id": "moises-caicedo",
+                "displayName": "Moises Caicedo",
+                "premierLeagueClub": "Chelsea",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Caicedo"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "morgan-gibbs-white",
+                "displayName": "Morgan Gibbs-White",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gibbs-White"
+              },
+              {
+                "id": "james",
+                "displayName": "Reece James",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "James"
+              },
+              {
+                "id": "levi-colwill",
+                "displayName": "Levi Colwill",
+                "premierLeagueClub": "Chelsea",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Colwill"
+              },
+              {
+                "id": "pedro-porro",
+                "displayName": "Pedro Porro",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Porro"
+              },
+              {
+                "id": "ola-aina",
+                "displayName": "Ola Aina",
+                "premierLeagueClub": "Nottingham Forest",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Aina"
+              },
+              {
+                "id": "sanchez",
+                "displayName": "Robert Sanchez",
+                "premierLeagueClub": "Chelsea",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Sanchez"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "jordan-pickford",
+                "displayName": "Jordan Pickford",
+                "premierLeagueClub": "Everton",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pickford"
+              },
+              {
+                "id": "marcos-senesi",
+                "displayName": "Marcos Senesi",
+                "premierLeagueClub": "Bournemouth",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Senesi"
+              },
+              {
+                "id": "antoine-semenyo",
+                "displayName": "Antoine Semenyo",
+                "premierLeagueClub": "Bournemouth",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Semenyo"
+              },
+              {
+                "id": "evanilson",
+                "displayName": "Evanilson",
+                "premierLeagueClub": "Bournemouth",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Evanilson"
+              }
+            ]
+          },
+          "away": {
+            "managerId": "nikola",
+            "displayName": "Nikola Ilic",
+            "clubName": "Riverside Rovers",
+            "shortName": "RIV",
+            "color": "#a16207",
+            "score": 7,
+            "activePlayers": [
+              {
+                "id": "haaland",
+                "displayName": "Erling Haaland",
+                "premierLeagueClub": "Manchester City",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 4,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Haaland"
+              },
+              {
+                "id": "heung-min-son",
+                "displayName": "Heung-Min Son",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "FWD",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Son"
+              },
+              {
+                "id": "foden",
+                "displayName": "Phil Foden",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 3,
+                "status": "PLAYING",
+                "recentDelta": 3,
+                "shortName": "Foden"
+              },
+              {
+                "id": "kevin-de-bruyne",
+                "displayName": "Kevin De Bruyne",
+                "premierLeagueClub": "Manchester City",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "De Bruyne"
+              },
+              {
+                "id": "eberechi-eze",
+                "displayName": "Eberechi Eze",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Eze"
+              },
+              {
+                "id": "jarrod-bowen",
+                "displayName": "Jarrod Bowen",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Bowen"
+              },
+              {
+                "id": "dias",
+                "displayName": "Ruben Dias",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Dias"
+              },
+              {
+                "id": "josko-gvardiol",
+                "displayName": "Josko Gvardiol",
+                "premierLeagueClub": "Manchester City",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Gvardiol"
+              },
+              {
+                "id": "max-kilman",
+                "displayName": "Max Kilman",
+                "premierLeagueClub": "West Ham United",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Kilman"
+              },
+              {
+                "id": "ezri-konsa",
+                "displayName": "Ezri Konsa",
+                "premierLeagueClub": "Aston Villa",
+                "position": "DEF",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Konsa"
+              },
+              {
+                "id": "guglielmo-vicario",
+                "displayName": "Guglielmo Vicario",
+                "premierLeagueClub": "Tottenham Hotspur",
+                "position": "GKP",
+                "lineupSlot": "ACTIVE",
+                "points": 0,
+                "status": "PLAYING",
+                "recentDelta": 0,
+                "shortName": "Vicario"
+              }
+            ],
+            "benchPlayers": [
+              {
+                "id": "nick-pope",
+                "displayName": "Nick Pope",
+                "premierLeagueClub": "Newcastle United",
+                "position": "GKP",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Pope"
+              },
+              {
+                "id": "dan-burn",
+                "displayName": "Dan Burn",
+                "premierLeagueClub": "Newcastle United",
+                "position": "DEF",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Burn"
+              },
+              {
+                "id": "lucas-paqueta",
+                "displayName": "Lucas Paqueta",
+                "premierLeagueClub": "West Ham United",
+                "position": "MID",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Paqueta"
+              },
+              {
+                "id": "jean-philippe-mateta",
+                "displayName": "Jean-Philippe Mateta",
+                "premierLeagueClub": "Crystal Palace",
+                "position": "FWD",
+                "lineupSlot": "BENCH",
+                "points": 0,
+                "status": "BENCHED",
+                "recentDelta": 0,
+                "shortName": "Mateta"
+              }
+            ]
+          },
+          "leaderManagerId": "nikola",
+          "scoreline": "3-7"
+        }
+      ],
+      "events": [
+        {
+          "id": "evt-006",
+          "occurredAt": "2026-08-22T13:00:25+02:00",
+          "type": "ASSIST",
+          "managerId": "nikola",
+          "playerId": "foden",
+          "summary": "Phil Foden assists and adds three more points for Riverside Rovers.",
+          "pointDelta": 3,
+          "priority": 70
+        }
+      ],
+      "commentary": [
+        {
+          "id": "com-006",
+          "createdAt": "2026-08-22T13:00:25+02:00",
+          "text": "Foden adds the next swing, and Riverside Rovers now have the clearest early advantage on the board.",
+          "priority": 70,
+          "status": "READY"
+        }
+      ]
     }
   ]
 }

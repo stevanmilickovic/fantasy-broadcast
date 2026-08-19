@@ -19,6 +19,7 @@ type LiveStatus = {
 type PlayerView = {
   id: string
   displayName: string
+  shortName?: string
   premierLeagueClub: string
   position: string
   lineupSlot: string
@@ -212,6 +213,11 @@ type RevealLayout = {
   away: RevealRect
   score: RevealRect
 }
+type PlayerGroup = {
+  key: string
+  label: string
+  players: PlayerView[]
+}
 
 const SCENE_WIPE_MS = 1600
 const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
@@ -316,6 +322,29 @@ const revealCopyStyle = (rect: RevealRect, scale: number): CSSProperties & Recor
   '--reveal-y': `${rect.revealY}px`,
   '--reveal-scale': scale,
 })
+
+const playerGroupsForTeam = (team: TeamView): PlayerGroup[] => {
+  const activePlayers = team.activePlayers
+  return [
+    { key: 'FWD', label: 'FWD', players: activePlayers.filter((player) => player.position === 'FWD') },
+    { key: 'MID', label: 'MID', players: activePlayers.filter((player) => player.position === 'MID') },
+    { key: 'DEF', label: 'DEF', players: activePlayers.filter((player) => player.position === 'DEF') },
+    { key: 'GKP', label: 'GKP', players: activePlayers.filter((player) => player.position === 'GKP') },
+    { key: 'BENCH', label: 'Bench', players: team.benchPlayers },
+  ].filter((group) => group.players.length > 0)
+}
+
+const splitPlayerName = (displayName: string): [string, string] => {
+  const nameParts = displayName.trim().split(/\\s+/)
+  if (nameParts.length <= 1) {
+    return [displayName, '']
+  }
+  return [nameParts.slice(0, -1).join(' '), nameParts.at(-1) ?? '']
+}
+
+const playerCardName = (player: PlayerView): [string, string] => {
+  return player.shortName ? [player.shortName, ''] : splitPlayerName(player.displayName)
+}
 
 function App() {
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
@@ -526,6 +555,7 @@ function App() {
 
   if (appView === 'broadcast') {
     const displayEvent = visibleEventId === displayLatestEvent?.id ? displayLatestEvent : undefined
+    const pendingEvent = displayEvent ? undefined : displayLatestEvent
 
     return (
       <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`}>
@@ -545,6 +575,7 @@ function App() {
             side="left"
             team={matchup.home}
             latestEvent={displayEvent}
+            pendingEvent={pendingEvent}
             isLeader={matchup.leaderManagerId === matchup.home.managerId}
             headingRef={homeHeadingRef}
           />
@@ -559,6 +590,7 @@ function App() {
             side="right"
             team={matchup.away}
             latestEvent={displayEvent}
+            pendingEvent={pendingEvent}
             isLeader={matchup.leaderManagerId === matchup.away.managerId}
             headingRef={awayHeadingRef}
           />
@@ -925,18 +957,21 @@ function BroadcastTeamColumn({
   side,
   team,
   latestEvent,
+  pendingEvent,
   isLeader,
   headingRef,
 }: {
   side: 'left' | 'right'
   team: TeamView
   latestEvent?: FantasyEventView
+  pendingEvent?: FantasyEventView
   isLeader: boolean
   headingRef: RefObject<HTMLHeadingElement | null>
 }) {
   const teamStyle: CSSProperties & Record<'--team-color', string> = {
     '--team-color': team.color,
   }
+  const playerGroups = playerGroupsForTeam(team)
 
   return (
     <section className={`broadcast-team-column ${side}`} style={teamStyle}>
@@ -946,36 +981,101 @@ function BroadcastTeamColumn({
         <p>{team.displayName}</p>
         <strong className={isLeader ? '' : 'leader-placeholder'}>Leading</strong>
       </div>
-      <div className="broadcast-player-list">
-        {team.activePlayers.map((player) => {
-          const isChangedPlayer = latestEvent?.managerId === team.managerId && latestEvent.playerId === player.id
-          return (
-            <div className={`broadcast-player ${isChangedPlayer ? 'broadcast-player-event' : ''}`} key={player.id}>
-              <div className="broadcast-player-name">
-                <strong>{player.displayName}</strong>
-                <span>
-                  {player.premierLeagueClub} · {player.position}
-                </span>
-              </div>
-              <div className="broadcast-player-points">
-                <strong>{player.points}</strong>
-              </div>
-              <div className="broadcast-player-notification">
-                {isChangedPlayer && (
-                  <div className="event-badge">
-                    <strong>{latestEvent.type.replaceAll('_', ' ')}</strong>
-                    <span>
-                      {latestEvent.pointDelta > 0 ? '+' : ''}
-                      {latestEvent.pointDelta} pts
-                    </span>
+      <div className="broadcast-player-board">
+        {playerGroups.map((group) => (
+          <div className={`broadcast-position-row ${group.key === 'BENCH' ? 'bench-row' : ''}`} key={group.key}>
+            <span className="position-row-label">{group.label}</span>
+            <div className="position-player-row">
+              {group.players.map((player) => {
+                const isChangedPlayer = latestEvent?.managerId === team.managerId && latestEvent.playerId === player.id
+                const isPendingPlayer =
+                  pendingEvent?.managerId === team.managerId && pendingEvent.playerId === player.id
+                const pointEvent = latestEvent ?? pendingEvent
+                const [firstName, surname] = playerCardName(player)
+                const previousPoints =
+                  (isChangedPlayer || isPendingPlayer) && pointEvent ? player.points - pointEvent.pointDelta : player.points
+                const renderedPoints = isPendingPlayer ? previousPoints : player.points
+                return (
+                  <div
+                    className={`broadcast-player-card ${isChangedPlayer ? 'broadcast-player-event' : ''}`}
+                    key={player.id}
+                  >
+                    <div className="broadcast-player-name">
+                      <strong>{firstName}</strong>
+                      {surname && <strong>{surname}</strong>}
+                    </div>
+                    <PlayerPoints
+                      key={isChangedPlayer ? `${latestEvent.id}-${player.id}-${player.points}` : `${player.id}-${renderedPoints}`}
+                      points={renderedPoints}
+                      previousPoints={previousPoints}
+                      delta={isChangedPlayer ? latestEvent.pointDelta : 0}
+                      eventId={isChangedPlayer ? latestEvent.id : undefined}
+                    />
+                    {isChangedPlayer && (
+                      <div className="broadcast-player-notification">
+                        <strong>{latestEvent.type.replaceAll('_', ' ')}</strong>
+                        <span>
+                          {latestEvent.pointDelta > 0 ? '+' : ''}
+                          {latestEvent.pointDelta} pts
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                )
+              })}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     </section>
+  )
+}
+
+function PlayerPoints({
+  points,
+  previousPoints,
+  delta,
+  eventId,
+}: {
+  points: number
+  previousPoints: number
+  delta: number
+  eventId?: string
+}) {
+  const initialDisplayPoints = eventId && delta !== 0 ? previousPoints : points
+  const [displayPoints, setDisplayPoints] = useState(initialDisplayPoints)
+
+  useEffect(() => {
+    if (!eventId || delta === 0) {
+      setDisplayPoints(points)
+      return
+    }
+
+    setDisplayPoints(previousPoints)
+    const direction = delta > 0 ? 1 : -1
+    const steps = Math.abs(delta)
+    let currentStep = 0
+    const interval = window.setInterval(() => {
+      currentStep += 1
+      setDisplayPoints(previousPoints + currentStep * direction)
+      if (currentStep >= steps) {
+        window.clearInterval(interval)
+      }
+    }, 120)
+
+    return () => window.clearInterval(interval)
+  }, [delta, eventId, points, previousPoints])
+
+  return (
+    <div className="broadcast-player-points">
+      {eventId && delta !== 0 && (
+        <span className="point-delta">
+          {delta > 0 ? '+' : ''}
+          {delta}
+        </span>
+      )}
+      <span className="point-count">{displayPoints}</span>
+    </div>
   )
 }
 
