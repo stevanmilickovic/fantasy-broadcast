@@ -30,6 +30,7 @@ function App() {
   const [revealLayout, setRevealLayout] = useState<RevealLayout | null>(null)
   const [visibleEventId, setVisibleEventId] = useState<string | null>(null)
   const lastFocusedMatchupIdRef = useRef<string | null>(null)
+  const lastBroadcastFocusRef = useRef<BroadcastFocus>('multi')
   const transitionTimersRef = useRef<number[]>([])
   const homeHeadingRef = useRef<HTMLHeadingElement>(null)
   const awayHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -82,6 +83,7 @@ function App() {
 
     if (!liveState || !focusedMatchupId || appView !== 'broadcast') {
       lastFocusedMatchupIdRef.current = null
+      lastBroadcastFocusRef.current = broadcastFocus
       setBroadcastLiveState(liveState)
       setTransitioningToMatch(false)
       setRevealingMatch(false)
@@ -91,11 +93,14 @@ function App() {
     }
 
     const previousFocusedMatchupId = lastFocusedMatchupIdRef.current
+    const previousBroadcastFocus = lastBroadcastFocusRef.current
     const firstBroadcastFocus = previousFocusedMatchupId === null
     const focusChanged = previousFocusedMatchupId !== null && previousFocusedMatchupId !== focusedMatchupId
+    const userChangedFocus = previousBroadcastFocus !== broadcastFocus
     lastFocusedMatchupIdRef.current = focusedMatchupId
+    lastBroadcastFocusRef.current = broadcastFocus
 
-    if (broadcastFocus !== 'multi' && !firstBroadcastFocus) {
+    if (userChangedFocus && !firstBroadcastFocus) {
       setBroadcastLiveState(liveState)
       setTransitioningToMatch(false)
       setRevealingMatch(false)
