@@ -200,6 +200,7 @@ type LeagueDiscoveryState = {
 
 type DiscoveryTab = 'teams' | 'compositions' | 'matchups' | 'standings'
 type AppView = 'setup' | 'broadcast'
+type BroadcastFocus = 'multi' | string
 type RevealRect = {
   left: number
   top: number
@@ -284,6 +285,10 @@ const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView | unde
     : state.matchups[0]
 }
 
+const matchupHasEvent = (matchup: MatchupView, event: FantasyEventView | undefined): boolean => {
+  return event ? [matchup.home.managerId, matchup.away.managerId].includes(event.managerId) : false
+}
+
 const formatScoreline = (scoreline: string): string => {
   const scoreMatch = scoreline.match(/^(-?\d+)-(-?\d+)$/)
   if (!scoreMatch) {
@@ -356,6 +361,7 @@ function App() {
   const [leagueError, setLeagueError] = useState<string | null>(null)
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
   const [appView, setAppView] = useState<AppView>('setup')
+  const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
   const [broadcastLiveState, setBroadcastLiveState] = useState<LiveStateResponse | null>(null)
   const [transitioningToMatch, setTransitioningToMatch] = useState(false)
   const [revealingMatch, setRevealingMatch] = useState(false)
@@ -403,7 +409,10 @@ function App() {
   }
 
   const targetLatestEvent = liveState?.events[0]
-  const targetMatchup = findFocusedMatchup(liveState)
+  const autoTargetMatchup = findFocusedMatchup(liveState)
+  const selectedTargetMatchup =
+    broadcastFocus === 'multi' ? undefined : liveState?.matchups.find((candidate) => candidate.id === broadcastFocus)
+  const targetMatchup = selectedTargetMatchup ?? autoTargetMatchup
   const focusedMatchupId = targetMatchup?.id ?? null
 
   useEffect(() => {
@@ -423,6 +432,15 @@ function App() {
     const firstBroadcastFocus = previousFocusedMatchupId === null
     const focusChanged = previousFocusedMatchupId !== null && previousFocusedMatchupId !== focusedMatchupId
     lastFocusedMatchupIdRef.current = focusedMatchupId
+
+    if (broadcastFocus !== 'multi' && !firstBroadcastFocus) {
+      setBroadcastLiveState(liveState)
+      setTransitioningToMatch(false)
+      setRevealingMatch(false)
+      setRevealLayout(null)
+      setVisibleEventId(targetLatestEvent?.id ?? null)
+      return clearTransitionTimers
+    }
 
     if (firstBroadcastFocus) {
       setBroadcastLiveState(liveState)
@@ -464,7 +482,7 @@ function App() {
     setVisibleEventId(targetLatestEvent?.id ?? null)
 
     return clearTransitionTimers
-  }, [appView, focusedMatchupId, targetLatestEvent?.id])
+  }, [appView, broadcastFocus, focusedMatchupId, targetLatestEvent?.id])
 
   useLayoutEffect(() => {
     if (appView !== 'broadcast' || !homeHeadingRef.current || !awayHeadingRef.current || !scoreRef.current) {
@@ -484,6 +502,7 @@ function App() {
       const nextState = await postMockAction(action)
       setLiveState(nextState)
       if (action === 'start') {
+        setBroadcastFocus('multi')
         setAppView('broadcast')
       }
       if (action === 'reset') {
@@ -544,7 +563,10 @@ function App() {
 
   const displayLiveState = appView === 'broadcast' ? broadcastLiveState ?? liveState : liveState
   const displayLatestEvent = displayLiveState.events[0]
-  const matchup = findFocusedMatchup(displayLiveState) ?? targetMatchup
+  const autoDisplayMatchup = findFocusedMatchup(displayLiveState)
+  const selectedDisplayMatchup =
+    broadcastFocus === 'multi' ? undefined : displayLiveState.matchups.find((candidate) => candidate.id === broadcastFocus)
+  const matchup = selectedDisplayMatchup ?? autoDisplayMatchup ?? targetMatchup
   const latestCommentary = displayLiveState.commentary[0]
   const leaderName =
     matchup.leaderManagerId === matchup.home.managerId
@@ -554,8 +576,10 @@ function App() {
         : 'No one'
 
   if (appView === 'broadcast') {
-    const displayEvent = visibleEventId === displayLatestEvent?.id ? displayLatestEvent : undefined
-    const pendingEvent = displayEvent ? undefined : displayLatestEvent
+    const eventBelongsToDisplayedMatchup = matchupHasEvent(matchup, displayLatestEvent)
+    const displayEvent =
+      eventBelongsToDisplayedMatchup && visibleEventId === displayLatestEvent?.id ? displayLatestEvent : undefined
+    const pendingEvent = eventBelongsToDisplayedMatchup && !displayEvent ? displayLatestEvent : undefined
 
     return (
       <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`}>
@@ -569,6 +593,12 @@ function App() {
           <Radio size={16} />
           <span>Live</span>
         </div>
+        <MatchSelector
+          latestEvent={displayLatestEvent}
+          matchups={displayLiveState.matchups}
+          selectedFocus={broadcastFocus}
+          onSelect={setBroadcastFocus}
+        />
 
         <section className="matchday-stage" aria-label="Focused matchup broadcast">
           <BroadcastTeamColumn
@@ -949,6 +979,144 @@ function ReadinessItem({ label, value, ready }: { label: string; value: string; 
         <strong>{label}</strong>
         <small>{value}</small>
       </div>
+    </div>
+  )
+}
+
+function MatchSelector({
+  matchups,
+  latestEvent,
+  selectedFocus,
+  onSelect,
+}: {
+  matchups: MatchupView[]
+  latestEvent?: FantasyEventView
+  selectedFocus: BroadcastFocus
+  onSelect: (focus: BroadcastFocus) => void
+}) {
+  return (
+    <nav className="match-selector" aria-label="Ongoing match selector">
+      <button
+        className={`match-selector-chip multiview-chip ${selectedFocus === 'multi' ? 'selected-match-chip' : ''}`}
+        type="button"
+        onClick={() => onSelect('multi')}
+      >
+        <Radio size={14} />
+        <span>Multi</span>
+      </button>
+      <div className="match-chip-track">
+        {matchups.map((matchup) => (
+          <MatchSelectorChip
+            key={matchup.id}
+            latestEvent={latestEvent}
+            matchup={matchup}
+            selected={selectedFocus === matchup.id}
+            onSelect={() => onSelect(matchup.id)}
+          />
+        ))}
+      </div>
+    </nav>
+  )
+}
+
+function MatchSelectorChip({
+  matchup,
+  latestEvent,
+  selected,
+  onSelect,
+}: {
+  matchup: MatchupView
+  latestEvent?: FantasyEventView
+  selected: boolean
+  onSelect: () => void
+}) {
+  const homeChanged = latestEvent?.managerId === matchup.home.managerId
+  const awayChanged = latestEvent?.managerId === matchup.away.managerId
+
+  return (
+    <button
+      className={`match-selector-chip ${selected ? 'selected-match-chip' : ''} ${homeChanged || awayChanged ? 'match-chip-event' : ''}`}
+      type="button"
+      onClick={onSelect}
+    >
+      <span className="match-chip-team">{matchup.home.shortName}</span>
+      <MatchChipScore
+        changed={homeChanged}
+        delta={homeChanged && latestEvent ? latestEvent.pointDelta : 0}
+        eventId={homeChanged ? latestEvent?.id : undefined}
+        score={matchup.home.score}
+        side="left"
+      />
+      <span className="match-chip-separator">-</span>
+      <MatchChipScore
+        changed={awayChanged}
+        delta={awayChanged && latestEvent ? latestEvent.pointDelta : 0}
+        eventId={awayChanged ? latestEvent?.id : undefined}
+        score={matchup.away.score}
+        side="right"
+      />
+      <span className="match-chip-team">{matchup.away.shortName}</span>
+    </button>
+  )
+}
+
+function MatchChipScore({
+  score,
+  changed,
+  delta,
+  eventId,
+  side,
+}: {
+  score: number
+  changed: boolean
+  delta: number
+  eventId?: string
+  side: 'left' | 'right'
+}) {
+  const previousScore = changed ? score - delta : score
+  const [displayScore, setDisplayScore] = useState(changed ? previousScore : score)
+  const [showDelta, setShowDelta] = useState(changed)
+
+  useEffect(() => {
+    if (!changed || !eventId || delta === 0) {
+      setDisplayScore(score)
+      setShowDelta(false)
+      return
+    }
+
+    setDisplayScore(previousScore)
+    setShowDelta(true)
+
+    const direction = delta > 0 ? 1 : -1
+    const steps = Math.abs(delta)
+    let currentStep = 0
+    const countTimer = window.setInterval(() => {
+      currentStep += 1
+      setDisplayScore(previousScore + currentStep * direction)
+      if (currentStep >= steps) {
+        window.clearInterval(countTimer)
+      }
+    }, 120)
+    const deltaTimer = window.setTimeout(() => setShowDelta(false), 5000)
+
+    return () => {
+      window.clearInterval(countTimer)
+      window.clearTimeout(deltaTimer)
+    }
+  }, [changed, delta, eventId, previousScore, score])
+
+  const deltaElement = showDelta && (
+    <span className="match-chip-delta">
+      {delta > 0 ? '+' : ''}
+      {delta}
+    </span>
+  )
+
+  return (
+    <div className={`match-chip-score ${changed ? 'changed-score' : ''}`}>
+      {side === 'left' && deltaElement}
+      <span className="match-chip-total">{displayScore}</span>
+      {side === 'right' && deltaElement}
     </div>
   )
 }
