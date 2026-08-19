@@ -1,0 +1,10 @@
+{
+  "picks": [
+    { "element": 301, "position": 1, "multiplier": 1 },
+    { "element": 302, "position": 2, "multiplier": 1 },
+    { "element": 303, "position": 3, "multiplier": 1 },
+    { "element": 304, "position": 12, "multiplier": 0 },
+    { "element": 305, "position": 13, "multiplier": 0 },
+    { "element": 306, "position": 14, "multiplier": 0 }
+  ]
+}

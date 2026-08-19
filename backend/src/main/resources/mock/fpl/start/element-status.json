@@ -1,0 +1,28 @@
+{
+  "element_status": [
+    { "element": 101, "owner": 9001, "status": "o", "in_accepted_trade": false },
+    { "element": 102, "owner": 9001, "status": "o", "in_accepted_trade": false },
+    { "element": 103, "owner": 9001, "status": "o", "in_accepted_trade": false },
+    { "element": 104, "owner": 9001, "status": "o", "in_accepted_trade": false },
+    { "element": 105, "owner": 9001, "status": "o", "in_accepted_trade": false },
+    { "element": 106, "owner": 9001, "status": "o", "in_accepted_trade": false },
+    { "element": 201, "owner": 9002, "status": "o", "in_accepted_trade": false },
+    { "element": 202, "owner": 9002, "status": "o", "in_accepted_trade": false },
+    { "element": 203, "owner": 9002, "status": "o", "in_accepted_trade": false },
+    { "element": 204, "owner": 9002, "status": "o", "in_accepted_trade": false },
+    { "element": 205, "owner": 9002, "status": "o", "in_accepted_trade": false },
+    { "element": 206, "owner": 9002, "status": "o", "in_accepted_trade": false },
+    { "element": 301, "owner": 9003, "status": "o", "in_accepted_trade": false },
+    { "element": 302, "owner": 9003, "status": "o", "in_accepted_trade": false },
+    { "element": 303, "owner": 9003, "status": "o", "in_accepted_trade": false },
+    { "element": 304, "owner": 9003, "status": "o", "in_accepted_trade": false },
+    { "element": 305, "owner": 9003, "status": "o", "in_accepted_trade": false },
+    { "element": 306, "owner": 9003, "status": "o", "in_accepted_trade": false },
+    { "element": 401, "owner": 9004, "status": "o", "in_accepted_trade": false },
+    { "element": 402, "owner": 9004, "status": "o", "in_accepted_trade": false },
+    { "element": 403, "owner": 9004, "status": "o", "in_accepted_trade": false },
+    { "element": 404, "owner": 9004, "status": "o", "in_accepted_trade": false },
+    { "element": 405, "owner": 9004, "status": "o", "in_accepted_trade": false },
+    { "element": 406, "owner": 9004, "status": "o", "in_accepted_trade": false }
+  ]
+}

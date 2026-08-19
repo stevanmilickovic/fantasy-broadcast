@@ -1,0 +1,33 @@
+{
+  "league": {
+    "admin_entry": 9001,
+    "closed": false,
+    "draft_status": "post",
+    "draft_tz_show": "Europe/Belgrade",
+    "id": 777001,
+    "max_entries": 16,
+    "min_entries": 4,
+    "name": "Mock Draft Broadcast League",
+    "scoring": "h",
+    "start_event": 1,
+    "stop_event": 38,
+    "trades": "y",
+    "transaction_mode": "waivers"
+  },
+  "league_entries": [
+    { "id": 101, "entry_id": 9001, "entry_name": "Red Star Draft", "player_first_name": "Stevan", "player_last_name": "Milic", "short_name": "SM" },
+    { "id": 102, "entry_id": 9002, "entry_name": "Blue Moon XI", "player_first_name": "Luka", "player_last_name": "Markovic", "short_name": "LM" },
+    { "id": 103, "entry_id": 9003, "entry_name": "North Bank FC", "player_first_name": "Marko", "player_last_name": "Jovanovic", "short_name": "MJ" },
+    { "id": 104, "entry_id": 9004, "entry_name": "Riverside Rovers", "player_first_name": "Nikola", "player_last_name": "Ilic", "short_name": "NI" }
+  ],
+  "matches": [
+    { "id": 501, "event": 1, "league_entry_1": 101, "league_entry_2": 102, "league_entry_1_points": 0, "league_entry_2_points": 0, "finished": false },
+    { "id": 502, "event": 1, "league_entry_1": 103, "league_entry_2": 104, "league_entry_1_points": 0, "league_entry_2_points": 0, "finished": false }
+  ],
+  "standings": [
+    { "league_entry": 101, "rank": 1, "total": 0, "points_for": 0 },
+    { "league_entry": 102, "rank": 2, "total": 0, "points_for": 0 },
+    { "league_entry": 103, "rank": 3, "total": 0, "points_for": 0 },
+    { "league_entry": 104, "rank": 4, "total": 0, "points_for": 0 }
+  ]
+}

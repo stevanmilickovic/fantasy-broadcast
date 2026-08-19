@@ -1,0 +1,42 @@
+{
+  "teams": [
+    { "id": 1, "name": "Arsenal" },
+    { "id": 7, "name": "Chelsea" },
+    { "id": 12, "name": "Manchester City" },
+    { "id": 14, "name": "Liverpool" },
+    { "id": 17, "name": "Tottenham Hotspur" },
+    { "id": 20, "name": "West Ham United" }
+  ],
+  "element_types": [
+    { "id": 1, "singular_name_short": "GKP" },
+    { "id": 2, "singular_name_short": "DEF" },
+    { "id": 3, "singular_name_short": "MID" },
+    { "id": 4, "singular_name_short": "FWD" }
+  ],
+  "elements": [
+    { "id": 101, "web_name": "Saka", "first_name": "Bukayo", "second_name": "Saka", "team": 1, "element_type": 3 },
+    { "id": 102, "web_name": "Saliba", "first_name": "William", "second_name": "Saliba", "team": 1, "element_type": 2 },
+    { "id": 103, "web_name": "Havertz", "first_name": "Kai", "second_name": "Havertz", "team": 1, "element_type": 4 },
+    { "id": 104, "web_name": "Raya", "first_name": "David", "second_name": "Raya", "team": 1, "element_type": 1 },
+    { "id": 105, "web_name": "Rice", "first_name": "Declan", "second_name": "Rice", "team": 1, "element_type": 3 },
+    { "id": 106, "web_name": "Timber", "first_name": "Jurrien", "second_name": "Timber", "team": 1, "element_type": 2 },
+    { "id": 201, "web_name": "Salah", "first_name": "Mohamed", "second_name": "Salah", "team": 14, "element_type": 3 },
+    { "id": 202, "web_name": "Van Dijk", "first_name": "Virgil", "second_name": "van Dijk", "team": 14, "element_type": 2 },
+    { "id": 203, "web_name": "Alisson", "first_name": "Alisson", "second_name": "Becker", "team": 14, "element_type": 1 },
+    { "id": 204, "web_name": "Gakpo", "first_name": "Cody", "second_name": "Gakpo", "team": 14, "element_type": 4 },
+    { "id": 205, "web_name": "Szoboszlai", "first_name": "Dominik", "second_name": "Szoboszlai", "team": 14, "element_type": 3 },
+    { "id": 206, "web_name": "Robertson", "first_name": "Andrew", "second_name": "Robertson", "team": 14, "element_type": 2 },
+    { "id": 301, "web_name": "Palmer", "first_name": "Cole", "second_name": "Palmer", "team": 7, "element_type": 3 },
+    { "id": 302, "web_name": "James", "first_name": "Reece", "second_name": "James", "team": 7, "element_type": 2 },
+    { "id": 303, "web_name": "Sanchez", "first_name": "Robert", "second_name": "Sanchez", "team": 7, "element_type": 1 },
+    { "id": 304, "web_name": "Jackson", "first_name": "Nicolas", "second_name": "Jackson", "team": 7, "element_type": 4 },
+    { "id": 305, "web_name": "Caicedo", "first_name": "Moises", "second_name": "Caicedo", "team": 7, "element_type": 3 },
+    { "id": 306, "web_name": "Colwill", "first_name": "Levi", "second_name": "Colwill", "team": 7, "element_type": 2 },
+    { "id": 401, "web_name": "Haaland", "first_name": "Erling", "second_name": "Haaland", "team": 12, "element_type": 4 },
+    { "id": 402, "web_name": "Foden", "first_name": "Phil", "second_name": "Foden", "team": 12, "element_type": 3 },
+    { "id": 403, "web_name": "Dias", "first_name": "Ruben", "second_name": "Dias", "team": 12, "element_type": 2 },
+    { "id": 404, "web_name": "Vicario", "first_name": "Guglielmo", "second_name": "Vicario", "team": 17, "element_type": 1 },
+    { "id": 405, "web_name": "Bowen", "first_name": "Jarrod", "second_name": "Bowen", "team": 20, "element_type": 3 },
+    { "id": 406, "web_name": "Son", "first_name": "Heung-Min", "second_name": "Son", "team": 17, "element_type": 4 }
+  ]
+}

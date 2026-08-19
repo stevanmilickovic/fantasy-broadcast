@@ -147,7 +147,7 @@
 
 .discovery-form form {
   display: grid;
-  grid-template-columns: auto 180px 104px;
+  grid-template-columns: auto 180px 104px 104px;
   align-items: end;
   gap: 10px;
 }
@@ -181,6 +181,12 @@
   color: white;
   background: var(--accent);
   cursor: pointer;
+}
+
+.discovery-form .secondary-action {
+  border-color: #b9c2cf;
+  color: var(--text-strong);
+  background: #fff;
 }
 
 .discovery-form button:disabled {
@@ -229,7 +235,7 @@
 
 .readiness-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 16px;
 }

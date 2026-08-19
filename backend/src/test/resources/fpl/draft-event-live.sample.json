@@ -1,7 +1,6 @@
 {
-  "elements": [
-    {
-      "id": 328,
+  "elements": {
+    "328": {
       "stats": {
         "minutes": 90,
         "total_points": 7,
@@ -20,7 +19,7 @@
       },
       "explain": []
     }
-  ],
+  },
   "fixtures": [
     {
       "id": 1,

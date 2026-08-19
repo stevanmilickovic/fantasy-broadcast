@@ -38,12 +38,17 @@ public class FplDraftMapper {
 
 	public List<FplLivePlayer> mapLivePlayers(JsonNode root) {
 		var livePlayers = new ArrayList<FplLivePlayer>();
+		var elements = root.path("elements");
 
-		for (JsonNode element : root.path("elements")) {
-			livePlayers.add(new FplLivePlayer(
-					intValue(element, "id"),
-					mapLiveStats(element.path("stats")),
-					mapLiveExplanations(element.path("explain"))));
+		if (elements.isObject()) {
+			for (var property : elements.properties()) {
+				livePlayers.add(mapLivePlayer(property.getValue(), integerValue(property.getKey())));
+			}
+		}
+		else {
+			for (JsonNode element : elements) {
+				livePlayers.add(mapLivePlayer(element, null));
+			}
 		}
 
 		return livePlayers;
@@ -78,6 +83,14 @@ public class FplDraftMapper {
 
 	public FplDraftEventLive mapDraftEventLive(JsonNode root) {
 		return new FplDraftEventLive(mapLivePlayers(root), mapFixtures(root.path("fixtures")));
+	}
+
+	private FplLivePlayer mapLivePlayer(JsonNode element, Integer fallbackId) {
+		var id = intValue(element, "id");
+		return new FplLivePlayer(
+				id == 0 && fallbackId != null ? fallbackId : id,
+				mapLiveStats(element.path("stats")),
+				mapLiveExplanations(element.path("explain")));
 	}
 
 	private FplLiveStats mapLiveStats(JsonNode stats) {
@@ -197,6 +210,15 @@ public class FplDraftMapper {
 	private Integer integerValue(JsonNode node, String fieldName) {
 		var value = node.path(fieldName);
 		return value.isMissingNode() || value.isNull() ? null : value.asInt(0);
+	}
+
+	private Integer integerValue(String value) {
+		try {
+			return Integer.parseInt(value);
+		}
+		catch (NumberFormatException exception) {
+			return null;
+		}
 	}
 
 	private boolean booleanValue(JsonNode node, String fieldName) {

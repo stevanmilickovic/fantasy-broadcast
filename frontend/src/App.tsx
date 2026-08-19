@@ -1,4 +1,4 @@
-import { Activity, Database, Radio, RotateCcw, Search, SkipForward, Trophy } from 'lucide-react'
+import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward, Trophy } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
@@ -141,10 +141,60 @@ type FplPlayer = {
   position: string
 }
 
+type FplEntryPick = {
+  element: number
+  position: number
+  multiplier: number
+  starter: boolean
+  benched: boolean
+}
+
+type FplEntryEvent = {
+  picks: FplEntryPick[]
+}
+
+type FplLivePlayer = {
+  id: number
+  stats: {
+    minutes: number
+    goalsScored: number
+    assists: number
+    cleanSheets: number
+    goalsConceded: number
+    ownGoals: number
+    penaltiesSaved: number
+    penaltiesMissed: number
+    yellowCards: number
+    redCards: number
+    saves: number
+    bonus: number
+    bps: number
+    totalPoints: number
+  }
+}
+
+type FplDraftEventLive = {
+  fixtures: Array<{
+    id: number
+    event: number
+    homeTeamId: number
+    awayTeamId: number
+    homeScore: number | null
+    awayScore: number | null
+    started: boolean
+    finished: boolean
+    minutes: number
+    kickoffTime: string
+  }>
+}
+
 type LeagueDiscoveryState = {
   details: FplLeagueDetailsRaw
   elementStatus: FplElementStatusRaw
   players: FplPlayer[]
+  entryEvents?: Record<string, FplEntryEvent>
+  livePlayers?: FplLivePlayer[]
+  draftEventLive?: FplDraftEventLive
 }
 
 type DiscoveryTab = 'teams' | 'compositions' | 'matchups' | 'standings'
@@ -179,6 +229,14 @@ const loadLeagueDiscovery = async (leagueId: string): Promise<LeagueDiscoverySta
     elementStatus: (await elementStatusResponse.json()) as FplElementStatusRaw,
     players: (await playersResponse.json()) as FplPlayer[],
   }
+}
+
+const loadMockLeagueDiscovery = async (): Promise<LeagueDiscoveryState> => {
+  const response = await fetch('/api/fpl/mock/start')
+  if (!response.ok) {
+    throw new Error(`Mock league request failed with ${response.status}`)
+  }
+  return response.json()
 }
 
 const postMockAction = async (action: 'start' | 'advance' | 'reset'): Promise<LiveStateResponse> => {
@@ -273,6 +331,20 @@ function App() {
     }
   }
 
+  const inspectMockLeague = async () => {
+    setIsLeagueLoading(true)
+    try {
+      const nextDiscovery = await loadMockLeagueDiscovery()
+      setLeagueDiscovery(nextDiscovery)
+      setLeagueError(null)
+      setLeagueId(String(nextDiscovery.details.league?.id ?? leagueId))
+    } catch (requestError) {
+      setLeagueError(requestError instanceof Error ? requestError.message : 'Unknown mock league request error')
+    } finally {
+      setIsLeagueLoading(false)
+    }
+  }
+
   if (!liveState || !matchup) {
     return (
       <main className="broadcast-shell loading-shell">
@@ -335,6 +407,10 @@ function App() {
             <button type="submit" disabled={isLeagueLoading}>
               <Search size={18} />
               Load
+            </button>
+            <button type="button" className="secondary-action" disabled={isLeagueLoading} onClick={inspectMockLeague}>
+              <FlaskConical size={18} />
+              Test
             </button>
           </form>
         </div>
@@ -439,15 +515,27 @@ function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscoveryState
   const entryNamesById = new Map(entries.map((entry) => [entry.id, entry.entry_name]))
   const entryNamesByEntryId = new Map(entries.map((entry) => [entry.entry_id, entry.entry_name]))
   const playersById = new Map(discovery.players.map((player) => [player.id, player]))
+  const livePlayersById = new Map((discovery.livePlayers ?? []).map((player) => [player.id, player]))
+  const activeFixtureCount = discovery.draftEventLive?.fixtures.filter((fixture) => fixture.started && !fixture.finished).length ?? 0
   const hasCompositions = ownedPlayers.length > 0
   const hasMatchups = matches.length > 0
   const hasStandings = standings.length > 0
   const selectedEntry = entries.find((entry) => entry.entry_id === selectedEntryId) ?? null
+  const selectedEntryPicks = selectedEntry ? discovery.entryEvents?.[String(selectedEntry.entry_id)]?.picks ?? [] : []
+  const selectedPicksByElement = new Map(selectedEntryPicks.map((pick) => [pick.element, pick]))
   const selectedPlayers = selectedEntry
     ? ownedPlayers
         .filter((status) => status.owner === selectedEntry.entry_id)
-        .map((status) => ({ status, player: playersById.get(status.element) }))
+        .map((status) => ({
+          status,
+          player: playersById.get(status.element),
+          pick: selectedPicksByElement.get(status.element),
+          livePlayer: livePlayersById.get(status.element),
+        }))
         .sort((first, second) => {
+          if (first.pick && second.pick) {
+            return first.pick.position - second.pick.position
+          }
           const firstName = first.player?.webName ?? String(first.status.element)
           const secondName = second.player?.webName ?? String(second.status.element)
           return firstName.localeCompare(secondName)
@@ -487,6 +575,11 @@ function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscoveryState
           label="Free agents"
           value={playerStatuses.length > 0 ? `${freeAgents} players` : 'Unknown'}
           ready={playerStatuses.length > 0}
+        />
+        <ReadinessItem
+          label="Live fixtures"
+          value={activeFixtureCount > 0 ? `${activeFixtureCount} just started` : 'None active'}
+          ready={activeFixtureCount > 0}
         />
       </div>
 
@@ -559,12 +652,14 @@ function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscoveryState
                         <span>{selectedPlayers.length} owned players</span>
                       </div>
                       <div className="compact-list">
-                        {selectedPlayers.map(({ status, player }) => (
+                        {selectedPlayers.map(({ status, player, pick, livePlayer }) => (
                           <div className="compact-row player-composition-row" key={status.element}>
                             <strong>{player?.webName ?? `Player ${status.element}`}</strong>
                             <span>
                               {player?.fullName ?? 'Unknown player'} · {player?.premierLeagueClub ?? 'Unknown club'} ·{' '}
-                              {player?.position ?? 'Unknown position'} · status {status.status}
+                              {player?.position ?? 'Unknown position'} · {pick ? (pick.starter ? 'starter' : 'bench') : 'no pick'}{' '}
+                              {pick ? `#${pick.position}` : ''} · {livePlayer?.stats.minutes ?? 0} min ·{' '}
+                              {livePlayer?.stats.totalPoints ?? 0} pts
                             </span>
                           </div>
                         ))}

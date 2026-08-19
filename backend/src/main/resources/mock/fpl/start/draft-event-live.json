@@ -1,0 +1,76 @@
+{
+  "elements": {
+    "101": {
+      "stats": {
+        "minutes": 1,
+        "goals_scored": 0,
+        "assists": 0,
+        "clean_sheets": 0,
+        "goals_conceded": 0,
+        "own_goals": 0,
+        "penalties_saved": 0,
+        "penalties_missed": 0,
+        "yellow_cards": 0,
+        "red_cards": 0,
+        "saves": 0,
+        "bonus": 0,
+        "bps": 0,
+        "total_points": 0
+      },
+      "explain": []
+    },
+    "201": {
+      "stats": {
+        "minutes": 1,
+        "goals_scored": 0,
+        "assists": 0,
+        "clean_sheets": 0,
+        "goals_conceded": 0,
+        "own_goals": 0,
+        "penalties_saved": 0,
+        "penalties_missed": 0,
+        "yellow_cards": 0,
+        "red_cards": 0,
+        "saves": 0,
+        "bonus": 0,
+        "bps": 0,
+        "total_points": 0
+      },
+      "explain": []
+    }
+  },
+  "fixtures": [
+    {
+      "id": 7001,
+      "started": true,
+      "stats": [],
+      "code": 990001,
+      "finished": false,
+      "finished_provisional": false,
+      "kickoff_time": "2026-08-22T11:30:00Z",
+      "minutes": 1,
+      "team_a_score": 0,
+      "team_h_score": 0,
+      "pulse_id": 0,
+      "event": 1,
+      "team_a": 14,
+      "team_h": 1
+    },
+    {
+      "id": 7002,
+      "started": true,
+      "stats": [],
+      "code": 990002,
+      "finished": false,
+      "finished_provisional": false,
+      "kickoff_time": "2026-08-22T11:30:00Z",
+      "minutes": 1,
+      "team_a_score": 0,
+      "team_h_score": 0,
+      "pulse_id": 0,
+      "event": 1,
+      "team_a": 12,
+      "team_h": 7
+    }
+  ]
+}
