@@ -1,0 +1,16 @@
+{
+  "element_status": [
+    {
+      "element": 328,
+      "in_accepted_trade": false,
+      "owner": 101,
+      "status": "o"
+    },
+    {
+      "element": 3,
+      "in_accepted_trade": true,
+      "owner": null,
+      "status": "a"
+    }
+  ]
+}

@@ -1,8 +1,11 @@
 package com.sextelecomleague.backend.api;
 
 import com.sextelecomleague.backend.fpl.FplDraftClient;
+import com.sextelecomleague.backend.fpl.FplDraftElementStatus;
+import com.sextelecomleague.backend.fpl.FplDraftEventLive;
 import com.sextelecomleague.backend.fpl.FplDraftLeague;
 import com.sextelecomleague.backend.fpl.FplDraftMapper;
+import com.sextelecomleague.backend.fpl.FplEntryEvent;
 import com.sextelecomleague.backend.fpl.FplLivePlayer;
 import com.sextelecomleague.backend.fpl.FplPlayer;
 import java.util.List;
@@ -44,6 +47,14 @@ public class FplDiscoveryController {
 		return client.getLeagueElementStatus(leagueId);
 	}
 
+	@GetMapping("/league/{leagueId}/element-status")
+	public List<FplDraftElementStatus> leagueElementStatus(@PathVariable long leagueId,
+			@RequestParam(defaultValue = "50") int limit) {
+		return mapper.mapElementStatuses(client.getLeagueElementStatus(leagueId)).stream()
+				.limit(limit)
+				.toList();
+	}
+
 	@GetMapping("/league/{leagueId}/transactions/raw")
 	public JsonNode rawLeagueTransactions(@PathVariable long leagueId) {
 		return client.getLeagueTransactions(leagueId);
@@ -57,6 +68,11 @@ public class FplDiscoveryController {
 	@GetMapping("/entry/{entryId}/event/{eventId}/raw")
 	public JsonNode rawEntryEvent(@PathVariable long entryId, @PathVariable int eventId) {
 		return client.getEntryEvent(entryId, eventId);
+	}
+
+	@GetMapping("/entry/{entryId}/event/{eventId}")
+	public FplEntryEvent entryEvent(@PathVariable long entryId, @PathVariable int eventId) {
+		return mapper.mapEntryEvent(client.getEntryEvent(entryId, eventId));
 	}
 
 	@GetMapping("/players")
@@ -89,5 +105,10 @@ public class FplDiscoveryController {
 	@GetMapping("/draft/event/{eventId}/live/raw")
 	public JsonNode rawDraftEventLive(@PathVariable int eventId) {
 		return client.getDraftEventLive(eventId);
+	}
+
+	@GetMapping("/draft/event/{eventId}/live")
+	public FplDraftEventLive draftEventLive(@PathVariable int eventId) {
+		return mapper.mapDraftEventLive(client.getDraftEventLive(eventId));
 	}
 }

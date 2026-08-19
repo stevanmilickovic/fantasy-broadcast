@@ -52,6 +52,58 @@ class FplDraftMapperTests {
 				.extracting(FplLivePlayer::id, FplLivePlayer::totalPoints, FplLivePlayer::goalsScored,
 						FplLivePlayer::assists, FplLivePlayer::bonus)
 				.containsExactly(328, 7, 1, 0, 0);
+		assertThat(livePlayers.getFirst().stats())
+				.extracting(FplLiveStats::minutes, FplLiveStats::goalsConceded, FplLiveStats::bps)
+				.containsExactly(90, 1, 22);
+		assertThat(livePlayers.getFirst().explain()).hasSize(1);
+		assertThat(livePlayers.getFirst().explain().getFirst().stats())
+				.extracting(FplLivePointBreakdown::identifier, FplLivePointBreakdown::points,
+						FplLivePointBreakdown::value)
+				.containsExactly(
+						org.assertj.core.groups.Tuple.tuple("minutes", 2, 90),
+						org.assertj.core.groups.Tuple.tuple("goals_scored", 5, 1));
+	}
+
+	@Test
+	void mapsElementStatusOwnership() throws IOException {
+		var statuses = mapper.mapElementStatuses(readJson("fpl/element-status.sample.json"));
+
+		assertThat(statuses).hasSize(2);
+		assertThat(statuses.getFirst())
+				.extracting(FplDraftElementStatus::element, FplDraftElementStatus::owner,
+						FplDraftElementStatus::status, FplDraftElementStatus::inAcceptedTrade)
+				.containsExactly(328, 101, "o", false);
+		assertThat(statuses.get(1).owner()).isNull();
+	}
+
+	@Test
+	void mapsEntryEventPicksWithStarterAndBenchClassification() throws IOException {
+		var entryEvent = mapper.mapEntryEvent(readJson("fpl/entry-event.sample.json"));
+
+		assertThat(entryEvent.picks()).hasSize(2);
+		assertThat(entryEvent.picks().getFirst())
+				.extracting(FplEntryPick::element, FplEntryPick::position, FplEntryPick::multiplier,
+						FplEntryPick::starter, FplEntryPick::benched)
+				.containsExactly(328, 4, 1, true, false);
+		assertThat(entryEvent.picks().get(1))
+				.extracting(FplEntryPick::element, FplEntryPick::position, FplEntryPick::starter,
+						FplEntryPick::benched)
+				.containsExactly(3, 12, false, true);
+	}
+
+	@Test
+	void mapsDraftEventLivePlayersAndFixtures() throws IOException {
+		var live = mapper.mapDraftEventLive(readJson("fpl/draft-event-live.sample.json"));
+
+		assertThat(live.players()).hasSize(1);
+		assertThat(live.players().getFirst())
+				.extracting(FplLivePlayer::id, FplLivePlayer::totalPoints)
+				.containsExactly(328, 7);
+		assertThat(live.fixtures()).hasSize(1);
+		assertThat(live.fixtures().getFirst())
+				.extracting(FplFixture::id, FplFixture::event, FplFixture::homeTeamId, FplFixture::awayTeamId,
+						FplFixture::homeScore, FplFixture::awayScore, FplFixture::started, FplFixture::minutes)
+				.containsExactly(1, 1, 1, 7, 2, 1, true, 63);
 	}
 
 	private JsonNode readJson(String path) throws IOException {

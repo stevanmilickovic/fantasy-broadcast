@@ -40,19 +40,102 @@ public class FplDraftMapper {
 		var livePlayers = new ArrayList<FplLivePlayer>();
 
 		for (JsonNode element : root.path("elements")) {
-			var stats = element.path("stats");
 			livePlayers.add(new FplLivePlayer(
 					intValue(element, "id"),
-					intValue(stats, "total_points"),
-					intValue(stats, "goals_scored"),
-					intValue(stats, "assists"),
-					intValue(stats, "clean_sheets"),
-					intValue(stats, "yellow_cards"),
-					intValue(stats, "red_cards"),
-					intValue(stats, "bonus")));
+					mapLiveStats(element.path("stats")),
+					mapLiveExplanations(element.path("explain"))));
 		}
 
 		return livePlayers;
+	}
+
+	public List<FplDraftElementStatus> mapElementStatuses(JsonNode root) {
+		var statuses = new ArrayList<FplDraftElementStatus>();
+
+		for (JsonNode status : root.path("element_status")) {
+			statuses.add(new FplDraftElementStatus(
+					intValue(status, "element"),
+					integerValue(status, "owner"),
+					text(status, "status"),
+					booleanValue(status, "in_accepted_trade")));
+		}
+
+		return statuses;
+	}
+
+	public FplEntryEvent mapEntryEvent(JsonNode root) {
+		var picks = new ArrayList<FplEntryPick>();
+
+		for (JsonNode pick : root.path("picks")) {
+			picks.add(new FplEntryPick(
+					intValue(pick, "element"),
+					intValue(pick, "position"),
+					intValue(pick, "multiplier")));
+		}
+
+		return new FplEntryEvent(picks);
+	}
+
+	public FplDraftEventLive mapDraftEventLive(JsonNode root) {
+		return new FplDraftEventLive(mapLivePlayers(root), mapFixtures(root.path("fixtures")));
+	}
+
+	private FplLiveStats mapLiveStats(JsonNode stats) {
+		return new FplLiveStats(
+				intValue(stats, "minutes"),
+				intValue(stats, "goals_scored"),
+				intValue(stats, "assists"),
+				intValue(stats, "clean_sheets"),
+				intValue(stats, "goals_conceded"),
+				intValue(stats, "own_goals"),
+				intValue(stats, "penalties_saved"),
+				intValue(stats, "penalties_missed"),
+				intValue(stats, "yellow_cards"),
+				intValue(stats, "red_cards"),
+				intValue(stats, "saves"),
+				intValue(stats, "bonus"),
+				intValue(stats, "bps"),
+				intValue(stats, "total_points"));
+	}
+
+	private List<FplLiveExplanation> mapLiveExplanations(JsonNode explanationsNode) {
+		var explanations = new ArrayList<FplLiveExplanation>();
+		for (JsonNode explanation : explanationsNode) {
+			explanations.add(new FplLiveExplanation(
+					intValue(explanation, "fixture"),
+					mapLivePointBreakdowns(explanation.path("stats"))));
+		}
+		return explanations;
+	}
+
+	private List<FplLivePointBreakdown> mapLivePointBreakdowns(JsonNode breakdownsNode) {
+		var breakdowns = new ArrayList<FplLivePointBreakdown>();
+		for (JsonNode breakdown : breakdownsNode) {
+			breakdowns.add(new FplLivePointBreakdown(
+					text(breakdown, "identifier"),
+					intValue(breakdown, "points"),
+					intValue(breakdown, "value")));
+		}
+		return breakdowns;
+	}
+
+	private List<FplFixture> mapFixtures(JsonNode fixturesNode) {
+		var fixtures = new ArrayList<FplFixture>();
+		for (JsonNode fixture : fixturesNode) {
+			fixtures.add(new FplFixture(
+					intValue(fixture, "id"),
+					intValue(fixture, "event"),
+					intValue(fixture, "team_h"),
+					intValue(fixture, "team_a"),
+					integerValue(fixture, "team_h_score"),
+					integerValue(fixture, "team_a_score"),
+					booleanValue(fixture, "started"),
+					booleanValue(fixture, "finished"),
+					booleanValue(fixture, "finished_provisional"),
+					intValue(fixture, "minutes"),
+					text(fixture, "kickoff_time")));
+		}
+		return fixtures;
 	}
 
 	private List<FplDraftLeagueEntry> mapLeagueEntries(JsonNode entriesNode) {
@@ -109,6 +192,11 @@ public class FplDraftMapper {
 
 	private int intValue(JsonNode node, String fieldName) {
 		return node.path(fieldName).asInt(0);
+	}
+
+	private Integer integerValue(JsonNode node, String fieldName) {
+		var value = node.path(fieldName);
+		return value.isMissingNode() || value.isNull() ? null : value.asInt(0);
 	}
 
 	private boolean booleanValue(JsonNode node, String fieldName) {
