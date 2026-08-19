@@ -379,12 +379,12 @@
   bottom: -12%;
   width: 1px;
   background: rgba(255, 255, 255, 0.48);
-  transform: rotate(-19deg);
+  transform: rotate(-18deg);
   pointer-events: none;
 }
 
 .broadcast-team-column.left::after {
-  right: -16px;
+  right: 18%;
 }
 
 .broadcast-team-column.right::after {
