@@ -15,3 +15,19 @@ export const postMockAction = async (action: 'start' | 'advance' | 'reset'): Pro
   }
   return response.json()
 }
+
+export const startComprehensiveMock = async (): Promise<LiveStateResponse> => {
+  const response = await fetch('/api/mock-live/comprehensive/start', { method: 'POST' })
+  if (!response.ok) {
+    throw new Error(`Comprehensive mock start failed with ${response.status}`)
+  }
+  return response.json()
+}
+
+export const startRealBroadcast = async (leagueId: string): Promise<LiveStateResponse> => {
+  const response = await fetch(`/api/live-broadcast/start?leagueId=${encodeURIComponent(leagueId)}`, { method: 'POST' })
+  if (!response.ok) {
+    throw new Error(`Live broadcast start failed with ${response.status}`)
+  }
+  return response.json()
+}
