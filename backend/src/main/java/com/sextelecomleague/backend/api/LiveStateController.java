@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -36,6 +37,11 @@ public class LiveStateController {
 		return liveStateService.start();
 	}
 
+	@PostMapping("/mock-live/comprehensive/start")
+	public LiveStateResponse startComprehensive() {
+		return liveStateService.startComprehensive();
+	}
+
 	@PostMapping("/mock-live/advance")
 	public LiveStateResponse advance() {
 		return liveStateService.advance();
@@ -44,5 +50,10 @@ public class LiveStateController {
 	@PostMapping("/mock-live/reset")
 	public LiveStateResponse reset() {
 		return liveStateService.reset();
+	}
+
+	@PostMapping("/live-broadcast/start")
+	public LiveStateResponse startRealBroadcast(@RequestParam long leagueId) {
+		return liveStateService.startReal(leagueId);
 	}
 }

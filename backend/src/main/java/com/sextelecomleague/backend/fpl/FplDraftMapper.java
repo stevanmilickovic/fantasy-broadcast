@@ -138,7 +138,8 @@ public class FplDraftMapper {
 			breakdowns.add(new FplLivePointBreakdown(
 					text(breakdown, "identifier"),
 					intValue(breakdown, "points"),
-					intValue(breakdown, "value")));
+					intValue(breakdown, "value"),
+					intValue(breakdown, "points_modification")));
 		}
 		return breakdowns;
 	}

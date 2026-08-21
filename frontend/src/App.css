@@ -369,6 +369,8 @@
   align-content: start;
   gap: 18px;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 18px 6px;
 }
 
@@ -394,7 +396,12 @@
 .broadcast-team-heading {
   display: grid;
   gap: 4px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
+
+.broadcast-team-heading > * { min-width: 0; max-width: 100%; }
 
 .broadcast-team-column.right .broadcast-team-heading,
 .broadcast-team-column.right .broadcast-player {
@@ -409,11 +416,18 @@
 }
 
 .broadcast-team-heading h2 {
+  width: 100%;
+  margin: 0;
   color: white;
   font-size: clamp(34px, 4vw, 66px);
   line-height: 0.96;
   letter-spacing: 0;
+  white-space: nowrap;
+  overflow: visible;
 }
+
+.broadcast-team-column.left .broadcast-team-heading h2 { text-align: left; }
+.broadcast-team-column.right .broadcast-team-heading h2 { text-align: right; }
 
 .broadcast-team-heading p {
   color: rgba(255, 255, 255, 0.72);
@@ -837,9 +851,15 @@
 }
 
 /* Focused broadcast: the game is played on this glass pitch, not in player lists. */
+@property --event-shift {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
 .pitch-broadcast-stage {
   display: grid;
-  grid-template-columns: minmax(230px, 1fr) minmax(320px, 0.9fr) minmax(230px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
   align-items: start;
   column-gap: 34px;
   row-gap: 0;
@@ -850,7 +870,7 @@
 .pitch-broadcast-stage .broadcast-team-column.left { grid-column: 1; grid-row: 1; }
 .pitch-broadcast-stage .broadcast-team-column.right { grid-column: 3; grid-row: 1; }
 .pitch-panel-live { position: static; display: block; grid-column: 1 / -1; grid-row: 2; margin-top: 0; padding: 0; border: 0; background: transparent; }
-.pitch-panel-live .match-score-strip { top: 8px; }
+.pitch-panel-live .match-score-strip { top: calc(8px + 10vh); }
 .pitch-and-benches { position: relative; top: -32px; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: 1fr; width: 62.5%; height: 55vh; margin: 0 auto; }
 
 .live-pitch {
@@ -863,7 +883,7 @@
   min-height: 0;
   box-sizing: border-box;
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
   border: 1px solid rgba(255, 255, 255, 0.68);
   border-radius: 0;
@@ -873,6 +893,7 @@
   box-shadow: inset 0 0 46px rgba(0,0,0,.28), 0 24px 60px rgba(0,0,0,.3);
   backdrop-filter: blur(24px) saturate(1.1);
 }
+.live-pitch:has(.pitch-player.has-event) { z-index: 3; }
 .live-pitch::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(0, 62, 40, .22); backdrop-filter: blur(24px); }
 .live-pitch::after { content: ''; position: absolute; inset: 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 0; pointer-events: none; }
 .pitch-halfway, .pitch-centre-circle, .pitch-area, .pitch-goal { position: absolute; display: block; border-color: rgba(255,255,255,.88); pointer-events: none; }
@@ -897,20 +918,20 @@
 .pitch-player.has-event { z-index: 5; }
 .player-event-stack { width: fit-content; }
 .player-token.has-event { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
-.player-event-stack.has-event { position: relative; justify-self: center; display: block; width: 110px; min-width: 0; height: 30px; gap: 0; margin: 0; border: 0; background: transparent; box-shadow: none; }
-.player-event-stack.has-event .player-meta { position: absolute; top: 4px; left: 50%; width: var(--metadata-width); margin: 0; transform: translateX(-50%); animation: player-metadata-expand 240ms ease-out both; }
+.player-event-stack.has-event { position: relative; justify-self: center; display: block; width: 110px; min-width: 0; height: 30px; gap: 0; margin: 0; border: 0; background: transparent; box-shadow: none; transition: --event-shift 180ms ease-out; }
+.player-event-stack.has-event .player-meta { position: absolute; top: 4px; left: 50%; width: var(--metadata-width); margin: 0; transform: translateX(calc(-50% + var(--event-shift, 0px))); animation: player-metadata-expand 240ms ease-out both; }
 .player-event-stack.has-event.is-leaving .player-meta { animation: player-metadata-collapse 200ms ease-in both; }
 .player-event-stack.has-event .player-meta strong { flex: 1; max-width: none; }
 .player-token.has-event .shirt-wrap img { filter: drop-shadow(0 0 9px rgba(0,255,133,.88)); }
 .player-token.has-event.is-leaving .shirt-wrap img { animation: player-shirt-glow-fade 200ms ease-in both; }
-.player-event-notification { position: absolute; top: 29px; left: 50%; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 8px; width: var(--event-width); box-sizing: border-box; height: 26px; margin: 0; padding: 0 8px; border: 0; color: var(--pl-purple); background: var(--pl-green); font-size: 9px; text-align: center; text-transform: uppercase; animation: player-notification-drop 180ms ease-out both; }
+.player-event-notification { position: absolute; top: var(--notification-top, 29px); left: 50%; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 8px; width: var(--event-width); box-sizing: border-box; height: 26px; margin: 0; padding: 0 8px; border: 0; color: var(--pl-purple); background: var(--pl-green); font-size: 9px; text-align: center; text-transform: uppercase; animation: player-notification-drop 180ms var(--notification-delay, 0ms) ease-out both; }
 .player-event-notification strong, .player-event-notification > span { position: relative; top: 0; display: grid; place-items: center; color: var(--pl-purple); font-size: 12px; font-weight: 950; line-height: 1; white-space: nowrap; }
 
 @keyframes player-metadata-expand { from { width: var(--metadata-width); box-shadow: none; } to { width: var(--event-width); box-shadow: 0 0 18px rgba(0,255,133,.68); } }
 @keyframes player-metadata-collapse { from { width: var(--event-width); box-shadow: 0 0 18px rgba(0,255,133,.68); } to { width: var(--metadata-width); box-shadow: none; } }
-@keyframes player-notification-drop { from { opacity: 0; transform: translate(-50%, -7px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes player-notification-drop { from { opacity: 0; transform: translate(calc(-50% + var(--event-shift, 0px)), -7px); } to { opacity: 1; transform: translate(calc(-50% + var(--event-shift, 0px)), 0); } }
 .player-event-notification.is-leaving { animation: player-notification-exit 200ms ease-in both; }
-@keyframes player-notification-exit { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 7px); } }
+@keyframes player-notification-exit { from { opacity: 1; transform: translate(calc(-50% + var(--event-shift, 0px)), 0); } to { opacity: 0; transform: translate(calc(-50% + var(--event-shift, 0px)), 7px); } }
 @keyframes player-shirt-glow-fade { from { filter: drop-shadow(0 0 9px rgba(0,255,133,.88)); } to { filter: drop-shadow(0 4px 5px rgba(0,0,0,.58)); } }
 .bench-rail { position: relative; z-index: 1; min-width: 0; }.bench-rail.left { grid-column: 1; grid-row: 1; }.bench-rail.right { grid-column: 10; grid-row: 1; text-align: right; }.bench-rail-title { position: absolute; top: 0; left: 50%; color: var(--pl-green); font-size: 10px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; transform: translateX(-50%); }.bench-player { position: absolute; top: calc(var(--y) + var(--y-offset)); left: 50%; width: 110px; transform: translate(-50%, -50%); }
 

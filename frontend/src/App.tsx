@@ -1,7 +1,7 @@
 import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { loadLiveState, postMockAction } from './api/liveApi'
+import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast } from './api/liveApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
 import type { LeagueDiscoveryState } from './types/fpl'
@@ -29,6 +29,7 @@ function App() {
   const [revealingMatch, setRevealingMatch] = useState(false)
   const [revealLayout, setRevealLayout] = useState<RevealLayout | null>(null)
   const [visibleEventId, setVisibleEventId] = useState<string | null>(null)
+  const [lastAutoMatchupId, setLastAutoMatchupId] = useState<string | null>(null)
   const lastFocusedMatchupIdRef = useRef<string | null>(null)
   const lastBroadcastFocusRef = useRef<BroadcastFocus>('multi')
   const transitionTimersRef = useRef<number[]>([])
@@ -72,11 +73,25 @@ function App() {
   }
 
   const targetLatestEvent = liveState?.events[0]
-  const autoTargetMatchup = findFocusedMatchup(liveState)
+  const eventTargetMatchup = findFocusedMatchup(liveState)
+  const heldAutoMatchup = !targetLatestEvent && lastAutoMatchupId
+    ? liveState?.matchups.find((candidate) => candidate.id === lastAutoMatchupId)
+    : undefined
+  const autoTargetMatchup = heldAutoMatchup ?? eventTargetMatchup
   const selectedTargetMatchup =
     broadcastFocus === 'multi' ? undefined : liveState?.matchups.find((candidate) => candidate.id === broadcastFocus)
   const targetMatchup = selectedTargetMatchup ?? autoTargetMatchup
   const focusedMatchupId = targetMatchup?.id ?? null
+
+  useEffect(() => {
+    if (targetLatestEvent && eventTargetMatchup) {
+      setLastAutoMatchupId(eventTargetMatchup.id)
+      return
+    }
+    if (!lastAutoMatchupId && eventTargetMatchup) {
+      setLastAutoMatchupId(eventTargetMatchup.id)
+    }
+  }, [eventTargetMatchup?.id, lastAutoMatchupId, targetLatestEvent?.id])
 
   useEffect(() => {
     clearTransitionTimers()
@@ -216,6 +231,42 @@ function App() {
     }
   }
 
+  const startLiveBroadcast = async () => {
+    const normalizedLeagueId = leagueId.trim()
+    if (!normalizedLeagueId) {
+      setLeagueError('Enter your league id before starting a live broadcast.')
+      return
+    }
+    setIsBusy(true)
+    try {
+      const nextState = await startRealBroadcast(normalizedLeagueId)
+      setLiveState(nextState)
+      setBroadcastFocus('multi')
+      setAppView('broadcast')
+      setError(null)
+      setLeagueError(null)
+    } catch (requestError) {
+      setLeagueError(requestError instanceof Error ? requestError.message : 'Unable to start live broadcast.')
+    } finally {
+      setIsBusy(false)
+    }
+  }
+
+  const startComprehensiveMockBroadcast = async () => {
+    setIsBusy(true)
+    try {
+      const nextState = await startComprehensiveMock()
+      setLiveState(nextState)
+      setBroadcastFocus('multi')
+      setAppView('broadcast')
+      setError(null)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to start comprehensive mock broadcast.')
+    } finally {
+      setIsBusy(false)
+    }
+  }
+
   if (!liveState || !targetMatchup) {
     return (
       <main className="broadcast-shell loading-shell">
@@ -321,10 +372,18 @@ function App() {
         {leagueDiscovery ? <LeagueDiscoverySummary discovery={leagueDiscovery} /> : null}
       </section>
 
-      <section className="controls-row" aria-label="Mock broadcast controls">
+      <section className="controls-row" aria-label="Broadcast controls">
+        <button type="button" onClick={startLiveBroadcast} disabled={isBusy || isLeagueLoading}>
+          <Radio size={18} />
+          Start live broadcast
+        </button>
         <button type="button" onClick={() => runAction('start')} disabled={isBusy}>
           <Activity size={18} />
-          Start
+          Start mock broadcast
+        </button>
+        <button type="button" onClick={startComprehensiveMockBroadcast} disabled={isBusy}>
+          <FlaskConical size={18} />
+          Start comprehensive test
         </button>
         {liveState.sequence.started && !liveState.sequence.complete && (
           <button type="button" onClick={() => setAppView('broadcast')} disabled={isBusy}>
