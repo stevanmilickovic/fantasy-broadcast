@@ -39,6 +39,20 @@ Run:
 java -jar target/backend-0.0.1-SNAPSHOT.jar
 ```
 
+Build and run in one command (from the repository root):
+
+```powershell
+.\backend\mvnw.cmd clean package; java -jar .\backend\target\backend-0.0.1-SNAPSHOT.jar
+```
+
+For local development, run the backend directly without first packaging a JAR:
+
+```powershell
+.\backend\mvnw.cmd spring-boot:run
+```
+
+Stop either command with `Ctrl+C` and rerun it after making backend changes.
+
 Default local URL:
 
 ```text

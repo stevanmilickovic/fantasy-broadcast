@@ -6,8 +6,10 @@
   --text-strong: #101827;
   --muted: #6b7280;
   --border: #d9dee7;
-  --accent: #00ff85;
-  --accent-soft: #dfffee;
+  /* Use a calmer green for the setup and mock-control screens. */
+  --accent-dark: #007a3d;
+  --accent: var(--accent-dark);
+  --accent-soft: #e1f3e9;
   --pl-purple: #37003c;
   --pl-purple-2: #5f0a68;
   --pl-green: #00ff85;
