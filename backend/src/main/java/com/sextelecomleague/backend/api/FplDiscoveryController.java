@@ -1,6 +1,7 @@
 package com.sextelecomleague.backend.api;
 
 import com.sextelecomleague.backend.fpl.FplDraftClient;
+import com.sextelecomleague.backend.fpl.FplClubShirt;
 import com.sextelecomleague.backend.fpl.FplDraftElementStatus;
 import com.sextelecomleague.backend.fpl.FplDraftEventLive;
 import com.sextelecomleague.backend.fpl.FplDraftLeague;
@@ -80,6 +81,11 @@ public class FplDiscoveryController {
 		return mapper.mapPlayers(client.getDraftBootstrapStatic()).stream()
 				.limit(limit)
 				.toList();
+	}
+
+	@GetMapping("/shirts")
+	public List<FplClubShirt> shirts() {
+		return mapper.mapClubShirts(client.getFantasyBootstrapStatic());
 	}
 
 	@GetMapping("/players/{playerId}")
