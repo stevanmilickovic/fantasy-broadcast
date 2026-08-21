@@ -36,6 +36,17 @@ public class FplDraftMapper {
 		return players;
 	}
 
+	public List<FplClubShirt> mapClubShirts(JsonNode root) {
+		var shirts = new ArrayList<FplClubShirt>();
+		for (JsonNode team : root.path("teams")) {
+			shirts.add(new FplClubShirt(
+					text(team, "name"),
+					text(team, "short_name"),
+					intValue(team, "code")));
+		}
+		return shirts;
+	}
+
 	public List<FplLivePlayer> mapLivePlayers(JsonNode root) {
 		var livePlayers = new ArrayList<FplLivePlayer>();
 		var elements = root.path("elements");
