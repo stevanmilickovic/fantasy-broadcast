@@ -1,7 +1,7 @@
 import type { LiveStateResponse } from '../types/live'
 
-export const loadLiveState = async (): Promise<LiveStateResponse> => {
-  const response = await fetch('/api/live-state')
+export const loadLiveState = async (leagueId?: number): Promise<LiveStateResponse> => {
+  const response = await fetch(leagueId ? `/api/live-state?leagueId=${leagueId}` : '/api/live-state')
   if (!response.ok) {
     throw new Error(`Live state request failed with ${response.status}`)
   }

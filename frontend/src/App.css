@@ -1929,6 +1929,13 @@ blockquote {
 .administration-shell .discovery-form .secondary-action:hover:not(:disabled) { color: #fff; background: var(--pl-purple); }
 
 .administration-shell .admin-registry { margin: 24px 0; }
+.administration-shell .broadcast-schedule-manager { margin: 24px 0; }
+.administration-shell .broadcast-schedule-manager .discovery-form { border-left: 5px solid var(--pl-cyan); }
+.broadcast-schedule-manager .discovery-form p { margin-top: 4px; color: var(--muted); font-size: .9rem; }
+.administration-shell .broadcast-schedule-form { grid-template-columns: repeat(2, minmax(185px, 1fr)) auto; }
+.administration-shell .broadcast-schedule-form label { display: grid; gap: 6px; padding: 0; }
+.broadcast-schedule-list > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 24px; border-top: 1px solid #eee4ef; }
+.broadcast-schedule-success { padding: 12px 16px; border-bottom: 1px solid #b9f5d7; color: #087443; background: #ecfff5; font-weight: 750; }
 .administration-shell .admin-registry .discovery-form { border-left: 5px solid var(--pl-green); }
 .administration-shell .admin-league-search { display: flex; align-items: center; gap: 10px; padding: 16px 24px; border-bottom: 1px solid #eee4ef; background: #fcf9fc; }
 .administration-shell .admin-league-search label { color: var(--pl-purple-2); font-size: .84rem; font-weight: 800; white-space: nowrap; }
@@ -2042,6 +2049,10 @@ blockquote {
 .league-card small, .league-card span { color: #c8f9ff; }
 .add-league-card { margin-top: 20px; }
 .league-loading { color: #c8f9ff; }
+.customer-broadcast-access { display: flex; justify-content: space-between; align-items: center; gap: 18px; width: min(1120px, 100%); margin: 24px auto 0; padding: 18px 20px; background: #20e6ff; color: #37003c; }
+.customer-broadcast-access div { display: grid; gap: 2px; }
+.customer-broadcast-access strong { font-size: 1.1rem; }
+.customer-broadcast-access button { min-height: 40px; padding: 0 16px; border: 0; color: #fff; background: #37003c; font-weight: 800; cursor: pointer; }
 
 .account-card .kicker { color: #20e6ff; font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 850; letter-spacing: -.055em; text-transform: none; }
 .account-card h1 { color: #fff; font-size: 2rem; letter-spacing: -.035em; }
@@ -2055,8 +2066,6 @@ blockquote {
 .customer-shell .league-discovery { background: #31003a; box-shadow: none; }
 .customer-shell .discovery-results { padding: 24px; }
 .discovery-title-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
-.customer-shell .inactive-broadcast { min-height: 34px; padding: 0 12px; border: 0; color: #37003c; background: #20e6ff; font-weight: 850; text-transform: uppercase; letter-spacing: .03em; }
-.customer-shell .inactive-broadcast:disabled { cursor: not-allowed; opacity: .65; }
 .customer-shell .discovery-title > span,
 .customer-shell .readiness-item,
 .customer-shell .discovery-tabs button,

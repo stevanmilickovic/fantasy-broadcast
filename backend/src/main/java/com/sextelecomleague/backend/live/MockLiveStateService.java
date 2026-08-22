@@ -23,18 +23,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class MockLiveStateService {
+	private static final Logger log = LoggerFactory.getLogger(MockLiveStateService.class);
 
 	private static final long STREAM_TIMEOUT = Long.MAX_VALUE;
 	private static final long STEP_INTERVAL_SECONDS = 10L;
@@ -55,6 +61,8 @@ public class MockLiveStateService {
 	private Map<Integer, FplLivePlayer> previousRealLivePlayers = Map.of();
 	private Map<Integer, FplLivePlayer> fetchedRealLivePlayers = Map.of();
 	private int realPollCount;
+	private final Map<Long, RealSession> leagueSessions = new ConcurrentHashMap<>();
+	private final Map<Long, List<SseEmitter>> leagueEmitters = new ConcurrentHashMap<>();
 
 	public MockLiveStateService(ObjectMapper objectMapper, FplDraftClient fplClient, FplDraftMapper fplMapper) {
 		this.fplClient = fplClient;
@@ -76,6 +84,77 @@ public class MockLiveStateService {
 		}
 		return withRuntimeSequence(activeSnapshots.get(currentIndex));
 	}
+
+	public synchronized LiveStateResponse currentState(long leagueKey) {
+		var session = leagueSessions.get(leagueKey);
+		if (session == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This league broadcast is not running. Open it again while its schedule is active.");
+		return session.state;
+	}
+
+	/** Starts a league only once; later viewers join its existing poller. */
+	public synchronized LiveStateResponse startRealForLeague(long leagueKey, long fplLeagueId, FplLeagueType leagueType) {
+		var existing = leagueSessions.get(leagueKey);
+		if (existing != null) {
+			log.info("Joining existing broadcast session: leagueKey={}, fplLeagueId={}, mode={}", leagueKey, fplLeagueId, leagueType);
+			return existing.state;
+		}
+		log.info("Starting broadcast session: leagueKey={}, fplLeagueId={}, mode={}", leagueKey, fplLeagueId, leagueType);
+		var session = new RealSession();
+		session.state = fetchSessionState(session, fplLeagueId, leagueType);
+		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
+		leagueSessions.put(leagueKey, session);
+		broadcast(leagueKey, session.state);
+		session.task = sequenceExecutor.scheduleAtFixedRate(() -> pollLeagueSession(leagueKey, fplLeagueId, leagueType), STEP_INTERVAL_SECONDS, STEP_INTERVAL_SECONDS, TimeUnit.SECONDS);
+		return session.state;
+	}
+
+	public SseEmitter connectStream(long leagueKey) {
+		var emitter = new SseEmitter(STREAM_TIMEOUT);
+		var listeners = leagueEmitters.computeIfAbsent(leagueKey, unused -> new CopyOnWriteArrayList<>());
+		listeners.add(emitter);
+		emitter.onCompletion(() -> listeners.remove(emitter));
+		emitter.onTimeout(() -> listeners.remove(emitter));
+		emitter.onError(error -> listeners.remove(emitter));
+		send(emitter, currentState(leagueKey));
+		return emitter;
+	}
+
+	public synchronized void stopLeagueSessions() {
+		if (!leagueSessions.isEmpty()) log.info("Stopping {} league broadcast session(s): no broadcast schedule is active.", leagueSessions.size());
+		leagueSessions.values().forEach(session -> { if (session.task != null) session.task.cancel(false); });
+		leagueSessions.clear();
+	}
+
+	private void pollLeagueSession(long leagueKey, long fplLeagueId, FplLeagueType leagueType) {
+		synchronized (this) {
+			var session = leagueSessions.get(leagueKey);
+			if (session == null) return;
+			try {
+				session.state = fetchSessionState(session, fplLeagueId, leagueType);
+				log.info("FPL poll succeeded: leagueKey={}, poll={}, gameweek={}, matchups={}, events={}", leagueKey, session.pollCount, session.state.gameweek(), session.state.matchups().size(), session.state.events().size());
+				broadcast(leagueKey, session.state);
+			}
+			catch (RuntimeException exception) {
+				log.error("FPL poll failed: leagueKey={}, fplLeagueId={}, mode={}", leagueKey, fplLeagueId, leagueType, exception);
+				session.state = new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "FPL poll failed; retrying in 10 seconds."), session.state.sequence(), session.state.gameweek(), session.state.matchups(), session.state.events(), session.state.commentary()); broadcast(leagueKey, session.state);
+			}
+		}
+	}
+
+	private LiveStateResponse fetchSessionState(RealSession session, long leagueId, FplLeagueType leagueType) {
+		realPollCount = session.pollCount++;
+		fetchedRealLivePlayers = Map.of();
+		var state = fetchRealState(leagueId, leagueType, session.previousPoints, session.previousLivePlayers);
+		session.previousPoints = playerPoints(state);
+		session.previousLivePlayers = fetchedRealLivePlayers;
+		return state;
+	}
+
+	private void broadcast(long leagueKey, LiveStateResponse state) {
+		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, state);
+	}
+
+	private static class RealSession { LiveStateResponse state; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; }
 
 	public SseEmitter connectStream() {
 		var emitter = new SseEmitter(STREAM_TIMEOUT);
@@ -188,7 +267,7 @@ public class MockLiveStateService {
 		var bootstrap = fplClient.getDraftBootstrapStatic();
 		var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic(), league);
 		var playersById = indexPlayers(fplMapper.mapPlayers(bootstrap));
-		var liveById = indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(gameweek)));
+		var liveById = indexLivePlayers(fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players());
 		fetchedRealLivePlayers = liveById;
 		var entriesByLeagueEntryId = new HashMap<Integer, FplDraftLeagueEntry>();
 		for (var entry : league.entries()) entriesByLeagueEntryId.put(entry.leagueEntryId(), entry);
@@ -311,13 +390,38 @@ public class MockLiveStateService {
 		var beforePoints = explanationPoints(previous);
 		var afterPoints = explanationPoints(current);
 		var changes = new ArrayList<PointChange>();
-		for (var entry : after.entrySet()) {
-			if (!entry.getValue().equals(before.getOrDefault(entry.getKey(), 0))) {
-				var delta = afterPoints.getOrDefault(entry.getKey(), 0) - beforePoints.getOrDefault(entry.getKey(), 0);
-				if (delta != 0) changes.add(new PointChange(entry.getKey(), delta));
+		var identifiers = new java.util.HashSet<String>();
+		identifiers.addAll(before.keySet());
+		identifiers.addAll(after.keySet());
+		identifiers.addAll(beforePoints.keySet());
+		identifiers.addAll(afterPoints.keySet());
+		for (var identifier : identifiers) {
+			var statChanged = before.getOrDefault(identifier, 0) != after.getOrDefault(identifier, 0);
+			var delta = afterPoints.getOrDefault(identifier, 0) - beforePoints.getOrDefault(identifier, 0);
+			if (statChanged || delta != 0) {
+				if (delta != 0) changes.add(new PointChange(identifier, delta));
 			}
 		}
+		if (changes.isEmpty()) changes.addAll(classifyStatChanges(previous, current));
 		return changes.isEmpty() ? List.of(new PointChange("points_update", totalDelta)) : changes;
+	}
+
+	private List<PointChange> classifyStatChanges(FplLivePlayer previous, FplLivePlayer current) {
+		var before = previous.stats();
+		var after = current.stats();
+		var changes = new ArrayList<PointChange>();
+		addStatChange(changes, "goals_scored", before.goalsScored(), after.goalsScored(), 4);
+		addStatChange(changes, "assists", before.assists(), after.assists(), 3);
+		addStatChange(changes, "clean_sheets", before.cleanSheets(), after.cleanSheets(), 4);
+		addStatChange(changes, "bonus", before.bonus(), after.bonus(), 1);
+		addStatChange(changes, "yellow_cards", before.yellowCards(), after.yellowCards(), -1);
+		addStatChange(changes, "red_cards", before.redCards(), after.redCards(), -3);
+		return changes;
+	}
+
+	private void addStatChange(List<PointChange> changes, String identifier, int before, int after, int pointsPerUnit) {
+		var difference = after - before;
+		if (difference != 0) changes.add(new PointChange(identifier, difference * pointsPerUnit));
 	}
 
 	private Map<String, Integer> explanationValues(FplLivePlayer player) {
@@ -422,9 +526,15 @@ public class MockLiveStateService {
 					.name("live-state")
 					.data(state, MediaType.APPLICATION_JSON));
 		}
-		catch (IOException exception) {
+		catch (IOException | RuntimeException exception) {
 			emitters.remove(emitter);
-			emitter.completeWithError(exception);
+			leagueEmitters.values().forEach(listeners -> listeners.remove(emitter));
+			try {
+				emitter.completeWithError(exception);
+			}
+			catch (RuntimeException ignored) {
+				// The client has already disconnected; its stream must not affect live polling.
+			}
 		}
 	}
 

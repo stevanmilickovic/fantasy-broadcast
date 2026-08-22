@@ -113,7 +113,51 @@ public class FplDraftMapper {
 	}
 
 	public FplDraftEventLive mapDraftEventLive(JsonNode root) {
-		return new FplDraftEventLive(mapLivePlayers(root), mapFixtures(root.path("fixtures")));
+		var players = new ArrayList<FplLivePlayer>();
+		var elements = root.path("elements");
+		if (elements.isObject()) {
+			for (var property : elements.properties()) players.add(mapDraftLivePlayer(property.getValue(), integerValue(property.getKey())));
+		}
+		else {
+			for (JsonNode element : elements) players.add(mapDraftLivePlayer(element, null));
+		}
+		return new FplDraftEventLive(players, mapFixtures(root.path("fixtures")));
+	}
+
+	private FplLivePlayer mapDraftLivePlayer(JsonNode element, Integer fallbackId) {
+		var id = intValue(element, "id");
+		var totalPoints = sumDraftExplanationPoints(element.path("explain"));
+		var stats = element.path("stats").has("total_points")
+				? mapLiveStats(element.path("stats"))
+				: new FplLiveStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, totalPoints);
+		return new FplLivePlayer(id == 0 && fallbackId != null ? fallbackId : id,
+				stats, mapDraftLiveExplanations(element.path("explain")));
+	}
+
+	private List<FplLiveExplanation> mapDraftLiveExplanations(JsonNode explanations) {
+		var mapped = new ArrayList<FplLiveExplanation>();
+		for (JsonNode fixtureExplanation : explanations) {
+			if (!fixtureExplanation.isArray() || fixtureExplanation.size() < 2) continue;
+			var breakdowns = new ArrayList<FplLivePointBreakdown>();
+			for (JsonNode breakdown : fixtureExplanation.path(0)) {
+				breakdowns.add(new FplLivePointBreakdown(text(breakdown, "stat"), intValue(breakdown, "points"),
+						intValue(breakdown, "value"), intValue(breakdown, "points_modification")));
+			}
+			mapped.add(new FplLiveExplanation(fixtureExplanation.path(1).asInt(), breakdowns));
+		}
+		return mapped;
+	}
+
+	private int sumDraftExplanationPoints(JsonNode node) {
+		if (node == null || node.isMissingNode() || node.isNull()) return 0;
+		if (node.isObject()) {
+			var points = node.has("points") ? intValue(node, "points") : 0;
+			for (var property : node.properties()) if (!property.getKey().equals("points")) points += sumDraftExplanationPoints(property.getValue());
+			return points;
+		}
+		var points = 0;
+		for (JsonNode item : node) points += sumDraftExplanationPoints(item);
+		return points;
 	}
 
 	private FplLivePlayer mapLivePlayer(JsonNode element, Integer fallbackId) {

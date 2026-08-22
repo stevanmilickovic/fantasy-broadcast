@@ -1,5 +1,6 @@
 import type { FplLeagueType } from './liveApi'
-import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, RegisteredLeague } from '../types/customer'
+import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, RegisteredLeague } from '../types/customer'
+import type { LiveStateResponse } from '../types/live'
 
 const tokenKey = 'stk-broadcast-session-token'
 
@@ -47,3 +48,8 @@ export const updateAdminLeague = async (token: string, league: AdminLeague): Pro
   (await request(`/api/customer/admin/leagues/${league.id}`, token, {
     method: 'PATCH', body: JSON.stringify({ serviceEnabled: league.serviceEnabled }),
   })).json()
+export const loadBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/admin/broadcast-schedules', token)).json()
+export const saveBroadcastSchedule = async (token: string, startsAt: string, endsAt: string, id?: number): Promise<BroadcastSchedule> =>
+  (await request(id ? `/api/customer/admin/broadcast-schedules/${id}` : '/api/customer/admin/broadcast-schedules', token, { method: id ? 'PUT' : 'POST', body: JSON.stringify({ startsAt: new Date(startsAt).toISOString(), endsAt: new Date(endsAt).toISOString() }) })).json()
+export const loadActiveBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/broadcast-schedules/active', token)).json()
+export const openLeagueBroadcast = async (token: string, leagueId: number): Promise<LiveStateResponse> => (await request(`/api/customer/leagues/${leagueId}/broadcast/open`, token, { method: 'POST' })).json()

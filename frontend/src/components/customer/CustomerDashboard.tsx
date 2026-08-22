@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { loadRegisteredLeagues, registerLeague } from '../../api/customerApi'
+import { loadActiveBroadcastSchedules, loadRegisteredLeagues, openLeagueBroadcast, registerLeague } from '../../api/customerApi'
 import { loadLeagueDiscovery } from '../../api/fplDiscoveryApi'
 import type { FplLeagueType } from '../../api/liveApi'
-import type { AuthUser, RegisteredLeague } from '../../types/customer'
+import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { LeagueDiscoveryState } from '../../types/fpl'
 import { LeagueDiscoverySummary } from '../discovery/LeagueDiscoverySummary'
 
@@ -15,6 +15,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
   const [leagueId, setLeagueId] = useState('')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
   const [discovery, setDiscovery] = useState<LeagueDiscoveryState | null>(null)
+  const [activeBroadcasts, setActiveBroadcasts] = useState<BroadcastSchedule[]>([])
   const selectedLeagueId = Number(new URLSearchParams(search).get('leagueId'))
   const selectedLeague = leagues.find((league) => league.id === selectedLeagueId) ?? null
 
@@ -35,6 +36,8 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
     loadLeagueDiscovery(String(selectedLeague.fplLeagueId)).then((result) => { setDiscovery(result); setMessage(null) }).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false))
   }, [selectedLeague?.id, pathname])
 
+  useEffect(() => { void loadActiveBroadcastSchedules(token).then(setActiveBroadcasts).catch(() => setActiveBroadcasts([])) }, [token])
+
   const register = async (event: React.FormEvent) => {
     event.preventDefault(); setBusy(true)
     try {
@@ -44,10 +47,22 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
     finally { setBusy(false) }
   }
 
+  const openBroadcast = async () => {
+    if (!selectedLeague) return
+    setBusy(true)
+    try {
+      await openLeagueBroadcast(token, selectedLeague.id)
+      window.location.assign(`/broadcast?leagueId=${selectedLeague.id}`)
+    }
+    catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to open the broadcast.') }
+    finally { setBusy(false) }
+  }
+
   return <main className="customer-shell"><CustomerNavigation leagues={leagues} selectedLeague={selectedLeague} user={user} onNavigate={onNavigate} onSignOut={onSignOut} />
     {pathname === '/leagues/new' && <LeagueRegistrationForm leagueId={leagueId} leagueType={leagueType} busy={busy} message={message} onLeagueIdChange={setLeagueId} onLeagueTypeChange={setLeagueType} onSubmit={register} />}
     {pathname === '/leagues' && <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />}
-    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <section className="league-discovery"><LeagueDiscoverySummary discovery={discovery} showBroadcastControl /></section>}</section>}
+    {pathname === '/league' && selectedLeague && activeBroadcasts.length > 0 && <aside className="customer-broadcast-access"><div><strong>Broadcast live now</strong><span>Available to all registered leagues until {new Date(activeBroadcasts[0].endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span></div><button onClick={() => void openBroadcast()} disabled={busy}>Open broadcast</button></aside>}
+    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <section className="league-discovery"><LeagueDiscoverySummary discovery={discovery} /></section>}</section>}
   </main>
 }
 

@@ -5,6 +5,7 @@ import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadca
 import { clearToken, loadCurrentUser, loadRegisteredLeagues, logout, storeToken, storedToken } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
+import { BroadcastScheduleManager } from './components/customer/BroadcastScheduleManager'
 import { AuthScreen } from './components/customer/AuthScreen'
 import { CustomerDashboard } from './components/customer/CustomerDashboard'
 import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
@@ -12,6 +13,7 @@ import type { AuthResponse, AuthUser } from './types/customer'
 import type { LeagueDiscoveryState } from './types/fpl'
 import type { AppView, BroadcastFocus, LiveStateResponse, RevealLayout } from './types/live'
 import { findFocusedMatchup, toRevealRect, toScoreRevealRect } from './utils/broadcast'
+import { playPointChangeSound } from './utils/broadcastSound'
 import './App.css'
 
 const SCENE_WIPE_MS = 1600
@@ -20,6 +22,7 @@ const MATCH_REVEAL_MS = 1900
 
 function App() {
   const [location, setLocation] = useState(() => ({ pathname: window.location.pathname, search: window.location.search }))
+  const streamedLeagueId = Number(new URLSearchParams(location.search).get('leagueId')) || undefined
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [authToken, setAuthToken] = useState<string | null>(storedToken())
   const [isAuthLoading, setIsAuthLoading] = useState(Boolean(storedToken()))
@@ -40,6 +43,7 @@ function App() {
   const [visibleEventId, setVisibleEventId] = useState<string | null>(null)
   const [lastAutoMatchupId, setLastAutoMatchupId] = useState<string | null>(null)
   const lastFocusedMatchupIdRef = useRef<string | null>(null)
+  const lastSoundedEventIdRef = useRef<string | null>(null)
   const lastBroadcastFocusRef = useRef<BroadcastFocus>('multi')
   const transitionTimersRef = useRef<number[]>([])
   const homeHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -47,13 +51,13 @@ function App() {
   const scoreRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    loadLiveState()
+    loadLiveState(streamedLeagueId)
       .then((state) => {
         setLiveState(state)
         setError(null)
       })
       .catch((requestError: Error) => setError(requestError.message))
-  }, [])
+  }, [streamedLeagueId])
 
   useEffect(() => {
     const onPopState = () => setLocation({ pathname: window.location.pathname, search: window.location.search })
@@ -101,7 +105,7 @@ function App() {
   }
 
   useEffect(() => {
-    const events = new EventSource('/api/live-state/stream')
+    const events = new EventSource(streamedLeagueId ? `/api/live-state/stream?leagueId=${streamedLeagueId}` : '/api/live-state/stream')
 
     events.addEventListener('live-state', (event) => {
       setLiveState(JSON.parse(event.data) as LiveStateResponse)
@@ -111,7 +115,7 @@ function App() {
     return () => {
       events.close()
     }
-  }, [])
+  }, [streamedLeagueId])
 
   const clearTransitionTimers = () => {
     transitionTimersRef.current.forEach((timer) => window.clearTimeout(timer))
@@ -119,15 +123,21 @@ function App() {
   }
 
   const targetLatestEvent = liveState?.events[0]
-  const eventTargetMatchup = findFocusedMatchup(liveState)
-  const heldAutoMatchup = !targetLatestEvent && lastAutoMatchupId
+  const eventTargetMatchup = targetLatestEvent ? findFocusedMatchup(liveState) : undefined
+  const heldAutoMatchup = lastAutoMatchupId
     ? liveState?.matchups.find((candidate) => candidate.id === lastAutoMatchupId)
     : undefined
-  const autoTargetMatchup = heldAutoMatchup ?? eventTargetMatchup
+  const autoTargetMatchup = eventTargetMatchup ?? heldAutoMatchup ?? liveState?.matchups[0]
   const selectedTargetMatchup =
     broadcastFocus === 'multi' ? undefined : liveState?.matchups.find((candidate) => candidate.id === broadcastFocus)
   const targetMatchup = selectedTargetMatchup ?? autoTargetMatchup
   const focusedMatchupId = targetMatchup?.id ?? null
+
+  useEffect(() => {
+    if (!targetLatestEvent || targetLatestEvent.id === lastSoundedEventIdRef.current) return
+    lastSoundedEventIdRef.current = targetLatestEvent.id
+    playPointChangeSound(targetLatestEvent.pointDelta)
+  }, [targetLatestEvent?.id, targetLatestEvent?.pointDelta])
 
   useEffect(() => {
     if (targetLatestEvent && eventTargetMatchup) {
@@ -333,11 +343,15 @@ function App() {
     return <AuthScreen onAuthenticated={handleAuthenticated} />
   }
 
-  if (authUser.role !== 'ADMIN' || location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new') {
+  if (authUser.role !== 'ADMIN' && location.pathname !== '/broadcast') {
     return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
-  if (location.pathname !== '/administration' && location.pathname !== '/broadcast') navigate('/administration', true)
+  if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new')) {
+    return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
+  }
+
+  if (authUser.role === 'ADMIN' && location.pathname !== '/administration' && location.pathname !== '/broadcast') navigate('/administration', true)
 
   if (!liveState || !targetMatchup) {
     return (
@@ -364,7 +378,7 @@ function App() {
         ? matchup.away.displayName
         : 'No one'
 
-  if (location.pathname === '/broadcast' && appView === 'broadcast') {
+  if (location.pathname === '/broadcast' && (appView === 'broadcast' || authUser.role !== 'ADMIN')) {
     return (
       <BroadcastMatchday
         displayLiveState={displayLiveState}
@@ -380,7 +394,7 @@ function App() {
         homeHeadingRef={homeHeadingRef}
         awayHeadingRef={awayHeadingRef}
         scoreRef={scoreRef}
-        onBack={() => { setAppView('setup'); navigate('/administration') }}
+        onBack={() => { setAppView('setup'); navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues') }}
         onSelectFocus={setBroadcastFocus}
       />
     )
@@ -400,6 +414,7 @@ function App() {
       </header>
 
       <AdminLeagueRegistry token={authToken!} onOpenLeague={(selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`)} />
+      <BroadcastScheduleManager token={authToken!} />
 
       <section className="league-discovery administration-card" aria-label="FPL league setup">
         <div className="discovery-form">

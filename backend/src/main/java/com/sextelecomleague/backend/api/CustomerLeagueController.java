@@ -6,7 +6,10 @@ import com.sextelecomleague.backend.customer.LeagueRegistrationService.AdminLeag
 import com.sextelecomleague.backend.customer.LeagueRegistrationService.AdminLeaguePage;
 import com.sextelecomleague.backend.customer.LeagueRegistrationService.RegisteredLeague;
 import com.sextelecomleague.backend.customer.SessionService;
+import com.sextelecomleague.backend.customer.BroadcastScheduleService;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
+import com.sextelecomleague.backend.live.LiveStateResponse;
+import com.sextelecomleague.backend.live.MockLiveStateService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -32,10 +35,14 @@ public class CustomerLeagueController {
 
 	private final SessionService sessionService;
 	private final LeagueRegistrationService leagueService;
+	private final BroadcastScheduleService scheduleService;
+	private final MockLiveStateService liveStateService;
 
-	public CustomerLeagueController(SessionService sessionService, LeagueRegistrationService leagueService) {
+	public CustomerLeagueController(SessionService sessionService, LeagueRegistrationService leagueService, BroadcastScheduleService scheduleService, MockLiveStateService liveStateService) {
 		this.sessionService = sessionService;
 		this.leagueService = leagueService;
+		this.scheduleService = scheduleService;
+		this.liveStateService = liveStateService;
 	}
 
 	@GetMapping("/leagues")
@@ -69,6 +76,14 @@ public class CustomerLeagueController {
 	}
 
 	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType) {
+	}
+
+	@PostMapping("/leagues/{leagueId}/broadcast/open")
+	public LiveStateResponse openBroadcast(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
+		var user = currentUser(authorization);
+		if (scheduleService.activeFor(user).isEmpty()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "There is no active broadcast for this time.");
+		var league = leagueService.accessibleLeague(user, leagueId);
+		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType());
 	}
 
 	public record AdminLeagueSettingsRequest(boolean serviceEnabled) {

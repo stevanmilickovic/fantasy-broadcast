@@ -69,6 +69,14 @@ public class LeagueRegistrationService {
 		return new AdminLeaguePage(leagues, page, size, total == null ? 0 : total);
 	}
 
+	public RegisteredLeague accessibleLeague(CurrentUser user, long leagueId) {
+		var leagues = user.admin()
+				? jdbcTemplate.query("select id, fpl_league_id, display_name, league_type, service_enabled, owner_user_id from league where id = ?", this::mapLeague, leagueId)
+				: jdbcTemplate.query("select l.id, l.fpl_league_id, l.display_name, l.league_type, l.service_enabled, l.owner_user_id from league l join league_registration r on r.league_id = l.id where r.user_id = ? and l.id = ?", this::mapLeague, user.id(), leagueId);
+		if (leagues.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "League was not found.");
+		return leagues.getFirst();
+	}
+
 	public AdminLeague updateForAdmin(CurrentUser user, long id, boolean serviceEnabled) {
 		if (!user.admin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required.");
 		var updated = jdbcTemplate.update("update league set service_enabled = ?, updated_at = current_timestamp where id = ?", serviceEnabled, id);

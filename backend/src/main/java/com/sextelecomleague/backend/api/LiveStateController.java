@@ -30,13 +30,13 @@ public class LiveStateController {
 	}
 
 	@GetMapping("/live-state")
-	public LiveStateResponse liveState() {
-		return liveStateService.currentState();
+	public LiveStateResponse liveState(@RequestParam(required = false) Long leagueId) {
+		return leagueId == null ? liveStateService.currentState() : liveStateService.currentState(leagueId);
 	}
 
 	@GetMapping(path = "/live-state/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter liveStateStream() {
-		return liveStateService.connectStream();
+	public SseEmitter liveStateStream(@RequestParam(required = false) Long leagueId) {
+		return leagueId == null ? liveStateService.connectStream() : liveStateService.connectStream(leagueId);
 	}
 
 	@PostMapping("/mock-live/start")

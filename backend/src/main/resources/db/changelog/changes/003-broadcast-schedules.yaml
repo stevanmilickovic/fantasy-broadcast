@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-add-broadcast-schedules
+      author: codex
+      changes:
+        - createTable:
+            tableName: broadcast_schedule
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: starts_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ends_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: broadcast_schedule
+            indexName: ix_broadcast_schedule_starts_at
+            columns:
+              - column:
+                  name: starts_at

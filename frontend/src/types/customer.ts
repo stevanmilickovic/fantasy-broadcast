@@ -33,3 +33,5 @@ export type AdminLeaguePage = {
   size: number
   totalItems: number
 }
+
+export type BroadcastSchedule = { id: number; startsAt: string; endsAt: string }

@@ -7,11 +7,10 @@ export const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView
   }
 
   const latestEvent = state.events[0]
-  return latestEvent
-    ? state.matchups.find((candidate) =>
-        [candidate.home.managerId, candidate.away.managerId].includes(latestEvent.managerId),
-      ) ?? state.matchups[0]
-    : state.matchups[0]
+  if (!latestEvent) return state.matchups[0]
+  return state.matchups.find((candidate) =>
+    [candidate.home.managerId, candidate.away.managerId].includes(latestEvent.managerId),
+  )
 }
 
 export const matchupHasEvent = (matchup: MatchupView, event: FantasyEventView | undefined): boolean => {
