@@ -19,6 +19,7 @@ export type PlayerView = {
   position: string
   lineupSlot: string
   points: number
+  minutes?: number
   status: string
   recentDelta: number
 }

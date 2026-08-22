@@ -5,6 +5,7 @@ import type { FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { LeagueDiscoveryState } from '../../types/fpl'
 import { LeagueDiscoverySummary } from '../discovery/LeagueDiscoverySummary'
+import { enablePointChangeSound } from '../../utils/broadcastSound'
 
 type Props = { token: string; user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
 
@@ -49,10 +50,11 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
 
   const openBroadcast = async () => {
     if (!selectedLeague) return
+    enablePointChangeSound()
     setBusy(true)
     try {
       await openLeagueBroadcast(token, selectedLeague.id)
-      window.location.assign(`/broadcast?leagueId=${selectedLeague.id}`)
+      onNavigate(`/broadcast?leagueId=${selectedLeague.id}`)
     }
     catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to open the broadcast.') }
     finally { setBusy(false) }

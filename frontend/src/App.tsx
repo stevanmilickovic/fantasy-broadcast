@@ -13,7 +13,7 @@ import type { AuthResponse, AuthUser } from './types/customer'
 import type { LeagueDiscoveryState } from './types/fpl'
 import type { AppView, BroadcastFocus, LiveStateResponse, RevealLayout } from './types/live'
 import { findFocusedMatchup, toRevealRect, toScoreRevealRect } from './utils/broadcast'
-import { playPointChangeSound } from './utils/broadcastSound'
+import { enablePointChangeSound, playPointChangeSound } from './utils/broadcastSound'
 import './App.css'
 
 const SCENE_WIPE_MS = 1600
@@ -49,15 +49,29 @@ function App() {
   const homeHeadingRef = useRef<HTMLHeadingElement>(null)
   const awayHeadingRef = useRef<HTMLHeadingElement>(null)
   const scoreRef = useRef<HTMLElement>(null)
+  const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
+  const shouldLoadLiveState = authUser?.role === 'ADMIN' || isLeagueBroadcast
 
   useEffect(() => {
-    loadLiveState(streamedLeagueId)
+    if (!shouldLoadLiveState) return
+    const controller = new AbortController()
+    let cancelled = false
+    // Never show state from a previous/global broadcast while a league broadcast is loading.
+    setLiveState(null)
+    loadLiveState(isLeagueBroadcast ? streamedLeagueId : undefined, controller.signal)
       .then((state) => {
+        if (cancelled) return
         setLiveState(state)
         setError(null)
       })
-      .catch((requestError: Error) => setError(requestError.message))
-  }, [streamedLeagueId])
+      .catch((requestError: Error) => {
+        if (!cancelled && requestError.name !== 'AbortError') setError(requestError.message)
+      })
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [isLeagueBroadcast, shouldLoadLiveState, streamedLeagueId])
 
   useEffect(() => {
     const onPopState = () => setLocation({ pathname: window.location.pathname, search: window.location.search })
@@ -105,7 +119,8 @@ function App() {
   }
 
   useEffect(() => {
-    const events = new EventSource(streamedLeagueId ? `/api/live-state/stream?leagueId=${streamedLeagueId}` : '/api/live-state/stream')
+    if (!shouldLoadLiveState) return
+    const events = new EventSource(isLeagueBroadcast ? `/api/live-state/stream?leagueId=${streamedLeagueId}` : '/api/live-state/stream')
 
     events.addEventListener('live-state', (event) => {
       setLiveState(JSON.parse(event.data) as LiveStateResponse)
@@ -115,7 +130,7 @@ function App() {
     return () => {
       events.close()
     }
-  }, [streamedLeagueId])
+  }, [isLeagueBroadcast, shouldLoadLiveState, streamedLeagueId])
 
   const clearTransitionTimers = () => {
     transitionTimersRef.current.forEach((timer) => window.clearTimeout(timer))
@@ -302,6 +317,7 @@ function App() {
       return
     }
 
+    enablePointChangeSound()
     setIsBusy(true)
     try {
       const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, authToken!)

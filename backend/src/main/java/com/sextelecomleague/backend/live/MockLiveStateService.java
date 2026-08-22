@@ -60,6 +60,7 @@ public class MockLiveStateService {
 	private Map<String, Integer> previousRealPlayerPoints = Map.of();
 	private Map<Integer, FplLivePlayer> previousRealLivePlayers = Map.of();
 	private Map<Integer, FplLivePlayer> fetchedRealLivePlayers = Map.of();
+	private final List<FantasyEventView> realEventHistory = new ArrayList<>();
 	private int realPollCount;
 	private final Map<Long, RealSession> leagueSessions = new ConcurrentHashMap<>();
 	private final Map<Long, List<SseEmitter>> leagueEmitters = new ConcurrentHashMap<>();
@@ -147,14 +148,15 @@ public class MockLiveStateService {
 		var state = fetchRealState(leagueId, leagueType, session.previousPoints, session.previousLivePlayers);
 		session.previousPoints = playerPoints(state);
 		session.previousLivePlayers = fetchedRealLivePlayers;
-		return state;
+		session.eventHistory.addAll(state.events());
+		return withEventHistory(state, session.eventHistory);
 	}
 
 	private void broadcast(long leagueKey, LiveStateResponse state) {
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, state);
 	}
 
-	private static class RealSession { LiveStateResponse state; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; }
+	private static class RealSession { LiveStateResponse state; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); List<FantasyEventView> eventHistory = new ArrayList<>(); int pollCount; ScheduledFuture<?> task; }
 
 	public SseEmitter connectStream() {
 		var emitter = new SseEmitter(STREAM_TIMEOUT);
@@ -204,6 +206,7 @@ public class MockLiveStateService {
 
 	public synchronized LiveStateResponse reset() {
 		realState = null;
+		realEventHistory.clear();
 		previousRealPlayerPoints = Map.of();
 		activeSnapshots = snapshots;
 		started = false;
@@ -221,7 +224,8 @@ public class MockLiveStateService {
 		realPollCount = 0;
 		previousRealPlayerPoints = Map.of();
 		previousRealLivePlayers = Map.of();
-		realState = fetchRealState(leagueId, leagueType, Map.of(), Map.of());
+		realEventHistory.clear();
+		realState = withEventHistory(fetchRealState(leagueId, leagueType, Map.of(), Map.of()), realEventHistory);
 		previousRealPlayerPoints = playerPoints(realState);
 		previousRealLivePlayers = fetchedRealLivePlayers;
 		broadcast(realState);
@@ -241,7 +245,9 @@ public class MockLiveStateService {
 			}
 			try {
 				realPollCount++;
-				realState = fetchRealState(leagueId, leagueType, previousRealPlayerPoints, previousRealLivePlayers);
+				var polledState = fetchRealState(leagueId, leagueType, previousRealPlayerPoints, previousRealLivePlayers);
+				realEventHistory.addAll(polledState.events());
+				realState = withEventHistory(polledState, realEventHistory);
 				previousRealPlayerPoints = playerPoints(realState);
 				previousRealLivePlayers = fetchedRealLivePlayers;
 				broadcast(realState);
@@ -340,8 +346,9 @@ public class MockLiveStateService {
 			if (player == null) continue;
 			var live = liveById.get(pick.element());
 			var points = live == null ? 0 : live.totalPoints();
+			var minutes = live == null ? 0 : live.stats().minutes();
 			var view = new PlayerView(String.valueOf(player.id()), player.fullName(), player.webName(), player.premierLeagueClub(),
-					player.position(), "" + pick.position(), points, "AVAILABLE", 0);
+					player.position(), "" + pick.position(), points, minutes, "AVAILABLE", 0);
 			if (pick.starter()) {
 				active.add(view);
 				liveScore += points * Math.max(1, pick.multiplier());
@@ -404,6 +411,11 @@ public class MockLiveStateService {
 		}
 		if (changes.isEmpty()) changes.addAll(classifyStatChanges(previous, current));
 		return changes.isEmpty() ? List.of(new PointChange("points_update", totalDelta)) : changes;
+	}
+
+	private LiveStateResponse withEventHistory(LiveStateResponse state, List<FantasyEventView> eventHistory) {
+		eventHistory.sort(Comparator.comparing(FantasyEventView::occurredAt).reversed());
+		return new LiveStateResponse(state.status(), state.sequence(), state.gameweek(), state.matchups(), List.copyOf(eventHistory), state.commentary());
 	}
 
 	private List<PointChange> classifyStatChanges(FplLivePlayer previous, FplLivePlayer current) {

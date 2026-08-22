@@ -163,7 +163,7 @@ function BenchRail({ side, team, shirtCodes }: { side: 'left' | 'right'; team: T
       const verticalPosition = playerVerticalPosition(index, team.benchPlayers.length)
       const style = { '--team-color': team.color, '--y': `${verticalPosition.y}%`, '--y-offset': `${verticalPosition.yOffset}px` } as CSSProperties
       return <div className="bench-player" key={player.id} style={style}>
-        <div className="player-token bench-player-token"><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className="player-meta"><strong>{name}</strong><b>{player.points}</b></div></div></div>
+        <div className="player-token bench-player-token"><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, player.points)}</b></div></div></div>
       </div>
     })}
   </aside>
@@ -261,8 +261,12 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, not
   }, [event?.id, eventDelta, player.points])
 
   return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''}`} style={style}>
-    <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{pointsToRender}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${29 + index * 25}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
+    <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${29 + index * 25}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
+}
+
+function displayPlayerPoints(player: PlayerView, points: number) {
+  return points === 0 && (player.minutes ?? 0) === 0 ? '–' : points
 }
 
 function notificationShiftsFor(matchup: MatchupView, latestEvents: FantasyEventView[], pitchSize: { width: number; height: number }) {

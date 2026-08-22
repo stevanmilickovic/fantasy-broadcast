@@ -8,6 +8,7 @@ public record PlayerView(
 		String position,
 		String lineupSlot,
 		int points,
+		Integer minutes,
 		String status,
 		int recentDelta
 ) {
