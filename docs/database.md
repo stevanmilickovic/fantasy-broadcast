@@ -43,6 +43,8 @@ The initial schema stores service/customer data, not live FPL state:
 - `league_context`
 - `subscription`
 
+The follow-up migration adds customer authentication fields and `league_registration`, which lets several customer accounts register the same stored league. With the `db` profile active, the backend creates the initial administrator account on startup: username `admin`, password `admin`. Change that password before any non-local deployment.
+
 FPL remains the source of truth for live scores, players, fixtures, ownership, league members, and standings. The database stores app-specific state such as accounts, registered leagues, paid subscriptions, and free-form league context.
 
 AI access is currently represented on `subscription` with `ai_enabled` and `ai_monthly_limit`. Add detailed usage-event tracking later only if the billing model needs metered AI accounting.
