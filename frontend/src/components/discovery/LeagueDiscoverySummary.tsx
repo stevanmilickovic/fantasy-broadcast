@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DiscoveryTab, LeagueDiscoveryState } from '../../types/fpl'
 
-export function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscoveryState }) {
+export function LeagueDiscoverySummary({ discovery, showBroadcastControl = false }: { discovery: LeagueDiscoveryState; showBroadcastControl?: boolean }) {
   const [activeTab, setActiveTab] = useState<DiscoveryTab>('teams')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const { details, elementStatus } = discovery
@@ -51,7 +51,10 @@ export function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscove
             {details.league?.scoring ?? 'unknown'}
           </p>
         </div>
-        <span>{details.league?.id ?? 'Unknown ID'}</span>
+        <div className="discovery-title-actions">
+          <span>{details.league?.id ?? 'Unknown ID'}</span>
+          {showBroadcastControl && <button type="button" className="inactive-broadcast" disabled>Enter broadcast · inactive</button>}
+        </div>
       </div>
 
       <div className="readiness-grid">
