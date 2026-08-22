@@ -1,6 +1,9 @@
 package com.sextelecomleague.backend.live;
 
 import com.sextelecomleague.backend.fpl.FplDraftClient;
+import com.sextelecomleague.backend.fpl.FplClassicLeague;
+import com.sextelecomleague.backend.fpl.FplClassicLeagueEntry;
+import com.sextelecomleague.backend.fpl.FplClassicMatch;
 import com.sextelecomleague.backend.fpl.FplDraftLeague;
 import com.sextelecomleague.backend.fpl.FplDraftLeagueEntry;
 import com.sextelecomleague.backend.fpl.FplDraftMapper;
@@ -8,6 +11,7 @@ import com.sextelecomleague.backend.fpl.FplDraftMatch;
 import com.sextelecomleague.backend.fpl.FplEntryEvent;
 import com.sextelecomleague.backend.fpl.FplEntryPick;
 import com.sextelecomleague.backend.fpl.FplLivePlayer;
+import com.sextelecomleague.backend.fpl.FplLeagueType;
 import com.sextelecomleague.backend.fpl.FplPlayer;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
@@ -131,18 +135,18 @@ public class MockLiveStateService {
 		return state;
 	}
 
-	/** Starts a real FPL Draft broadcast. The first response is a baseline; later polls emit point changes. */
-	public synchronized LiveStateResponse startReal(long leagueId) {
+	/** Starts a real FPL broadcast. The first response is a baseline; later polls emit point changes. */
+	public synchronized LiveStateResponse startReal(long leagueId, FplLeagueType leagueType) {
 		cancelSequenceTask();
 		started = true;
 		realPollCount = 0;
 		previousRealPlayerPoints = Map.of();
 		previousRealLivePlayers = Map.of();
-		realState = fetchRealState(leagueId, Map.of(), Map.of());
+		realState = fetchRealState(leagueId, leagueType, Map.of(), Map.of());
 		previousRealPlayerPoints = playerPoints(realState);
 		previousRealLivePlayers = fetchedRealLivePlayers;
 		broadcast(realState);
-		sequenceTask = sequenceExecutor.scheduleAtFixedRate(() -> pollReal(leagueId), STEP_INTERVAL_SECONDS,
+		sequenceTask = sequenceExecutor.scheduleAtFixedRate(() -> pollReal(leagueId, leagueType), STEP_INTERVAL_SECONDS,
 				STEP_INTERVAL_SECONDS, TimeUnit.SECONDS);
 		return realState;
 	}
@@ -151,14 +155,14 @@ public class MockLiveStateService {
 		advance();
 	}
 
-	private void pollReal(long leagueId) {
+	private void pollReal(long leagueId, FplLeagueType leagueType) {
 		synchronized (this) {
 			if (realState == null) {
 				return;
 			}
 			try {
 				realPollCount++;
-				realState = fetchRealState(leagueId, previousRealPlayerPoints, previousRealLivePlayers);
+				realState = fetchRealState(leagueId, leagueType, previousRealPlayerPoints, previousRealLivePlayers);
 				previousRealPlayerPoints = playerPoints(realState);
 				previousRealLivePlayers = fetchedRealLivePlayers;
 				broadcast(realState);
@@ -172,7 +176,14 @@ public class MockLiveStateService {
 		}
 	}
 
-	private LiveStateResponse fetchRealState(long leagueId, Map<String, Integer> priorPoints, Map<Integer, FplLivePlayer> priorLivePlayers) {
+	private LiveStateResponse fetchRealState(long leagueId, FplLeagueType leagueType, Map<String, Integer> priorPoints,
+			Map<Integer, FplLivePlayer> priorLivePlayers) {
+		return leagueType == FplLeagueType.CLASSIC
+				? fetchClassicState(leagueId, priorPoints, priorLivePlayers)
+				: fetchDraftState(leagueId, priorPoints, priorLivePlayers);
+	}
+
+	private LiveStateResponse fetchDraftState(long leagueId, Map<String, Integer> priorPoints, Map<Integer, FplLivePlayer> priorLivePlayers) {
 		FplDraftLeague league = fplMapper.mapLeagueDetails(fplClient.getLeagueDetails(leagueId));
 		var bootstrap = fplClient.getDraftBootstrapStatic();
 		var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic(), league);
@@ -187,8 +198,8 @@ public class MockLiveStateService {
 			var homeEntry = entriesByLeagueEntryId.get(match.firstLeagueEntryId());
 			var awayEntry = entriesByLeagueEntryId.get(match.secondLeagueEntryId());
 			if (homeEntry == null || awayEntry == null) continue;
-			var home = buildRealTeam(homeEntry, gameweek, playersById, liveById);
-			var away = buildRealTeam(awayEntry, gameweek, playersById, liveById);
+			var home = buildDraftTeam(homeEntry, gameweek, playersById, liveById);
+			var away = buildDraftTeam(awayEntry, gameweek, playersById, liveById);
 			var leader = home.score() == away.score() ? "" : home.score() > away.score() ? home.managerId() : away.managerId();
 			var matchupId = "real-gw" + gameweek + "-" + match.firstLeagueEntryId() + "-" + match.secondLeagueEntryId();
 			matchups.add(new MatchupView(matchupId, home, away, leader, home.score() + "-" + away.score()));
@@ -199,9 +210,49 @@ public class MockLiveStateService {
 		return new LiveStateResponse(provisional.status(), provisional.sequence(), gameweek, matchups, events, List.of());
 	}
 
-	private TeamView buildRealTeam(FplDraftLeagueEntry entry, int gameweek, Map<Integer, FplPlayer> playersById,
+	private LiveStateResponse fetchClassicState(long leagueId, Map<String, Integer> priorPoints,
+			Map<Integer, FplLivePlayer> priorLivePlayers) {
+		var fantasyBootstrap = fplClient.getFantasyBootstrapStatic();
+		var gameweek = currentGameweek(fantasyBootstrap, null);
+		FplClassicLeague league = fplMapper.mapClassicLeague(
+				fplClient.getClassicLeagueStandings(leagueId), fplClient.getClassicLeagueMatches(leagueId, gameweek));
+		var playersById = indexPlayers(fplMapper.mapPlayers(fantasyBootstrap));
+		var liveById = indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(gameweek)));
+		fetchedRealLivePlayers = liveById;
+		var entriesById = new HashMap<Long, FplClassicLeagueEntry>();
+		for (var entry : league.entries()) entriesById.put(entry.entryId(), entry);
+		var matchups = new ArrayList<MatchupView>();
+		for (FplClassicMatch match : league.matches()) {
+			var homeEntry = entriesById.get(match.firstEntryId());
+			var awayEntry = entriesById.get(match.secondEntryId());
+			if (homeEntry == null || awayEntry == null) continue;
+			var home = buildClassicTeam(homeEntry, gameweek, playersById, liveById);
+			var away = buildClassicTeam(awayEntry, gameweek, playersById, liveById);
+			var leader = home.score() == away.score() ? "" : home.score() > away.score() ? home.managerId() : away.managerId();
+			matchups.add(new MatchupView("classic-gw" + gameweek + "-" + match.firstEntryId() + "-" + match.secondEntryId(),
+					home, away, leader, home.score() + "-" + away.score()));
+		}
+		var provisional = new LiveStateResponse(new LiveStatus("REAL_CLASSIC", Instant.now().toString(),
+				"Polling regular FPL every 10 seconds."), new SequenceState(realPollCount, 0, true, false), gameweek,
+				matchups, List.of(), List.of());
+		var events = detectPointEvents(provisional, priorPoints, priorLivePlayers, liveById);
+		return new LiveStateResponse(provisional.status(), provisional.sequence(), gameweek, matchups, events, List.of());
+	}
+
+	private TeamView buildDraftTeam(FplDraftLeagueEntry entry, int gameweek, Map<Integer, FplPlayer> playersById,
 			Map<Integer, FplLivePlayer> liveById) {
 		FplEntryEvent entryEvent = fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek));
+		return buildTeam(entry.leagueEntryId(), entry.playerName(), entry.entryName(), entry.entryName(), entryEvent, playersById, liveById);
+	}
+
+	private TeamView buildClassicTeam(FplClassicLeagueEntry entry, int gameweek, Map<Integer, FplPlayer> playersById,
+			Map<Integer, FplLivePlayer> liveById) {
+		FplEntryEvent entryEvent = fplMapper.mapEntryEvent(fplClient.getFantasyEntryEvent(entry.entryId(), gameweek));
+		return buildTeam(entry.entryId(), entry.playerName(), entry.entryName(), entry.entryName(), entryEvent, playersById, liveById);
+	}
+
+	private TeamView buildTeam(long teamId, String managerName, String entryName, String displayName, FplEntryEvent entryEvent,
+			Map<Integer, FplPlayer> playersById, Map<Integer, FplLivePlayer> liveById) {
 		var active = new ArrayList<PlayerView>();
 		var bench = new ArrayList<PlayerView>();
 		var liveScore = 0;
@@ -220,8 +271,8 @@ public class MockLiveStateService {
 				bench.add(view);
 			}
 		}
-		var color = TEAM_COLORS[Math.floorMod(entry.leagueEntryId(), TEAM_COLORS.length)];
-		return new TeamView(String.valueOf(entry.leagueEntryId()), entry.playerName(), entry.entryName(), entry.entryName(), color,
+		var color = TEAM_COLORS[(int) Math.floorMod(teamId, TEAM_COLORS.length)];
+		return new TeamView(String.valueOf(teamId), managerName, entryName, displayName, color,
 				liveScore, active, bench);
 	}
 
@@ -321,6 +372,7 @@ public class MockLiveStateService {
 	private int currentGameweek(tools.jackson.databind.JsonNode bootstrap, FplDraftLeague league) {
 		for (var event : bootstrap.path("events")) if (event.path("is_current").asBoolean(false)) return event.path("id").asInt();
 		for (var event : bootstrap.path("events")) if (event.path("is_next").asBoolean(false)) return event.path("id").asInt();
+		if (league == null) throw new IllegalStateException("No current or next FPL gameweek was found.");
 		return league.matches().stream()
 				.filter(match -> !match.finished())
 				.filter(match -> match.firstPoints() != 0 || match.secondPoints() != 0)

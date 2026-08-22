@@ -1,0 +1,9 @@
+{
+  "league": { "id": 123, "name": "Classic H2H" },
+  "standings": {
+    "results": [
+      { "entry": 9001, "entry_name": "Red Star FC", "player_name": "Stevan Petrovic" },
+      { "entry": 9002, "entry_name": "Blue Moon FC", "player_name": "Mila Ilic" }
+    ]
+  }
+}

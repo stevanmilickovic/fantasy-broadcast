@@ -2,6 +2,7 @@ package com.sextelecomleague.backend.api;
 
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.MockLiveStateService;
+import com.sextelecomleague.backend.fpl.FplLeagueType;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +54,8 @@ public class LiveStateController {
 	}
 
 	@PostMapping("/live-broadcast/start")
-	public LiveStateResponse startRealBroadcast(@RequestParam long leagueId) {
-		return liveStateService.startReal(leagueId);
+	public LiveStateResponse startRealBroadcast(@RequestParam long leagueId,
+			@RequestParam(defaultValue = "DRAFT") FplLeagueType leagueType) {
+		return liveStateService.startReal(leagueId, leagueType);
 	}
 }

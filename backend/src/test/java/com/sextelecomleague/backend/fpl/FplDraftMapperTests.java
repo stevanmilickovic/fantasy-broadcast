@@ -33,6 +33,21 @@ class FplDraftMapperTests {
 	}
 
 	@Test
+	void mapsClassicHeadToHeadLeague() throws IOException {
+		var league = mapper.mapClassicLeague(
+				readJson("fpl/classic-h2h-standings.sample.json"), readJson("fpl/classic-h2h-matches.sample.json"));
+
+		assertThat(league.entries()).hasSize(2);
+		assertThat(league.entries().getFirst())
+				.extracting(FplClassicLeagueEntry::entryId, FplClassicLeagueEntry::entryName, FplClassicLeagueEntry::playerName)
+				.containsExactly(9001L, "Red Star FC", "Stevan Petrovic");
+		assertThat(league.matches().getFirst())
+				.extracting(FplClassicMatch::firstEntryId, FplClassicMatch::secondEntryId,
+						FplClassicMatch::firstPoints, FplClassicMatch::secondPoints, FplClassicMatch::finished)
+				.containsExactly(9001L, 9002L, 48, 42, false);
+	}
+
+	@Test
 	void mapsBootstrapPlayers() throws IOException {
 		var players = mapper.mapPlayers(readJson("fpl/bootstrap-static.sample.json"));
 

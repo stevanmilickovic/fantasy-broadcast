@@ -25,6 +25,17 @@ Known public endpoints to start with:
 
 The regular FPL live endpoint provides player points and stat categories. Draft ownership and H2H context come from Draft endpoints.
 
+## Regular FPL Head-to-Head Recording
+
+Regular FPL head-to-head leagues use the Fantasy API rather than the Draft API:
+
+- `GET https://fantasy.premierleague.com/api/leagues-h2h/{leagueId}/standings/?page_new_entries=1&page_standings=1`
+- `GET https://fantasy.premierleague.com/api/leagues-h2h-matches/league/{leagueId}/?event={eventId}`
+- `GET https://fantasy.premierleague.com/api/entry/{entryId}/event/{eventId}/picks/`
+
+Start a head-to-head recording through `POST /api/live-broadcast/start?leagueId={leagueId}&leagueType=CLASSIC`.
+It emits the same `LiveStateResponse` and player-point notifications as a Draft recording; league-specific API data is normalized before it reaches the live pipeline. Classic overall-scoring broadcasts are deliberately out of scope for this endpoint.
+
 ## Unknowns To Validate With Our League
 
 - Whether our private Draft league details endpoint is readable without cookies.
