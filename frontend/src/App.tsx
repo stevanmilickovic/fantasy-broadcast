@@ -1,7 +1,7 @@
 import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast } from './api/liveApi'
+import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, type FplLeagueType } from './api/liveApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
 import type { LeagueDiscoveryState } from './types/fpl'
@@ -19,6 +19,7 @@ function App() {
   const [isBusy, setIsBusy] = useState(false)
   const [isStreamConnected, setIsStreamConnected] = useState(false)
   const [leagueId, setLeagueId] = useState('49824')
+  const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
   const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
   const [leagueError, setLeagueError] = useState<string | null>(null)
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
@@ -205,6 +206,12 @@ function App() {
       return
     }
 
+    if (leagueType === 'CLASSIC') {
+      setLeagueDiscovery(null)
+      setLeagueError('Classic league discovery is not built yet. Start the live broadcast to record its head-to-head matchups.')
+      return
+    }
+
     setIsLeagueLoading(true)
     try {
       const nextDiscovery = await loadLeagueDiscovery(normalizedLeagueId)
@@ -237,9 +244,10 @@ function App() {
       setLeagueError('Enter your league id before starting a live broadcast.')
       return
     }
+
     setIsBusy(true)
     try {
-      const nextState = await startRealBroadcast(normalizedLeagueId)
+      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -335,12 +343,12 @@ function App() {
         </div>
       </header>
 
-      <section className="league-discovery" aria-label="FPL Draft league discovery">
+      <section className="league-discovery" aria-label="FPL league setup">
         <div className="discovery-form">
           <div>
             <span className="kicker">
               <Database size={16} />
-              FPL Discovery
+              FPL league setup
             </span>
             <h2>League Data Check</h2>
           </div>
@@ -358,6 +366,15 @@ function App() {
               onChange={(event) => setLeagueId(event.target.value)}
               placeholder="49824"
             />
+            <label htmlFor="league-type">League type</label>
+            <select
+              id="league-type"
+              value={leagueType}
+              onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="CLASSIC">Classic head-to-head</option>
+            </select>
             <button type="submit" disabled={isLeagueLoading}>
               <Search size={18} />
               Load
@@ -368,6 +385,9 @@ function App() {
             </button>
           </form>
         </div>
+        {leagueType === 'CLASSIC' && (
+          <p className="discovery-error">Classic league discovery is not built yet; live head-to-head recording is available.</p>
+        )}
         {leagueError && <p className="discovery-error">{leagueError}</p>}
         {leagueDiscovery ? <LeagueDiscoverySummary discovery={leagueDiscovery} /> : null}
       </section>

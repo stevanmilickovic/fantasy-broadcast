@@ -24,8 +24,11 @@ export const startComprehensiveMock = async (): Promise<LiveStateResponse> => {
   return response.json()
 }
 
-export const startRealBroadcast = async (leagueId: string): Promise<LiveStateResponse> => {
-  const response = await fetch(`/api/live-broadcast/start?leagueId=${encodeURIComponent(leagueId)}`, { method: 'POST' })
+export type FplLeagueType = 'DRAFT' | 'CLASSIC'
+
+export const startRealBroadcast = async (leagueId: string, leagueType: FplLeagueType): Promise<LiveStateResponse> => {
+  const query = new URLSearchParams({ leagueId, leagueType })
+  const response = await fetch(`/api/live-broadcast/start?${query}`, { method: 'POST' })
   if (!response.ok) {
     throw new Error(`Live broadcast start failed with ${response.status}`)
   }

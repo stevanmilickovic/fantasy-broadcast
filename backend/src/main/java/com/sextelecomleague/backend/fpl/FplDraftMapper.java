@@ -36,6 +36,26 @@ public class FplDraftMapper {
 		return players;
 	}
 
+	public FplClassicLeague mapClassicLeague(JsonNode standingsRoot, JsonNode matchesRoot) {
+		var entries = new ArrayList<FplClassicLeagueEntry>();
+		for (JsonNode standing : standingsRoot.path("standings").path("results")) {
+			entries.add(new FplClassicLeagueEntry(
+					standing.path("entry").asLong(),
+					text(standing, "entry_name"),
+					text(standing, "player_name")));
+		}
+		var matches = new ArrayList<FplClassicMatch>();
+		for (JsonNode match : matchesRoot.path("results")) {
+			matches.add(new FplClassicMatch(
+					match.path("entry_1_entry").asLong(),
+					match.path("entry_2_entry").asLong(),
+					intValue(match, "entry_1_points"),
+					intValue(match, "entry_2_points"),
+					booleanValue(match, "finished")));
+		}
+		return new FplClassicLeague(entries, matches);
+	}
+
 	public List<FplClubShirt> mapClubShirts(JsonNode root) {
 		var shirts = new ArrayList<FplClubShirt>();
 		for (JsonNode team : root.path("teams")) {

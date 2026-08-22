@@ -59,6 +59,19 @@ public class FplDraftClient {
 		return getJson(properties.getFantasyBaseUrl() + "/event/" + eventId + "/live/");
 	}
 
+	public JsonNode getFantasyEntryEvent(long entryId, int eventId) {
+		return getJson(properties.getFantasyBaseUrl() + "/entry/" + entryId + "/event/" + eventId + "/picks/");
+	}
+
+	public JsonNode getClassicLeagueStandings(long leagueId) {
+		return getJson(properties.getFantasyBaseUrl() + "/leagues-h2h/" + leagueId
+				+ "/standings/?page_new_entries=1&page_standings=1");
+	}
+
+	public JsonNode getClassicLeagueMatches(long leagueId, int eventId) {
+		return getJson(properties.getFantasyBaseUrl() + "/leagues-h2h-matches/league/" + leagueId + "/?event=" + eventId);
+	}
+
 	private JsonNode getJson(String url) {
 		var request = HttpRequest.newBuilder(URI.create(url))
 				.header("Accept", "application/json")
