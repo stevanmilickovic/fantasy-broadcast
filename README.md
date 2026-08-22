@@ -26,23 +26,18 @@ FPL Draft Broadcast Service.md
 
 ## Backend
 
-Build and test:
-
-```bash
-cd backend
-./mvnw clean package
-```
-
-Run:
-
-```bash
-java -jar target/backend-0.0.1-SNAPSHOT.jar
-```
-
-Build and run in one command (from the repository root):
+Build and run the backend in one command (recommended, from the repository root):
 
 ```powershell
 .\backend\mvnw.cmd clean package; java -jar .\backend\target\backend-0.0.1-SNAPSHOT.jar
+```
+
+This compiles, tests, packages, and starts the backend. Stop it with `Ctrl+C`.
+
+To only build and test:
+
+```powershell
+.\backend\mvnw.cmd clean package
 ```
 
 For local development, run the backend directly without first packaging a JAR:
@@ -59,7 +54,7 @@ $env:SPRING_PROFILES_ACTIVE = "db"
 .\mvnw.cmd spring-boot:run
 ```
 
-Stop either command with `Ctrl+C` and rerun it after making backend changes.
+Stop the development command with `Ctrl+C` and rerun it after making backend changes.
 
 Default local URL:
 

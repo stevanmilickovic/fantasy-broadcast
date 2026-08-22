@@ -1,5 +1,5 @@
 import type { FplLeagueType } from './liveApi'
-import type { AdminLeague, AuthResponse, AuthUser, RegisteredLeague } from '../types/customer'
+import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, RegisteredLeague } from '../types/customer'
 
 const tokenKey = 'stk-broadcast-session-token'
 
@@ -37,4 +37,13 @@ export const logout = async (token: string) => { await request('/api/auth/logout
 export const loadRegisteredLeagues = async (token: string): Promise<RegisteredLeague[]> => (await request('/api/customer/leagues', token)).json()
 export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType): Promise<RegisteredLeague> =>
   (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
-export const loadAdminLeagues = async (token: string): Promise<AdminLeague[]> => (await request('/api/customer/admin/leagues', token)).json()
+export const loadAdminLeagues = async (token: string, page = 0, size = 10, search = ''): Promise<AdminLeaguePage> => {
+  const query = new URLSearchParams({ page: String(page), size: String(size), search })
+  const response: AdminLeaguePage | AdminLeague[] = await (await request(`/api/customer/admin/leagues?${query}`, token)).json()
+  if (Array.isArray(response)) return { items: response, page: 0, size: response.length, totalItems: response.length }
+  return response
+}
+export const updateAdminLeague = async (token: string, league: AdminLeague): Promise<AdminLeague> =>
+  (await request(`/api/customer/admin/leagues/${league.id}`, token, {
+    method: 'PATCH', body: JSON.stringify({ serviceEnabled: league.serviceEnabled }),
+  })).json()

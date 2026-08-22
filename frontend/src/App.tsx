@@ -26,7 +26,6 @@ function App() {
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
-  const [isStreamConnected, setIsStreamConnected] = useState(false)
   const [leagueId, setLeagueId] = useState('49824')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
   const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
@@ -104,18 +103,10 @@ function App() {
   useEffect(() => {
     const events = new EventSource('/api/live-state/stream')
 
-    events.onopen = () => {
-      setIsStreamConnected(true)
-    }
-
     events.addEventListener('live-state', (event) => {
       setLiveState(JSON.parse(event.data) as LiveStateResponse)
       setError(null)
     })
-
-    events.onerror = () => {
-      setIsStreamConnected(false)
-    }
 
     return () => {
       events.close()
@@ -342,7 +333,7 @@ function App() {
     return <AuthScreen onAuthenticated={handleAuthenticated} />
   }
 
-  if (authUser.role !== 'ADMIN') {
+  if (authUser.role !== 'ADMIN' || location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new') {
     return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
@@ -396,8 +387,8 @@ function App() {
   }
 
   return (
-    <main className="broadcast-shell">
-      <header className="broadcast-header">
+    <main className="broadcast-shell administration-shell">
+      <header className="broadcast-header administration-header">
         <div>
           <span className="kicker">
             <Radio size={16} />
@@ -405,21 +396,12 @@ function App() {
           </span>
           <h1>Fantasy Broadcast Administration</h1>
         </div>
-        <div className="status-panel">
-          <span>{liveState.status.mode}</span>
-          <strong>
-            Step {liveState.sequence.currentStep}/{liveState.sequence.totalSteps}
-          </strong>
-          <small className={isStreamConnected ? 'stream-on' : 'stream-off'}>
-            {isStreamConnected ? 'Stream connected' : 'Stream reconnecting'}
-          </small>
-        </div>
+        <div className="account-nav administration-account-nav"><span>Administrator · {authUser.email}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></div>
       </header>
 
-      <div className="account-nav"><span>Administrator · {authUser.email}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></div>
-      <AdminLeagueRegistry token={authToken!} />
+      <AdminLeagueRegistry token={authToken!} onOpenLeague={(selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`)} />
 
-      <section className="league-discovery" aria-label="FPL league setup">
+      <section className="league-discovery administration-card" aria-label="FPL league setup">
         <div className="discovery-form">
           <div>
             <span className="kicker">
@@ -429,36 +411,26 @@ function App() {
             <h2>League Data Check</h2>
           </div>
           <form
+            className="administration-check-form"
             onSubmit={(event) => {
               event.preventDefault()
               void inspectLeague()
             }}
           >
-            <label htmlFor="league-id">League ID</label>
-            <input
-              id="league-id"
-              inputMode="numeric"
-              value={leagueId}
-              onChange={(event) => setLeagueId(event.target.value)}
-              placeholder="49824"
-            />
-            <label htmlFor="league-type">League type</label>
-            <select
-              id="league-type"
-              value={leagueType}
-              onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}
-            >
-              <option value="DRAFT">Draft</option>
-              <option value="CLASSIC">Classic head-to-head</option>
-            </select>
-            <button type="submit" disabled={isLeagueLoading}>
-              <Search size={18} />
-              Load
-            </button>
-            <button type="button" className="secondary-action" disabled={isLeagueLoading} onClick={inspectMockLeague}>
-              <FlaskConical size={18} />
-              Test
-            </button>
+            <div className="administration-form-field"><label htmlFor="league-id">League ID</label><input
+              id="league-id" inputMode="numeric" value={leagueId} onChange={(event) => setLeagueId(event.target.value)} placeholder="49824"
+            /></div>
+            <div className="administration-form-field"><label htmlFor="league-type">League type</label><select id="league-type" className="administration-select" value={leagueType} onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}><option value="DRAFT">Draft</option><option value="CLASSIC">Classic H2H</option></select></div>
+            <div className="administration-form-actions">
+              <button type="submit" disabled={isLeagueLoading}>
+                <Search size={18} />
+                Load
+              </button>
+              <button type="button" className="secondary-action" disabled={isLeagueLoading} onClick={inspectMockLeague}>
+                <FlaskConical size={18} />
+                Test
+              </button>
+            </div>
           </form>
         </div>
         {leagueType === 'CLASSIC' && (
@@ -468,7 +440,7 @@ function App() {
         {leagueDiscovery ? <LeagueDiscoverySummary discovery={leagueDiscovery} /> : null}
       </section>
 
-      <section className="controls-row" aria-label="Broadcast controls">
+      <section className="controls-row administration-controls" aria-label="Broadcast controls">
         <button type="button" onClick={startLiveBroadcast} disabled={isBusy || isLeagueLoading}>
           <Radio size={18} />
           Start live broadcast
@@ -495,7 +467,6 @@ function App() {
           <RotateCcw size={18} />
           Reset
         </button>
-        <p>{error ? error : liveState.status.message}</p>
       </section>
     </main>
   )

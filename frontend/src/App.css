@@ -1885,7 +1885,74 @@ blockquote {
 .league-card { display: grid; gap: 10px; padding: 22px; border: 1px solid #29465f; border-radius: 12px; background: #102235; }
 .league-card h3, .league-card p { margin: 0; }
 .admin-league-table { display: grid; gap: 8px; margin-top: 16px; }
-.admin-league-table > div { display: grid; grid-template-columns: 1.2fr .8fr 1fr 1.5fr; gap: 12px; padding: 10px; border-top: 1px solid rgba(255,255,255,.15); }
+.admin-league-table > div { display: grid; grid-template-columns: 1.2fr .8fr 1fr 1.5fr auto; gap: 12px; padding: 10px; border-top: 1px solid rgba(255,255,255,.15); align-items: center; }
+.admin-league-row label { display: grid; gap: 4px; font-size: .82rem; }
+.admin-league-row input[type="checkbox"] { min-height: 0; width: auto; }
+.league-enabled { grid-template-columns: auto 1fr; align-items: center; }
+.admin-league-row small { color: var(--muted); }
+.admin-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; }
+
+/* Administration workspace */
+.administration-shell { width: 100%; max-width: none; min-height: 100vh; margin: 0; padding: 0 clamp(20px, 5vw, 80px) 56px; background: #fff; color: var(--pl-purple); --surface: #fff; --text-strong: var(--pl-purple); --text: var(--pl-purple); --muted: #715177; --border: #e7dbe9; --accent: var(--pl-purple); --shadow: 0 14px 34px rgba(55, 0, 60, .08); }
+.administration-header { position: relative; align-items: center; min-height: 178px; margin: 0 calc(clamp(20px, 5vw, 80px) * -1); padding: 36px clamp(20px, 5vw, 80px); overflow: hidden; background: var(--pl-purple); }
+.administration-header::after { content: ''; position: absolute; right: -120px; bottom: -185px; width: 410px; height: 410px; border: 48px solid var(--pl-cyan); border-radius: 50%; opacity: .16; }
+.administration-header > * { position: relative; z-index: 1; }
+.administration-header .kicker { color: var(--pl-cyan); letter-spacing: .12em; }
+.administration-header h1 { color: #fff; font-size: clamp(2rem, 4vw, 3.25rem); letter-spacing: -.045em; }
+.administration-header .administration-account-nav { min-width: 240px; margin: 0; padding: 12px 14px; border-left: 3px solid var(--pl-cyan); background: rgba(255, 255, 255, .1); color: #fff; font-size: .88rem; font-weight: 750; }
+.administration-header .administration-account-nav .secondary-action { border: 1px solid var(--pl-cyan); border-radius: 0; color: var(--pl-purple); background: var(--pl-cyan); font-weight: 850; }
+.administration-header .administration-account-nav .secondary-action:hover { border-color: #fff; color: var(--pl-purple); background: #fff; }
+.administration-shell .secondary-action { border: 1px solid var(--pl-purple); border-radius: 0; color: var(--pl-purple); background: #fff; font-weight: 800; }
+.administration-shell .secondary-action:hover { color: #fff; background: var(--pl-purple); }
+
+.administration-shell .league-discovery, .administration-shell .controls-row { border: 1px solid #e5d7e7; border-radius: 0; box-shadow: var(--shadow); }
+.administration-shell .discovery-form { padding: 22px 24px; border-bottom-color: #eaddea; }
+.administration-shell .discovery-form h2 { font-size: 1.35rem; letter-spacing: -.025em; }
+.administration-shell .discovery-form input, .administration-shell .discovery-form select, .administration-shell .admin-registry input, .administration-shell .admin-registry select { border: 1px solid #cdb7d0; border-radius: 0; background: #fff; color: var(--pl-purple); }
+.administration-shell .administration-select { min-width: 150px; min-height: 38px; padding: 0 42px 0 12px; border: 1px solid var(--pl-purple); border-radius: 0; color: var(--pl-purple); background: linear-gradient(45deg, transparent 50%, var(--pl-purple) 50%) calc(100% - 17px) 16px / 7px 7px no-repeat, linear-gradient(135deg, var(--pl-purple) 50%, transparent 50%) calc(100% - 11px) 16px / 7px 7px no-repeat, #fff; appearance: none; font: inherit; font-weight: 800; cursor: pointer; }
+.administration-shell .administration-select:hover { border-color: var(--pl-cyan); box-shadow: inset 0 -3px 0 var(--pl-cyan); }
+.administration-shell .administration-league-type { grid-template-columns: repeat(2, minmax(92px, 1fr)); gap: 1px; min-height: 38px; border: 1px solid var(--pl-purple); background: var(--pl-purple); }
+.administration-shell .administration-league-type button { min-height: 36px; height: auto; padding: 0 12px; border: 0; border-radius: 0; color: var(--pl-purple); background: #fff; font-size: .8rem; font-weight: 850; }
+.administration-shell .administration-league-type button.selected { color: var(--pl-purple); background: var(--pl-green); }
+.administration-shell .administration-league-type button:hover:not(.selected) { color: #fff; background: var(--pl-purple-2); }
+.administration-shell .administration-form-field { display: grid; gap: 6px; min-width: 0; }
+.administration-shell .administration-form-field label, .administration-shell .administration-form-field > span { padding: 0; color: var(--pl-purple-2); font-size: .78rem; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
+.administration-shell .administration-register-form { grid-template-columns: 150px 196px 104px; align-items: end; }
+.administration-shell .administration-register-form input { min-height: 38px; height: 38px; }
+.administration-shell .administration-check-form { grid-template-columns: minmax(170px, 230px) minmax(160px, 190px) auto; align-items: end; }
+.administration-shell .administration-league-type-stacked { grid-template-columns: 1fr; }
+.administration-shell .administration-form-actions { display: grid; grid-template-columns: repeat(2, auto); gap: 10px; }
+.administration-shell .discovery-form input:focus, .administration-shell .discovery-form select:focus, .administration-shell .admin-registry input:focus, .administration-shell .admin-registry select:focus { outline: 3px solid rgba(4, 245, 255, .4); outline-offset: 1px; }
+.administration-shell .discovery-form button { border-radius: 0; background: var(--pl-purple); }
+.administration-shell .discovery-form button:hover:not(:disabled) { background: var(--pl-purple-2); }
+.administration-shell .discovery-form .secondary-action { color: var(--pl-purple); background: #fff; }
+.administration-shell .discovery-form .secondary-action:hover:not(:disabled) { color: #fff; background: var(--pl-purple); }
+
+.administration-shell .admin-registry { margin: 24px 0; }
+.administration-shell .admin-registry .discovery-form { border-left: 5px solid var(--pl-green); }
+.administration-shell .admin-league-search { display: flex; align-items: center; gap: 10px; padding: 16px 24px; border-bottom: 1px solid #eee4ef; background: #fcf9fc; }
+.administration-shell .admin-league-search label { color: var(--pl-purple-2); font-size: .84rem; font-weight: 800; white-space: nowrap; }
+.administration-shell .admin-league-search input { flex: 1; min-width: 180px; min-height: 38px; }
+.administration-shell .admin-league-search button { min-height: 38px; padding: 0 14px; cursor: pointer; }
+.administration-shell .admin-league-table { gap: 0; margin: 0; }
+.administration-shell .admin-league-table > div { grid-template-columns: minmax(180px, 1.2fr) .7fr .85fr 1.25fr auto auto auto; padding: 18px 24px; border-top-color: #eee4ef; }
+.administration-shell .admin-league-table > div:nth-child(even) { background: #fcf9fc; }
+.administration-shell .admin-league-row strong { color: var(--pl-purple); font-size: 1rem; }
+.administration-shell .admin-league-row input { min-height: 38px; }
+.administration-shell .admin-league-row button { min-height: 38px; padding: 0 12px; border: 0; border-radius: 0; color: var(--pl-purple); background: var(--pl-green); font-weight: 850; cursor: pointer; }
+.administration-shell .admin-league-row button:hover:not(:disabled) { background: #30ff9d; }
+.administration-shell .admin-league-row button:disabled { cursor: wait; opacity: .55; }
+.administration-shell .league-enabled { color: var(--pl-purple); white-space: nowrap; }
+.administration-shell .league-enabled input { accent-color: var(--pl-purple); }
+.administration-shell .admin-league-row small { color: #806485; white-space: nowrap; }
+.administration-shell .admin-pagination { padding: 18px 24px; border-top: 1px solid #eee4ef; color: var(--pl-purple-2); font-weight: 750; }
+
+.administration-controls { flex-wrap: wrap; margin-top: 24px; padding: 14px; background: #fbf7fb; }
+.administration-controls button { border-color: #d5bfd8; border-radius: 0; color: var(--pl-purple); background: #fff; font-weight: 750; }
+.administration-controls button:first-child { border-color: var(--pl-purple); color: #fff; background: var(--pl-purple); }
+.administration-controls button:hover:not(:disabled) { border-color: var(--pl-cyan); background: #f5f0f6; }
+.administration-controls button:first-child:hover:not(:disabled) { background: var(--pl-purple-2); }
+.administration-controls p { color: var(--pl-purple-2); font-weight: 650; }
 
 .customer-shell {
   padding: 0;

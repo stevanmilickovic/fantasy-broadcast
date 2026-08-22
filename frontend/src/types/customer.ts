@@ -24,4 +24,12 @@ export type RegisteredLeague = {
 export type AdminLeague = RegisteredLeague & {
   ownerEmail: string | null
   registeredUsers: string | null
+  createdAt: string
+}
+
+export type AdminLeaguePage = {
+  items: AdminLeague[]
+  page: number
+  size: number
+  totalItems: number
 }
