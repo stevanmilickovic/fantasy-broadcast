@@ -4,7 +4,6 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
-      - org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration
 
 fpl:
   draft-base-url: https://draft.premierleague.com/api

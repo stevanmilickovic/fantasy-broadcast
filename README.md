@@ -51,6 +51,14 @@ For local development, run the backend directly without first packaging a JAR:
 .\backend\mvnw.cmd spring-boot:run
 ```
 
+To enable the database-backed customer accounts, registered leagues, and the seeded `admin` / `admin` local account, start with the `db` profile:
+
+```powershell
+cd backend
+$env:SPRING_PROFILES_ACTIVE = "db"
+.\mvnw.cmd spring-boot:run
+```
+
 Stop either command with `Ctrl+C` and rerun it after making backend changes.
 
 Default local URL:

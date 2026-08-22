@@ -1,0 +1,81 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-add-user-auth-and-league-registrations
+      author: codex
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: password_hash
+                  type: VARCHAR(512)
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  defaultValue: USER
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: league
+            columns:
+              - column:
+                  name: league_type
+                  type: VARCHAR(20)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: league_registration
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: league_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: league_registration
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_league_registration_user
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: league_registration
+            baseColumnNames: league_id
+            referencedTableName: league
+            referencedColumnNames: id
+            constraintName: fk_league_registration_league
+            onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: league_registration
+            columnNames: user_id, league_id
+            constraintName: uq_league_registration_user_league
+
+        - createIndex:
+            tableName: league_registration
+            indexName: ix_league_registration_user
+            columns:
+              - column:
+                  name: user_id

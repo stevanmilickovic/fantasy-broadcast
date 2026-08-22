@@ -2,8 +2,13 @@ import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
 import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, type FplLeagueType } from './api/liveApi'
+import { clearToken, loadCurrentUser, logout, storeToken, storedToken } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
+import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
+import { AuthScreen } from './components/customer/AuthScreen'
+import { CustomerDashboard } from './components/customer/CustomerDashboard'
 import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
+import type { AuthResponse, AuthUser } from './types/customer'
 import type { LeagueDiscoveryState } from './types/fpl'
 import type { AppView, BroadcastFocus, LiveStateResponse, RevealLayout } from './types/live'
 import { findFocusedMatchup, toRevealRect, toScoreRevealRect } from './utils/broadcast'
@@ -14,6 +19,9 @@ const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
 const MATCH_REVEAL_MS = 1900
 
 function App() {
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
+  const [authToken, setAuthToken] = useState<string | null>(storedToken())
+  const [isAuthLoading, setIsAuthLoading] = useState(Boolean(storedToken()))
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
@@ -46,6 +54,33 @@ function App() {
       })
       .catch((requestError: Error) => setError(requestError.message))
   }, [])
+
+  useEffect(() => {
+    if (!authToken) {
+      setIsAuthLoading(false)
+      return
+    }
+    loadCurrentUser(authToken)
+      .then(setAuthUser)
+      .catch(() => {
+        clearToken()
+        setAuthToken(null)
+      })
+      .finally(() => setIsAuthLoading(false))
+  }, [authToken])
+
+  const handleAuthenticated = (result: AuthResponse) => {
+    storeToken(result.token)
+    setAuthUser(result.user)
+    setAuthToken(result.token)
+  }
+
+  const signOut = async () => {
+    if (authToken) await logout(authToken).catch(() => undefined)
+    clearToken()
+    setAuthToken(null)
+    setAuthUser(null)
+  }
 
   useEffect(() => {
     const events = new EventSource('/api/live-state/stream')
@@ -182,7 +217,7 @@ function App() {
   const runAction = async (action: 'start' | 'advance' | 'reset') => {
     setIsBusy(true)
     try {
-      const nextState = await postMockAction(action)
+      const nextState = await postMockAction(action, authToken!)
       setLiveState(nextState)
       if (action === 'start') {
         setBroadcastFocus('multi')
@@ -247,7 +282,7 @@ function App() {
 
     setIsBusy(true)
     try {
-      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType)
+      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, authToken!)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -263,7 +298,7 @@ function App() {
   const startComprehensiveMockBroadcast = async () => {
     setIsBusy(true)
     try {
-      const nextState = await startComprehensiveMock()
+      const nextState = await startComprehensiveMock(authToken!)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -273,6 +308,21 @@ function App() {
     } finally {
       setIsBusy(false)
     }
+  }
+
+  if (isAuthLoading) {
+    return <main className="account-shell"><p>Checking your session…</p></main>
+  }
+
+  if (!authUser) {
+    return <AuthScreen onAuthenticated={handleAuthenticated} />
+  }
+
+  if (authUser.role !== 'ADMIN') {
+    return <>
+      <header className="account-nav"><span>Signed in as {authUser.displayName}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></header>
+      <CustomerDashboard token={authToken!} />
+    </>
   }
 
   if (!liveState || !targetMatchup) {
@@ -342,6 +392,9 @@ function App() {
           </small>
         </div>
       </header>
+
+      <div className="account-nav"><span>Administrator · {authUser.email}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></div>
+      <AdminLeagueRegistry token={authToken!} />
 
       <section className="league-discovery" aria-label="FPL league setup">
         <div className="discovery-form">

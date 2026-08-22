@@ -1850,3 +1850,39 @@ blockquote {
   .player-meta b { min-width: 20px; height: 20px; font-size: 13px; }
   .player-token.has-event, .player-token.has-event .player-core { width: 70px; }
 }
+
+.account-shell, .customer-shell {
+  min-height: 100vh;
+  padding: 48px max(24px, calc((100vw - 1120px) / 2));
+  background: #07121f;
+  color: #f7fbff;
+}
+
+.account-card {
+  display: grid;
+  gap: 14px;
+  width: min(420px, 100%);
+  margin: 10vh auto;
+  padding: 32px;
+  border: 1px solid #29465f;
+  border-radius: 16px;
+  background: #102235;
+}
+
+.account-card input, .customer-shell input, .customer-shell select, .admin-registry input, .admin-registry select {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #54718a;
+  border-radius: 7px;
+  background: #091725;
+  color: inherit;
+}
+
+.account-nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 5vw; background: #0d1b2a; color: #f7fbff; }
+.customer-header { margin-bottom: 28px; }
+.customer-leagues { margin-top: 28px; }
+.league-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 16px; }
+.league-card { display: grid; gap: 10px; padding: 22px; border: 1px solid #29465f; border-radius: 12px; background: #102235; }
+.league-card h3, .league-card p { margin: 0; }
+.admin-league-table { display: grid; gap: 8px; margin-top: 16px; }
+.admin-league-table > div { display: grid; grid-template-columns: 1.2fr .8fr 1fr 1.5fr; gap: 12px; padding: 10px; border-top: 1px solid rgba(255,255,255,.15); }
