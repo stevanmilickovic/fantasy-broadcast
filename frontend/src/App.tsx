@@ -2,7 +2,7 @@ import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
 import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, type FplLeagueType } from './api/liveApi'
-import { clearToken, loadCurrentUser, logout, storeToken, storedToken } from './api/customerApi'
+import { clearToken, loadCurrentUser, loadRegisteredLeagues, logout, storeToken, storedToken } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
 import { AuthScreen } from './components/customer/AuthScreen'
@@ -19,6 +19,7 @@ const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
 const MATCH_REVEAL_MS = 1900
 
 function App() {
+  const [location, setLocation] = useState(() => ({ pathname: window.location.pathname, search: window.location.search }))
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [authToken, setAuthToken] = useState<string | null>(storedToken())
   const [isAuthLoading, setIsAuthLoading] = useState(Boolean(storedToken()))
@@ -56,6 +57,17 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const onPopState = () => setLocation({ pathname: window.location.pathname, search: window.location.search })
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  const navigate = (path: string, replace = false) => {
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', path)
+    setLocation({ pathname: window.location.pathname, search: window.location.search })
+  }
+
+  useEffect(() => {
     if (!authToken) {
       setIsAuthLoading(false)
       return
@@ -69,10 +81,16 @@ function App() {
       .finally(() => setIsAuthLoading(false))
   }, [authToken])
 
-  const handleAuthenticated = (result: AuthResponse) => {
+  const handleAuthenticated = async (result: AuthResponse) => {
     storeToken(result.token)
     setAuthUser(result.user)
     setAuthToken(result.token)
+    if (result.user.role === 'ADMIN') {
+      navigate('/administration', true)
+      return
+    }
+    const leagues = await loadRegisteredLeagues(result.token)
+    navigate(leagues.length === 0 ? '/leagues/new' : leagues.length === 1 ? `/league?leagueId=${leagues[0].id}` : '/leagues', true)
   }
 
   const signOut = async () => {
@@ -80,6 +98,7 @@ function App() {
     clearToken()
     setAuthToken(null)
     setAuthUser(null)
+    navigate('/login', true)
   }
 
   useEffect(() => {
@@ -222,9 +241,11 @@ function App() {
       if (action === 'start') {
         setBroadcastFocus('multi')
         setAppView('broadcast')
+        navigate('/broadcast')
       }
       if (action === 'reset') {
         setAppView('setup')
+        navigate('/administration')
       }
       setError(null)
     } catch (requestError) {
@@ -286,6 +307,7 @@ function App() {
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
+      navigate(`/broadcast?leagueId=${encodeURIComponent(normalizedLeagueId)}`)
       setError(null)
       setLeagueError(null)
     } catch (requestError) {
@@ -302,6 +324,7 @@ function App() {
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
+      navigate('/broadcast')
       setError(null)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to start comprehensive mock broadcast.')
@@ -315,22 +338,22 @@ function App() {
   }
 
   if (!authUser) {
+    if (location.pathname !== '/login') navigate('/login', true)
     return <AuthScreen onAuthenticated={handleAuthenticated} />
   }
 
   if (authUser.role !== 'ADMIN') {
-    return <>
-      <header className="account-nav"><span>Signed in as {authUser.displayName}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></header>
-      <CustomerDashboard token={authToken!} />
-    </>
+    return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
+
+  if (location.pathname !== '/administration' && location.pathname !== '/broadcast') navigate('/administration', true)
 
   if (!liveState || !targetMatchup) {
     return (
       <main className="broadcast-shell loading-shell">
         <div>
           <Radio size={28} />
-          <h1>Draft Broadcast</h1>
+          <h1>Fantasy Broadcast</h1>
           <p>{error ? error : 'Loading live broadcast state...'}</p>
         </div>
       </main>
@@ -350,7 +373,7 @@ function App() {
         ? matchup.away.displayName
         : 'No one'
 
-  if (appView === 'broadcast') {
+  if (location.pathname === '/broadcast' && appView === 'broadcast') {
     return (
       <BroadcastMatchday
         displayLiveState={displayLiveState}
@@ -366,7 +389,7 @@ function App() {
         homeHeadingRef={homeHeadingRef}
         awayHeadingRef={awayHeadingRef}
         scoreRef={scoreRef}
-        onBack={() => setAppView('setup')}
+        onBack={() => { setAppView('setup'); navigate('/administration') }}
         onSelectFocus={setBroadcastFocus}
       />
     )
@@ -380,7 +403,7 @@ function App() {
             <Radio size={16} />
             Gameweek {liveState.gameweek}
           </span>
-          <h1>Draft Broadcast</h1>
+          <h1>Fantasy Broadcast Administration</h1>
         </div>
         <div className="status-panel">
           <span>{liveState.status.mode}</span>

@@ -22,7 +22,7 @@ export function AuthScreen({ onAuthenticated }: Props) {
   }
 
   return <main className="account-shell"><form className="account-card" onSubmit={submit}>
-    <span className="kicker">STK Broadcast</span>
+    <span className="kicker">Fantasy Broadcast</span>
     <h1>{mode === 'login' ? 'Sign in' : 'Create your account'}</h1>
     <p>{mode === 'login' ? 'Access your registered FPL leagues.' : 'Register a league and prepare its broadcast.'}</p>
     <label>{mode === 'login' ? 'Email or username' : 'Email'}</label><input value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" />
