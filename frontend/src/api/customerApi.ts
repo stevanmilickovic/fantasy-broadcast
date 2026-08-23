@@ -1,6 +1,7 @@
-import type { FplLeagueScoring, FplLeagueType } from './liveApi'
+import type { FplLeagueType } from './liveApi'
 import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, RegisteredLeague } from '../types/customer'
 import type { LiveStateResponse } from '../types/live'
+import type { FplLivePlayer, FplPlayer } from '../types/fpl'
 
 const tokenKey = 'stk-broadcast-session-token'
 
@@ -36,8 +37,10 @@ export const authenticate = async (path: 'login' | 'register', email: string, pa
 export const loadCurrentUser = async (token: string): Promise<AuthUser> => (await request('/api/auth/me', token)).json()
 export const logout = async (token: string) => { await request('/api/auth/logout', token, { method: 'POST' }) }
 export const loadRegisteredLeagues = async (token: string): Promise<RegisteredLeague[]> => (await request('/api/customer/leagues', token)).json()
-export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType, scoringType: FplLeagueScoring): Promise<RegisteredLeague> =>
-  (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType, scoringType }) })).json()
+export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType): Promise<RegisteredLeague> =>
+  (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
+export const loadClassicLeagueOverview = async (token: string, leagueId: number): Promise<ClassicLeagueDiscovery> =>
+  (await request(`/api/customer/leagues/${leagueId}/overview`, token)).json()
 export const loadAdminLeagues = async (token: string, page = 0, size = 10, search = ''): Promise<AdminLeaguePage> => {
   const query = new URLSearchParams({ page: String(page), size: String(size), search })
   const response: AdminLeaguePage | AdminLeague[] = await (await request(`/api/customer/admin/leagues?${query}`, token)).json()
@@ -53,3 +56,14 @@ export const saveBroadcastSchedule = async (token: string, startsAt: string, end
   (await request(id ? `/api/customer/admin/broadcast-schedules/${id}` : '/api/customer/admin/broadcast-schedules', token, { method: id ? 'PUT' : 'POST', body: JSON.stringify({ startsAt: new Date(startsAt).toISOString(), endsAt: new Date(endsAt).toISOString() }) })).json()
 export const loadActiveBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/broadcast-schedules/active', token)).json()
 export const openLeagueBroadcast = async (token: string, leagueId: number): Promise<LiveStateResponse> => (await request(`/api/customer/leagues/${leagueId}/broadcast/open`, token, { method: 'POST' })).json()
+
+export type ClassicLeagueDiscovery = {
+  leagueName: string
+  scoringType: 'H2H' | 'TOTAL_POINTS'
+  gameweek: number
+  entries: Array<{ entryId: number; entryName: string; playerName: string; rank: number; total: number; pointsFor: number }>
+  players: FplPlayer[]
+  entryEvents: Record<string, { picks: Array<{ element: number; position: number; multiplier: number }> }>
+  livePlayers: FplLivePlayer[]
+  matches: Array<{ firstEntryId: number; secondEntryId: number; firstPoints: number; secondPoints: number }>
+}

@@ -1,7 +1,7 @@
 import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueScoring, type FplLeagueType } from './api/liveApi'
+import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType } from './api/liveApi'
 import { clearToken, loadCurrentUser, loadRegisteredLeagues, logout, storeToken, storedToken } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
@@ -33,7 +33,6 @@ function App() {
   const [isBusy, setIsBusy] = useState(false)
   const [leagueId, setLeagueId] = useState('49824')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
-  const [scoringType, setScoringType] = useState<FplLeagueScoring>('H2H')
   const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
   const [leagueError, setLeagueError] = useState<string | null>(null)
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
@@ -367,7 +366,7 @@ function App() {
     enablePointChangeSound()
     setIsBusy(true)
     try {
-      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, scoringType, authToken!)
+      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, authToken!)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -520,7 +519,6 @@ function App() {
               id="league-id" inputMode="numeric" value={leagueId} onChange={(event) => setLeagueId(event.target.value)} placeholder="49824"
             /></div>
             <div className="administration-form-field"><label htmlFor="league-type">League type</label><select id="league-type" className="administration-select" value={leagueType} onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}><option value="DRAFT">Draft</option><option value="CLASSIC">Classic</option></select></div>
-            <div className="administration-form-field"><label htmlFor="scoring-type">Scoring type</label><select id="scoring-type" className="administration-select" value={scoringType} onChange={(event) => setScoringType(event.target.value as FplLeagueScoring)}><option value="H2H">Head-to-head</option><option value="TOTAL_POINTS">Total points</option></select></div>
             <div className="administration-form-actions">
               <button type="submit" disabled={isLeagueLoading}>
                 <Search size={18} />

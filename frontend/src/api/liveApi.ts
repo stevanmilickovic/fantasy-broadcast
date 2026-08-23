@@ -35,8 +35,8 @@ export const startTotalPointsMock = async (token: string): Promise<LiveStateResp
 export type FplLeagueType = 'DRAFT' | 'CLASSIC'
 export type FplLeagueScoring = 'H2H' | 'TOTAL_POINTS'
 
-export const startRealBroadcast = async (leagueId: string, leagueType: FplLeagueType, scoringType: FplLeagueScoring, token: string): Promise<LiveStateResponse> => {
-  const query = new URLSearchParams({ leagueId, leagueType, scoringType })
+export const startRealBroadcast = async (leagueId: string, leagueType: FplLeagueType, token: string): Promise<LiveStateResponse> => {
+  const query = new URLSearchParams({ leagueId, leagueType })
   const response = await fetch(`/api/live-broadcast/start?${query}`, { method: 'POST', headers: adminHeaders(token) })
   if (!response.ok) {
     throw new Error(`Live broadcast start failed with ${response.status}`)

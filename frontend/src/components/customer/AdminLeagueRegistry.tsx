@@ -11,7 +11,6 @@ export function AdminLeagueRegistry({ token, onOpenLeague }: Props) {
   const [totalItems, setTotalItems] = useState(0)
   const [leagueId, setLeagueId] = useState('')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
-  const [scoringType, setScoringType] = useState<FplLeagueScoring>('H2H')
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -31,7 +30,7 @@ export function AdminLeagueRegistry({ token, onOpenLeague }: Props) {
     event.preventDefault()
     setBusy(true)
     try {
-      await registerLeague(token, leagueId, leagueType, scoringType)
+      await registerLeague(token, leagueId, leagueType)
       setPage(0)
       await refresh(0)
       setLeagueId('')
@@ -60,7 +59,7 @@ export function AdminLeagueRegistry({ token, onOpenLeague }: Props) {
   return <section className="league-discovery admin-registry"><div className="discovery-form"><div><span className="kicker">Administrator</span><h2>League settings</h2></div>
     <form className="administration-register-form" onSubmit={submit}><div className="administration-form-field"><label>FPL league ID</label><input inputMode="numeric" value={leagueId} onChange={(event) => setLeagueId(event.target.value)} required /></div>
       <div className="administration-form-field"><span>League type</span><select className="administration-select" value={leagueType} onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}><option value="DRAFT">Draft</option><option value="CLASSIC">Classic</option></select></div>
-      <div className="administration-form-field"><span>Scoring type</span><select className="administration-select" value={scoringType} onChange={(event) => setScoringType(event.target.value as FplLeagueScoring)}><option value="H2H">Head-to-head</option><option value="TOTAL_POINTS">Total points</option></select></div><button disabled={busy}>Register</button></form>
+      <button disabled={busy}>Register</button></form>
   </div>{message && <p className={message === 'League registered.' ? 'broadcast-schedule-success' : 'discovery-error'}>{message}</p>}
   <form className="admin-league-search" onSubmit={(event) => { event.preventDefault(); setPage(0); setSearch(searchInput.trim()) }}><label htmlFor="admin-league-search">Find a league</label><input id="admin-league-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by league name or FPL ID" /><button type="submit" className="secondary-action">Search</button>{search && <button type="button" className="secondary-action" onClick={() => { setSearchInput(''); setSearch(''); setPage(0) }}>Clear</button>}</form>
   <div className="admin-league-table">{leagues.map((league) => <div className="admin-league-row" key={league.id} onDoubleClick={() => onOpenLeague(league.id)} title="Double-click to open this league"><strong>{league.displayName}</strong><span>{league.leagueType} · {scoringLabel(league.scoringType)} · #{league.fplLeagueId}</span><span>Owner: {league.ownerEmail ?? '—'}</span><span>Users: {league.registeredUsers ?? '—'}</span><label className="league-enabled"><input type="checkbox" checked={league.serviceEnabled} onChange={(event) => setLeagues((current) => current.map((item) => item.id === league.id ? { ...item, serviceEnabled: event.target.checked } : item))} /> Service enabled</label><small>Registered {new Date(league.createdAt).toLocaleString()}</small><button onClick={() => void save(league)} disabled={busy}>Save settings</button></div>)}</div>

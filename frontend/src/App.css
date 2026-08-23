@@ -1275,6 +1275,9 @@
   color: var(--muted);
 }
 
+.discovery-title .classic-discovery-summary { font-size: 0; }
+.discovery-title .classic-discovery-summary::after { content: attr(data-summary); font-size: 1rem; }
+
 .discovery-title > span {
   padding: 4px 8px;
   border-radius: 6px;
@@ -1946,7 +1949,7 @@ blockquote {
 .administration-shell .administration-league-type button:hover:not(.selected) { color: #fff; background: var(--pl-purple-2); }
 .administration-shell .administration-form-field { display: grid; gap: 6px; min-width: 0; }
 .administration-shell .administration-form-field label, .administration-shell .administration-form-field > span { padding: 0; color: var(--pl-purple-2); font-size: .78rem; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
-.administration-shell .administration-register-form { grid-template-columns: minmax(150px, 180px) minmax(150px, 190px) minmax(150px, 190px) auto; align-items: end; }
+.administration-shell .administration-register-form { grid-template-columns: minmax(150px, 180px) minmax(150px, 190px) auto; align-items: end; }
 .administration-shell .administration-register-form input { min-height: 38px; height: 38px; }
 .administration-shell .administration-check-form { grid-template-columns: minmax(170px, 230px) minmax(160px, 190px) auto; align-items: end; }
 .administration-shell .administration-league-type-stacked { grid-template-columns: 1fr; }
@@ -2076,7 +2079,25 @@ blockquote {
 .league-card:hover { background: #42004d; filter: brightness(1.08); }
 .league-card strong { font-size: 1.25rem; }
 .league-card small, .league-card span { color: #c8f9ff; }
-.add-league-card { margin-top: 20px; }
+.league-picker .add-league-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  margin-top: 20px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 0;
+  color: #37003c;
+  background: #20e6ff;
+  cursor: pointer;
+  font-size: .84rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: background .16s ease, filter .16s ease;
+}
+.league-picker .add-league-card:hover { background: #38ebff; filter: brightness(1.04); }
 .league-loading { color: #c8f9ff; }
 .customer-broadcast-access { display: flex; justify-content: space-between; align-items: center; gap: 18px; width: min(1120px, 100%); margin: 24px auto 0; padding: 18px 20px; background: #20e6ff; color: #37003c; }
 .customer-broadcast-access div { display: grid; gap: 2px; }

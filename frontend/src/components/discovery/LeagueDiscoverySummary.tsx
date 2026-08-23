@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DiscoveryTab, LeagueDiscoveryState } from '../../types/fpl'
 
-export function LeagueDiscoverySummary({ discovery, showMatchups = true }: { discovery: LeagueDiscoveryState; showMatchups?: boolean }) {
+export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPointsFor = true, leagueType = 'DRAFT' }: { discovery: LeagueDiscoveryState; showMatchups?: boolean; showPointsFor?: boolean; leagueType?: 'DRAFT' | 'CLASSIC' }) {
   const [activeTab, setActiveTab] = useState<DiscoveryTab>('teams')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const { details, elementStatus } = discovery
@@ -46,7 +46,7 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true }: { dis
       <div className="discovery-title">
         <div>
           <h3>{details.league?.name ?? 'Draft League'}</h3>
-          <p>
+          <p className={leagueType === 'CLASSIC' ? 'classic-discovery-summary' : undefined} data-summary={`${entries.length} teams · scoring ${details.league?.scoring ?? 'unknown'}`}>
             Draft {details.league?.draft_status ?? 'unknown'} · {entries.length} teams · scoring{' '}
             {details.league?.scoring ?? 'unknown'}
           </p>
@@ -201,7 +201,7 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true }: { dis
                         <strong>{standing.rank || index + 1}</strong>
                         <span>{entryNamesById.get(entryId) ?? entryNamesByEntryId.get(entryId) ?? entryId}</span>
                         <small>{points} pts</small>
-                        <small>{pointsFor} PF</small>
+                        {showPointsFor && <small>{pointsFor} PF</small>}
                       </div>
                     )
                   })

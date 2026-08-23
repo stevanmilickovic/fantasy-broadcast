@@ -7,8 +7,13 @@ import com.sextelecomleague.backend.customer.LeagueRegistrationService.AdminLeag
 import com.sextelecomleague.backend.customer.LeagueRegistrationService.RegisteredLeague;
 import com.sextelecomleague.backend.customer.SessionService;
 import com.sextelecomleague.backend.customer.BroadcastScheduleService;
-import com.sextelecomleague.backend.fpl.FplLeagueType;
+import com.sextelecomleague.backend.fpl.FplDraftClient;
+import com.sextelecomleague.backend.fpl.FplDraftMapper;
+import com.sextelecomleague.backend.fpl.FplEntryEvent;
 import com.sextelecomleague.backend.fpl.FplLeagueScoring;
+import com.sextelecomleague.backend.fpl.FplLeagueType;
+import com.sextelecomleague.backend.fpl.FplLivePlayer;
+import com.sextelecomleague.backend.fpl.FplPlayer;
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.MockLiveStateService;
 import jakarta.validation.Valid;
@@ -38,12 +43,17 @@ public class CustomerLeagueController {
 	private final LeagueRegistrationService leagueService;
 	private final BroadcastScheduleService scheduleService;
 	private final MockLiveStateService liveStateService;
+	private final FplDraftClient fplClient;
+	private final FplDraftMapper fplMapper;
 
-	public CustomerLeagueController(SessionService sessionService, LeagueRegistrationService leagueService, BroadcastScheduleService scheduleService, MockLiveStateService liveStateService) {
+	public CustomerLeagueController(SessionService sessionService, LeagueRegistrationService leagueService, BroadcastScheduleService scheduleService,
+			MockLiveStateService liveStateService, FplDraftClient fplClient, FplDraftMapper fplMapper) {
 		this.sessionService = sessionService;
 		this.leagueService = leagueService;
 		this.scheduleService = scheduleService;
 		this.liveStateService = liveStateService;
+		this.fplClient = fplClient;
+		this.fplMapper = fplMapper;
 	}
 
 	@GetMapping("/leagues")
@@ -55,8 +65,7 @@ public class CustomerLeagueController {
 	public RegisteredLeague registerLeague(@RequestHeader("Authorization") String authorization,
 			@Valid @RequestBody LeagueRequest request) {
 		var leagueType = request.leagueType() == null ? FplLeagueType.DRAFT : request.leagueType();
-		var scoringType = request.scoringType() == null ? FplLeagueScoring.H2H : request.scoringType();
-		return leagueService.register(currentUser(authorization), request.fplLeagueId(), leagueType, scoringType);
+		return leagueService.register(currentUser(authorization), request.fplLeagueId(), leagueType);
 	}
 
 	@GetMapping("/admin/leagues")
@@ -65,6 +74,40 @@ public class CustomerLeagueController {
 			@RequestParam(defaultValue = "10") @Positive @Max(100) int size,
 			@RequestParam(defaultValue = "") String search) {
 		return leagueService.allForAdmin(currentUser(authorization), page, size, search);
+	}
+
+	@GetMapping("/leagues/{leagueId}/overview")
+	public ClassicLeagueDiscovery leagueOverview(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
+		var league = leagueService.accessibleLeague(currentUser(authorization), leagueId);
+		if (league.leagueType() != FplLeagueType.CLASSIC) {
+			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+					"This overview is only available for Classic leagues.");
+		}
+		var standingsRoot = league.scoringType() == FplLeagueScoring.H2H
+				? fplClient.getClassicLeagueStandings(league.fplLeagueId())
+				: fplClient.getClassicPointsLeagueStandings(league.fplLeagueId());
+		var entries = fplMapper.mapClassicLeagueEntries(standingsRoot);
+		var trackedPlayerCount = entries.size() * 15;
+		if (trackedPlayerCount > 200) {
+			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+					"This league requires " + trackedPlayerCount + " tracked players; the maximum is 200.");
+		}
+		var bootstrap = fplClient.getFantasyBootstrapStatic();
+		var gameweek = currentGameweek(bootstrap);
+		var matches = league.scoringType() == FplLeagueScoring.H2H
+				? fplMapper.mapClassicLeague(standingsRoot, fplClient.getClassicLeagueMatches(league.fplLeagueId(), gameweek)).matches()
+				: List.<com.sextelecomleague.backend.fpl.FplClassicMatch>of();
+		var entryEvents = new java.util.LinkedHashMap<Long, FplEntryEvent>();
+		for (var entry : entries) entryEvents.put(entry.entryId(), fplMapper.mapEntryEvent(fplClient.getFantasyEntryEvent(entry.entryId(), gameweek)));
+		return new ClassicLeagueDiscovery(league.displayName(), league.scoringType(), gameweek, entries, fplMapper.mapPlayers(bootstrap), entryEvents,
+				fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(gameweek)), matches);
+	}
+
+	private int currentGameweek(tools.jackson.databind.JsonNode bootstrap) {
+		for (var event : bootstrap.path("events")) if (event.path("is_current").asBoolean(false)) return event.path("id").asInt();
+		for (var event : bootstrap.path("events")) if (event.path("is_next").asBoolean(false)) return event.path("id").asInt();
+		throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_GATEWAY,
+				"FPL did not return a current or next gameweek.");
 	}
 
 	@PatchMapping("/admin/leagues/{leagueId}")
@@ -77,7 +120,7 @@ public class CustomerLeagueController {
 		return sessionService.require(authorization);
 	}
 
-	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
+	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType) {
 	}
 
 	@PostMapping("/leagues/{leagueId}/broadcast/open")
@@ -89,5 +132,11 @@ public class CustomerLeagueController {
 	}
 
 	public record AdminLeagueSettingsRequest(boolean serviceEnabled) {
+	}
+
+	public record ClassicLeagueDiscovery(String leagueName, FplLeagueScoring scoringType, int gameweek,
+			List<com.sextelecomleague.backend.fpl.FplClassicLeagueEntry> entries, List<FplPlayer> players,
+			java.util.Map<Long, FplEntryEvent> entryEvents, List<FplLivePlayer> livePlayers,
+			List<com.sextelecomleague.backend.fpl.FplClassicMatch> matches) {
 	}
 }

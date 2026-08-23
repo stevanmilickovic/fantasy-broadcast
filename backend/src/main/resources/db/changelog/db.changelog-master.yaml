@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changes/003-broadcast-schedules.yaml
   - include:
       file: db/changelog/changes/004-add-league-scoring-type.yaml
+  - include:
+      file: db/changelog/changes/005-league-source-identity.yaml

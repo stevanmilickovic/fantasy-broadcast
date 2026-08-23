@@ -1,12 +1,14 @@
 package com.sextelecomleague.backend.customer;
 
 import com.sextelecomleague.backend.fpl.FplDraftClient;
+import com.sextelecomleague.backend.fpl.FplDraftClientException;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
 import com.sextelecomleague.backend.fpl.FplLeagueScoring;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @Profile("db & !test")
 public class LeagueRegistrationService {
+	private static final int MAX_TRACKED_PLAYERS = 200;
 
 	private final JdbcTemplate jdbcTemplate;
 	private final FplDraftClient fplClient;
@@ -24,14 +27,21 @@ public class LeagueRegistrationService {
 		this.fplClient = fplClient;
 	}
 
-	public RegisteredLeague register(CurrentUser user, long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
+	public RegisteredLeague register(CurrentUser user, long fplLeagueId, FplLeagueType leagueType) {
 		if (fplLeagueId <= 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "League ID must be positive.");
-		var league = findLeague(fplLeagueId, leagueType, scoringType);
+		var league = findLeague(fplLeagueId, leagueType);
 		if (league == null) {
-			var displayName = fetchLeagueName(fplLeagueId, leagueType, scoringType);
-			jdbcTemplate.update("insert into league (fpl_league_id, display_name, owner_user_id, league_type, scoring_type) values (?, ?, ?, ?, ?)",
-					fplLeagueId, displayName, user.id(), leagueType.name(), scoringType.name());
-			league = findLeague(fplLeagueId, leagueType, scoringType);
+			var sourceLeague = resolveLeague(fplLeagueId, leagueType);
+			validateTrackedPlayerCount(sourceLeague);
+			try {
+				jdbcTemplate.update("insert into league (fpl_league_id, display_name, owner_user_id, league_type, scoring_type) values (?, ?, ?, ?, ?)",
+						fplLeagueId, sourceLeague.displayName(), user.id(), leagueType.name(), sourceLeague.scoringType().name());
+			}
+			catch (DuplicateKeyException exception) {
+				// Another registration may have created the same source league while we were validating it.
+			}
+			league = findLeague(fplLeagueId, leagueType);
+			if (league == null) throw new ResponseStatusException(HttpStatus.CONFLICT, "This league could not be registered. Please try again.");
 		}
 		jdbcTemplate.update("insert ignore into league_registration (user_id, league_id) values (?, ?)", user.id(), league.id());
 		return league;
@@ -99,20 +109,63 @@ public class LeagueRegistrationService {
 		return leagues.getFirst();
 	}
 
-	private String fetchLeagueName(long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
-		var root = leagueType == FplLeagueType.DRAFT
-				? fplClient.getLeagueDetails(fplLeagueId)
-				: scoringType == FplLeagueScoring.H2H
-						? fplClient.getClassicLeagueStandings(fplLeagueId)
-						: fplClient.getClassicPointsLeagueStandings(fplLeagueId);
+	public FplLeagueScoring detectScoring(long fplLeagueId, FplLeagueType leagueType) {
+		return resolveLeague(fplLeagueId, leagueType).scoringType();
+	}
+
+	private SourceLeague resolveLeague(long fplLeagueId, FplLeagueType leagueType) {
+		if (leagueType == FplLeagueType.DRAFT) {
+			var root = fplClient.getLeagueDetails(fplLeagueId);
+			var trackedPlayerCount = 0;
+			for (var status : fplClient.getLeagueElementStatus(fplLeagueId).path("element_status")) {
+				if (status.path("owner").isValueNode() && !status.path("owner").isNull()) trackedPlayerCount++;
+			}
+			return new SourceLeague(leagueName(root), scoringFrom(root), trackedPlayerCount);
+		}
+		try {
+			var root = fplClient.getClassicLeagueStandings(fplLeagueId);
+			return classicSourceLeague(root, scoringFrom(root));
+		}
+		catch (FplDraftClientException exception) {
+			if (exception.getStatusCode() != null && exception.getStatusCode() != 404) throw exception;
+			var root = fplClient.getClassicPointsLeagueStandings(fplLeagueId);
+			return classicSourceLeague(root, FplLeagueScoring.TOTAL_POINTS);
+		}
+	}
+
+	private SourceLeague classicSourceLeague(tools.jackson.databind.JsonNode root, FplLeagueScoring scoringType) {
+		var standings = root.path("standings");
+		var entryCount = 0;
+		for (var ignored : standings.path("results")) entryCount++;
+		// FPL returns standings in pages of 50. A second page is already well above our 200-player limit.
+		if (standings.path("has_next").asBoolean(false)) entryCount = (MAX_TRACKED_PLAYERS / 15) + 1;
+		return new SourceLeague(leagueName(root), scoringType, entryCount * 15);
+	}
+
+	private void validateTrackedPlayerCount(SourceLeague sourceLeague) {
+		if (sourceLeague.trackedPlayerCount() > MAX_TRACKED_PLAYERS) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"This league has " + sourceLeague.trackedPlayerCount() + " tracked players; the maximum is " + MAX_TRACKED_PLAYERS + ".");
+		}
+	}
+
+	private String leagueName(tools.jackson.databind.JsonNode root) {
 		var name = root.path("league").path("name").asString("").trim();
 		if (name.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "FPL did not return a league name.");
 		return name;
 	}
 
-	private RegisteredLeague findLeague(long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
-		var leagues = jdbcTemplate.query("select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, owner_user_id from league where fpl_league_id = ? and league_type = ? and scoring_type = ?",
-				this::mapLeague, fplLeagueId, leagueType.name(), scoringType.name());
+	private FplLeagueScoring scoringFrom(tools.jackson.databind.JsonNode root) {
+		return switch (root.path("league").path("scoring").asString("").trim().toLowerCase()) {
+			case "h", "h2h", "head-to-head" -> FplLeagueScoring.H2H;
+			case "c", "classic", "total_points", "total-points" -> FplLeagueScoring.TOTAL_POINTS;
+			default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "FPL did not return a recognised league scoring type.");
+		};
+	}
+
+	private RegisteredLeague findLeague(long fplLeagueId, FplLeagueType leagueType) {
+		var leagues = jdbcTemplate.query("select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, owner_user_id from league where fpl_league_id = ? and league_type = ?",
+				this::mapLeague, fplLeagueId, leagueType.name());
 		return leagues.isEmpty() ? null : leagues.getFirst();
 	}
 
@@ -135,5 +188,8 @@ public class LeagueRegistrationService {
 	}
 
 	public record AdminLeaguePage(List<AdminLeague> items, int page, int size, long totalItems) {
+	}
+
+	private record SourceLeague(String displayName, FplLeagueScoring scoringType, int trackedPlayerCount) {
 	}
 }

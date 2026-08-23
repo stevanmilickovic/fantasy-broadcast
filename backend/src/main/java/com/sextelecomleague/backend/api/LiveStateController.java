@@ -3,7 +3,8 @@ package com.sextelecomleague.backend.api;
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.MockLiveStateService;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
-import com.sextelecomleague.backend.fpl.FplLeagueScoring;
+import com.sextelecomleague.backend.customer.LeagueRegistrationService;
+import org.springframework.context.annotation.Profile;
 import com.sextelecomleague.backend.customer.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,16 +19,19 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
+@Profile("db & !test")
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:5173")
 public class LiveStateController {
 
 	private final MockLiveStateService liveStateService;
 	private final SessionService sessionService;
+	private final LeagueRegistrationService leagueService;
 
-	public LiveStateController(MockLiveStateService liveStateService, SessionService sessionService) {
+	public LiveStateController(MockLiveStateService liveStateService, SessionService sessionService, LeagueRegistrationService leagueService) {
 		this.liveStateService = liveStateService;
 		this.sessionService = sessionService;
+		this.leagueService = leagueService;
 	}
 
 	@GetMapping("/live-state")
@@ -73,10 +77,9 @@ public class LiveStateController {
 	@PostMapping("/live-broadcast/start")
 	public LiveStateResponse startRealBroadcast(@RequestParam long leagueId,
 			@RequestParam(defaultValue = "DRAFT") FplLeagueType leagueType,
-			@RequestParam(defaultValue = "H2H") FplLeagueScoring scoringType,
 			@RequestHeader("Authorization") String authorization) {
 		requireAdmin(authorization);
-		return liveStateService.startReal(leagueId, leagueType, scoringType);
+		return liveStateService.startReal(leagueId, leagueType, leagueService.detectScoring(leagueId, leagueType));
 	}
 
 	private void requireAdmin(String authorization) {

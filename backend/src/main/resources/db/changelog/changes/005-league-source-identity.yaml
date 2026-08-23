@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-league-source-identity
+      author: codex
+      changes:
+        - dropUniqueConstraint:
+            tableName: league
+            constraintName: fpl_league_id
+        - addUniqueConstraint:
+            tableName: league
+            columnNames: fpl_league_id, league_type
+            constraintName: uq_league_fpl_id_type
