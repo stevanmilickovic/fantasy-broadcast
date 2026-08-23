@@ -43,6 +43,16 @@ export type MatchupView = {
   scoreline: string
 }
 
+export type LiveStandingView = {
+  teamId: string
+  managerName: string
+  teamName: string
+  position: number
+  total: number
+  gameweekPoints: number
+  pointsFor: number
+}
+
 export type FantasyEventView = {
   id: string
   occurredAt: string
@@ -67,6 +77,8 @@ export type LiveStateResponse = {
   sequence: SequenceState
   gameweek: number
   matchups: MatchupView[]
+  teams: TeamView[]
+  standings: LiveStandingView[]
   events: FantasyEventView[]
   commentary: CommentaryView[]
 }

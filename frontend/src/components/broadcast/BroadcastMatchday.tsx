@@ -1,12 +1,12 @@
 import { ArrowLeft, Radio, Trophy } from 'lucide-react'
 import type { CSSProperties, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { BroadcastFocus, FantasyEventView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, TeamView } from '../../types/live'
+import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, TeamView } from '../../types/live'
 import { formatScoreline, playerCardName, revealCopyStyle, teamShortName } from '../../utils/broadcast'
 
 type BroadcastMatchdayProps = {
   displayLiveState: LiveStateResponse
-  matchup: MatchupView
+  matchup?: MatchupView
   latestCommentaryText: string
   latestCommentaryStatus: string
   leaderName: string
@@ -18,6 +18,10 @@ type BroadcastMatchdayProps = {
   homeHeadingRef: RefObject<HTMLHeadingElement | null>
   awayHeadingRef: RefObject<HTMLHeadingElement | null>
   scoreRef: RefObject<HTMLElement | null>
+  totalTeamNameRef: RefObject<HTMLSpanElement | null>
+  totalHeadingRef: RefObject<HTMLHeadingElement | null>
+  standings: LiveStandingView[]
+  holdingPendingUpdates: boolean
   onBack: () => void
   onSelectFocus: (focus: BroadcastFocus) => void
 }
@@ -27,11 +31,30 @@ type ShirtCodes = FplClubShirt[]
 
 export function BroadcastMatchday({
   displayLiveState, matchup, leaderName, broadcastFocus,
-  revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef,
+  revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
-  const displayLatestEvent = displayLiveState.events[0]
+  const displayLatestEvent = displayLiveState.events?.[0]
   const displayEvents = visibleEventId === displayLatestEvent?.id ? displayLiveState.events : []
+  if (!matchup && (displayLiveState.teams?.length ?? 0) > 0) {
+    return <TotalPointsBroadcast
+      displayLiveState={displayLiveState}
+      broadcastFocus={broadcastFocus}
+      revealingMatch={revealingMatch}
+      revealLayout={revealLayout}
+      transitioningToMatch={transitioningToMatch}
+      latestEvent={displayLatestEvent}
+      latestEvents={displayEvents}
+      pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []}
+      standings={standings}
+      totalTeamNameRef={totalTeamNameRef}
+      totalHeadingRef={totalHeadingRef}
+      scoreRef={scoreRef}
+      onBack={onBack}
+      onSelectFocus={onSelectFocus}
+    />
+  }
+  if (!matchup) return null
   return (
     <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`}>
       {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
@@ -42,7 +65,7 @@ export function BroadcastMatchday({
 
       <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
         <BroadcastTeamColumn side="left" team={matchup.home} isLeader={matchup.leaderManagerId === matchup.home.managerId} headingRef={homeHeadingRef} />
-        <PitchStage gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} />
+        <PitchStage gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
         <BroadcastTeamColumn side="right" team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} headingRef={awayHeadingRef} />
       </section>
     </main>
@@ -119,19 +142,19 @@ function BroadcastTeamColumn({ side, team, isLeader, headingRef }: { side: 'left
   </section>
 }
 
-function PitchStage({ gameweek, scoreline, leaderName, scoreRef, matchup, latestEvents }: { gameweek: number; scoreline: string; leaderName: string; scoreRef: RefObject<HTMLElement | null>; matchup: MatchupView; latestEvents: FantasyEventView[] }) {
+function PitchStage({ gameweek, scoreline, leaderName, scoreRef, matchup, latestEvents, pendingEvents }: { gameweek: number; scoreline: string; leaderName: string; scoreRef: RefObject<HTMLElement | null>; matchup: MatchupView; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
   const shirtCodes = useShirtCodes()
   return <section className="pitch-panel pitch-panel-live">
     <div className="match-score-strip"><span>GW{gameweek}</span><strong ref={scoreRef}>{formatScoreline(scoreline)}</strong><small><Trophy size={14} />{leaderName === 'No one' ? 'Level' : leaderName}</small></div>
     <div className="pitch-and-benches">
       <BenchRail side="left" team={matchup.home} shirtCodes={shirtCodes} />
-      <LivePitch matchup={matchup} shirtCodes={shirtCodes} latestEvents={latestEvents} />
+      <LivePitch matchup={matchup} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
       <BenchRail side="right" team={matchup.away} shirtCodes={shirtCodes} />
     </div>
   </section>
 }
 
-function LivePitch({ matchup, shirtCodes, latestEvents }: { matchup: MatchupView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[] }) {
+function LivePitch({ matchup, shirtCodes, latestEvents, pendingEvents }: { matchup: MatchupView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
   const pitchRef = useRef<HTMLElement>(null)
   const [pitchSize, setPitchSize] = useState({ width: 0, height: 0 })
 
@@ -148,8 +171,8 @@ function LivePitch({ matchup, shirtCodes, latestEvents }: { matchup: MatchupView
   const notificationShifts = notificationShiftsFor(matchup, latestEvents, pitchSize)
   return <section ref={pitchRef} className="live-pitch" aria-label="Live fantasy football pitch">
     <PitchMarkings />
-    <PitchTeam side="home" team={matchup.home} shirtCodes={shirtCodes} latestEvents={latestEvents} notificationShifts={notificationShifts} />
-    <PitchTeam side="away" team={matchup.away} shirtCodes={shirtCodes} latestEvents={latestEvents} notificationShifts={notificationShifts} />
+    <PitchTeam side="home" team={matchup.home} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} notificationShifts={notificationShifts} />
+    <PitchTeam side="away" team={matchup.away} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} notificationShifts={notificationShifts} />
   </section>
 }
 
@@ -190,15 +213,16 @@ function useShirtCodes(): ShirtCodes {
   return codes
 }
 
-function PitchTeam({ side, team, shirtCodes, latestEvents, notificationShifts }: { side: 'home' | 'away'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; notificationShifts: Map<string, number> }) {
+function PitchTeam({ side, team, shirtCodes, latestEvents, pendingEvents, notificationShifts }: { side: 'home' | 'away'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[]; notificationShifts: Map<string, number> }) {
   return <>{team.activePlayers.map((player) => {
     const position = formationPosition(team.activePlayers, player, side)
     const events = latestEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id)
-    return <PitchPlayer key={player.id} player={player} side={side} teamColor={team.color} position={position} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} notificationShift={notificationShifts.get(player.id) ?? 0} />
+    const pendingPointDelta = latestEvents.length === 0 ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0) : 0
+    return <PitchPlayer key={player.id} player={player} side={side} teamColor={team.color} position={position} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={notificationShifts.get(player.id) ?? 0} />
   })}</>
 }
 
-function PitchPlayer({ player, side, teamColor, position, shirtCode, events, notificationShift }: { player: PlayerView; side: 'home' | 'away'; teamColor: string; position: { x: number; y: number; yOffset: number }; shirtCode?: number; events: FantasyEventView[]; notificationShift: number }) {
+function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pendingPointDelta = 0, notificationShift }: { player: PlayerView; side: 'home' | 'away'; teamColor: string; position: { x: number; y: number; yOffset: number }; shirtCode?: number; events: FantasyEventView[]; pendingPointDelta?: number; notificationShift: number }) {
   const name = playerCardName(player).join(' ').trim()
   const shirtUrl = shirtCode ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${shirtCode}-110.png` : undefined
   const style = { '--x': `${position.x}%`, '--y': `${position.y}%`, '--y-offset': `${position.yOffset}px`, '--team-color': teamColor } as CSSProperties
@@ -214,7 +238,7 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, not
   const eventWidth = Math.max(108, ...activeEvents.map(notificationWidthFor))
   const metadataWidth = 26 + Math.min(82, Math.max(34, name.length * 6 + 12))
   const eventStyle = { '--event-width': `${eventWidth}px`, '--metadata-width': `${metadataWidth}px`, '--event-shift': `${notificationShift}px` } as CSSProperties
-  const pointsToRender = event && notificationEventId !== event.id ? player.points - eventDelta : displayedPoints
+  const pointsToRender = event && notificationEventId !== event.id ? player.points - eventDelta : !event && pendingPointDelta !== 0 ? player.points - pendingPointDelta : displayedPoints
 
   useEffect(() => {
     if (!event) {
@@ -263,6 +287,143 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, not
   return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''}`} style={style}>
     <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${29 + index * 25}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
+}
+
+function TotalPointsBroadcast({ displayLiveState, broadcastFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+  displayLiveState: LiveStateResponse
+  broadcastFocus: BroadcastFocus
+  revealingMatch: boolean
+  revealLayout: RevealLayout | null
+  transitioningToMatch: boolean
+  latestEvent?: FantasyEventView
+  latestEvents: FantasyEventView[]
+  pendingEvents: FantasyEventView[]
+  standings: LiveStandingView[]
+  totalTeamNameRef: RefObject<HTMLSpanElement | null>
+  totalHeadingRef: RefObject<HTMLHeadingElement | null>
+  scoreRef: RefObject<HTMLElement | null>
+  onBack: () => void
+  onSelectFocus: (focus: BroadcastFocus) => void
+}) {
+  const automaticallyFocusedTeam = latestEvent ? displayLiveState.teams?.find((candidate) => candidate.managerId === latestEvent.managerId) : undefined
+  const selectedTeam = broadcastFocus === 'multi' ? undefined : displayLiveState.teams?.find((candidate) => candidate.managerId === broadcastFocus)
+  const team = selectedTeam ?? automaticallyFocusedTeam ?? displayLiveState.teams?.[0]
+  if (!team) return null
+  const shirtCodes = useShirtCodes()
+  const notificationShifts = totalNotificationShifts(team, latestEvents)
+  return <main className={`broadcast-shell matchday-page total-points-broadcast ${revealingMatch ? 'revealing-match' : ''}`}>
+    {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
+    {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} headingRef={totalHeadingRef} scoreRef={scoreRef} />}
+    <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
+    <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
+    <ClubSelector teams={displayLiveState.teams} latestEvent={latestEvent} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
+    <section className="matchday-stage total-points-stage" aria-label="Focused total-points club broadcast">
+      <section className="broadcast-team-column left total-points-team-column" style={{ '--team-color': team.color } as CSSProperties}>
+        <div className="broadcast-team-heading"><span>{teamShortName(team)}</span><h2 ref={totalHeadingRef}><span ref={totalTeamNameRef} className="total-team-name">{team.clubName}</span><strong ref={scoreRef} className="total-team-score">{team.score}<span className="total-score-unit">pts</span></strong></h2><p>{team.displayName}</p><strong className="leader-placeholder">Leading</strong></div>
+        <TotalPointsPlayerRows team={team} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} notificationShifts={notificationShifts} />
+      </section>
+      <LiveStandings standings={standings} focusedTeam={team} />
+    </section>
+  </main>
+}
+
+function ClubSelector({ teams, latestEvent, selectedFocus, onSelect }: { teams: TeamView[]; latestEvent?: FantasyEventView; selectedFocus: BroadcastFocus; onSelect: (focus: BroadcastFocus) => void }) {
+  return <nav className="match-selector club-selector" aria-label="Ongoing club selector">
+    <button className={`match-selector-chip multiview-chip ${selectedFocus === 'multi' ? 'selected-match-chip' : ''}`} type="button" onClick={() => onSelect('multi')}><Radio size={14} /><span>Multi</span></button>
+    <div className="match-chip-track">{teams.map((team) => {
+      const changed = latestEvent?.managerId === team.managerId
+      return <button key={team.managerId} className={`match-selector-chip club-selector-chip ${selectedFocus === team.managerId ? 'selected-match-chip' : ''} ${changed ? 'match-chip-event' : ''}`} type="button" onClick={() => onSelect(team.managerId)}><span className="match-chip-team">{teamShortName(team)}</span><MatchChipScore changed={Boolean(changed)} delta={changed ? latestEvent?.pointDelta ?? 0 : 0} eventId={changed ? latestEvent?.id : undefined} score={team.score} side="right" /></button>
+    })}</div>
+  </nav>
+}
+
+function TotalPointsPlayerRows({ team, shirtCodes, latestEvents, pendingEvents, notificationShifts }: { team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[]; notificationShifts: Map<string, number> }) {
+  const rows = [
+    ['FWD', 'Forwards', team.activePlayers.filter((player) => player.position === 'FWD')],
+    ['MID', 'Midfielders', team.activePlayers.filter((player) => player.position === 'MID')],
+    ['DEF', 'Defenders', team.activePlayers.filter((player) => player.position === 'DEF')],
+    ['GKP', 'Goalkeeper', team.activePlayers.filter((player) => player.position === 'GKP')],
+    ['BENCH', 'Bench', team.benchPlayers],
+  ] as const
+  return <section className="total-player-rows" aria-label={`${team.clubName} players`}>{rows.map(([key, label, players]) => players.length > 0 && <section className="total-player-row" key={key}><span>{label}</span><div>{players.map((player, index) => {
+    const events = latestEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id)
+    const pendingPointDelta = latestEvents.length === 0 ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0) : 0
+    return <PitchPlayer key={player.id} player={player} side="home" teamColor={team.color} position={rowPlayerPosition(index, players.length)} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={notificationShifts.get(player.id) ?? 0} />
+  })}</div></section>)}</section>
+}
+
+function LiveStandings({ standings, focusedTeam }: { standings: LiveStandingView[]; focusedTeam: TeamView }) {
+  const rowElements = useRef(new Map<string, HTMLLIElement>())
+  const previousRowTops = useRef(new Map<string, number>())
+  useLayoutEffect(() => {
+    const nextRowTops = new Map<string, number>()
+    rowElements.current.forEach((element, teamId) => {
+      const top = element.getBoundingClientRect().top
+      const previousTop = previousRowTops.current.get(teamId)
+      if (previousTop !== undefined && previousTop !== top) {
+        element.animate([{ transform: `translateY(${previousTop - top}px)` }, { transform: 'translateY(0)' }], { duration: 560, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' })
+      }
+      nextRowTops.set(teamId, top)
+    })
+    previousRowTops.current = nextRowTops
+  }, [standings])
+  return <aside className="live-standings" aria-label="Live standings"><header><strong>Live standings</strong></header><ol>{standings.slice(0, 12).map((standing) => <li ref={(element) => { if (element) rowElements.current.set(standing.teamId, element); else rowElements.current.delete(standing.teamId) }} key={standing.teamId} className={standing.teamId === focusedTeam.managerId ? 'focused-standing' : ''}><b>{standing.position}</b><div><strong>{standing.teamName}</strong><span>{standing.managerName}</span></div><StandingValue className="standing-gameweek-points" value={standing.gameweekPoints} signed /><StandingValue className="standing-total-points" value={standing.total} /></li>)}</ol></aside>
+}
+
+function StandingValue({ value, signed = false, className }: { value: number; signed?: boolean; className: string }) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const previousValue = useRef(value)
+  useEffect(() => {
+    if (previousValue.current === value) return
+    const startValue = previousValue.current
+    previousValue.current = value
+    setDisplayValue(startValue)
+    let interval: number | undefined
+    const delay = window.setTimeout(() => {
+      const difference = value - startValue
+      const direction = difference > 0 ? 1 : -1
+      interval = window.setInterval(() => setDisplayValue((current) => {
+        const next = current + direction
+        if ((direction > 0 && next >= value) || (direction < 0 && next <= value)) {
+          if (interval) window.clearInterval(interval)
+          return value
+        }
+        return next
+      }), Math.max(70, Math.round(360 / Math.max(1, Math.abs(difference)))))
+    }, 240)
+    return () => { window.clearTimeout(delay); if (interval) window.clearInterval(interval) }
+  }, [value])
+  const text = `${signed && displayValue >= 0 ? '+' : ''}${displayValue}`
+  return className === 'standing-total-points' ? <em className={className}>{text}</em> : <small className={className}>{text}</small>
+}
+
+function TotalPointsReveal({ layout, team, headingRef, scoreRef }: { layout: RevealLayout | null; team: TeamView; headingRef: RefObject<HTMLHeadingElement | null>; scoreRef: RefObject<HTMLElement | null> }) {
+  if (!layout) return null
+  return <div className="match-reveal-overlay total-points-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} name={team.clubName} headingRef={headingRef} /><TotalScoreRevealCopy layout={layout.score} score={team.score} scoreRef={scoreRef} /></div>
+}
+
+function TotalScoreRevealCopy({ layout, score, scoreRef }: { layout: RevealLayout['score']; score: number; scoreRef: RefObject<HTMLElement | null> }) {
+  const [typography, setTypography] = useState<CSSProperties>()
+  useLayoutEffect(() => {
+    const scoreElement = scoreRef.current
+    if (!scoreElement) return
+    const style = window.getComputedStyle(scoreElement)
+    setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, fontStyle: style.fontStyle, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing, textTransform: style.textTransform })
+  }, [scoreRef])
+  return <strong className="match-reveal-copy total-reveal-score" style={{ ...revealCopyStyle(layout, 1), ...typography }}>{score}<span className="total-score-unit">pts</span></strong>
+}
+
+function rowPlayerPosition(index: number, count: number) {
+  return { x: ((index + 1) / (count + 1)) * 100, y: 50, yOffset: 0 }
+}
+
+function totalNotificationShifts(team: TeamView, latestEvents: FantasyEventView[]) {
+  const shifts = new Map<string, number>()
+  team.activePlayers.forEach((player, index) => {
+    const hasEvent = latestEvents.some((event) => event.managerId === team.managerId && event.playerId === player.id)
+    if (hasEvent) shifts.set(player.id, index % 2 === 0 ? -8 : 8)
+  })
+  return shifts
 }
 
 function displayPlayerPoints(player: PlayerView, points: number) {

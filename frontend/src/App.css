@@ -181,7 +181,8 @@
 }
 
 .revealing-match .broadcast-team-heading h2,
-.revealing-match .match-score-strip strong {
+.revealing-match .match-score-strip strong,
+.revealing-match .total-team-score {
   visibility: hidden;
 }
 
@@ -408,7 +409,7 @@
   text-align: right;
 }
 
-.broadcast-team-heading span {
+.broadcast-team-heading > span {
   color: var(--pl-green);
   font-size: 13px;
   font-weight: 950;
@@ -866,6 +867,31 @@
   min-height: 530px;
   padding: 122px 0 6px;
 }
+
+.total-points-stage { display: grid; grid-template-columns: minmax(430px, 1fr) minmax(350px, max-content); gap: 38px; width: calc(100% - 96px); min-height: 0; margin: 0 48px; padding: 62px 0 12px; align-items: start; }
+.total-points-team-column { min-height: 0; padding-top: 0; }
+.total-points-team-column .broadcast-team-heading { margin-top: 5vh; }
+.total-points-team-column .broadcast-team-heading h2 { position: relative; width: fit-content; max-width: none; }
+.total-points-team-column .total-team-name,
+.total-team-score { text-shadow: 0 4px 14px rgba(20, 0, 28, .5), 0 1px 2px rgba(0, 0, 0, .55); }
+.total-team-score { position: absolute; top: 50%; left: calc(100% + 60px); color: white; font-size: clamp(70px, 9vw, 132px); font-weight: inherit; line-height: .9; transform: translateY(-50%); }
+.total-score-unit { margin-left: .08em; font-size: .38em; vertical-align: middle; }
+.total-player-rows { display: grid; gap: 0; width: min(680px, 100%); margin-top: -18px; }
+.total-player-row { padding: 1px 0 2px; border-bottom: 1px dotted rgba(255,255,255,.42); }
+.total-player-row:last-child { border-bottom: 0; }
+.total-player-row > span { display: block; margin: 0 0 3px 8px; color: rgba(255,255,255,.58); font-size: 10px; font-weight: 950; letter-spacing: .12em; text-transform: uppercase; }
+.total-player-row > div { position: relative; height: 90px; }
+.club-selector-chip { min-width: 94px; }
+.live-standings { justify-self: end; overflow: hidden; width: fit-content; max-width: 100%; padding: 11px 0; background: transparent; box-shadow: none; }
+.live-standings header { display: flex; align-items: center; gap: 15px; min-height: 72px; padding: 0 11px; color: white; background: transparent; }.live-standings header svg { color: white; }
+.live-standings header strong { color: white; font-size: clamp(34px, 4vw, 66px); line-height: .96; white-space: nowrap; }
+.live-standings ol { display: grid; gap: 3px; margin: 0; padding: 0 11px; list-style: none; }
+.live-standings li { display: grid; grid-template-columns: 42px minmax(242px, 330px) 51px 64px; align-items: center; gap: 10px; min-height: 53px; }
+.live-standings li > b { display: grid; place-items: center; width: 37px; height: 37px; color: white; background: var(--pl-purple); font-size: 1.2rem; text-align: center; }.live-standings li div { display: grid; min-width: 0; }.live-standings li div strong { overflow: hidden; color: white; font-size: 1.15rem; text-overflow: ellipsis; text-shadow: 0 4px 14px rgba(20, 0, 28, .5), 0 1px 2px rgba(0, 0, 0, .55); white-space: nowrap; }.live-standings li div span, .live-standings li small { color: rgba(255,255,255,.62); font-size: .88rem; }.live-standings li div span { text-shadow: 0 4px 14px rgba(20, 0, 28, .5), 0 1px 2px rgba(0, 0, 0, .55); }.live-standings li small { text-align: right; }.live-standings li em { color: var(--pl-green); font-size: 1.48rem; font-style: normal; font-weight: 950; text-align: right; }.live-standings .focused-standing { box-shadow: inset 3px 0 0 var(--team-color); }
+.total-reveal-team { color: white; font-size: clamp(34px, 4vw, 66px); line-height: .96; white-space: nowrap; }
+.total-reveal-score { color: white; font-size: clamp(70px, 9vw, 132px); line-height: .9; }
+.total-points-reveal .total-reveal-score { display: block; }
+.total-points-reveal .match-reveal-copy { text-shadow: 0 4px 14px rgba(20, 0, 28, .5), 0 1px 2px rgba(0, 0, 0, .55); }
 
 .pitch-broadcast-stage .broadcast-team-column.left { grid-column: 1; grid-row: 1; }
 .pitch-broadcast-stage .broadcast-team-column.right { grid-column: 3; grid-row: 1; }
@@ -1849,6 +1875,9 @@ blockquote {
   .player-meta strong { max-width: 48px; min-height: 20px; padding: 0 3px; font-size: 8px; }
   .player-meta b { min-width: 20px; height: 20px; font-size: 13px; }
   .player-token.has-event, .player-token.has-event .player-core { width: 70px; }
+  .total-points-stage { grid-template-columns: 1fr; gap: 28px; width: min(620px, calc(100% - 32px)); padding-top: 84px; }
+  .total-points-team-column { min-height: 0; }
+  .live-standings { max-width: 620px; }
 }
 
 .account-shell, .customer-shell {
@@ -1917,7 +1946,7 @@ blockquote {
 .administration-shell .administration-league-type button:hover:not(.selected) { color: #fff; background: var(--pl-purple-2); }
 .administration-shell .administration-form-field { display: grid; gap: 6px; min-width: 0; }
 .administration-shell .administration-form-field label, .administration-shell .administration-form-field > span { padding: 0; color: var(--pl-purple-2); font-size: .78rem; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
-.administration-shell .administration-register-form { grid-template-columns: 150px 196px 104px; align-items: end; }
+.administration-shell .administration-register-form { grid-template-columns: minmax(150px, 180px) minmax(150px, 190px) minmax(150px, 190px) auto; align-items: end; }
 .administration-shell .administration-register-form input { min-height: 38px; height: 38px; }
 .administration-shell .administration-check-form { grid-template-columns: minmax(170px, 230px) minmax(160px, 190px) auto; align-items: end; }
 .administration-shell .administration-league-type-stacked { grid-template-columns: 1fr; }

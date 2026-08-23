@@ -3,6 +3,9 @@ package com.sextelecomleague.backend.fpl;
 public record FplClassicLeagueEntry(
 		long entryId,
 		String entryName,
-		String playerName
+		String playerName,
+		int rank,
+		int total,
+		int pointsFor
 ) {
 }

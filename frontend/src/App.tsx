@@ -1,7 +1,7 @@
 import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, type FplLeagueType } from './api/liveApi'
+import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueScoring, type FplLeagueType } from './api/liveApi'
 import { clearToken, loadCurrentUser, loadRegisteredLeagues, logout, storeToken, storedToken } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
@@ -12,6 +12,7 @@ import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySu
 import type { AuthResponse, AuthUser } from './types/customer'
 import type { LeagueDiscoveryState } from './types/fpl'
 import type { AppView, BroadcastFocus, LiveStateResponse, RevealLayout } from './types/live'
+import type { LiveStandingView } from './types/live'
 import { findFocusedMatchup, toRevealRect, toScoreRevealRect } from './utils/broadcast'
 import { enablePointChangeSound, playPointChangeSound } from './utils/broadcastSound'
 import './App.css'
@@ -19,6 +20,7 @@ import './App.css'
 const SCENE_WIPE_MS = 1600
 const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
 const MATCH_REVEAL_MS = 1900
+const TOTAL_SCORE_REVEAL_Y_CORRECTION = 1
 
 function App() {
   const [location, setLocation] = useState(() => ({ pathname: window.location.pathname, search: window.location.search }))
@@ -31,16 +33,19 @@ function App() {
   const [isBusy, setIsBusy] = useState(false)
   const [leagueId, setLeagueId] = useState('49824')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
+  const [scoringType, setScoringType] = useState<FplLeagueScoring>('H2H')
   const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
   const [leagueError, setLeagueError] = useState<string | null>(null)
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
   const [appView, setAppView] = useState<AppView>('setup')
   const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
   const [broadcastLiveState, setBroadcastLiveState] = useState<LiveStateResponse | null>(null)
+  const [broadcastStandings, setBroadcastStandings] = useState<LiveStandingView[] | null>(null)
   const [transitioningToMatch, setTransitioningToMatch] = useState(false)
   const [revealingMatch, setRevealingMatch] = useState(false)
   const [revealLayout, setRevealLayout] = useState<RevealLayout | null>(null)
   const [visibleEventId, setVisibleEventId] = useState<string | null>(null)
+  const [holdingPendingUpdates, setHoldingPendingUpdates] = useState(false)
   const [lastAutoMatchupId, setLastAutoMatchupId] = useState<string | null>(null)
   const lastFocusedMatchupIdRef = useRef<string | null>(null)
   const lastSoundedEventIdRef = useRef<string | null>(null)
@@ -49,6 +54,8 @@ function App() {
   const homeHeadingRef = useRef<HTMLHeadingElement>(null)
   const awayHeadingRef = useRef<HTMLHeadingElement>(null)
   const scoreRef = useRef<HTMLElement>(null)
+  const totalTeamNameRef = useRef<HTMLSpanElement>(null)
+  const totalHeadingRef = useRef<HTMLHeadingElement>(null)
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
   const shouldLoadLiveState = authUser?.role === 'ADMIN' || isLeagueBroadcast
 
@@ -137,16 +144,25 @@ function App() {
     transitionTimersRef.current = []
   }
 
-  const targetLatestEvent = liveState?.events[0]
+  const targetLatestEvent = liveState?.events?.[0]
   const eventTargetMatchup = targetLatestEvent ? findFocusedMatchup(liveState) : undefined
+  const eventTargetTeam = targetLatestEvent ? liveState?.teams?.find((candidate) => candidate.managerId === targetLatestEvent.managerId) : undefined
+  const isTotalPointsBroadcast = (liveState?.matchups?.length ?? 0) === 0 && (liveState?.teams?.length ?? 0) > 0
   const heldAutoMatchup = lastAutoMatchupId
-    ? liveState?.matchups.find((candidate) => candidate.id === lastAutoMatchupId)
+    ? liveState?.matchups?.find((candidate) => candidate.id === lastAutoMatchupId)
     : undefined
-  const autoTargetMatchup = eventTargetMatchup ?? heldAutoMatchup ?? liveState?.matchups[0]
+  const heldAutoTeam = lastAutoMatchupId
+    ? liveState?.teams?.find((candidate) => candidate.managerId === lastAutoMatchupId)
+    : undefined
+  const autoTargetMatchup = eventTargetMatchup ?? heldAutoMatchup ?? liveState?.matchups?.[0]
+  const autoTargetTeam = eventTargetTeam ?? heldAutoTeam ?? liveState?.teams?.[0]
   const selectedTargetMatchup =
-    broadcastFocus === 'multi' ? undefined : liveState?.matchups.find((candidate) => candidate.id === broadcastFocus)
+    broadcastFocus === 'multi' ? undefined : liveState?.matchups?.find((candidate) => candidate.id === broadcastFocus)
+  const selectedTargetTeam =
+    broadcastFocus === 'multi' ? undefined : liveState?.teams?.find((candidate) => candidate.managerId === broadcastFocus)
   const targetMatchup = selectedTargetMatchup ?? autoTargetMatchup
-  const focusedMatchupId = targetMatchup?.id ?? null
+  const targetTeam = selectedTargetTeam ?? autoTargetTeam
+  const focusedMatchupId = isTotalPointsBroadcast ? targetTeam?.managerId ?? null : targetMatchup?.id ?? null
 
   useEffect(() => {
     if (!targetLatestEvent || targetLatestEvent.id === lastSoundedEventIdRef.current) return
@@ -155,14 +171,15 @@ function App() {
   }, [targetLatestEvent?.id, targetLatestEvent?.pointDelta])
 
   useEffect(() => {
-    if (targetLatestEvent && eventTargetMatchup) {
-      setLastAutoMatchupId(eventTargetMatchup.id)
+    const autoFocusId = isTotalPointsBroadcast ? eventTargetTeam?.managerId : eventTargetMatchup?.id
+    if (targetLatestEvent && autoFocusId) {
+      setLastAutoMatchupId(autoFocusId)
       return
     }
-    if (!lastAutoMatchupId && eventTargetMatchup) {
-      setLastAutoMatchupId(eventTargetMatchup.id)
+    if (!lastAutoMatchupId && autoFocusId) {
+      setLastAutoMatchupId(autoFocusId)
     }
-  }, [eventTargetMatchup?.id, lastAutoMatchupId, targetLatestEvent?.id])
+  }, [eventTargetMatchup?.id, eventTargetTeam?.managerId, isTotalPointsBroadcast, lastAutoMatchupId, targetLatestEvent?.id])
 
   useEffect(() => {
     clearTransitionTimers()
@@ -171,10 +188,12 @@ function App() {
       lastFocusedMatchupIdRef.current = null
       lastBroadcastFocusRef.current = broadcastFocus
       setBroadcastLiveState(liveState)
+      setBroadcastStandings(liveState?.standings ?? null)
       setTransitioningToMatch(false)
       setRevealingMatch(false)
       setRevealLayout(null)
       setVisibleEventId(targetLatestEvent?.id ?? null)
+      setHoldingPendingUpdates(false)
       return
     }
 
@@ -188,22 +207,28 @@ function App() {
 
     if (userChangedFocus && !firstBroadcastFocus) {
       setBroadcastLiveState(liveState)
+      setBroadcastStandings(liveState?.standings ?? null)
       setTransitioningToMatch(false)
       setRevealingMatch(false)
       setRevealLayout(null)
       setVisibleEventId(targetLatestEvent?.id ?? null)
+      setHoldingPendingUpdates(false)
       return clearTransitionTimers
     }
 
     if (firstBroadcastFocus) {
       setBroadcastLiveState(liveState)
+      setBroadcastStandings(liveState?.standings ?? null)
       setVisibleEventId(null)
+      setHoldingPendingUpdates(true)
       setTransitioningToMatch(false)
       setRevealLayout(null)
       setRevealingMatch(true)
       const revealTimer = window.setTimeout(() => {
         setRevealingMatch(false)
         setVisibleEventId(targetLatestEvent?.id ?? null)
+        setHoldingPendingUpdates(false)
+        setBroadcastStandings(liveState.standings ?? null)
       }, MATCH_REVEAL_MS)
       transitionTimersRef.current = [revealTimer]
       return clearTransitionTimers
@@ -211,11 +236,13 @@ function App() {
 
     if (focusChanged) {
       setVisibleEventId(null)
+      setHoldingPendingUpdates(false)
       setTransitioningToMatch(true)
       setRevealingMatch(false)
       const swapTimer = window.setTimeout(() => {
         setBroadcastLiveState(liveState)
         setRevealLayout(null)
+        setHoldingPendingUpdates(true)
         setRevealingMatch(true)
       }, SCENE_SWAP_MS)
       const endTimer = window.setTimeout(() => {
@@ -224,30 +251,50 @@ function App() {
       const revealTimer = window.setTimeout(() => {
         setRevealingMatch(false)
         setVisibleEventId(targetLatestEvent?.id ?? null)
+        setHoldingPendingUpdates(false)
+        setBroadcastStandings(liveState.standings ?? null)
       }, SCENE_SWAP_MS + MATCH_REVEAL_MS)
       transitionTimersRef.current = [swapTimer, endTimer, revealTimer]
       return clearTransitionTimers
     }
 
     setBroadcastLiveState(liveState)
+    setBroadcastStandings(liveState.standings ?? null)
     setTransitioningToMatch(false)
     setRevealingMatch(false)
     setVisibleEventId(targetLatestEvent?.id ?? null)
+    setHoldingPendingUpdates(false)
 
     return clearTransitionTimers
   }, [appView, broadcastFocus, focusedMatchupId, liveState, targetLatestEvent?.id])
 
   useLayoutEffect(() => {
-    if (appView !== 'broadcast' || !homeHeadingRef.current || !awayHeadingRef.current || !scoreRef.current) {
+    if (appView !== 'broadcast' || !scoreRef.current) {
       return
     }
+
+    if (isTotalPointsBroadcast) {
+      if (!totalHeadingRef.current) return
+      const teamNameRect = totalHeadingRef.current.getBoundingClientRect()
+      const scoreRect = scoreRef.current.getBoundingClientRect()
+      const revealGap = 60
+      const scoreReveal = toRevealRect(scoreRect, window.innerWidth / 2 + (teamNameRect.width + revealGap) / 2)
+      setRevealLayout({
+        home: toRevealRect(teamNameRect, window.innerWidth / 2 - (scoreRect.width + revealGap) / 2),
+        score: { ...scoreReveal, top: scoreReveal.top + TOTAL_SCORE_REVEAL_Y_CORRECTION, revealY: scoreReveal.revealY - TOTAL_SCORE_REVEAL_Y_CORRECTION },
+        away: toRevealRect(teamNameRect, window.innerWidth / 2),
+      })
+      return
+    }
+
+    if (!homeHeadingRef.current || !awayHeadingRef.current) return
 
     setRevealLayout({
       home: toRevealRect(homeHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.27),
       score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
       away: toRevealRect(awayHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.73),
     })
-  }, [appView, focusedMatchupId, broadcastLiveState])
+  }, [appView, broadcastLiveState, focusedMatchupId, isTotalPointsBroadcast])
 
   const runAction = async (action: 'start' | 'advance' | 'reset') => {
     setIsBusy(true)
@@ -320,7 +367,7 @@ function App() {
     enablePointChangeSound()
     setIsBusy(true)
     try {
-      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, authToken!)
+      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, scoringType, authToken!)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -363,13 +410,30 @@ function App() {
     return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
+  const startTotalPointsMockBroadcast = async () => {
+    setIsBusy(true)
+    try {
+      const nextState = await startTotalPointsMock(authToken!)
+      setLiveState(nextState)
+      setBroadcastFocus('multi')
+      setAppView('broadcast')
+      navigate('/broadcast')
+      setError(null)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to start total-points mock broadcast.')
+    } finally {
+      setIsBusy(false)
+    }
+  }
+
   if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new')) {
     return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
   if (authUser.role === 'ADMIN' && location.pathname !== '/administration' && location.pathname !== '/broadcast') navigate('/administration', true)
 
-  if (!liveState || !targetMatchup) {
+  const totalPointsBroadcast = (liveState?.matchups?.length ?? 0) === 0 && (liveState?.teams?.length ?? 0) > 0
+  if (!liveState || (!targetMatchup && !totalPointsBroadcast)) {
     return (
       <main className="broadcast-shell loading-shell">
         <div>
@@ -382,17 +446,17 @@ function App() {
   }
 
   const displayLiveState = appView === 'broadcast' ? broadcastLiveState ?? liveState : liveState
+  const displayStandings = appView === 'broadcast' ? broadcastStandings ?? displayLiveState.standings ?? [] : liveState.standings ?? []
   const autoDisplayMatchup = findFocusedMatchup(displayLiveState)
   const selectedDisplayMatchup =
-    broadcastFocus === 'multi' ? undefined : displayLiveState.matchups.find((candidate) => candidate.id === broadcastFocus)
+    broadcastFocus === 'multi' ? undefined : displayLiveState.matchups?.find((candidate) => candidate.id === broadcastFocus)
   const matchup = selectedDisplayMatchup ?? autoDisplayMatchup ?? targetMatchup
-  const latestCommentary = displayLiveState.commentary[0]
-  const leaderName =
-    matchup.leaderManagerId === matchup.home.managerId
-      ? matchup.home.displayName
-      : matchup.leaderManagerId === matchup.away.managerId
-        ? matchup.away.displayName
-        : 'No one'
+  const latestCommentary = displayLiveState.commentary?.[0]
+  const leaderName = matchup && matchup.leaderManagerId === matchup.home.managerId
+    ? matchup.home.displayName
+    : matchup && matchup.leaderManagerId === matchup.away.managerId
+      ? matchup.away.displayName
+      : 'No one'
 
   if (location.pathname === '/broadcast' && (appView === 'broadcast' || authUser.role !== 'ADMIN')) {
     return (
@@ -410,6 +474,10 @@ function App() {
         homeHeadingRef={homeHeadingRef}
         awayHeadingRef={awayHeadingRef}
         scoreRef={scoreRef}
+        totalTeamNameRef={totalTeamNameRef}
+        totalHeadingRef={totalHeadingRef}
+        standings={displayStandings}
+        holdingPendingUpdates={holdingPendingUpdates}
         onBack={() => { setAppView('setup'); navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues') }}
         onSelectFocus={setBroadcastFocus}
       />
@@ -451,7 +519,8 @@ function App() {
             <div className="administration-form-field"><label htmlFor="league-id">League ID</label><input
               id="league-id" inputMode="numeric" value={leagueId} onChange={(event) => setLeagueId(event.target.value)} placeholder="49824"
             /></div>
-            <div className="administration-form-field"><label htmlFor="league-type">League type</label><select id="league-type" className="administration-select" value={leagueType} onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}><option value="DRAFT">Draft</option><option value="CLASSIC">Classic H2H</option></select></div>
+            <div className="administration-form-field"><label htmlFor="league-type">League type</label><select id="league-type" className="administration-select" value={leagueType} onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}><option value="DRAFT">Draft</option><option value="CLASSIC">Classic</option></select></div>
+            <div className="administration-form-field"><label htmlFor="scoring-type">Scoring type</label><select id="scoring-type" className="administration-select" value={scoringType} onChange={(event) => setScoringType(event.target.value as FplLeagueScoring)}><option value="H2H">Head-to-head</option><option value="TOTAL_POINTS">Total points</option></select></div>
             <div className="administration-form-actions">
               <button type="submit" disabled={isLeagueLoading}>
                 <Search size={18} />
@@ -483,6 +552,10 @@ function App() {
         <button type="button" onClick={startComprehensiveMockBroadcast} disabled={isBusy}>
           <FlaskConical size={18} />
           Start comprehensive test
+        </button>
+        <button type="button" onClick={startTotalPointsMockBroadcast} disabled={isBusy}>
+          <FlaskConical size={18} />
+          Start total-points test
         </button>
         {liveState.sequence.started && !liveState.sequence.complete && (
           <button type="button" onClick={() => setAppView('broadcast')} disabled={isBusy}>

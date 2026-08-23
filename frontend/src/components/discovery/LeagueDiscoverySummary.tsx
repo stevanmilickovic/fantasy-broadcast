@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DiscoveryTab, LeagueDiscoveryState } from '../../types/fpl'
 
-export function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscoveryState }) {
+export function LeagueDiscoverySummary({ discovery, showMatchups = true }: { discovery: LeagueDiscoveryState; showMatchups?: boolean }) {
   const [activeTab, setActiveTab] = useState<DiscoveryTab>('teams')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const { details, elementStatus } = discovery
@@ -62,7 +62,7 @@ export function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscove
           value={hasCompositions ? `${ownedPlayers.length} owned players` : 'Not available yet'}
           ready={hasCompositions}
         />
-        <ReadinessItem label="Matchups" value={hasMatchups ? `${matches.length} scheduled` : 'Not prepared yet'} ready={hasMatchups} />
+        {showMatchups && <ReadinessItem label="Matchups" value={hasMatchups ? `${matches.length} scheduled` : 'Not prepared yet'} ready={hasMatchups} />}
         <ReadinessItem label="Standings" value={hasStandings ? `${standings.length} rows` : 'Not available yet'} ready={hasStandings} />
         <ReadinessItem label="Free agents" value={playerStatuses.length > 0 ? `${freeAgents} players` : 'Unknown'} ready={playerStatuses.length > 0} />
         <ReadinessItem label="Live fixtures" value={activeFixtureCount > 0 ? `${activeFixtureCount} just started` : 'None active'} ready={activeFixtureCount > 0} />
@@ -71,7 +71,7 @@ export function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscove
       <div className="discovery-tabs" role="tablist" aria-label="League discovery sections">
         <DiscoveryTabButton activeTab={activeTab} tab="teams" label="Teams" onSelect={setActiveTab} />
         <DiscoveryTabButton activeTab={activeTab} tab="compositions" label="Compositions" onSelect={setActiveTab} />
-        <DiscoveryTabButton activeTab={activeTab} tab="matchups" label="Matchups" onSelect={setActiveTab} />
+        {showMatchups && <DiscoveryTabButton activeTab={activeTab} tab="matchups" label="Matchups" onSelect={setActiveTab} />}
         <DiscoveryTabButton activeTab={activeTab} tab="standings" label="Standings" onSelect={setActiveTab} />
       </div>
 
@@ -153,7 +153,7 @@ export function LeagueDiscoverySummary({ discovery }: { discovery: LeagueDiscove
           </section>
         )}
 
-        {activeTab === 'matchups' && (
+        {showMatchups && activeTab === 'matchups' && (
           <section>
             <h4>Matchups</h4>
             <div className="compact-list">

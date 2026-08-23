@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadActiveBroadcastSchedules, loadRegisteredLeagues, openLeagueBroadcast, registerLeague } from '../../api/customerApi'
 import { loadLeagueDiscovery } from '../../api/fplDiscoveryApi'
-import type { FplLeagueType } from '../../api/liveApi'
+import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { LeagueDiscoveryState } from '../../types/fpl'
 import { LeagueDiscoverySummary } from '../discovery/LeagueDiscoverySummary'
@@ -15,6 +15,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
   const [message, setMessage] = useState<string | null>(null)
   const [leagueId, setLeagueId] = useState('')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
+  const [scoringType, setScoringType] = useState<FplLeagueScoring>('H2H')
   const [discovery, setDiscovery] = useState<LeagueDiscoveryState | null>(null)
   const [activeBroadcasts, setActiveBroadcasts] = useState<BroadcastSchedule[]>([])
   const selectedLeagueId = Number(new URLSearchParams(search).get('leagueId'))
@@ -32,7 +33,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
 
   useEffect(() => {
     if (!selectedLeague || pathname !== '/league') return
-    if (selectedLeague.leagueType === 'CLASSIC') { setDiscovery(null); setMessage('Classic head-to-head league details will be added with the Classic league screen.'); return }
+    if (selectedLeague.leagueType === 'CLASSIC') { setDiscovery(null); return }
     setBusy(true)
     loadLeagueDiscovery(String(selectedLeague.fplLeagueId)).then((result) => { setDiscovery(result); setMessage(null) }).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false))
   }, [selectedLeague?.id, pathname])
@@ -42,7 +43,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
   const register = async (event: React.FormEvent) => {
     event.preventDefault(); setBusy(true)
     try {
-      const league = await registerLeague(token, leagueId, leagueType)
+      const league = await registerLeague(token, leagueId, leagueType, scoringType)
       setLeagues(await loadRegisteredLeagues(token)); onNavigate(`/league?leagueId=${league.id}`)
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to register league.') }
     finally { setBusy(false) }
@@ -50,35 +51,30 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
 
   const openBroadcast = async () => {
     if (!selectedLeague) return
-    enablePointChangeSound()
-    setBusy(true)
-    try {
-      await openLeagueBroadcast(token, selectedLeague.id)
-      onNavigate(`/broadcast?leagueId=${selectedLeague.id}`)
-    }
+    enablePointChangeSound(); setBusy(true)
+    try { await openLeagueBroadcast(token, selectedLeague.id); onNavigate(`/broadcast?leagueId=${selectedLeague.id}`) }
     catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to open the broadcast.') }
     finally { setBusy(false) }
   }
 
   return <main className="customer-shell"><CustomerNavigation leagues={leagues} selectedLeague={selectedLeague} user={user} onNavigate={onNavigate} onSignOut={onSignOut} />
-    {pathname === '/leagues/new' && <LeagueRegistrationForm leagueId={leagueId} leagueType={leagueType} busy={busy} message={message} onLeagueIdChange={setLeagueId} onLeagueTypeChange={setLeagueType} onSubmit={register} />}
+    {pathname === '/leagues/new' && <LeagueRegistrationForm leagueId={leagueId} leagueType={leagueType} scoringType={scoringType} busy={busy} message={message} onLeagueIdChange={setLeagueId} onLeagueTypeChange={setLeagueType} onScoringTypeChange={setScoringType} onSubmit={register} />}
     {pathname === '/leagues' && <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />}
     {pathname === '/league' && selectedLeague && activeBroadcasts.length > 0 && <aside className="customer-broadcast-access"><div><strong>Broadcast live now</strong><span>Available to all registered leagues until {new Date(activeBroadcasts[0].endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span></div><button onClick={() => void openBroadcast()} disabled={busy}>Open broadcast</button></aside>}
-    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <section className="league-discovery"><LeagueDiscoverySummary discovery={discovery} /></section>}</section>}
+    {pathname === '/league' && selectedLeague && <section className="selected-league-page"><header className="selected-league-heading"><span>{selectedLeague.leagueType} · {scoringLabel(selectedLeague.scoringType)}</span><h1>{selectedLeague.displayName}</h1><p>FPL league #{selectedLeague.fplLeagueId}</p></header>{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <section className="league-discovery"><LeagueDiscoverySummary discovery={discovery} showMatchups={false} /></section>}</section>}
   </main>
 }
 
 function CustomerNavigation({ leagues, selectedLeague, user, onNavigate, onSignOut }: { leagues: RegisteredLeague[]; selectedLeague: RegisteredLeague | null; user: AuthUser; onNavigate: (path: string) => void; onSignOut: () => void }) {
-  return <nav className="customer-navigation"><span className="brand-name">Fantasy Broadcast</span><div className="customer-navigation-actions">
-    {selectedLeague && <details className="league-switcher"><summary>{selectedLeague.displayName}</summary><div>{leagues.map((league) => <button type="button" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}>{league.displayName}</button>)}<button type="button" className="switcher-add" onClick={() => onNavigate('/leagues/new')}>Add a new league</button></div></details>}
-    <details className="profile-menu"><summary>Profile</summary><div><strong>{user.displayName}</strong><button type="button" onClick={onSignOut}>Sign out</button></div></details>
-  </div></nav>
+  return <nav className="customer-navigation"><span className="brand-name">Fantasy Broadcast</span><div className="customer-navigation-actions">{selectedLeague && <details className="league-switcher"><summary>{selectedLeague.displayName}</summary><div>{leagues.map((league) => <button type="button" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}>{league.displayName} · {scoringLabel(league.scoringType)}</button>)}<button type="button" className="switcher-add" onClick={() => onNavigate('/leagues/new')}>Add a new league</button></div></details>}<details className="profile-menu"><summary>Profile</summary><div><strong>{user.displayName}</strong><button type="button" onClick={onSignOut}>Sign out</button></div></details></div></nav>
 }
 
-function LeagueRegistrationForm({ leagueId, leagueType, busy, message, onLeagueIdChange, onLeagueTypeChange, onSubmit }: { leagueId: string; leagueType: FplLeagueType; busy: boolean; message: string | null; onLeagueIdChange: (value: string) => void; onLeagueTypeChange: (value: FplLeagueType) => void; onSubmit: (event: React.FormEvent) => void }) {
-  return <section className="customer-empty"><div className="register-league-card"><span className="kicker">Get started</span><h1>Register a league</h1><p>Enter your FPL league ID to open its league hub.</p><form onSubmit={onSubmit}><label htmlFor="customer-league-id">League ID</label><input id="customer-league-id" inputMode="numeric" value={leagueId} onChange={(event) => onLeagueIdChange(event.target.value)} required /><span className="league-type-label">League type</span><div className="league-type-toggle" role="radiogroup" aria-label="League type"><button type="button" role="radio" aria-checked={leagueType === 'DRAFT'} className={leagueType === 'DRAFT' ? 'selected' : ''} onClick={() => onLeagueTypeChange('DRAFT')}>Draft</button><button type="button" role="radio" aria-checked={leagueType === 'CLASSIC'} className={leagueType === 'CLASSIC' ? 'selected' : ''} onClick={() => onLeagueTypeChange('CLASSIC')}>Classic H2H</button></div><button type="submit" disabled={busy}>{busy ? 'Registering…' : 'Register league'}</button></form>{message && <p className="discovery-error">{message}</p>}</div></section>
+function LeagueRegistrationForm({ leagueId, leagueType, scoringType, busy, message, onLeagueIdChange, onLeagueTypeChange, onScoringTypeChange, onSubmit }: { leagueId: string; leagueType: FplLeagueType; scoringType: FplLeagueScoring; busy: boolean; message: string | null; onLeagueIdChange: (value: string) => void; onLeagueTypeChange: (value: FplLeagueType) => void; onScoringTypeChange: (value: FplLeagueScoring) => void; onSubmit: (event: React.FormEvent) => void }) {
+  return <section className="customer-empty"><div className="register-league-card"><span className="kicker">Get started</span><h1>Register a league</h1><p>Enter your FPL league ID to open its league hub.</p><form onSubmit={onSubmit}><label htmlFor="customer-league-id">League ID</label><input id="customer-league-id" inputMode="numeric" value={leagueId} onChange={(event) => onLeagueIdChange(event.target.value)} required /><span className="league-type-label">League type</span><div className="league-type-toggle" role="radiogroup" aria-label="League type"><button type="button" role="radio" aria-checked={leagueType === 'DRAFT'} className={leagueType === 'DRAFT' ? 'selected' : ''} onClick={() => onLeagueTypeChange('DRAFT')}>Draft</button><button type="button" role="radio" aria-checked={leagueType === 'CLASSIC'} className={leagueType === 'CLASSIC' ? 'selected' : ''} onClick={() => onLeagueTypeChange('CLASSIC')}>Classic</button></div><span className="league-type-label">Scoring type</span><div className="league-type-toggle" role="radiogroup" aria-label="Scoring type"><button type="button" role="radio" aria-checked={scoringType === 'H2H'} className={scoringType === 'H2H' ? 'selected' : ''} onClick={() => onScoringTypeChange('H2H')}>Head-to-head</button><button type="button" role="radio" aria-checked={scoringType === 'TOTAL_POINTS'} className={scoringType === 'TOTAL_POINTS' ? 'selected' : ''} onClick={() => onScoringTypeChange('TOTAL_POINTS')}>Total points</button></div><button type="submit" disabled={busy}>{busy ? 'Registering…' : 'Register league'}</button></form>{message && <p className="discovery-error">{message}</p>}</div></section>
 }
 
 function LeaguePicker({ leagues, user, onNavigate }: { leagues: RegisteredLeague[]; user: AuthUser; onNavigate: (path: string) => void }) {
-  return <section className="league-picker"><header><span className="kicker">Welcome back, {user.displayName}</span><h1>Choose a league</h1><p>Select the league you want to open.</p></header><div className="league-cards">{leagues.map((league) => <button type="button" className="league-card" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}><span>{league.leagueType === 'DRAFT' ? 'Draft league' : 'Classic H2H'}</span><strong>{league.displayName}</strong><small>FPL league #{league.fplLeagueId}</small></button>)}</div><button type="button" className="secondary-action add-league-card" onClick={() => onNavigate('/leagues/new')}>Add a new league</button></section>
+  return <section className="league-picker"><header><span className="kicker">Welcome back, {user.displayName}</span><h1>Choose a league</h1><p>Select the league you want to open.</p></header><div className="league-cards">{leagues.map((league) => <button type="button" className="league-card" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}><span>{league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} · {scoringLabel(league.scoringType)}</span><strong>{league.displayName}</strong><small>FPL league #{league.fplLeagueId}</small></button>)}</div><button type="button" className="secondary-action add-league-card" onClick={() => onNavigate('/leagues/new')}>Add a new league</button></section>
 }
+
+function scoringLabel(scoringType: FplLeagueScoring) { return scoringType === 'H2H' ? 'Head-to-head' : 'Total points' }

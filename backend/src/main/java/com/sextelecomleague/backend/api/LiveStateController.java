@@ -3,6 +3,7 @@ package com.sextelecomleague.backend.api;
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.MockLiveStateService;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
+import com.sextelecomleague.backend.fpl.FplLeagueScoring;
 import com.sextelecomleague.backend.customer.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +52,12 @@ public class LiveStateController {
 		return liveStateService.startComprehensive();
 	}
 
+	@PostMapping("/mock-live/total-points/start")
+	public LiveStateResponse startTotalPointsMock(@RequestHeader("Authorization") String authorization) {
+		requireAdmin(authorization);
+		return liveStateService.startTotalPointsMock();
+	}
+
 	@PostMapping("/mock-live/advance")
 	public LiveStateResponse advance(@RequestHeader("Authorization") String authorization) {
 		requireAdmin(authorization);
@@ -66,9 +73,10 @@ public class LiveStateController {
 	@PostMapping("/live-broadcast/start")
 	public LiveStateResponse startRealBroadcast(@RequestParam long leagueId,
 			@RequestParam(defaultValue = "DRAFT") FplLeagueType leagueType,
+			@RequestParam(defaultValue = "H2H") FplLeagueScoring scoringType,
 			@RequestHeader("Authorization") String authorization) {
 		requireAdmin(authorization);
-		return liveStateService.startReal(leagueId, leagueType);
+		return liveStateService.startReal(leagueId, leagueType, scoringType);
 	}
 
 	private void requireAdmin(String authorization) {

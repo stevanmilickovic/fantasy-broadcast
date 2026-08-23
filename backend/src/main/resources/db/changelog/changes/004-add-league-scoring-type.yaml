@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-add-league-scoring-type
+      author: codex
+      changes:
+        - addColumn:
+            tableName: league
+            columns:
+              - column:
+                  name: scoring_type
+                  type: VARCHAR(20)
+                  defaultValue: H2H
+                  constraints:
+                    nullable: false

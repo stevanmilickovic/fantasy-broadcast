@@ -26,10 +26,17 @@ export const startComprehensiveMock = async (token: string): Promise<LiveStateRe
   return response.json()
 }
 
-export type FplLeagueType = 'DRAFT' | 'CLASSIC'
+export const startTotalPointsMock = async (token: string): Promise<LiveStateResponse> => {
+  const response = await fetch('/api/mock-live/total-points/start', { method: 'POST', headers: adminHeaders(token) })
+  if (!response.ok) throw new Error(`Total-points mock request failed with ${response.status}`)
+  return response.json()
+}
 
-export const startRealBroadcast = async (leagueId: string, leagueType: FplLeagueType, token: string): Promise<LiveStateResponse> => {
-  const query = new URLSearchParams({ leagueId, leagueType })
+export type FplLeagueType = 'DRAFT' | 'CLASSIC'
+export type FplLeagueScoring = 'H2H' | 'TOTAL_POINTS'
+
+export const startRealBroadcast = async (leagueId: string, leagueType: FplLeagueType, scoringType: FplLeagueScoring, token: string): Promise<LiveStateResponse> => {
+  const query = new URLSearchParams({ leagueId, leagueType, scoringType })
   const response = await fetch(`/api/live-broadcast/start?${query}`, { method: 'POST', headers: adminHeaders(token) })
   if (!response.ok) {
     throw new Error(`Live broadcast start failed with ${response.status}`)

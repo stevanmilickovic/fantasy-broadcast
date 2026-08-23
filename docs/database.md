@@ -4,6 +4,9 @@ The application uses MySQL only when the `db` Spring profile is active.
 
 Default local/test startup does not require a database. This keeps FPL discovery and mock broadcast work lightweight while the paid-service data model is being built.
 
+Each stored league records both its FPL source type (`DRAFT` or `CLASSIC`) and scoring type (`H2H` or `TOTAL_POINTS`).
+H2H broadcasts expose paired matchups; total-points broadcasts expose the participating teams without pairing them into matches.
+
 ## Profile
 
 Run the backend with database support:

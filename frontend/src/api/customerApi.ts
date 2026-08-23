@@ -1,4 +1,4 @@
-import type { FplLeagueType } from './liveApi'
+import type { FplLeagueScoring, FplLeagueType } from './liveApi'
 import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, RegisteredLeague } from '../types/customer'
 import type { LiveStateResponse } from '../types/live'
 
@@ -36,8 +36,8 @@ export const authenticate = async (path: 'login' | 'register', email: string, pa
 export const loadCurrentUser = async (token: string): Promise<AuthUser> => (await request('/api/auth/me', token)).json()
 export const logout = async (token: string) => { await request('/api/auth/logout', token, { method: 'POST' }) }
 export const loadRegisteredLeagues = async (token: string): Promise<RegisteredLeague[]> => (await request('/api/customer/leagues', token)).json()
-export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType): Promise<RegisteredLeague> =>
-  (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
+export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType, scoringType: FplLeagueScoring): Promise<RegisteredLeague> =>
+  (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType, scoringType }) })).json()
 export const loadAdminLeagues = async (token: string, page = 0, size = 10, search = ''): Promise<AdminLeaguePage> => {
   const query = new URLSearchParams({ page: String(page), size: String(size), search })
   const response: AdminLeaguePage | AdminLeague[] = await (await request(`/api/customer/admin/leagues?${query}`, token)).json()

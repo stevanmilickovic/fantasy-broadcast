@@ -71,6 +71,11 @@ public class FplDraftClient {
 				+ "/standings/?page_new_entries=1&page_standings=1");
 	}
 
+	public JsonNode getClassicPointsLeagueStandings(long leagueId) {
+		return getJson(properties.getFantasyBaseUrl() + "/leagues-classic/" + leagueId
+				+ "/standings/?page_new_entries=1&page_standings=1");
+	}
+
 	public JsonNode getClassicLeagueMatches(long leagueId, int eventId) {
 		return getJson(properties.getFantasyBaseUrl() + "/leagues-h2h-matches/league/" + leagueId + "/?event=" + eventId);
 	}

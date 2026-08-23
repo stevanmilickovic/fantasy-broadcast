@@ -8,6 +8,7 @@ import com.sextelecomleague.backend.customer.LeagueRegistrationService.Registere
 import com.sextelecomleague.backend.customer.SessionService;
 import com.sextelecomleague.backend.customer.BroadcastScheduleService;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
+import com.sextelecomleague.backend.fpl.FplLeagueScoring;
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.MockLiveStateService;
 import jakarta.validation.Valid;
@@ -54,7 +55,8 @@ public class CustomerLeagueController {
 	public RegisteredLeague registerLeague(@RequestHeader("Authorization") String authorization,
 			@Valid @RequestBody LeagueRequest request) {
 		var leagueType = request.leagueType() == null ? FplLeagueType.DRAFT : request.leagueType();
-		return leagueService.register(currentUser(authorization), request.fplLeagueId(), leagueType);
+		var scoringType = request.scoringType() == null ? FplLeagueScoring.H2H : request.scoringType();
+		return leagueService.register(currentUser(authorization), request.fplLeagueId(), leagueType, scoringType);
 	}
 
 	@GetMapping("/admin/leagues")
@@ -75,7 +77,7 @@ public class CustomerLeagueController {
 		return sessionService.require(authorization);
 	}
 
-	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType) {
+	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
 	}
 
 	@PostMapping("/leagues/{leagueId}/broadcast/open")
@@ -83,7 +85,7 @@ public class CustomerLeagueController {
 		var user = currentUser(authorization);
 		if (scheduleService.activeFor(user).isEmpty()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "There is no active broadcast for this time.");
 		var league = leagueService.accessibleLeague(user, leagueId);
-		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType());
+		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType(), league.scoringType());
 	}
 
 	public record AdminLeagueSettingsRequest(boolean serviceEnabled) {

@@ -6,9 +6,9 @@ export const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView
     return undefined
   }
 
-  const latestEvent = state.events[0]
-  if (!latestEvent) return state.matchups[0]
-  return state.matchups.find((candidate) =>
+  const latestEvent = state.events?.[0]
+  if (!latestEvent) return state.matchups?.[0]
+  return state.matchups?.find((candidate) =>
     [candidate.home.managerId, candidate.away.managerId].includes(latestEvent.managerId),
   )
 }

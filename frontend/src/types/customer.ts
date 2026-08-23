@@ -1,4 +1,4 @@
-import type { FplLeagueType } from '../api/liveApi'
+import type { FplLeagueScoring, FplLeagueType } from '../api/liveApi'
 
 export type AuthUser = {
   id: number
@@ -17,6 +17,7 @@ export type RegisteredLeague = {
   fplLeagueId: number
   displayName: string
   leagueType: FplLeagueType
+  scoringType: FplLeagueScoring
   serviceEnabled: boolean
   ownerUserId: number
 }
