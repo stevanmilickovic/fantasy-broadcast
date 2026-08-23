@@ -55,10 +55,11 @@ public class FplDraftMapper {
 			entries.add(new FplClassicLeagueEntry(
 					standing.path("entry").asLong(),
 					text(standing, "entry_name"),
-					text(standing, "player_name"),
-					intValue(standing, "rank"),
-					standing.has("points_total") ? intValue(standing, "points_total") : intValue(standing, "total"),
-					intValue(standing, "points_for")));
+				text(standing, "player_name"),
+				intValue(standing, "rank"),
+				standing.has("points_total") ? intValue(standing, "points_total") : intValue(standing, "total"),
+				intValue(standing, "event_total"),
+				intValue(standing, "points_for")));
 		}
 		return entries;
 	}
@@ -124,7 +125,8 @@ public class FplDraftMapper {
 					intValue(substitution, "element_in"), intValue(substitution, "element_out")));
 		}
 		return new FplEntryEvent(picks, automaticSubstitutions, text(root, "active_chip"),
-				intValue(root.path("entry_history"), "event_transfers_cost"));
+				intValue(root.path("entry_history"), "event_transfers_cost"),
+				intValue(root.path("entry_history"), "points"));
 	}
 
 	public FplDraftEventLive mapDraftEventLive(JsonNode root) {

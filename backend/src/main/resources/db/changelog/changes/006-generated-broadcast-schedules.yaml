@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-generated-broadcast-schedules
+      author: codex
+      changes:
+        - addColumn:
+            tableName: broadcast_schedule
+            columns:
+              - column:
+                  name: generated
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

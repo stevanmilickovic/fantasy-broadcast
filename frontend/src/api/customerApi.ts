@@ -60,6 +60,10 @@ export const updateAdminLeague = async (token: string, league: AdminLeague): Pro
 export const loadBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/admin/broadcast-schedules', token)).json()
 export const saveBroadcastSchedule = async (token: string, startsAt: string, endsAt: string, id?: number): Promise<BroadcastSchedule> =>
   (await request(id ? `/api/customer/admin/broadcast-schedules/${id}` : '/api/customer/admin/broadcast-schedules', token, { method: id ? 'PUT' : 'POST', body: JSON.stringify({ startsAt: new Date(startsAt).toISOString(), endsAt: new Date(endsAt).toISOString() }) })).json()
+export const generateTodayBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> =>
+  (await request('/api/customer/admin/broadcast-schedules/generate-today', token, { method: 'POST' })).json()
+export const deleteBroadcastSchedule = async (token: string, scheduleId: number) =>
+  { await request(`/api/customer/admin/broadcast-schedules/${scheduleId}`, token, { method: 'DELETE' }) }
 export const loadActiveBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/broadcast-schedules/active', token)).json()
 export const openLeagueBroadcast = async (token: string, leagueId: number): Promise<LiveStateResponse> => (await request(`/api/customer/leagues/${leagueId}/broadcast/open`, token, { method: 'POST' })).json()
 

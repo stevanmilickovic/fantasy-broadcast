@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-rename-generated-broadcast-schedules
+      author: codex
+      changes:
+        - renameColumn:
+            tableName: broadcast_schedule
+            oldColumnName: generated
+            newColumnName: auto_generated
+            columnDataType: BOOLEAN

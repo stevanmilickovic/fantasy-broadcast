@@ -34,6 +34,10 @@ public class FplDraftClient {
 		return getJson(properties.getFantasyBaseUrl() + "/bootstrap-static/");
 	}
 
+	public JsonNode getFantasyFixtures() {
+		return getJson(properties.getFantasyBaseUrl() + "/fixtures/");
+	}
+
 	public JsonNode getLeagueDetails(long leagueId) {
 		return getJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details");
 	}

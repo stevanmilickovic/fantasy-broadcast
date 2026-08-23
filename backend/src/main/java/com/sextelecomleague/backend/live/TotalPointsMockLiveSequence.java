@@ -72,7 +72,7 @@ final class TotalPointsMockLiveSequence {
 			var view = new PlayerView(player.id(), player.displayName(), player.shortName(), "Arsenal", player.position(), player.slot(), points.get(player.id()), 0, "AVAILABLE", delta);
 			if (player.bench()) bench.add(view); else active.add(view);
 		}
-		return new TeamView(seed.id(), seed.manager(), seed.club(), seed.shortName(), seed.color(), active.stream().mapToInt(PlayerView::points).sum(), active, bench);
+		return new TeamView(seed.id(), seed.manager(), seed.club(), seed.shortName(), seed.color(), active.stream().mapToInt(PlayerView::points).sum(), 0, active, bench);
 	}
 
 	private static List<PlayerSeed> playersFor(TeamSeed team) {

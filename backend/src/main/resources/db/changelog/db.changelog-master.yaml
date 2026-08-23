@@ -9,3 +9,7 @@ databaseChangeLog:
       file: db/changelog/changes/004-add-league-scoring-type.yaml
   - include:
       file: db/changelog/changes/005-league-source-identity.yaml
+  - include:
+      file: db/changelog/changes/006-generated-broadcast-schedules.yaml
+  - include:
+      file: db/changelog/changes/007-rename-generated-broadcast-schedules.yaml

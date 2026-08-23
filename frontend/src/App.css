@@ -274,11 +274,14 @@
 }
 
 .match-chip-track {
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   scrollbar-width: thin;
 }
 
@@ -959,7 +962,7 @@
 .player-event-notification.is-leaving { animation: player-notification-exit 200ms ease-in both; }
 @keyframes player-notification-exit { from { opacity: 1; transform: translate(calc(-50% + var(--event-shift, 0px)), 0); } to { opacity: 0; transform: translate(calc(-50% + var(--event-shift, 0px)), 7px); } }
 @keyframes player-shirt-glow-fade { from { filter: drop-shadow(0 0 9px rgba(0,255,133,.88)); } to { filter: drop-shadow(0 4px 5px rgba(0,0,0,.58)); } }
-.bench-rail { position: relative; z-index: 1; min-width: 0; }.bench-rail.left { grid-column: 1; grid-row: 1; }.bench-rail.right { grid-column: 10; grid-row: 1; text-align: right; }.bench-rail-title { position: absolute; top: 0; left: 50%; color: var(--pl-green); font-size: 10px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; transform: translateX(-50%); }.bench-player { position: absolute; top: calc(var(--y) + var(--y-offset)); left: 50%; width: 110px; transform: translate(-50%, -50%); }
+.bench-rail { position: relative; z-index: 1; min-width: 0; }.bench-rail.left { grid-column: 1; grid-row: 1; }.bench-rail.right { grid-column: 10; grid-row: 1; text-align: right; }.bench-rail-title { position: absolute; top: 0; left: 50%; color: var(--pl-green); font-size: 10px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; transform: translateX(-50%); }.bench-player { position: absolute; top: calc(var(--y) + var(--y-offset)); left: 50%; width: 110px; transform: translate(-50%, -50%); }.bench-player.has-event { z-index: 5; }
 
 @keyframes score-pop {
   0% {
@@ -1964,9 +1967,13 @@ blockquote {
 .administration-shell .broadcast-schedule-manager { margin: 24px 0; }
 .administration-shell .broadcast-schedule-manager .discovery-form { border-left: 5px solid var(--pl-cyan); }
 .broadcast-schedule-manager .discovery-form p { margin-top: 4px; color: var(--muted); font-size: .9rem; }
+.broadcast-schedule-actions { display: flex; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #eee4ef; background: #fcf9fc; }
+.broadcast-schedule-actions small { color: var(--muted); }
 .administration-shell .broadcast-schedule-form { grid-template-columns: repeat(2, minmax(185px, 1fr)) auto; }
 .administration-shell .broadcast-schedule-form label { display: grid; gap: 6px; padding: 0; }
 .broadcast-schedule-list > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 24px; border-top: 1px solid #eee4ef; }
+.broadcast-schedule-list > div > div { display: flex; gap: 8px; }
+.broadcast-schedule-list .schedule-delete { color: #a51919; border-color: #e5aaaa; }
 .broadcast-schedule-success { padding: 12px 16px; border-bottom: 1px solid #b9f5d7; color: #087443; background: #ecfff5; font-weight: 750; }
 .administration-shell .admin-registry .discovery-form { border-left: 5px solid var(--pl-green); }
 .administration-shell .admin-league-search { display: flex; align-items: center; gap: 10px; padding: 16px 24px; border-bottom: 1px solid #eee4ef; background: #fcf9fc; }
@@ -1974,7 +1981,7 @@ blockquote {
 .administration-shell .admin-league-search input { flex: 1; min-width: 180px; min-height: 38px; }
 .administration-shell .admin-league-search button { min-height: 38px; padding: 0 14px; cursor: pointer; }
 .administration-shell .admin-league-table { gap: 0; margin: 0; }
-.administration-shell .admin-league-table > div { grid-template-columns: minmax(180px, 1.2fr) .7fr .85fr 1.25fr auto auto auto; padding: 18px 24px; border-top-color: #eee4ef; }
+.administration-shell .admin-league-table > div { grid-template-columns: minmax(180px, 1.2fr) .7fr .85fr auto auto auto; padding: 18px 24px; border-top-color: #eee4ef; }
 .administration-shell .admin-league-table > div:nth-child(even) { background: #fcf9fc; }
 .administration-shell .admin-league-row strong { color: var(--pl-purple); font-size: 1rem; }
 .administration-shell .admin-league-row input { min-height: 38px; }
@@ -1985,6 +1992,8 @@ blockquote {
 .administration-shell .league-enabled input { accent-color: var(--pl-purple); }
 .administration-shell .admin-league-row small { color: #806485; white-space: nowrap; }
 .administration-shell .admin-pagination { padding: 18px 24px; border-top: 1px solid #eee4ef; color: var(--pl-purple-2); font-weight: 750; }
+.administration-shell .admin-pagination label { display: flex; align-items: center; gap: 8px; }
+.administration-shell .admin-pagination select { min-height: 34px; padding: 0 30px 0 10px; }
 
 .administration-controls { flex-wrap: wrap; margin-top: 24px; padding: 14px; background: #fbf7fb; }
 .administration-controls button { border-color: #d5bfd8; border-radius: 0; color: var(--pl-purple); background: #fff; font-weight: 750; }

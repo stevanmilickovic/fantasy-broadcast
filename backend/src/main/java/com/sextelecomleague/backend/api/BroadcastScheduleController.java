@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,6 +39,10 @@ public class BroadcastScheduleController {
 	public BroadcastSchedule create(@RequestHeader("Authorization") String authorization, @Valid @RequestBody ScheduleRequest request) { return schedules.create(currentUser(authorization), request.startsAt(), request.endsAt()); }
 	@PutMapping("/admin/broadcast-schedules/{scheduleId}")
 	public BroadcastSchedule update(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long scheduleId, @Valid @RequestBody ScheduleRequest request) { return schedules.update(currentUser(authorization), scheduleId, request.startsAt(), request.endsAt()); }
+	@DeleteMapping("/admin/broadcast-schedules/{scheduleId}")
+	public void delete(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long scheduleId) { schedules.delete(currentUser(authorization), scheduleId); }
+	@PostMapping("/admin/broadcast-schedules/generate-today")
+	public List<BroadcastSchedule> generateToday(@RequestHeader("Authorization") String authorization) { return schedules.generateForToday(currentUser(authorization)); }
 	@GetMapping("/broadcast-schedules/active")
 	public List<BroadcastSchedule> active(@RequestHeader("Authorization") String authorization) { return schedules.activeFor(currentUser(authorization)); }
 

@@ -55,6 +55,7 @@ function App() {
   const scoreRef = useRef<HTMLElement>(null)
   const totalTeamNameRef = useRef<HTMLSpanElement>(null)
   const totalHeadingRef = useRef<HTMLHeadingElement>(null)
+  const isBroadcastRoute = location.pathname === '/broadcast'
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
   const shouldLoadLiveState = authUser?.role === 'ADMIN' || isLeagueBroadcast
 
@@ -183,7 +184,7 @@ function App() {
   useEffect(() => {
     clearTransitionTimers()
 
-    if (!liveState || !focusedMatchupId || appView !== 'broadcast') {
+    if (!liveState || !focusedMatchupId || !isBroadcastRoute) {
       lastFocusedMatchupIdRef.current = null
       lastBroadcastFocusRef.current = broadcastFocus
       setBroadcastLiveState(liveState)
@@ -265,16 +266,16 @@ function App() {
     setHoldingPendingUpdates(false)
 
     return clearTransitionTimers
-  }, [appView, broadcastFocus, focusedMatchupId, liveState, targetLatestEvent?.id])
+  }, [broadcastFocus, focusedMatchupId, isBroadcastRoute, liveState, targetLatestEvent?.id])
 
   useLayoutEffect(() => {
-    if (appView !== 'broadcast' || !scoreRef.current) {
+    if (!isBroadcastRoute || !scoreRef.current) {
       return
     }
 
     if (isTotalPointsBroadcast) {
-      if (!totalHeadingRef.current) return
-      const teamNameRect = totalHeadingRef.current.getBoundingClientRect()
+      if (!totalTeamNameRef.current) return
+      const teamNameRect = totalTeamNameRef.current.getBoundingClientRect()
       const scoreRect = scoreRef.current.getBoundingClientRect()
       const revealGap = 60
       const scoreReveal = toRevealRect(scoreRect, window.innerWidth / 2 + (teamNameRect.width + revealGap) / 2)
@@ -293,7 +294,7 @@ function App() {
       score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
       away: toRevealRect(awayHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.73),
     })
-  }, [appView, broadcastLiveState, focusedMatchupId, isTotalPointsBroadcast])
+  }, [broadcastLiveState, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast])
 
   const runAction = async (action: 'start' | 'advance' | 'reset') => {
     setIsBusy(true)
@@ -444,12 +445,12 @@ function App() {
     )
   }
 
-  const displayLiveState = appView === 'broadcast' ? broadcastLiveState ?? liveState : liveState
-  const displayStandings = appView === 'broadcast' ? broadcastStandings ?? displayLiveState.standings ?? [] : liveState.standings ?? []
+  const displayLiveState = isBroadcastRoute ? broadcastLiveState ?? liveState : liveState
+  const displayStandings = isBroadcastRoute ? broadcastStandings ?? displayLiveState.standings ?? [] : liveState.standings ?? []
   const autoDisplayMatchup = findFocusedMatchup(displayLiveState)
   const selectedDisplayMatchup =
     broadcastFocus === 'multi' ? undefined : displayLiveState.matchups?.find((candidate) => candidate.id === broadcastFocus)
-  const matchup = selectedDisplayMatchup ?? autoDisplayMatchup ?? targetMatchup
+  const matchup = selectedDisplayMatchup ?? (displayLiveState.events?.length ? autoDisplayMatchup : targetMatchup ?? autoDisplayMatchup)
   const latestCommentary = displayLiveState.commentary?.[0]
   const leaderName = matchup && matchup.leaderManagerId === matchup.home.managerId
     ? matchup.home.displayName
@@ -466,6 +467,7 @@ function App() {
         latestCommentaryStatus={latestCommentary?.status ?? 'WAITING'}
         leaderName={leaderName}
         broadcastFocus={broadcastFocus}
+        automaticFocus={focusedMatchupId ?? 'multi'}
         revealingMatch={revealingMatch}
         revealLayout={revealLayout}
         transitioningToMatch={transitioningToMatch}

@@ -7,9 +7,13 @@ public record TeamView(
 		String displayName,
 		String clubName,
 		String shortName,
-		String color,
-		int score,
-		List<PlayerView> activePlayers,
-		List<PlayerView> benchPlayers
+	String color,
+	int score,
+	Integer officialGameweekPoints,
+	List<PlayerView> activePlayers,
+	List<PlayerView> benchPlayers
 ) {
+	public TeamView {
+		if (officialGameweekPoints == null) officialGameweekPoints = 0;
+	}
 }

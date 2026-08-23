@@ -127,7 +127,7 @@ final class ComprehensiveMockLiveSequence {
 			if (player.bench()) bench.add(view); else active.add(view);
 		}
 		var score = active.stream().mapToInt(PlayerView::points).sum();
-		return new TeamView(seed.id(), seed.manager(), seed.club(), seed.shortName(), seed.color(), score, active, bench);
+		return new TeamView(seed.id(), seed.manager(), seed.club(), seed.shortName(), seed.color(), score, 0, active, bench);
 	}
 
 	private static List<PlayerSeed> playersFor(TeamSeed team) {

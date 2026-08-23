@@ -5,9 +5,10 @@ import java.util.HashMap;
 
 public record FplEntryEvent(
 		List<FplEntryPick> picks,
-		List<FplAutomaticSubstitution> automaticSubstitutions,
-		String activeChip,
-		int transferCost
+	List<FplAutomaticSubstitution> automaticSubstitutions,
+	String activeChip,
+	int transferCost,
+	int officialGameweekPoints
 ) {
 
 	/** Returns the current XI and bench after FPL has applied recorded automatic substitutions. */
