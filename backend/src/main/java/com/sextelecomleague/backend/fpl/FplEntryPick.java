@@ -3,7 +3,9 @@ package com.sextelecomleague.backend.fpl;
 public record FplEntryPick(
 		int element,
 		int position,
-		int multiplier
+		int multiplier,
+		boolean captain,
+		boolean viceCaptain
 ) {
 
 	public boolean starter() {

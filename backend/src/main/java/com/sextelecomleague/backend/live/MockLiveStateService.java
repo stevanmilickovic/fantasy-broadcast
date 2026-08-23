@@ -327,21 +327,21 @@ public class MockLiveStateService {
 	private TeamView buildDraftTeam(FplDraftLeagueEntry entry, int gameweek, Map<Integer, FplPlayer> playersById,
 			Map<Integer, FplLivePlayer> liveById) {
 		FplEntryEvent entryEvent = fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek));
-		return buildTeam(entry.leagueEntryId(), entry.playerName(), entry.entryName(), entry.entryName(), entryEvent, playersById, liveById);
+		return buildTeam(entry.leagueEntryId(), entry.playerName(), entry.entryName(), entry.entryName(), entryEvent, playersById, liveById, false);
 	}
 
 	private TeamView buildClassicTeam(FplClassicLeagueEntry entry, int gameweek, Map<Integer, FplPlayer> playersById,
 			Map<Integer, FplLivePlayer> liveById) {
 		FplEntryEvent entryEvent = fplMapper.mapEntryEvent(fplClient.getFantasyEntryEvent(entry.entryId(), gameweek));
-		return buildTeam(entry.entryId(), entry.playerName(), entry.entryName(), entry.entryName(), entryEvent, playersById, liveById);
+		return buildTeam(entry.entryId(), entry.playerName(), entry.entryName(), entry.entryName(), entryEvent, playersById, liveById, true);
 	}
 
 	private TeamView buildTeam(long teamId, String managerName, String entryName, String displayName, FplEntryEvent entryEvent,
-			Map<Integer, FplPlayer> playersById, Map<Integer, FplLivePlayer> liveById) {
+			Map<Integer, FplPlayer> playersById, Map<Integer, FplLivePlayer> liveById, boolean classicRules) {
 		var active = new ArrayList<PlayerView>();
 		var bench = new ArrayList<PlayerView>();
 		var liveScore = 0;
-		for (FplEntryPick pick : entryEvent.picks()) {
+		for (FplEntryPick pick : entryEvent.resolvedPicks()) {
 			var player = playersById.get(pick.element());
 			if (player == null) continue;
 			var live = liveById.get(pick.element());
@@ -355,8 +355,10 @@ public class MockLiveStateService {
 			}
 			else {
 				bench.add(view);
+				if (classicRules && entryEvent.benchBoost()) liveScore += points;
 			}
 		}
+		if (classicRules) liveScore -= entryEvent.transferCost();
 		var color = TEAM_COLORS[(int) Math.floorMod(teamId, TEAM_COLORS.length)];
 		return new TeamView(String.valueOf(teamId), managerName, entryName, displayName, color,
 				liveScore, active, bench);

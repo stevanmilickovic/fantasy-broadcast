@@ -1,11 +1,28 @@
 {
   "results": [
     {
+      "id": 33164099,
       "entry_1_entry": 9001,
+      "entry_1_name": "Red Star FC",
+      "entry_1_player_name": "Stevan Petrovic",
       "entry_2_entry": 9002,
+      "entry_2_name": "Blue Moon FC",
+      "entry_2_player_name": "Mila Ilic",
+      "is_knockout": false,
+      "winner": null,
+      "tiebreak": null,
       "entry_1_points": 48,
+      "entry_1_win": 3,
+      "entry_1_draw": 1,
+      "entry_1_loss": 0,
       "entry_2_points": 42,
-      "finished": false
+      "entry_2_win": 2,
+      "entry_2_draw": 1,
+      "entry_2_loss": 1,
+      "entry_1_total": 10,
+      "entry_2_total": 7,
+      "seed_value": null,
+      "event": 2
     }
   ]
 }

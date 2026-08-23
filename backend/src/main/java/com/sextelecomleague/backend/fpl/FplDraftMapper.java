@@ -50,8 +50,7 @@ public class FplDraftMapper {
 					match.path("entry_1_entry").asLong(),
 					match.path("entry_2_entry").asLong(),
 					intValue(match, "entry_1_points"),
-					intValue(match, "entry_2_points"),
-					booleanValue(match, "finished")));
+					intValue(match, "entry_2_points")));
 		}
 		return new FplClassicLeague(entries, matches);
 	}
@@ -106,10 +105,18 @@ public class FplDraftMapper {
 			picks.add(new FplEntryPick(
 					intValue(pick, "element"),
 					intValue(pick, "position"),
-					intValue(pick, "multiplier")));
+					intValue(pick, "multiplier"),
+					booleanValue(pick, "is_captain"),
+					booleanValue(pick, "is_vice_captain")));
 		}
 
-		return new FplEntryEvent(picks);
+		var automaticSubstitutions = new ArrayList<FplAutomaticSubstitution>();
+		for (JsonNode substitution : root.path("automatic_subs")) {
+			automaticSubstitutions.add(new FplAutomaticSubstitution(
+					intValue(substitution, "element_in"), intValue(substitution, "element_out")));
+		}
+		return new FplEntryEvent(picks, automaticSubstitutions, text(root, "active_chip"),
+				intValue(root.path("entry_history"), "event_transfers_cost"));
 	}
 
 	public FplDraftEventLive mapDraftEventLive(JsonNode root) {

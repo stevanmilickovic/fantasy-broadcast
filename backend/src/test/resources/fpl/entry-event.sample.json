@@ -1,14 +1,28 @@
 {
+  "active_chip": "bboost",
+  "entry_history": {
+    "event_transfers_cost": 4
+  },
+  "automatic_subs": [
+    {
+      "element_in": 3,
+      "element_out": 328
+    }
+  ],
   "picks": [
     {
       "element": 328,
       "position": 4,
-      "multiplier": 1
+      "multiplier": 3,
+      "is_captain": true,
+      "is_vice_captain": false
     },
     {
       "element": 3,
       "position": 12,
-      "multiplier": 0
+      "multiplier": 0,
+      "is_captain": false,
+      "is_vice_captain": true
     }
   ]
 }

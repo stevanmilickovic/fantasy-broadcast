@@ -31,6 +31,11 @@ Regular FPL head-to-head leagues use the Fantasy API rather than the Draft API:
 
 - `GET https://fantasy.premierleague.com/api/leagues-h2h/{leagueId}/standings/?page_new_entries=1&page_standings=1`
 - `GET https://fantasy.premierleague.com/api/leagues-h2h-matches/league/{leagueId}/?event={eventId}`
+
+The match endpoint's `results` entries contain `entry_1_entry`, `entry_2_entry`, and FPL's recorded totals
+`entry_1_points` and `entry_2_points`. It also supplies match metadata such as `id`, `event`, `winner`, and
+`is_knockout`; it does not supply a `finished` field. The broadcast calculates live scores from entry picks and the
+event-live endpoint because the recorded matchup totals can lag behind ongoing matches.
 - `GET https://fantasy.premierleague.com/api/entry/{entryId}/event/{eventId}/picks/`
 
 Start a head-to-head recording through `POST /api/live-broadcast/start?leagueId={leagueId}&leagueType=CLASSIC`.

@@ -4,7 +4,6 @@ public record FplClassicMatch(
 		long firstEntryId,
 		long secondEntryId,
 		int firstPoints,
-		int secondPoints,
-		boolean finished
+		int secondPoints
 ) {
 }

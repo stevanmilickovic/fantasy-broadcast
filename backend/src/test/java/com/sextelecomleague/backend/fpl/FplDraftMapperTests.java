@@ -43,8 +43,8 @@ class FplDraftMapperTests {
 				.containsExactly(9001L, "Red Star FC", "Stevan Petrovic");
 		assertThat(league.matches().getFirst())
 				.extracting(FplClassicMatch::firstEntryId, FplClassicMatch::secondEntryId,
-						FplClassicMatch::firstPoints, FplClassicMatch::secondPoints, FplClassicMatch::finished)
-				.containsExactly(9001L, 9002L, 48, 42, false);
+						FplClassicMatch::firstPoints, FplClassicMatch::secondPoints)
+				.containsExactly(9001L, 9002L, 48, 42);
 	}
 
 	@Test
@@ -98,12 +98,19 @@ class FplDraftMapperTests {
 		assertThat(entryEvent.picks()).hasSize(2);
 		assertThat(entryEvent.picks().getFirst())
 				.extracting(FplEntryPick::element, FplEntryPick::position, FplEntryPick::multiplier,
-						FplEntryPick::starter, FplEntryPick::benched)
-				.containsExactly(328, 4, 1, true, false);
+						FplEntryPick::captain, FplEntryPick::starter, FplEntryPick::benched)
+				.containsExactly(328, 4, 3, true, true, false);
 		assertThat(entryEvent.picks().get(1))
 				.extracting(FplEntryPick::element, FplEntryPick::position, FplEntryPick::starter,
 						FplEntryPick::benched)
 				.containsExactly(3, 12, false, true);
+		assertThat(entryEvent.resolvedPicks())
+				.extracting(FplEntryPick::element, FplEntryPick::position, FplEntryPick::multiplier, FplEntryPick::captain)
+				.containsExactly(
+						org.assertj.core.groups.Tuple.tuple(328, 12, 0, false),
+						org.assertj.core.groups.Tuple.tuple(3, 4, 3, true));
+		assertThat(entryEvent.benchBoost()).isTrue();
+		assertThat(entryEvent.transferCost()).isEqualTo(4);
 	}
 
 	@Test
