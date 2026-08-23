@@ -49,10 +49,13 @@ For local development, run the backend directly without first packaging a JAR:
 To enable the database-backed customer accounts, registered leagues, and the seeded `admin` / `admin` local account, start with the `db` profile:
 
 ```powershell
+docker compose up -d db
 cd backend
 $env:SPRING_PROFILES_ACTIVE = "db"
 .\mvnw.cmd spring-boot:run
 ```
+
+The Compose service starts only the local MySQL database using the backend's default database settings. Stop it with `docker compose down`; use `docker compose down -v` to also remove its local database data.
 
 Stop the development command with `Ctrl+C` and rerun it after making backend changes.
 
