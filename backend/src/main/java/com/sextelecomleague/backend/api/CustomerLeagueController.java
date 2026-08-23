@@ -24,6 +24,7 @@ import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,6 +75,23 @@ public class CustomerLeagueController {
 			@RequestParam(defaultValue = "10") @Positive @Max(100) int size,
 			@RequestParam(defaultValue = "") String search) {
 		return leagueService.allForAdmin(currentUser(authorization), page, size, search);
+	}
+
+	@GetMapping("/leagues/search")
+	public List<RegisteredLeague> searchRegisteredLeagues(@RequestHeader("Authorization") String authorization,
+			@RequestParam(defaultValue = "") String query) {
+		currentUser(authorization);
+		return leagueService.searchRegistered(query);
+	}
+
+	@PostMapping("/leagues/{leagueId}/follow")
+	public RegisteredLeague followLeague(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
+		return leagueService.follow(currentUser(authorization), leagueId);
+	}
+
+	@DeleteMapping("/leagues/{leagueId}")
+	public void deleteOwnedLeague(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
+		leagueService.deleteOwned(currentUser(authorization), leagueId);
 	}
 
 	@GetMapping("/leagues/{leagueId}/overview")

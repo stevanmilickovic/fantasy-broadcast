@@ -12,6 +12,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -78,6 +79,35 @@ public class LeagueRegistrationService {
 				order by l.created_at desc, l.id desc
 				""", this::mapAdminLeague, searchTerm, searchTerm, size, (long) page * size);
 		return new AdminLeaguePage(leagues, page, size, total == null ? 0 : total);
+	}
+
+	public List<RegisteredLeague> searchRegistered(String query) {
+		var searchTerm = query == null ? "" : query.trim();
+		if (searchTerm.isEmpty()) return List.of();
+		return jdbcTemplate.query("""
+				select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, owner_user_id
+				from league
+				where service_enabled = true and (lower(display_name) like concat('%', lower(?), '%') or cast(fpl_league_id as char) like concat('%', ?, '%'))
+				order by display_name, id limit 20
+				""", this::mapLeague, searchTerm, searchTerm);
+	}
+
+	public RegisteredLeague follow(CurrentUser user, long leagueId) {
+		var leagues = jdbcTemplate.query("select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, owner_user_id from league where id = ? and service_enabled = true",
+				this::mapLeague, leagueId);
+		if (leagues.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The registered league was not found.");
+		jdbcTemplate.update("insert ignore into league_registration (user_id, league_id) values (?, ?)", user.id(), leagueId);
+		return leagues.getFirst();
+	}
+
+	@Transactional
+	public void deleteOwned(CurrentUser user, long leagueId) {
+		var deletedRegistrations = jdbcTemplate.update("delete r from league_registration r join league l on l.id = r.league_id where l.id = ? and l.owner_user_id = ?", leagueId, user.id());
+		var deletedLeague = jdbcTemplate.update("delete from league where id = ? and owner_user_id = ?", leagueId, user.id());
+		if (deletedLeague == 0) {
+			if (deletedRegistrations > 0) throw new ResponseStatusException(HttpStatus.CONFLICT, "The league could not be deleted. Please try again.");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Your league was not found.");
+		}
 	}
 
 	public RegisteredLeague accessibleLeague(CurrentUser user, long leagueId) {

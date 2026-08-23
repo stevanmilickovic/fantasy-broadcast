@@ -37,6 +37,12 @@ export const authenticate = async (path: 'login' | 'register', email: string, pa
 export const loadCurrentUser = async (token: string): Promise<AuthUser> => (await request('/api/auth/me', token)).json()
 export const logout = async (token: string) => { await request('/api/auth/logout', token, { method: 'POST' }) }
 export const loadRegisteredLeagues = async (token: string): Promise<RegisteredLeague[]> => (await request('/api/customer/leagues', token)).json()
+export const searchRegisteredLeagues = async (token: string, query: string): Promise<RegisteredLeague[]> =>
+  (await request(`/api/customer/leagues/search?${new URLSearchParams({ query })}`, token)).json()
+export const followLeague = async (token: string, leagueId: number): Promise<RegisteredLeague> =>
+  (await request(`/api/customer/leagues/${leagueId}/follow`, token, { method: 'POST' })).json()
+export const deleteOwnedLeague = async (token: string, leagueId: number) =>
+  { await request(`/api/customer/leagues/${leagueId}`, token, { method: 'DELETE' }) }
 export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType): Promise<RegisteredLeague> =>
   (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
 export const loadClassicLeagueOverview = async (token: string, leagueId: number): Promise<ClassicLeagueDiscovery> =>

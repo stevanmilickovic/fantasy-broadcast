@@ -2073,6 +2073,20 @@ blockquote {
 .register-league-card form > button[type='submit']:hover { background: #38ebff; filter: brightness(1.04); }
 .register-league-card form > button[type='submit']:active { filter: brightness(.92); }
 .register-league-card form > button[type='submit']:disabled { cursor: wait; opacity: .65; }
+.league-onboarding { grid-template-columns: repeat(2, minmax(0, 430px)); align-content: center; align-items: start; justify-content: center; gap: 18px; }
+.league-onboarding .register-league-card { width: 100%; }
+.league-search { display: grid; gap: 9px; }
+.league-search > label { color: #c8f9ff; font-size: 13px; font-weight: 700; }
+.league-search > div { display: flex; gap: 8px; }
+.league-search input { min-width: 0; flex: 1; }
+.league-search button, .delete-owned-league { border: 0; border-radius: 0; padding: 10px 14px; color: #37003c; background: #20e6ff; cursor: pointer; font-weight: 800; }
+.league-search-result { align-items: center; justify-content: space-between; padding: 10px; background: #25002c; }
+.league-search-result span { display: grid; gap: 2px; }
+.league-search-result small { color: #c8f9ff; }
+.delete-owned-league { margin: 14px 0 0 auto; background: #ff6b6b; }
+.delete-owned-league:disabled, .league-search button:disabled { cursor: wait; opacity: .65; }
+.owner-badge { display: inline-flex; align-items: center; width: fit-content; margin-left: 7px; padding: 2px 6px; color: #37003c !important; background: #f7d745; font-size: .68rem !important; font-weight: 850; line-height: 1.15; text-transform: uppercase; vertical-align: middle; }
+.league-switcher summary .owner-badge { margin-left: 8px; }
 .league-picker { max-width: 880px; }
 .league-picker header { margin-bottom: 28px; }
 .league-card { min-height: 158px; border: 0; border-radius: 0; color: #fff; text-align: left; cursor: pointer; background: #31003a; transition: background .18s ease, filter .18s ease; }
@@ -2144,5 +2158,6 @@ blockquote {
   .customer-navigation-actions { width: 100%; flex-wrap: wrap; }
   .customer-empty, .league-picker, .selected-league-page { padding: 34px 0; }
   .register-league-card { padding: 22px; }
+  .league-onboarding { grid-template-columns: minmax(0, 430px); padding-top: 34px; padding-bottom: 34px; }
   .admin-league-table > div { grid-template-columns: 1fr; }
 }
