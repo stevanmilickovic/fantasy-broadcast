@@ -12,15 +12,18 @@ H2H broadcasts expose paired matchups; total-points broadcasts expose the partic
 Run the backend with database support:
 
 ```bash
+docker compose up -d db
+cd backend
 SPRING_PROFILES_ACTIVE=db ./mvnw spring-boot:run
 ```
 
 Default connection settings:
 
 ```text
-DB_URL=jdbc:mysql://localhost:3306/stk_broadcast
+DB_URL=jdbc:mysql://localhost:3307/stk_broadcast
 DB_USERNAME=stk_broadcast
 DB_PASSWORD=stk_broadcast
+MYSQL_HOST_PORT=3307
 ```
 
 Override them as environment variables for local or production deployments.

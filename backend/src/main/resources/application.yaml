@@ -17,7 +17,7 @@ spring:
   autoconfigure:
     exclude: []
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/stk_broadcast}
+    url: ${DB_URL:jdbc:mysql://localhost:3307/stk_broadcast}
     username: ${DB_USERNAME:stk_broadcast}
     password: ${DB_PASSWORD:stk_broadcast}
     driver-class-name: com.mysql.cj.jdbc.Driver

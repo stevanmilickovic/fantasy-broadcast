@@ -26,27 +26,39 @@ FPL Draft Broadcast Service.md
 
 ## Backend
 
-Build and run the backend in one command (recommended, from the repository root):
+Build and run the backend in one command on Linux/macOS (recommended, from the repository root):
 
-```powershell
-.\backend\mvnw.cmd clean package; java -jar .\backend\target\backend-0.0.1-SNAPSHOT.jar
+```bash
+./backend/mvnw -f backend/pom.xml clean package
+java -jar backend/target/backend-0.0.1-SNAPSHOT.jar
 ```
 
 This compiles, tests, packages, and starts the backend. Stop it with `Ctrl+C`.
 
 To only build and test:
 
-```powershell
-.\backend\mvnw.cmd clean package
+```bash
+./backend/mvnw -f backend/pom.xml clean package
 ```
 
 For local development, run the backend directly without first packaging a JAR:
 
-```powershell
-.\backend\mvnw.cmd spring-boot:run
+```bash
+cd backend
+./mvnw spring-boot:run
 ```
 
 To enable the database-backed customer accounts, registered leagues, and the seeded `admin` / `admin` local account, start with the `db` profile:
+
+```bash
+docker compose up -d db
+cd backend
+SPRING_PROFILES_ACTIVE=db ./mvnw spring-boot:run
+```
+
+The Compose service starts only the local MySQL database using the backend's default database settings. It publishes MySQL on host port `3307` by default so it does not conflict with a local MySQL already using `3306`. Override it with `MYSQL_HOST_PORT=3308 docker compose up -d db` if needed, and set `DB_URL` to the matching port when running the backend. Stop it with `docker compose down`; use `docker compose down -v` to also remove its local database data.
+
+Windows PowerShell equivalents:
 
 ```powershell
 docker compose up -d db
@@ -54,8 +66,6 @@ cd backend
 $env:SPRING_PROFILES_ACTIVE = "db"
 .\mvnw.cmd spring-boot:run
 ```
-
-The Compose service starts only the local MySQL database using the backend's default database settings. Stop it with `docker compose down`; use `docker compose down -v` to also remove its local database data.
 
 Stop the development command with `Ctrl+C` and rerun it after making backend changes.
 
