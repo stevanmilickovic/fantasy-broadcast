@@ -55,7 +55,11 @@ export const loadAdminLeagues = async (token: string, page = 0, size = 10, searc
 }
 export const updateAdminLeague = async (token: string, league: AdminLeague): Promise<AdminLeague> =>
   (await request(`/api/customer/admin/leagues/${league.id}`, token, {
-    method: 'PATCH', body: JSON.stringify({ serviceEnabled: league.serviceEnabled }),
+    method: 'PATCH', body: JSON.stringify({
+      serviceEnabled: league.serviceEnabled,
+      aiNarrationEnabled: league.aiNarrationEnabled,
+      voiceNarrationEnabled: league.voiceNarrationEnabled,
+    }),
   })).json()
 export const loadBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/admin/broadcast-schedules', token)).json()
 export const saveBroadcastSchedule = async (token: string, startsAt: string, endsAt: string, id?: number): Promise<BroadcastSchedule> =>

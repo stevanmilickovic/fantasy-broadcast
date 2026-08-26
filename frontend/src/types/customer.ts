@@ -19,6 +19,8 @@ export type RegisteredLeague = {
   leagueType: FplLeagueType
   scoringType: FplLeagueScoring
   serviceEnabled: boolean
+  aiNarrationEnabled: boolean
+  voiceNarrationEnabled: boolean
   ownerUserId: number
 }
 

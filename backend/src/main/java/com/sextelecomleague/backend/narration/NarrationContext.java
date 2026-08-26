@@ -9,5 +9,6 @@ public record NarrationContext(
 		String playerId,
 		String eventSummary,
 		int pointDelta,
-		int maxCharacters) {
+		int maxCharacters,
+		boolean voiceNarrationEnabled) {
 }

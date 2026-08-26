@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-league-narration-settings
+      author: codex
+      changes:
+        - addColumn:
+            tableName: league
+            columns:
+              - column:
+                  name: ai_narration_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: voice_narration_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

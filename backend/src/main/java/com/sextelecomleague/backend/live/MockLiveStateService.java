@@ -114,7 +114,7 @@ public class MockLiveStateService {
 
 	/** Starts a league only once; later viewers join its existing poller. */
 	public synchronized LiveStateResponse startRealForLeague(long leagueKey, long fplLeagueId, FplLeagueType leagueType,
-			FplLeagueScoring scoringType) {
+			FplLeagueScoring scoringType, boolean aiNarrationEnabled, boolean voiceNarrationEnabled) {
 		var existing = leagueSessions.get(leagueKey);
 		if (existing != null) {
 			log.info("Joining existing broadcast session: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType);
@@ -122,6 +122,8 @@ public class MockLiveStateService {
 		}
 		log.info("Starting broadcast session: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType);
 		var session = new RealSession();
+		session.aiNarrationEnabled = aiNarrationEnabled;
+		session.voiceNarrationEnabled = voiceNarrationEnabled;
 		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
 		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
 		leagueSessions.put(leagueKey, session);
@@ -270,7 +272,8 @@ public class MockLiveStateService {
 	}
 
 	private void publishOrStageLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
-		if (narrationJobService == null || narrationProperties == null || !narrationJobService.enqueueForEvents(leagueKey, state)) {
+		if (!session.aiNarrationEnabled || narrationJobService == null || narrationProperties == null
+				|| !narrationJobService.enqueueForEvents(leagueKey, state, session.voiceNarrationEnabled)) {
 			publishLeagueState(leagueKey, session, state);
 			return;
 		}
@@ -296,7 +299,7 @@ public class MockLiveStateService {
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
 	}
 
-	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; List<ScheduledFuture<?>> releaseTasks = new CopyOnWriteArrayList<>(); }
+	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; List<ScheduledFuture<?>> releaseTasks = new CopyOnWriteArrayList<>(); boolean aiNarrationEnabled; boolean voiceNarrationEnabled; }
 
 	private record LeagueSnapshot(FplLeagueType leagueType, FplLeagueScoring scoringType, int gameweek,
 			Map<Integer, FplPlayer> playersById, FplDraftLeague draftLeague,

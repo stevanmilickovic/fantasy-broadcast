@@ -131,7 +131,8 @@ public class CustomerLeagueController {
 	@PatchMapping("/admin/leagues/{leagueId}")
 	public AdminLeague updateLeague(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId,
 			@Valid @RequestBody AdminLeagueSettingsRequest request) {
-		return leagueService.updateForAdmin(currentUser(authorization), leagueId, request.serviceEnabled());
+		return leagueService.updateForAdmin(currentUser(authorization), leagueId, request.serviceEnabled(),
+				request.aiNarrationEnabled(), request.voiceNarrationEnabled());
 	}
 
 	private CurrentUser currentUser(String authorization) {
@@ -146,10 +147,11 @@ public class CustomerLeagueController {
 		var user = currentUser(authorization);
 		if (scheduleService.activeFor(user).isEmpty()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "There is no active broadcast for this time.");
 		var league = leagueService.accessibleLeague(user, leagueId);
-		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType(), league.scoringType());
+		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType(), league.scoringType(),
+				league.aiNarrationEnabled(), league.voiceNarrationEnabled());
 	}
 
-	public record AdminLeagueSettingsRequest(boolean serviceEnabled) {
+	public record AdminLeagueSettingsRequest(boolean serviceEnabled, boolean aiNarrationEnabled, boolean voiceNarrationEnabled) {
 	}
 
 	public record ClassicLeagueDiscovery(String leagueName, FplLeagueScoring scoringType, int gameweek,

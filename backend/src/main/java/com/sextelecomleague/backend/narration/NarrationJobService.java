@@ -47,6 +47,10 @@ public class NarrationJobService {
 	}
 
 	public boolean enqueueForEvents(long leagueId, LiveStateResponse state) {
+		return enqueueForEvents(leagueId, state, true);
+	}
+
+	public boolean enqueueForEvents(long leagueId, LiveStateResponse state, boolean voiceNarrationEnabled) {
 		if (!properties.isEnabled() || state.events().isEmpty()) return false;
 		var staged = false;
 		for (var event : selectedEvents(state.events())) {
@@ -57,7 +61,7 @@ public class NarrationJobService {
 			}
 			staged = true;
 			repository.createPendingIfAbsent(leagueId, state.gameweek(), event.id())
-					.ifPresent(narration -> executor.execute(() -> generate(narration.id(), context(leagueId, state.gameweek(), event))));
+					.ifPresent(narration -> executor.execute(() -> generate(narration.id(), context(leagueId, state.gameweek(), event, voiceNarrationEnabled))));
 		}
 		return staged;
 	}
@@ -66,7 +70,7 @@ public class NarrationJobService {
 		try {
 			var commentary = textGenerator.generate(context);
 			var narration = repository.markTextReady(narrationId, commentary.text(), commentary.inputTokens(), commentary.outputTokens()).orElseThrow();
-			if (!properties.isAudioEnabled()) {
+			if (!properties.isAudioEnabled() || !context.voiceNarrationEnabled()) {
 				return;
 			}
 			if (!budgetService.canGenerateAudio(narration.text().length())) {
@@ -86,9 +90,10 @@ public class NarrationJobService {
 		return events.stream().filter(eventSelector::shouldNarrate).toList();
 	}
 
-	private NarrationContext context(long leagueId, int gameweek, FantasyEventView event) {
+	private NarrationContext context(long leagueId, int gameweek, FantasyEventView event, boolean voiceNarrationEnabled) {
 		return new NarrationContext(leagueId, gameweek, event.id(), event.type(), event.managerId(),
-				event.playerId(), event.summary(), event.pointDelta(), properties.getLimits().getMaxTextCharacters());
+				event.playerId(), event.summary(), event.pointDelta(), properties.getLimits().getMaxTextCharacters(),
+				voiceNarrationEnabled);
 	}
 
 	@PreDestroy
