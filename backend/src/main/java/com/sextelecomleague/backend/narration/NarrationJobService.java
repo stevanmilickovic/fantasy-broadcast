@@ -12,7 +12,6 @@ import jakarta.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -28,38 +27,39 @@ public class NarrationJobService {
 	private final CommentaryTextGenerator textGenerator;
 	private final VoiceNarrationGenerator voiceGenerator;
 	private final Executor executor;
-	private final ApplicationEventPublisher eventPublisher;
 
 	public NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
 			NarrationEventSelector eventSelector, NarrationBudgetService budgetService, CommentaryTextGenerator textGenerator,
-			VoiceNarrationGenerator voiceGenerator, ApplicationEventPublisher eventPublisher) {
-		this(properties, repository, eventSelector, budgetService, textGenerator, voiceGenerator, eventPublisher, Executors.newFixedThreadPool(2));
+			VoiceNarrationGenerator voiceGenerator) {
+		this(properties, repository, eventSelector, budgetService, textGenerator, voiceGenerator, Executors.newFixedThreadPool(2));
 	}
 
 	NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
 			NarrationEventSelector eventSelector, NarrationBudgetService budgetService, CommentaryTextGenerator textGenerator,
-			VoiceNarrationGenerator voiceGenerator, ApplicationEventPublisher eventPublisher, Executor executor) {
+			VoiceNarrationGenerator voiceGenerator, Executor executor) {
 		this.properties = properties;
 		this.repository = repository;
 		this.eventSelector = eventSelector;
 		this.budgetService = budgetService;
 		this.textGenerator = textGenerator;
 		this.voiceGenerator = voiceGenerator;
-		this.eventPublisher = eventPublisher;
 		this.executor = executor;
 	}
 
-	public void enqueueForEvents(long leagueId, LiveStateResponse state) {
-		if (!properties.isEnabled() || state.events().isEmpty()) return;
+	public boolean enqueueForEvents(long leagueId, LiveStateResponse state) {
+		if (!properties.isEnabled() || state.events().isEmpty()) return false;
+		var staged = false;
 		for (var event : selectedEvents(state.events())) {
 			if (!budgetService.canCreateNarration(leagueId, state.gameweek())) {
 				log.info("Skipping narration: leagueId={}, gameweek={}, sourceEventId={}, reason=league_gameweek_limit",
 						leagueId, state.gameweek(), event.id());
 				continue;
 			}
+			staged = true;
 			repository.createPendingIfAbsent(leagueId, state.gameweek(), event.id())
 					.ifPresent(narration -> executor.execute(() -> generate(narration.id(), context(leagueId, state.gameweek(), event))));
 		}
+		return staged;
 	}
 
 	void generate(long narrationId, NarrationContext context) {
@@ -67,17 +67,14 @@ public class NarrationJobService {
 			var commentary = textGenerator.generate(context);
 			var narration = repository.markTextReady(narrationId, commentary.text(), commentary.inputTokens(), commentary.outputTokens()).orElseThrow();
 			if (!properties.isAudioEnabled()) {
-				publishReady(context, narration.id());
 				return;
 			}
 			if (!budgetService.canGenerateAudio(narration.text().length())) {
 				log.info("Publishing text-only narration: narrationId={}, reason=monthly_tts_budget", narration.id());
-				publishReady(context, narration.id());
 				return;
 			}
 			var voice = voiceGenerator.generate(context.sourceEventId(), narration.text());
 			repository.markAudioReady(narration.id(), voice.audioPath(), voice.characters(), voice.expiresAt());
-			publishReady(context, narration.id());
 		}
 		catch (RuntimeException exception) {
 			log.warn("Narration generation failed: narrationId={}, sourceEventId={}", narrationId, context.sourceEventId(), exception);
@@ -92,10 +89,6 @@ public class NarrationJobService {
 	private NarrationContext context(long leagueId, int gameweek, FantasyEventView event) {
 		return new NarrationContext(leagueId, gameweek, event.id(), event.type(), event.managerId(),
 				event.playerId(), event.summary(), event.pointDelta(), properties.getLimits().getMaxTextCharacters());
-	}
-
-	private void publishReady(NarrationContext context, long narrationId) {
-		eventPublisher.publishEvent(new NarrationReadyEvent(context.leagueId(), context.gameweek(), narrationId));
 	}
 
 	@PreDestroy

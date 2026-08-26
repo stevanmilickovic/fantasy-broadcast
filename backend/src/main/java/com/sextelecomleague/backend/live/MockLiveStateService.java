@@ -18,7 +18,7 @@ import com.sextelecomleague.backend.fpl.FplPlayer;
 import com.sextelecomleague.backend.narration.BroadcastNarration;
 import com.sextelecomleague.backend.narration.BroadcastNarrationRepository;
 import com.sextelecomleague.backend.narration.NarrationJobService;
-import com.sextelecomleague.backend.narration.NarrationReadyEvent;
+import com.sextelecomleague.backend.narration.NarrationProperties;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -35,7 +36,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -62,6 +62,7 @@ public class MockLiveStateService {
 	private final FplDraftMapper fplMapper;
 	private final NarrationJobService narrationJobService;
 	private final BroadcastNarrationRepository narrationRepository;
+	private final NarrationProperties narrationProperties;
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 	private final ScheduledExecutorService sequenceExecutor = Executors.newSingleThreadScheduledExecutor();
 	private int currentIndex;
@@ -79,11 +80,13 @@ public class MockLiveStateService {
 
 	public MockLiveStateService(ObjectMapper objectMapper, FplDraftClient fplClient, FplDraftMapper fplMapper,
 			ObjectProvider<NarrationJobService> narrationJobService,
-			ObjectProvider<BroadcastNarrationRepository> narrationRepository) {
+			ObjectProvider<BroadcastNarrationRepository> narrationRepository,
+			ObjectProvider<NarrationProperties> narrationProperties) {
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
 		this.narrationJobService = narrationJobService.getIfAvailable();
 		this.narrationRepository = narrationRepository.getIfAvailable();
+		this.narrationProperties = narrationProperties.getIfAvailable();
 		try {
 			var resource = new ClassPathResource("mock/live-sequence.json");
 			this.snapshots = objectMapper.readValue(resource.getInputStream(), MockLiveSequence.class).snapshots();
@@ -106,7 +109,7 @@ public class MockLiveStateService {
 	public synchronized LiveStateResponse currentState(long leagueKey) {
 		var session = leagueSessions.get(leagueKey);
 		if (session == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This league broadcast is not running. Open it again while its schedule is active.");
-		return withNarrations(leagueKey, session.state);
+		return session.publishedState == null ? withoutEvents(session.state) : session.publishedState;
 	}
 
 	/** Starts a league only once; later viewers join its existing poller. */
@@ -115,15 +118,14 @@ public class MockLiveStateService {
 		var existing = leagueSessions.get(leagueKey);
 		if (existing != null) {
 			log.info("Joining existing broadcast session: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType);
-			return existing.state;
+			return currentState(leagueKey);
 		}
 		log.info("Starting broadcast session: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType);
 		var session = new RealSession();
 		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
-		enqueueNarrationJobs(leagueKey, session.state);
 		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
 		leagueSessions.put(leagueKey, session);
-		broadcast(leagueKey, session.state);
+		publishLeagueState(leagueKey, session, session.state);
 		session.task = sequenceExecutor.scheduleAtFixedRate(() -> pollLeagueSession(leagueKey, fplLeagueId, leagueType, scoringType), STEP_INTERVAL_SECONDS, STEP_INTERVAL_SECONDS, TimeUnit.SECONDS);
 		return session.state;
 	}
@@ -141,7 +143,10 @@ public class MockLiveStateService {
 
 	public synchronized void stopLeagueSessions() {
 		if (!leagueSessions.isEmpty()) log.info("Stopping {} league broadcast session(s): no broadcast schedule is active.", leagueSessions.size());
-		leagueSessions.values().forEach(session -> { if (session.task != null) session.task.cancel(false); });
+		leagueSessions.values().forEach(session -> {
+			if (session.task != null) session.task.cancel(false);
+			session.releaseTasks.forEach(task -> task.cancel(false));
+		});
 		leagueSessions.clear();
 	}
 
@@ -152,12 +157,11 @@ public class MockLiveStateService {
 			try {
 				session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
 				log.info("FPL poll succeeded: leagueKey={}, poll={}, gameweek={}, matchups={}, events={}", leagueKey, session.pollCount, session.state.gameweek(), session.state.matchups().size(), session.state.events().size());
-				enqueueNarrationJobs(leagueKey, session.state);
-				broadcast(leagueKey, session.state);
+				publishOrStageLeagueState(leagueKey, session, session.state);
 			}
 			catch (RuntimeException exception) {
 				log.error("FPL poll failed: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType, exception);
-				session.state = new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "FPL poll failed; retrying in 10 seconds."), session.state.sequence(), session.state.gameweek(), session.state.matchups(), session.state.teams(), session.state.standings(), List.of(), session.state.commentary()); broadcast(leagueKey, session.state);
+				session.state = new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "FPL poll failed; retrying in 10 seconds."), session.state.sequence(), session.state.gameweek(), session.state.matchups(), session.state.teams(), session.state.standings(), List.of(), session.state.commentary()); publishLeagueState(leagueKey, session, session.state);
 			}
 		}
 	}
@@ -265,20 +269,34 @@ public class MockLiveStateService {
 		return matchups;
 	}
 
-	private void broadcast(long leagueKey, LiveStateResponse state) {
-		var stateWithNarrations = withNarrations(leagueKey, state);
-		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
+	private void publishOrStageLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
+		if (narrationJobService == null || narrationProperties == null || !narrationJobService.enqueueForEvents(leagueKey, state)) {
+			publishLeagueState(leagueKey, session, state);
+			return;
+		}
+		var delayMillis = Math.max(0, narrationProperties.getReleaseDelay().toMillis());
+		log.info("Staging narrated broadcast events: leagueKey={}, gameweek={}, events={}, releaseDelayMs={}",
+				leagueKey, state.gameweek(), state.events().size(), delayMillis);
+		var releaseTask = sequenceExecutor.schedule(() -> releaseStagedLeagueState(leagueKey, state), delayMillis, TimeUnit.MILLISECONDS);
+		session.releaseTasks.add(releaseTask);
 	}
 
-	@EventListener
-	public void onNarrationReady(NarrationReadyEvent event) {
-		var session = leagueSessions.get(event.leagueId());
-		if (session != null && session.state.gameweek() == event.gameweek()) {
-			broadcast(event.leagueId(), session.state);
+	private void releaseStagedLeagueState(long leagueKey, LiveStateResponse state) {
+		synchronized (this) {
+			var session = leagueSessions.get(leagueKey);
+			if (session == null) return;
+			session.releaseTasks.removeIf(ScheduledFuture::isDone);
+			publishLeagueState(leagueKey, session, state);
 		}
 	}
 
-	private static class RealSession { LiveStateResponse state; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; }
+	private void publishLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
+		var stateWithNarrations = withNarrations(leagueKey, state);
+		session.publishedState = stateWithNarrations;
+		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
+	}
+
+	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; List<ScheduledFuture<?>> releaseTasks = new CopyOnWriteArrayList<>(); }
 
 	private record LeagueSnapshot(FplLeagueType leagueType, FplLeagueScoring scoringType, int gameweek,
 			Map<Integer, FplPlayer> playersById, FplDraftLeague draftLeague,
@@ -590,12 +608,6 @@ public class MockLiveStateService {
 		}
 	}
 
-	private void enqueueNarrationJobs(long leagueKey, LiveStateResponse state) {
-		if (narrationJobService != null) {
-			narrationJobService.enqueueForEvents(leagueKey, state);
-		}
-	}
-
 	private List<PointChange> classifyPointEvents(FplLivePlayer previous, FplLivePlayer current, int totalDelta) {
 		if (previous == null || current == null) return List.of(new PointChange("points_update", totalDelta));
 		var before = explanationValues(previous);
@@ -865,13 +877,21 @@ public class MockLiveStateService {
 	}
 
 	private LiveStateResponse withNarrations(long leagueKey, LiveStateResponse state) {
-		if (narrationRepository == null) return state;
+		if (narrationRepository == null || state.events().isEmpty()) return state;
+		var eventIds = new HashSet<String>();
+		for (var event : state.events()) eventIds.add(event.id());
 		var commentary = narrationRepository.readyForLeagueGameweek(leagueKey, state.gameweek()).stream()
+				.filter(narration -> eventIds.contains(narration.sourceEventId()))
 				.map(this::toCommentaryView)
 				.toList();
 		if (commentary.isEmpty()) return state;
 		return new LiveStateResponse(state.status(), state.sequence(), state.gameweek(), state.matchups(),
 				state.teams(), state.standings(), state.events(), commentary);
+	}
+
+	private LiveStateResponse withoutEvents(LiveStateResponse state) {
+		return new LiveStateResponse(state.status(), state.sequence(), state.gameweek(), state.matchups(),
+				state.teams(), state.standings(), List.of(), state.commentary());
 	}
 
 	private CommentaryView toCommentaryView(BroadcastNarration narration) {

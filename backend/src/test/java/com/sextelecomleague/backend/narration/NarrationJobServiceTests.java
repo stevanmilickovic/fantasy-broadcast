@@ -54,8 +54,9 @@ class NarrationJobServiceTests {
 		var service = service();
 		var state = state(List.of(event("event-1", "GOAL"), event("event-2", "POINTS_UPDATE")));
 
-		service.enqueueForEvents(1L, state);
+		var staged = service.enqueueForEvents(1L, state);
 
+		assertThat(staged).isTrue();
 		var narration = repository.findBySourceEvent(1L, 7, "event-1").orElseThrow();
 		assertThat(narration.status()).isEqualTo(NarrationStatus.TEXT_READY);
 		assertThat(narration.text()).isEqualTo("Player GOAL for +4 points.");
@@ -67,8 +68,8 @@ class NarrationJobServiceTests {
 		var service = service();
 		var state = state(List.of(event("event-1", "GOAL")));
 
-		service.enqueueForEvents(1L, state);
-		service.enqueueForEvents(1L, state);
+		assertThat(service.enqueueForEvents(1L, state)).isTrue();
+		assertThat(service.enqueueForEvents(1L, state)).isTrue();
 
 		assertThat(repository.countForLeagueGameweek(1L, 7)).isEqualTo(1);
 	}
@@ -92,8 +93,9 @@ class NarrationJobServiceTests {
 		properties.getLimits().setMaxNarrationsPerLeagueGameweek(1);
 		var service = service();
 
-		service.enqueueForEvents(1L, state(List.of(event("event-1", "GOAL"), event("event-2", "ASSIST"))));
+		var staged = service.enqueueForEvents(1L, state(List.of(event("event-1", "GOAL"), event("event-2", "ASSIST"))));
 
+		assertThat(staged).isTrue();
 		assertThat(repository.findBySourceEvent(1L, 7, "event-1")).isPresent();
 		assertThat(repository.findBySourceEvent(1L, 7, "event-2")).isEmpty();
 	}
@@ -113,9 +115,19 @@ class NarrationJobServiceTests {
 		assertThat(narration.ttsCharacters()).isZero();
 	}
 
+	@Test
+	void doesNotStageWhenOnlyLowSignalEventsArePresent() {
+		var service = service();
+
+		var staged = service.enqueueForEvents(1L, state(List.of(event("event-1", "POINTS_UPDATE"))));
+
+		assertThat(staged).isFalse();
+		assertThat(repository.countForLeagueGameweek(1L, 7)).isZero();
+	}
+
 	private NarrationJobService service() {
 		return new NarrationJobService(properties, repository, new NarrationEventSelector(), new NarrationBudgetService(properties, repository),
-				new MockCommentaryTextGenerator(), new MockVoiceNarrationGenerator(properties), event -> { }, Runnable::run);
+				new MockCommentaryTextGenerator(), new MockVoiceNarrationGenerator(properties), Runnable::run);
 	}
 
 	private LiveStateResponse state(List<FantasyEventView> events) {

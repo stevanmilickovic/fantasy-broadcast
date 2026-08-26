@@ -13,6 +13,7 @@ broadcast:
   narration:
     enabled: ${BROADCAST_NARRATION_ENABLED:false}
     audio-enabled: ${BROADCAST_NARRATION_AUDIO_ENABLED:false}
+    release-delay: ${BROADCAST_NARRATION_RELEASE_DELAY:5s}
     openai:
       api-key: ${OPENAI_API_KEY:}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
