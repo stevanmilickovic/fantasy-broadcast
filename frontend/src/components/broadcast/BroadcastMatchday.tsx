@@ -1,4 +1,4 @@
-import { ArrowLeft, Radio, Trophy } from 'lucide-react'
+import { ArrowLeft, Radio, Trophy, Volume2 } from 'lucide-react'
 import type { CSSProperties, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, TeamView } from '../../types/live'
@@ -31,7 +31,7 @@ type FplClubShirt = { name: string; shortName?: string; code: number }
 type ShirtCodes = FplClubShirt[]
 
 export function BroadcastMatchday({
-  displayLiveState, matchup, leaderName, broadcastFocus, automaticFocus,
+  displayLiveState, matchup, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
   revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
@@ -48,6 +48,8 @@ export function BroadcastMatchday({
       latestEvent={displayLatestEvent}
       latestEvents={displayEvents}
       pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []}
+      latestCommentaryText={latestCommentaryText}
+      latestCommentaryStatus={latestCommentaryStatus}
       standings={standings}
       totalTeamNameRef={totalTeamNameRef}
       totalHeadingRef={totalHeadingRef}
@@ -63,6 +65,7 @@ export function BroadcastMatchday({
       {revealingMatch && <MatchReveal layout={revealLayout} matchup={matchup} homeHeadingRef={homeHeadingRef} awayHeadingRef={awayHeadingRef} />}
       <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
       <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
+      <NarrationCaption text={latestCommentaryText} status={latestCommentaryStatus} />
       <MatchSelector latestEvent={displayLatestEvent} matchups={displayLiveState.matchups} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
 
       <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
@@ -72,6 +75,14 @@ export function BroadcastMatchday({
       </section>
     </main>
   )
+}
+
+function NarrationCaption({ text, status }: { text: string; status: string }) {
+  const waiting = status === 'WAITING'
+  return <aside className={`narration-caption ${waiting ? 'waiting' : ''}`} aria-live="polite">
+    <Volume2 size={16} />
+    <span>{text}</span>
+  </aside>
 }
 
 function MatchSelector({ matchups, latestEvent, selectedFocus, onSelect }: { matchups: MatchupView[]; latestEvent?: FantasyEventView; selectedFocus: BroadcastFocus; onSelect: (focus: BroadcastFocus) => void }) {
@@ -332,7 +343,7 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
   </div>
 }
 
-function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryText, latestCommentaryStatus, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
   displayLiveState: LiveStateResponse
   broadcastFocus: BroadcastFocus
   automaticFocus: BroadcastFocus
@@ -342,6 +353,8 @@ function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus
   latestEvent?: FantasyEventView
   latestEvents: FantasyEventView[]
   pendingEvents: FantasyEventView[]
+  latestCommentaryText: string
+  latestCommentaryStatus: string
   standings: LiveStandingView[]
   totalTeamNameRef: RefObject<HTMLSpanElement | null>
   totalHeadingRef: RefObject<HTMLHeadingElement | null>
@@ -361,6 +374,7 @@ function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus
     {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} headingRef={totalHeadingRef} scoreRef={scoreRef} />}
     <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
     <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
+    <NarrationCaption text={latestCommentaryText} status={latestCommentaryStatus} />
     <ClubSelector teams={displayLiveState.teams} latestEvent={latestEvent} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
     <section className="matchday-stage total-points-stage" aria-label="Focused total-points club broadcast">
       <section className="broadcast-team-column left total-points-team-column" style={{ '--team-color': team.color } as CSSProperties}>

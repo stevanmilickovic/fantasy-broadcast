@@ -12,6 +12,7 @@ import jakarta.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -26,21 +27,23 @@ public class NarrationJobService {
 	private final CommentaryTextGenerator textGenerator;
 	private final VoiceNarrationGenerator voiceGenerator;
 	private final Executor executor;
+	private final ApplicationEventPublisher eventPublisher;
 
 	public NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
 			NarrationEventSelector eventSelector, CommentaryTextGenerator textGenerator,
-			VoiceNarrationGenerator voiceGenerator) {
-		this(properties, repository, eventSelector, textGenerator, voiceGenerator, Executors.newFixedThreadPool(2));
+			VoiceNarrationGenerator voiceGenerator, ApplicationEventPublisher eventPublisher) {
+		this(properties, repository, eventSelector, textGenerator, voiceGenerator, eventPublisher, Executors.newFixedThreadPool(2));
 	}
 
 	NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
 			NarrationEventSelector eventSelector, CommentaryTextGenerator textGenerator,
-			VoiceNarrationGenerator voiceGenerator, Executor executor) {
+			VoiceNarrationGenerator voiceGenerator, ApplicationEventPublisher eventPublisher, Executor executor) {
 		this.properties = properties;
 		this.repository = repository;
 		this.eventSelector = eventSelector;
 		this.textGenerator = textGenerator;
 		this.voiceGenerator = voiceGenerator;
+		this.eventPublisher = eventPublisher;
 		this.executor = executor;
 	}
 
@@ -56,9 +59,13 @@ public class NarrationJobService {
 		try {
 			var commentary = textGenerator.generate(context);
 			var narration = repository.markTextReady(narrationId, commentary.text(), commentary.inputTokens(), commentary.outputTokens()).orElseThrow();
-			if (!properties.isAudioEnabled()) return;
+			if (!properties.isAudioEnabled()) {
+				publishReady(context, narration.id());
+				return;
+			}
 			var voice = voiceGenerator.generate(context.sourceEventId(), narration.text());
 			repository.markAudioReady(narration.id(), voice.audioPath(), voice.characters(), voice.expiresAt());
+			publishReady(context, narration.id());
 		}
 		catch (RuntimeException exception) {
 			log.warn("Narration generation failed: narrationId={}, sourceEventId={}", narrationId, context.sourceEventId(), exception);
@@ -73,6 +80,10 @@ public class NarrationJobService {
 	private NarrationContext context(long leagueId, int gameweek, FantasyEventView event) {
 		return new NarrationContext(leagueId, gameweek, event.id(), event.type(), event.managerId(),
 				event.playerId(), event.summary(), event.pointDelta(), properties.getLimits().getMaxTextCharacters());
+	}
+
+	private void publishReady(NarrationContext context, long narrationId) {
+		eventPublisher.publishEvent(new NarrationReadyEvent(context.leagueId(), context.gameweek(), narrationId));
 	}
 
 	@PreDestroy

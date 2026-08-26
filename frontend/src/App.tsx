@@ -14,7 +14,7 @@ import type { LeagueDiscoveryState } from './types/fpl'
 import type { AppView, BroadcastFocus, LiveStateResponse, RevealLayout } from './types/live'
 import type { LiveStandingView } from './types/live'
 import { findFocusedMatchup, toRevealRect, toScoreRevealRect } from './utils/broadcast'
-import { enablePointChangeSound, playPointChangeSound } from './utils/broadcastSound'
+import { enablePointChangeSound, playNarrationAudio, playPointChangeSound } from './utils/broadcastSound'
 import './App.css'
 
 const SCENE_WIPE_MS = 1600
@@ -48,6 +48,7 @@ function App() {
   const [lastAutoMatchupId, setLastAutoMatchupId] = useState<string | null>(null)
   const lastFocusedMatchupIdRef = useRef<string | null>(null)
   const lastSoundedEventIdRef = useRef<string | null>(null)
+  const lastNarrationAudioIdRef = useRef<string | null>(null)
   const lastBroadcastFocusRef = useRef<BroadcastFocus>('multi')
   const transitionTimersRef = useRef<number[]>([])
   const homeHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -169,6 +170,13 @@ function App() {
     lastSoundedEventIdRef.current = targetLatestEvent.id
     playPointChangeSound(targetLatestEvent.pointDelta)
   }, [targetLatestEvent?.id, targetLatestEvent?.pointDelta])
+
+  const latestNarration = liveState?.commentary?.[0]
+  useEffect(() => {
+    if (!latestNarration?.audioUrl || latestNarration.id === lastNarrationAudioIdRef.current) return
+    lastNarrationAudioIdRef.current = latestNarration.id
+    void playNarrationAudio(latestNarration.audioUrl)
+  }, [latestNarration?.audioUrl, latestNarration?.id])
 
   useEffect(() => {
     const autoFocusId = isTotalPointsBroadcast ? eventTargetTeam?.managerId : eventTargetMatchup?.id

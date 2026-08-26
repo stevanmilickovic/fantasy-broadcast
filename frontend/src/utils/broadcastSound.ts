@@ -36,3 +36,18 @@ export const playPointChangeSound = (pointDelta: number) => {
     // Audio is optional.
   }
 }
+
+let narrationChain = Promise.resolve()
+
+export const playNarrationAudio = (audioUrl: string) => {
+  narrationChain = narrationChain
+    .catch(() => undefined)
+    .then(() => new Promise<void>((resolve) => {
+      const audio = new Audio(audioUrl)
+      audio.preload = 'auto'
+      audio.addEventListener('ended', () => resolve(), { once: true })
+      audio.addEventListener('error', () => resolve(), { once: true })
+      void audio.play().catch(() => resolve())
+    }))
+  return narrationChain
+}

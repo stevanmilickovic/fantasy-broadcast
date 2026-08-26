@@ -72,7 +72,7 @@ public class BroadcastNarrationRepository {
 				       expires_at, created_at, updated_at
 				from broadcast_narration
 				where league_id = ? and gameweek = ? and status in (?, ?)
-				order by created_at, id
+				order by created_at desc, id desc
 				""", this::mapNarration, leagueId, gameweek, NarrationStatus.TEXT_READY.name(), NarrationStatus.AUDIO_READY.name());
 	}
 

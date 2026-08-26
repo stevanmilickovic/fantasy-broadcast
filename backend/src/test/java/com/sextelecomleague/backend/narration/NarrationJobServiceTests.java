@@ -89,7 +89,7 @@ class NarrationJobServiceTests {
 
 	private NarrationJobService service() {
 		return new NarrationJobService(properties, repository, new NarrationEventSelector(),
-				new MockCommentaryTextGenerator(), new MockVoiceNarrationGenerator(properties), Runnable::run);
+				new MockCommentaryTextGenerator(), new MockVoiceNarrationGenerator(properties), event -> { }, Runnable::run);
 	}
 
 	private LiveStateResponse state(List<FantasyEventView> events) {

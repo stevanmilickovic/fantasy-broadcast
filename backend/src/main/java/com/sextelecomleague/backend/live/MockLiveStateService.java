@@ -15,7 +15,10 @@ import com.sextelecomleague.backend.fpl.FplLivePlayer;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
 import com.sextelecomleague.backend.fpl.FplLeagueScoring;
 import com.sextelecomleague.backend.fpl.FplPlayer;
+import com.sextelecomleague.backend.narration.BroadcastNarration;
+import com.sextelecomleague.backend.narration.BroadcastNarrationRepository;
 import com.sextelecomleague.backend.narration.NarrationJobService;
+import com.sextelecomleague.backend.narration.NarrationReadyEvent;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -32,6 +35,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -57,6 +61,7 @@ public class MockLiveStateService {
 	private final FplDraftClient fplClient;
 	private final FplDraftMapper fplMapper;
 	private final NarrationJobService narrationJobService;
+	private final BroadcastNarrationRepository narrationRepository;
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 	private final ScheduledExecutorService sequenceExecutor = Executors.newSingleThreadScheduledExecutor();
 	private int currentIndex;
@@ -73,10 +78,12 @@ public class MockLiveStateService {
 	private final Map<Long, List<SseEmitter>> leagueEmitters = new ConcurrentHashMap<>();
 
 	public MockLiveStateService(ObjectMapper objectMapper, FplDraftClient fplClient, FplDraftMapper fplMapper,
-			ObjectProvider<NarrationJobService> narrationJobService) {
+			ObjectProvider<NarrationJobService> narrationJobService,
+			ObjectProvider<BroadcastNarrationRepository> narrationRepository) {
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
 		this.narrationJobService = narrationJobService.getIfAvailable();
+		this.narrationRepository = narrationRepository.getIfAvailable();
 		try {
 			var resource = new ClassPathResource("mock/live-sequence.json");
 			this.snapshots = objectMapper.readValue(resource.getInputStream(), MockLiveSequence.class).snapshots();
@@ -99,7 +106,7 @@ public class MockLiveStateService {
 	public synchronized LiveStateResponse currentState(long leagueKey) {
 		var session = leagueSessions.get(leagueKey);
 		if (session == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This league broadcast is not running. Open it again while its schedule is active.");
-		return session.state;
+		return withNarrations(leagueKey, session.state);
 	}
 
 	/** Starts a league only once; later viewers join its existing poller. */
@@ -259,7 +266,16 @@ public class MockLiveStateService {
 	}
 
 	private void broadcast(long leagueKey, LiveStateResponse state) {
-		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, state);
+		var stateWithNarrations = withNarrations(leagueKey, state);
+		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
+	}
+
+	@EventListener
+	public void onNarrationReady(NarrationReadyEvent event) {
+		var session = leagueSessions.get(event.leagueId());
+		if (session != null && session.state.gameweek() == event.gameweek()) {
+			broadcast(event.leagueId(), session.state);
+		}
 	}
 
 	private static class RealSession { LiveStateResponse state; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; }
@@ -846,5 +862,20 @@ public class MockLiveStateService {
 				state.standings(),
 				state.events(),
 				state.commentary());
+	}
+
+	private LiveStateResponse withNarrations(long leagueKey, LiveStateResponse state) {
+		if (narrationRepository == null) return state;
+		var commentary = narrationRepository.readyForLeagueGameweek(leagueKey, state.gameweek()).stream()
+				.map(this::toCommentaryView)
+				.toList();
+		if (commentary.isEmpty()) return state;
+		return new LiveStateResponse(state.status(), state.sequence(), state.gameweek(), state.matchups(),
+				state.teams(), state.standings(), state.events(), commentary);
+	}
+
+	private CommentaryView toCommentaryView(BroadcastNarration narration) {
+		return new CommentaryView(String.valueOf(narration.id()), narration.createdAt().toString(), narration.text(),
+				3, narration.status().name(), narration.audioPath() == null ? null : "/api/broadcast-narrations/" + narration.id() + "/audio");
 	}
 }

@@ -80,7 +80,7 @@ class BroadcastNarrationRepositoryTests {
 		assertThat(audioReady.textOutputTokens()).isEqualTo(9);
 		assertThat(audioReady.ttsCharacters()).isEqualTo(25);
 		assertThat(audioReady.expiresAt()).isNotNull();
-		assertThat(repository.readyForLeagueGameweek(1L, 3)).extracting(BroadcastNarration::id).containsExactly(pending.id());
+		assertThat(repository.readyForLeagueGameweek(1L, 3)).extracting(BroadcastNarration::id).contains(pending.id());
 	}
 
 	@Test

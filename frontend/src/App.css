@@ -273,6 +273,42 @@
   min-width: 0;
 }
 
+.narration-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  z-index: 32;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: min(760px, calc(100vw - 48px));
+  min-height: 46px;
+  padding: 10px 16px;
+  border-left: 4px solid var(--pl-green);
+  color: white;
+  background: rgba(55, 0, 60, 0.86);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+}
+
+.narration-caption svg {
+  flex: 0 0 auto;
+  color: var(--pl-green);
+}
+
+.narration-caption span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.narration-caption.waiting {
+  opacity: 0.68;
+}
+
 .match-chip-track {
   flex: 1 1 0;
   display: flex;
@@ -1815,6 +1851,14 @@ blockquote {
     top: 76px;
     left: 16px;
     right: 16px;
+  }
+
+  .narration-caption {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+    transform: none;
   }
 
   .matchday-stage {

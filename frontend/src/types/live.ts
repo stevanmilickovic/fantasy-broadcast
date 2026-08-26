@@ -70,6 +70,7 @@ export type CommentaryView = {
   text: string
   priority: number
   status: string
+  audioUrl?: string
 }
 
 export type LiveStateResponse = {

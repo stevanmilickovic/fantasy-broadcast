@@ -5,6 +5,10 @@ public record CommentaryView(
 		String createdAt,
 		String text,
 		int priority,
-		String status
+		String status,
+		String audioUrl
 ) {
+	public CommentaryView(String id, String createdAt, String text, int priority, String status) {
+		this(id, createdAt, text, priority, status, null);
+	}
 }
