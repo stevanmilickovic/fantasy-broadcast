@@ -1,0 +1,116 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-broadcast-narrations
+      author: codex
+      changes:
+        - createTable:
+            tableName: broadcast_narration
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: league_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: gameweek
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_event_id
+                  type: VARCHAR(190)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(40)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: generated_text
+                  type: VARCHAR(500)
+              - column:
+                  name: audio_path
+                  type: VARCHAR(1024)
+              - column:
+                  name: text_input_tokens
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text_output_tokens
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tts_characters
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_message
+                  type: VARCHAR(500)
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: broadcast_narration
+            baseColumnNames: league_id
+            referencedTableName: league
+            referencedColumnNames: id
+            constraintName: fk_broadcast_narration_league
+            onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: broadcast_narration
+            columnNames: league_id, gameweek, source_event_id
+            constraintName: uq_broadcast_narration_source_event
+
+        - createIndex:
+            tableName: broadcast_narration
+            indexName: ix_broadcast_narration_league_gameweek_status
+            columns:
+              - column:
+                  name: league_id
+              - column:
+                  name: gameweek
+              - column:
+                  name: status
+
+        - createIndex:
+            tableName: broadcast_narration
+            indexName: ix_broadcast_narration_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: broadcast_narration
+            indexName: ix_broadcast_narration_expires_at
+            columns:
+              - column:
+                  name: expires_at
