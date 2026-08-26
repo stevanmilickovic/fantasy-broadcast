@@ -24,23 +24,25 @@ public class NarrationJobService {
 	private final NarrationProperties properties;
 	private final BroadcastNarrationRepository repository;
 	private final NarrationEventSelector eventSelector;
+	private final NarrationBudgetService budgetService;
 	private final CommentaryTextGenerator textGenerator;
 	private final VoiceNarrationGenerator voiceGenerator;
 	private final Executor executor;
 	private final ApplicationEventPublisher eventPublisher;
 
 	public NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
-			NarrationEventSelector eventSelector, CommentaryTextGenerator textGenerator,
+			NarrationEventSelector eventSelector, NarrationBudgetService budgetService, CommentaryTextGenerator textGenerator,
 			VoiceNarrationGenerator voiceGenerator, ApplicationEventPublisher eventPublisher) {
-		this(properties, repository, eventSelector, textGenerator, voiceGenerator, eventPublisher, Executors.newFixedThreadPool(2));
+		this(properties, repository, eventSelector, budgetService, textGenerator, voiceGenerator, eventPublisher, Executors.newFixedThreadPool(2));
 	}
 
 	NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
-			NarrationEventSelector eventSelector, CommentaryTextGenerator textGenerator,
+			NarrationEventSelector eventSelector, NarrationBudgetService budgetService, CommentaryTextGenerator textGenerator,
 			VoiceNarrationGenerator voiceGenerator, ApplicationEventPublisher eventPublisher, Executor executor) {
 		this.properties = properties;
 		this.repository = repository;
 		this.eventSelector = eventSelector;
+		this.budgetService = budgetService;
 		this.textGenerator = textGenerator;
 		this.voiceGenerator = voiceGenerator;
 		this.eventPublisher = eventPublisher;
@@ -50,6 +52,11 @@ public class NarrationJobService {
 	public void enqueueForEvents(long leagueId, LiveStateResponse state) {
 		if (!properties.isEnabled() || state.events().isEmpty()) return;
 		for (var event : selectedEvents(state.events())) {
+			if (!budgetService.canCreateNarration(leagueId, state.gameweek())) {
+				log.info("Skipping narration: leagueId={}, gameweek={}, sourceEventId={}, reason=league_gameweek_limit",
+						leagueId, state.gameweek(), event.id());
+				continue;
+			}
 			repository.createPendingIfAbsent(leagueId, state.gameweek(), event.id())
 					.ifPresent(narration -> executor.execute(() -> generate(narration.id(), context(leagueId, state.gameweek(), event))));
 		}
@@ -60,6 +67,11 @@ public class NarrationJobService {
 			var commentary = textGenerator.generate(context);
 			var narration = repository.markTextReady(narrationId, commentary.text(), commentary.inputTokens(), commentary.outputTokens()).orElseThrow();
 			if (!properties.isAudioEnabled()) {
+				publishReady(context, narration.id());
+				return;
+			}
+			if (!budgetService.canGenerateAudio(narration.text().length())) {
+				log.info("Publishing text-only narration: narrationId={}, reason=monthly_tts_budget", narration.id());
 				publishReady(context, narration.id());
 				return;
 			}

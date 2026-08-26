@@ -130,6 +130,26 @@ public class BroadcastNarrationRepository {
 		return count == null ? 0 : count;
 	}
 
+	public List<BroadcastNarration> expiredAudioNarrations(Instant now) {
+		return jdbcTemplate.query("""
+				select id, league_id, gameweek, source_event_id, status, generated_text, audio_path,
+				       text_input_tokens, text_output_tokens, tts_characters, error_message,
+				       expires_at, created_at, updated_at
+				from broadcast_narration
+				where status = ? and expires_at is not null and expires_at < ?
+				order by expires_at, id
+				""", this::mapNarration, NarrationStatus.AUDIO_READY.name(), Timestamp.from(now));
+	}
+
+	public Optional<BroadcastNarration> markExpired(long id) {
+		jdbcTemplate.update("""
+				update broadcast_narration
+				set status = ?, audio_path = null, updated_at = current_timestamp
+				where id = ?
+				""", NarrationStatus.EXPIRED.name(), id);
+		return findById(id);
+	}
+
 	private BroadcastNarration mapNarration(ResultSet resultSet, int rowNumber) throws SQLException {
 		return new BroadcastNarration(
 				resultSet.getLong("id"),

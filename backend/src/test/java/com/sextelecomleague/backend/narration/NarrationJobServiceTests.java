@@ -87,8 +87,34 @@ class NarrationJobServiceTests {
 		assertThat(narration.expiresAt()).isAfter(Instant.now());
 	}
 
+	@Test
+	void skipsNewJobsAfterLeagueGameweekLimit() {
+		properties.getLimits().setMaxNarrationsPerLeagueGameweek(1);
+		var service = service();
+
+		service.enqueueForEvents(1L, state(List.of(event("event-1", "GOAL"), event("event-2", "ASSIST"))));
+
+		assertThat(repository.findBySourceEvent(1L, 7, "event-1")).isPresent();
+		assertThat(repository.findBySourceEvent(1L, 7, "event-2")).isEmpty();
+	}
+
+	@Test
+	void monthlyAudioBudgetFallsBackToTextOnly() {
+		properties.setAudioEnabled(true);
+		properties.getLimits().setMonthlyTtsCharacterBudget(5);
+		var service = service();
+
+		service.enqueueForEvents(1L, state(List.of(event("event-1", "GOAL"))));
+
+		var narration = repository.findBySourceEvent(1L, 7, "event-1").orElseThrow();
+		assertThat(narration.status()).isEqualTo(NarrationStatus.TEXT_READY);
+		assertThat(narration.text()).isNotBlank();
+		assertThat(narration.audioPath()).isNull();
+		assertThat(narration.ttsCharacters()).isZero();
+	}
+
 	private NarrationJobService service() {
-		return new NarrationJobService(properties, repository, new NarrationEventSelector(),
+		return new NarrationJobService(properties, repository, new NarrationEventSelector(), new NarrationBudgetService(properties, repository),
 				new MockCommentaryTextGenerator(), new MockVoiceNarrationGenerator(properties), event -> { }, Runnable::run);
 	}
 

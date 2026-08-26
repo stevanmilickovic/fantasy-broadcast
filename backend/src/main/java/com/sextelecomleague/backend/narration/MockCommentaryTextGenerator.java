@@ -1,10 +1,12 @@
 package com.sextelecomleague.backend.narration;
 
 import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 
 @Service
 @Profile("db & !test")
+@ConditionalOnExpression("'${broadcast.narration.openai.api-key:}'.length() == 0")
 public class MockCommentaryTextGenerator implements CommentaryTextGenerator {
 
 	@Override

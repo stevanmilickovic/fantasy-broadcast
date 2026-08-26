@@ -101,4 +101,16 @@ class BroadcastNarrationRepositoryTests {
 		assertThat(repository.markSkippedBudget(skipped.id(), "monthly budget exceeded").orElseThrow().status()).isEqualTo(NarrationStatus.SKIPPED_BUDGET);
 		assertThat(repository.findBySourceEvent(1L, 3, "event-5").orElseThrow().errorMessage()).isEqualTo("monthly budget exceeded");
 	}
+
+	@Test
+	void findsAndExpiresOldAudioNarrations() {
+		var narration = repository.createPending(1L, 3, "event-6");
+		repository.markAudioReady(narration.id(), "/tmp/narration/event-6.mp3", 20, Instant.now().minusSeconds(1));
+
+		assertThat(repository.expiredAudioNarrations(Instant.now())).extracting(BroadcastNarration::id).containsExactly(narration.id());
+
+		var expired = repository.markExpired(narration.id()).orElseThrow();
+		assertThat(expired.status()).isEqualTo(NarrationStatus.EXPIRED);
+		assertThat(expired.audioPath()).isNull();
+	}
 }

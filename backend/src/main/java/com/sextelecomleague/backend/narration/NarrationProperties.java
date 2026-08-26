@@ -219,6 +219,9 @@ public class NarrationProperties {
 		@NotNull
 		private Duration audioTtl = Duration.ofMinutes(30);
 
+		@NotNull
+		private Duration cleanupInterval = Duration.ofMinutes(5);
+
 		public String getTempDirectory() {
 			return tempDirectory;
 		}
@@ -233,6 +236,14 @@ public class NarrationProperties {
 
 		public void setAudioTtl(Duration audioTtl) {
 			this.audioTtl = audioTtl;
+		}
+
+		public Duration getCleanupInterval() {
+			return cleanupInterval;
+		}
+
+		public void setCleanupInterval(Duration cleanupInterval) {
+			this.cleanupInterval = cleanupInterval;
 		}
 	}
 

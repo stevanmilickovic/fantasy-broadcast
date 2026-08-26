@@ -31,6 +31,7 @@ broadcast:
     storage:
       temp-directory: ${BROADCAST_NARRATION_TEMP_DIRECTORY:${java.io.tmpdir}/stk-broadcast/narrations}
       audio-ttl: ${BROADCAST_NARRATION_AUDIO_TTL:30m}
+      cleanup-interval: ${BROADCAST_NARRATION_CLEANUP_INTERVAL:5m}
 
 ---
 spring:
