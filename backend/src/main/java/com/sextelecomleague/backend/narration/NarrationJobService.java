@@ -12,6 +12,7 @@ import jakarta.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ public class NarrationJobService {
 	private final VoiceNarrationGenerator voiceGenerator;
 	private final Executor executor;
 
+	@Autowired
 	public NarrationJobService(NarrationProperties properties, BroadcastNarrationRepository repository,
 			NarrationEventSelector eventSelector, NarrationBudgetService budgetService, CommentaryTextGenerator textGenerator,
 			VoiceNarrationGenerator voiceGenerator) {
