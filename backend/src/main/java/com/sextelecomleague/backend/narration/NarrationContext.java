@@ -8,6 +8,7 @@ public record NarrationContext(
 		String managerId,
 		String playerId,
 		String eventSummary,
+		String notificationContext,
 		int pointDelta,
 		int maxCharacters,
 		boolean voiceNarrationEnabled) {

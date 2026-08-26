@@ -18,16 +18,18 @@ export const postMockAction = async (action: 'start' | 'advance' | 'reset', toke
   return response.json()
 }
 
-export const startComprehensiveMock = async (token: string): Promise<LiveStateResponse> => {
-  const response = await fetch('/api/mock-live/comprehensive/start', { method: 'POST', headers: adminHeaders(token) })
+export type MockNarrationMode = 'NONE' | 'TEXT'
+
+export const startComprehensiveMock = async (token: string, narrationMode: MockNarrationMode): Promise<LiveStateResponse> => {
+  const response = await fetch(`/api/mock-live/comprehensive/start?${new URLSearchParams({ narrationMode })}`, { method: 'POST', headers: adminHeaders(token) })
   if (!response.ok) {
     throw new Error(`Comprehensive mock start failed with ${response.status}`)
   }
   return response.json()
 }
 
-export const startTotalPointsMock = async (token: string): Promise<LiveStateResponse> => {
-  const response = await fetch('/api/mock-live/total-points/start', { method: 'POST', headers: adminHeaders(token) })
+export const startTotalPointsMock = async (token: string, narrationMode: MockNarrationMode): Promise<LiveStateResponse> => {
+  const response = await fetch(`/api/mock-live/total-points/start?${new URLSearchParams({ narrationMode })}`, { method: 'POST', headers: adminHeaders(token) })
   if (!response.ok) throw new Error(`Total-points mock request failed with ${response.status}`)
   return response.json()
 }

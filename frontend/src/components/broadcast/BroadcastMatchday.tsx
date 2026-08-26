@@ -5,9 +5,10 @@ import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateRespo
 import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../../utils/broadcast'
 
 type BroadcastMatchdayProps = {
-  displayLiveState: LiveStateResponse
-  matchup?: MatchupView
-  latestCommentaryText: string
+	displayLiveState: LiveStateResponse
+	matchup?: MatchupView
+	latestCommentaryId?: string
+	latestCommentaryText: string
   latestCommentaryStatus: string
   leaderName: string
   broadcastFocus: BroadcastFocus
@@ -32,7 +33,7 @@ type ShirtCodes = FplClubShirt[]
 const REVEAL_SCORE_CLEARANCE_PX = 42
 
 export function BroadcastMatchday({
-  displayLiveState, matchup, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
+	displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
   revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
@@ -49,6 +50,7 @@ export function BroadcastMatchday({
       latestEvent={displayLatestEvent}
       latestEvents={displayEvents}
       pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []}
+      latestCommentaryId={latestCommentaryId}
       latestCommentaryText={latestCommentaryText}
       latestCommentaryStatus={latestCommentaryStatus}
       standings={standings}
@@ -66,7 +68,7 @@ export function BroadcastMatchday({
       {revealingMatch && <MatchReveal layout={revealLayout} matchup={matchup} homeHeadingRef={homeHeadingRef} awayHeadingRef={awayHeadingRef} />}
       <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
       <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
-      <NarrationCaption text={latestCommentaryText} status={latestCommentaryStatus} />
+      <NarrationCaption id={latestCommentaryId} text={latestCommentaryText} status={latestCommentaryStatus} />
       <MatchSelector latestEvent={displayLatestEvent} matchups={displayLiveState.matchups} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
 
       <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
@@ -78,9 +80,10 @@ export function BroadcastMatchday({
   )
 }
 
-function NarrationCaption({ text, status }: { text: string; status: string }) {
-  const waiting = status === 'WAITING'
-  return <aside className={`narration-caption ${waiting ? 'waiting' : ''}`} aria-live="polite">
+function NarrationCaption({ id, text, status }: { id?: string; text: string; status: string }) {
+	const waiting = status === 'WAITING'
+	if (waiting || !id) return null
+	return <aside key={id ?? 'waiting'} className={`narration-caption ${waiting ? 'waiting' : 'has-commentary'}`} aria-live="polite">
     <Volume2 size={16} />
     <span>{text}</span>
   </aside>
@@ -346,7 +349,7 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
   </div>
 }
 
-function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryText, latestCommentaryStatus, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
   displayLiveState: LiveStateResponse
   broadcastFocus: BroadcastFocus
   automaticFocus: BroadcastFocus
@@ -355,8 +358,9 @@ function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus
   transitioningToMatch: boolean
   latestEvent?: FantasyEventView
   latestEvents: FantasyEventView[]
-  pendingEvents: FantasyEventView[]
-  latestCommentaryText: string
+	pendingEvents: FantasyEventView[]
+	latestCommentaryId?: string
+	latestCommentaryText: string
   latestCommentaryStatus: string
   standings: LiveStandingView[]
   totalTeamNameRef: RefObject<HTMLSpanElement | null>
@@ -377,7 +381,7 @@ function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus
     {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} teamNameRef={totalTeamNameRef} scoreRef={scoreRef} />}
     <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
     <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
-    <NarrationCaption text={latestCommentaryText} status={latestCommentaryStatus} />
+	    <NarrationCaption id={latestCommentaryId} text={latestCommentaryText} status={latestCommentaryStatus} />
     <ClubSelector teams={displayLiveState.teams} latestEvent={latestEvent} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
     <section className="matchday-stage total-points-stage" aria-label="Focused total-points club broadcast">
       <section className="broadcast-team-column left total-points-team-column" style={{ '--team-color': team.color } as CSSProperties}>

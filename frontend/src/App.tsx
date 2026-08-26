@@ -1,7 +1,7 @@
 import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType } from './api/liveApi'
+import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType, type MockNarrationMode } from './api/liveApi'
 import { clearToken, loadCurrentUser, loadRegisteredLeagues, logout, storeToken, storedToken } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
@@ -22,6 +22,7 @@ const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
 const MATCH_REVEAL_MS = 1900
 const TOTAL_SCORE_REVEAL_Y_CORRECTION = 1
 const INACTIVITY_ROTATION_MS = 60_000
+const QUEUED_NOTIFICATION_START_GRACE_MS = 450
 
 type BroadcastEventGroup = { id: string; events: FantasyEventView[]; totalChange: number }
 
@@ -40,6 +41,7 @@ function App() {
   const [leagueId, setLeagueId] = useState('49824')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
   const [leagueDiscovery, setLeagueDiscovery] = useState<LeagueDiscoveryState | null>(null)
+  const [mockNarrationMode, setMockNarrationMode] = useState<MockNarrationMode>('NONE')
   const [leagueError, setLeagueError] = useState<string | null>(null)
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
   const [appView, setAppView] = useState<AppView>('setup')
@@ -60,6 +62,7 @@ function App() {
   const lastNarrationAudioIdRef = useRef<string | null>(null)
   const lastBroadcastFocusRef = useRef<BroadcastFocus>('multi')
   const transitionTimersRef = useRef<number[]>([])
+  const queuedNotificationStartTimerRef = useRef<number | null>(null)
   const inactivityRotationTimerRef = useRef<number | null>(null)
   const lastBackendEventAtRef = useRef(Date.now())
   const recentlyShownFocusesRef = useRef(new Map<string, number>())
@@ -161,6 +164,7 @@ function App() {
 
   const resetBroadcastPlayback = () => {
     clearTransitionTimers()
+    if (queuedNotificationStartTimerRef.current) window.clearTimeout(queuedNotificationStartTimerRef.current)
     receivedBroadcastEventIdsRef.current.clear()
     lastFocusedMatchupIdRef.current = null
     lastBroadcastFocusRef.current = 'multi'
@@ -179,7 +183,7 @@ function App() {
     const incoming = (liveState?.events ?? []).filter((event) => !receivedBroadcastEventIdsRef.current.has(event.id))
     if (incoming.length === 0) return
     incoming.forEach((event) => receivedBroadcastEventIdsRef.current.add(event.id))
-    setPendingBroadcastGroups((current) => {
+    const mergeGroups = (current: BroadcastEventGroup[]) => {
       const groups = new Map(current.map((group) => [group.id, group]))
       for (const event of incoming) {
         const id = eventGroupId(liveState!, event)
@@ -187,14 +191,42 @@ function App() {
         groups.set(id, { ...group, events: [...group.events, event].sort((left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta)), totalChange: group.totalChange + Math.abs(event.pointDelta) })
       }
       return [...groups.values()].sort((left, right) => right.totalChange - left.totalChange)
-    })
+    }
+    if ((liveState?.commentary?.length ?? 0) > 0) {
+      const [highlight, ...queued] = mergeGroups([])
+      if (highlight) setActiveBroadcastGroup(highlight)
+      setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight?.id)])
+      return
+    }
+    setPendingBroadcastGroups(mergeGroups)
   }, [liveState?.events])
 
   useEffect(() => {
+    if (!liveState?.commentary?.[0] || liveState.events.length === 0) return
+    const groups = new Map<string, BroadcastEventGroup>()
+    for (const event of liveState.events) {
+      const id = eventGroupId(liveState, event)
+      const group = groups.get(id) ?? { id, events: [], totalChange: 0 }
+      groups.set(id, { ...group, events: [...group.events, event].sort((left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta)), totalChange: group.totalChange + Math.abs(event.pointDelta) })
+    }
+    const [highlight, ...queued] = [...groups.values()].sort((left, right) => right.totalChange - left.totalChange)
+    if (!highlight) return
+    setActiveBroadcastGroup(highlight)
+    setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight.id)])
+  }, [liveState?.commentary?.[0]?.id])
+
+  useEffect(() => {
     if (activeBroadcastGroup || pendingBroadcastGroups.length === 0) return
-    const [next, ...remaining] = pendingBroadcastGroups
-    setActiveBroadcastGroup(next)
-    setPendingBroadcastGroups(remaining)
+    queuedNotificationStartTimerRef.current = window.setTimeout(() => {
+      const [next, ...remaining] = pendingBroadcastGroups
+      setActiveBroadcastGroup(next)
+      setPendingBroadcastGroups(remaining)
+      queuedNotificationStartTimerRef.current = null
+    }, QUEUED_NOTIFICATION_START_GRACE_MS)
+    return () => {
+      if (queuedNotificationStartTimerRef.current) window.clearTimeout(queuedNotificationStartTimerRef.current)
+      queuedNotificationStartTimerRef.current = null
+    }
   }, [activeBroadcastGroup, pendingBroadcastGroups])
 
   useEffect(() => {
@@ -505,7 +537,7 @@ function App() {
     setIsBusy(true)
     try {
 		resetBroadcastPlayback()
-      const nextState = await startComprehensiveMock(authToken!)
+      const nextState = await startComprehensiveMock(authToken!, mockNarrationMode)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -535,7 +567,7 @@ function App() {
     setIsBusy(true)
     try {
 		resetBroadcastPlayback()
-      const nextState = await startTotalPointsMock(authToken!)
+      const nextState = await startTotalPointsMock(authToken!, mockNarrationMode)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -587,6 +619,7 @@ function App() {
       <BroadcastMatchday
         displayLiveState={displayLiveState}
         matchup={matchup}
+        latestCommentaryId={latestCommentary?.id}
         latestCommentaryText={latestCommentary?.text ?? 'Waiting for commentary.'}
         latestCommentaryStatus={latestCommentary?.status ?? 'WAITING'}
         leaderName={leaderName}
@@ -665,6 +698,7 @@ function App() {
       </section>
 
       <section className="controls-row administration-controls" aria-label="Broadcast controls">
+		<label className="administration-form-field"><span>Mock narration</span><select className="administration-select" value={mockNarrationMode} onChange={(event) => setMockNarrationMode(event.target.value as MockNarrationMode)}><option value="NONE">None</option><option value="TEXT">Text</option></select></label>
         <button type="button" onClick={startLiveBroadcast} disabled={isBusy || isLeagueLoading}>
           <Radio size={18} />
           Start live broadcast

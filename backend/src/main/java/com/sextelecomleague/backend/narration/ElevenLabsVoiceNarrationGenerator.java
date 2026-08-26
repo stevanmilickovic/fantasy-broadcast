@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.Duration;
 import java.util.Map;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -18,6 +21,7 @@ import org.springframework.web.client.RestClientException;
 @Profile("db & !test")
 @ConditionalOnExpression("'${broadcast.narration.eleven-labs.api-key:}'.length() > 0 && '${broadcast.narration.eleven-labs.voice-id:}'.length() > 0")
 public class ElevenLabsVoiceNarrationGenerator implements VoiceNarrationGenerator {
+	private static final Logger log = LoggerFactory.getLogger(ElevenLabsVoiceNarrationGenerator.class);
 
 	private final NarrationProperties properties;
 	private final RestClient restClient;
@@ -36,6 +40,9 @@ public class ElevenLabsVoiceNarrationGenerator implements VoiceNarrationGenerato
 
 	@Override
 	public GeneratedVoice generate(String sourceEventId, String text) {
+		var startedAt = Instant.now();
+		log.info("Sending ElevenLabs narration request: model={}, voiceId={}, sourceEventId={}, characters={}",
+				properties.getElevenLabs().getModelId(), properties.getElevenLabs().getVoiceId(), sourceEventId, text.length());
 		var body = Map.of(
 				"text", text,
 				"model_id", properties.getElevenLabs().getModelId());
@@ -50,6 +57,8 @@ public class ElevenLabsVoiceNarrationGenerator implements VoiceNarrationGenerato
 			if (audio == null || audio.length == 0) throw new IllegalStateException("Empty ElevenLabs audio response");
 			var audioPath = writeAudio(sourceEventId, audio);
 			var characterCost = parseCharacterCost(response.getHeaders().getFirst("character-cost"), text.length());
+			log.info("Received ElevenLabs narration response: sourceEventId={}, characters={}, durationMs={}", sourceEventId,
+					characterCost, Duration.between(startedAt, Instant.now()).toMillis());
 			return new GeneratedVoice(audioPath.toString(), characterCost, Instant.now().plus(properties.getStorage().getAudioTtl()));
 		}
 		catch (RestClientException exception) {

@@ -18,7 +18,7 @@ public class NarrationProperties {
 	private boolean audioEnabled = false;
 
 	@NotNull
-	private Duration releaseDelay = Duration.ofSeconds(5);
+	private Duration releaseDelay = Duration.ofMinutes(1);
 
 	@Valid
 	private OpenAi openai = new OpenAi();

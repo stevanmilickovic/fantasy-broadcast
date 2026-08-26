@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -69,6 +70,11 @@ public class MockLiveStateService {
 	private int currentIndex;
 	private boolean started;
 	private ScheduledFuture<?> sequenceTask;
+	private volatile MockNarrationMode mockNarrationMode = MockNarrationMode.NONE;
+	private volatile long mockNarrationRunId;
+	private volatile boolean mockNarrationPending;
+	private ScheduledFuture<?> mockNarrationReleaseTask;
+	private Instant nextMockAdvanceAt = Instant.EPOCH;
 	private LiveStateResponse realState;
 	private RealSession realSession;
 	private Map<String, Integer> previousRealPlayerPoints = Map.of();
@@ -151,7 +157,7 @@ public class MockLiveStateService {
 		if (!leagueSessions.isEmpty()) log.info("Stopping {} league broadcast session(s): no broadcast schedule is active.", leagueSessions.size());
 		leagueSessions.values().forEach(session -> {
 			if (session.task != null) session.task.cancel(false);
-			session.releaseTasks.forEach(task -> task.cancel(false));
+			cancelNarrationWait(session);
 		});
 		leagueSessions.clear();
 	}
@@ -160,6 +166,11 @@ public class MockLiveStateService {
 		synchronized (this) {
 			var session = leagueSessions.get(leagueKey);
 			if (session == null) return;
+			if (session.narrationPending) {
+				log.info("Skipping FPL poll while notification narration is pending: leagueKey={}", leagueKey);
+				return;
+			}
+			if (Instant.now().isBefore(session.nextPollAt)) return;
 			try {
 				session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
 				log.info("FPL poll succeeded: leagueKey={}, poll={}, gameweek={}, matchups={}, events={}", leagueKey, session.pollCount, session.state.gameweek(), session.state.matchups().size(), session.state.events().size());
@@ -309,19 +320,31 @@ public class MockLiveStateService {
 			publishLeagueState(leagueKey, session, state);
 			return;
 		}
-		var delayMillis = Math.max(0, narrationProperties.getReleaseDelay().toMillis());
-		log.info("Staging narrated broadcast events: leagueKey={}, gameweek={}, events={}, releaseDelayMs={}",
-				leagueKey, state.gameweek(), state.events().size(), delayMillis);
-		var releaseTask = sequenceExecutor.schedule(() -> releaseStagedLeagueState(leagueKey, state), delayMillis, TimeUnit.MILLISECONDS);
-		session.releaseTasks.add(releaseTask);
+		var maxWaitMillis = Math.max(0, narrationProperties.getReleaseDelay().toMillis());
+		session.narrationPending = true;
+		session.narrationDeadline = Instant.now().plusMillis(maxWaitMillis);
+		log.info("Waiting for complete narration before broadcast: leagueKey={}, gameweek={}, events={}, maxWaitMs={}, audioEnabled={}",
+				leagueKey, state.gameweek(), state.events().size(), maxWaitMillis, session.voiceNarrationEnabled);
+		session.narrationTask = sequenceExecutor.scheduleAtFixedRate(
+				() -> releaseWhenNarrationReady(leagueKey, state), 0, 1, TimeUnit.SECONDS);
 	}
 
-	private void releaseStagedLeagueState(long leagueKey, LiveStateResponse state) {
+	private void releaseWhenNarrationReady(long leagueKey, LiveStateResponse state) {
 		synchronized (this) {
 			var session = leagueSessions.get(leagueKey);
 			if (session == null) return;
-			session.releaseTasks.removeIf(ScheduledFuture::isDone);
-			publishLeagueState(leagueKey, session, state);
+			var complete = narrationJobService.areNarrationsReady(leagueKey, state, session.voiceNarrationEnabled);
+			var timedOut = !Instant.now().isBefore(session.narrationDeadline);
+			if (!complete && !timedOut) return;
+			cancelNarrationWait(session);
+			if (complete) {
+				log.info("Narration complete; sending notification: leagueKey={}, gameweek={}, events={}", leagueKey, state.gameweek(), state.events().size());
+				publishLeagueState(leagueKey, session, state);
+			}
+			else {
+				log.warn("Narration wait timed out; sending notification without commentary: leagueKey={}, gameweek={}, events={}", leagueKey, state.gameweek(), state.events().size());
+				publishRawLeagueState(leagueKey, session, state);
+			}
 		}
 	}
 
@@ -331,7 +354,19 @@ public class MockLiveStateService {
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
 	}
 
-	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); java.util.Set<String> automaticSubstitutions = java.util.Set.of(); int pollCount; ScheduledFuture<?> task; List<ScheduledFuture<?>> releaseTasks = new CopyOnWriteArrayList<>(); boolean aiNarrationEnabled; boolean voiceNarrationEnabled; }
+	private void publishRawLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
+		session.publishedState = state;
+		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, state);
+	}
+
+	private void cancelNarrationWait(RealSession session) {
+		session.narrationPending = false;
+		if (session.narrationTask != null) session.narrationTask.cancel(false);
+		session.narrationTask = null;
+		session.nextPollAt = Instant.now().plusSeconds(STEP_INTERVAL_SECONDS);
+	}
+
+	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); java.util.Set<String> automaticSubstitutions = java.util.Set.of(); int pollCount; ScheduledFuture<?> task; ScheduledFuture<?> narrationTask; boolean narrationPending; Instant narrationDeadline = Instant.EPOCH; Instant nextPollAt = Instant.EPOCH; boolean aiNarrationEnabled; boolean voiceNarrationEnabled; }
 
 	private record LeagueSnapshot(FplLeagueType leagueType, FplLeagueScoring scoringType, int gameweek,
 			Map<Integer, FplPlayer> playersById, FplDraftLeague draftLeague,
@@ -353,28 +388,32 @@ public class MockLiveStateService {
 	}
 
 	public synchronized LiveStateResponse start() {
-		return startSequence(snapshots);
+		return startSequence(snapshots, MockNarrationMode.NONE);
 	}
 
 	/** Starts the intentionally busy six-club sequence used to exercise event prioritisation and stacked notifications. */
-	public synchronized LiveStateResponse startComprehensive() {
-		return startSequence(comprehensiveSnapshots);
+	public synchronized LiveStateResponse startComprehensive(MockNarrationMode narrationMode) {
+		return startSequence(comprehensiveSnapshots, narrationMode);
 	}
 
-	public synchronized LiveStateResponse startTotalPointsMock() {
-		return startSequence(totalPointsSnapshots);
+	public synchronized LiveStateResponse startTotalPointsMock(MockNarrationMode narrationMode) {
+		return startSequence(totalPointsSnapshots, narrationMode);
 	}
 
-	private LiveStateResponse startSequence(List<LiveStateResponse> sequence) {
+	private LiveStateResponse startSequence(List<LiveStateResponse> sequence, MockNarrationMode narrationMode) {
 		realState = null;
 		realSession = null;
 		previousRealPlayerPoints = Map.of();
+		mockNarrationMode = narrationMode;
+		mockNarrationRunId++;
+		cancelMockNarrationWait();
+		nextMockAdvanceAt = Instant.EPOCH;
 		activeSnapshots = sequence;
 		started = true;
 		currentIndex = 0;
 		cancelSequenceTask();
 		var state = currentState();
-		broadcast(state);
+		state = publishMockState(state);
 		sequenceTask = sequenceExecutor.scheduleAtFixedRate(this::advanceFromSchedule, STEP_INTERVAL_SECONDS,
 				STEP_INTERVAL_SECONDS, TimeUnit.SECONDS);
 		return state;
@@ -382,6 +421,7 @@ public class MockLiveStateService {
 
 	public synchronized LiveStateResponse advance() {
 		started = true;
+		if (mockNarrationPending || Instant.now().isBefore(nextMockAdvanceAt)) return currentState();
 		if (currentIndex < activeSnapshots.size() - 1) {
 			currentIndex++;
 		}
@@ -389,7 +429,7 @@ public class MockLiveStateService {
 			cancelSequenceTask();
 		}
 		var state = currentState();
-		broadcast(state);
+		state = publishMockState(state);
 		return state;
 	}
 
@@ -397,6 +437,10 @@ public class MockLiveStateService {
 		realState = null;
 		realSession = null;
 		previousRealPlayerPoints = Map.of();
+		mockNarrationMode = MockNarrationMode.NONE;
+		mockNarrationRunId++;
+		cancelMockNarrationWait();
+		nextMockAdvanceAt = Instant.EPOCH;
 		activeSnapshots = snapshots;
 		started = false;
 		currentIndex = 0;
@@ -409,6 +453,10 @@ public class MockLiveStateService {
 	/** Starts a real FPL broadcast. The first response is a baseline; later polls emit point changes. */
 	public synchronized LiveStateResponse startReal(long leagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
 		cancelSequenceTask();
+		mockNarrationMode = MockNarrationMode.NONE;
+		mockNarrationRunId++;
+		cancelMockNarrationWait();
+		nextMockAdvanceAt = Instant.EPOCH;
 		started = true;
 		realPollCount = 0;
 		previousRealPlayerPoints = Map.of();
@@ -916,6 +964,7 @@ public class MockLiveStateService {
 	@PreDestroy
 	public void shutdown() {
 		cancelSequenceTask();
+		cancelMockNarrationWait();
 		sequenceExecutor.shutdownNow();
 	}
 
@@ -953,6 +1002,79 @@ public class MockLiveStateService {
 				state.standings(),
 				state.events(),
 				state.commentary());
+	}
+
+	private LiveStateResponse publishMockState(LiveStateResponse state) {
+		if (mockNarrationMode != MockNarrationMode.TEXT || narrationJobService == null || state.events().isEmpty()) {
+			broadcast(state);
+			return state;
+		}
+		var narrationRunId = mockNarrationRunId;
+		var narration = CompletableFuture.supplyAsync(() -> generateMockNarration(state));
+		var maxWaitMillis = narrationProperties == null ? TimeUnit.MINUTES.toMillis(1)
+				: Math.max(0, narrationProperties.getReleaseDelay().toMillis());
+		mockNarrationPending = true;
+		var deadline = Instant.now().plusMillis(maxWaitMillis);
+		log.info("Waiting for mock narration before notification: gameweek={}, events={}, maxWaitMs={}",
+				state.gameweek(), state.events().size(), maxWaitMillis);
+		mockNarrationReleaseTask = sequenceExecutor.scheduleAtFixedRate(
+				() -> releaseMockState(state, narrationRunId, narration, deadline), 0, 1, TimeUnit.SECONDS);
+		return state;
+	}
+
+	private MockNarrationResult generateMockNarration(LiveStateResponse state) {
+		var commentary = new ArrayList<CommentaryView>();
+		var complete = true;
+		for (var event : state.events()) {
+			try {
+				narrationJobService.generateMockText(state, event)
+						.ifPresent(generated -> commentary.add(new CommentaryView("mock-" + event.id(), event.occurredAt(), generated.text(),
+								event.priority(), "TEXT_READY", null)));
+			}
+			catch (RuntimeException exception) {
+				complete = false;
+				log.warn("Mock narration generation failed: gameweek={}, sourceEventId={}", state.gameweek(), event.id(), exception);
+			}
+		}
+		return new MockNarrationResult(commentary, complete);
+	}
+
+	private void releaseMockState(LiveStateResponse state, long narrationRunId,
+			CompletableFuture<MockNarrationResult> narration, Instant deadline) {
+		if (mockNarrationMode != MockNarrationMode.TEXT || narrationRunId != mockNarrationRunId) return;
+		try {
+			var result = narration.getNow(null);
+			var timedOut = !Instant.now().isBefore(deadline);
+			if (result == null && !timedOut) return;
+			cancelMockNarrationWait();
+			if (result != null && result.complete()) {
+				var releasedState = result.commentary().isEmpty() ? state : new LiveStateResponse(state.status(), state.sequence(), state.gameweek(),
+						state.matchups(), state.teams(), state.standings(), state.events(), result.commentary());
+				broadcast(releasedState);
+				nextMockAdvanceAt = Instant.now().plusSeconds(STEP_INTERVAL_SECONDS);
+			}
+			else {
+				log.warn("Mock narration wait timed out; sending notification without commentary: gameweek={}, events={}", state.gameweek(), state.events().size());
+				broadcast(state);
+				nextMockAdvanceAt = Instant.now().plusSeconds(STEP_INTERVAL_SECONDS);
+			}
+		}
+		catch (RuntimeException exception) {
+			if (Instant.now().isBefore(deadline)) return;
+			cancelMockNarrationWait();
+			log.warn("Mock narration wait failed; sending notification without commentary: gameweek={}, events={}", state.gameweek(), state.events().size(), exception);
+			broadcast(state);
+			nextMockAdvanceAt = Instant.now().plusSeconds(STEP_INTERVAL_SECONDS);
+		}
+	}
+
+	private void cancelMockNarrationWait() {
+		mockNarrationPending = false;
+		if (mockNarrationReleaseTask != null) mockNarrationReleaseTask.cancel(false);
+		mockNarrationReleaseTask = null;
+	}
+
+	private record MockNarrationResult(List<CommentaryView> commentary, boolean complete) {
 	}
 
 	private LiveStateResponse withNarrations(long leagueKey, LiveStateResponse state) {

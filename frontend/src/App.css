@@ -309,6 +309,17 @@
   opacity: 0.68;
 }
 
+.narration-caption.has-commentary {
+  animation: narration-caption-cycle 9.35s ease both;
+}
+
+@keyframes narration-caption-cycle {
+  0% { opacity: 0; translate: 0 14px; scale: 0.96; }
+  4% { opacity: 1; translate: 0 0; scale: 1; }
+  96% { opacity: 1; translate: 0 0; scale: 1; }
+  100% { opacity: 0; translate: 0 -10px; scale: 0.98; }
+}
+
 .match-chip-track {
   flex: 1 1 0;
   display: flex;

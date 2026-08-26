@@ -2,6 +2,7 @@ package com.sextelecomleague.backend.api;
 
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.MockLiveStateService;
+import com.sextelecomleague.backend.live.MockNarrationMode;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
 import com.sextelecomleague.backend.customer.LeagueRegistrationService;
 import org.springframework.context.annotation.Profile;
@@ -51,15 +52,17 @@ public class LiveStateController {
 	}
 
 	@PostMapping("/mock-live/comprehensive/start")
-	public LiveStateResponse startComprehensive(@RequestHeader("Authorization") String authorization) {
+	public LiveStateResponse startComprehensive(@RequestHeader("Authorization") String authorization,
+			@RequestParam(defaultValue = "NONE") MockNarrationMode narrationMode) {
 		requireAdmin(authorization);
-		return liveStateService.startComprehensive();
+		return liveStateService.startComprehensive(narrationMode);
 	}
 
 	@PostMapping("/mock-live/total-points/start")
-	public LiveStateResponse startTotalPointsMock(@RequestHeader("Authorization") String authorization) {
+	public LiveStateResponse startTotalPointsMock(@RequestHeader("Authorization") String authorization,
+			@RequestParam(defaultValue = "NONE") MockNarrationMode narrationMode) {
 		requireAdmin(authorization);
-		return liveStateService.startTotalPointsMock();
+		return liveStateService.startTotalPointsMock(narrationMode);
 	}
 
 	@PostMapping("/mock-live/advance")
