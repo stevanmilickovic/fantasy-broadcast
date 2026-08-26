@@ -1,0 +1,19 @@
+package com.sextelecomleague.backend.narration;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
+@Service
+@Profile("db & !test")
+public class MockCommentaryTextGenerator implements CommentaryTextGenerator {
+
+	@Override
+	public GeneratedCommentary generate(NarrationContext context) {
+		var points = context.pointDelta() > 0 ? "+" + context.pointDelta() : String.valueOf(context.pointDelta());
+		var text = context.eventSummary() + " for " + points + " points.";
+		if (text.length() > context.maxCharacters()) {
+			text = text.substring(0, Math.max(0, context.maxCharacters() - 1)).trim() + ".";
+		}
+		return new GeneratedCommentary(text, 0, 0);
+	}
+}

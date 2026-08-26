@@ -15,6 +15,7 @@ import com.sextelecomleague.backend.fpl.FplLivePlayer;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
 import com.sextelecomleague.backend.fpl.FplLeagueScoring;
 import com.sextelecomleague.backend.fpl.FplPlayer;
+import com.sextelecomleague.backend.narration.NarrationJobService;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -30,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -54,6 +56,7 @@ public class MockLiveStateService {
 	private List<LiveStateResponse> activeSnapshots;
 	private final FplDraftClient fplClient;
 	private final FplDraftMapper fplMapper;
+	private final NarrationJobService narrationJobService;
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 	private final ScheduledExecutorService sequenceExecutor = Executors.newSingleThreadScheduledExecutor();
 	private int currentIndex;
@@ -69,9 +72,11 @@ public class MockLiveStateService {
 	private final Map<Long, RealSession> leagueSessions = new ConcurrentHashMap<>();
 	private final Map<Long, List<SseEmitter>> leagueEmitters = new ConcurrentHashMap<>();
 
-	public MockLiveStateService(ObjectMapper objectMapper, FplDraftClient fplClient, FplDraftMapper fplMapper) {
+	public MockLiveStateService(ObjectMapper objectMapper, FplDraftClient fplClient, FplDraftMapper fplMapper,
+			ObjectProvider<NarrationJobService> narrationJobService) {
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
+		this.narrationJobService = narrationJobService.getIfAvailable();
 		try {
 			var resource = new ClassPathResource("mock/live-sequence.json");
 			this.snapshots = objectMapper.readValue(resource.getInputStream(), MockLiveSequence.class).snapshots();
@@ -108,6 +113,7 @@ public class MockLiveStateService {
 		log.info("Starting broadcast session: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType);
 		var session = new RealSession();
 		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
+		enqueueNarrationJobs(leagueKey, session.state);
 		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
 		leagueSessions.put(leagueKey, session);
 		broadcast(leagueKey, session.state);
@@ -139,6 +145,7 @@ public class MockLiveStateService {
 			try {
 				session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
 				log.info("FPL poll succeeded: leagueKey={}, poll={}, gameweek={}, matchups={}, events={}", leagueKey, session.pollCount, session.state.gameweek(), session.state.matchups().size(), session.state.events().size());
+				enqueueNarrationJobs(leagueKey, session.state);
 				broadcast(leagueKey, session.state);
 			}
 			catch (RuntimeException exception) {
@@ -561,9 +568,15 @@ public class MockLiveStateService {
 			var changes = classifyPointEvents(priorLivePlayers.get(playerId), currentLivePlayers.get(playerId), delta);
 			for (var change : changes) {
 				var eventType = normalizedEventType(change.identifier());
-				events.add(new FantasyEventView("real-" + team.managerId() + "-" + player.id() + "-" + change.identifier() + "-" + Instant.now().toEpochMilli(),
+				events.add(new FantasyEventView("real-" + team.managerId() + "-" + player.id() + "-" + change.identifier() + "-" + player.points(),
 						Instant.now().toString(), eventType, team.managerId(), player.id(), player.displayName() + " " + eventType.replace('_', ' ').toLowerCase(), change.pointDelta(), Math.abs(change.pointDelta())));
 			}
+		}
+	}
+
+	private void enqueueNarrationJobs(long leagueKey, LiveStateResponse state) {
+		if (narrationJobService != null) {
+			narrationJobService.enqueueForEvents(leagueKey, state);
 		}
 	}
 

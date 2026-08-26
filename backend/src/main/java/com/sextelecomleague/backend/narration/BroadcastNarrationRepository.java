@@ -25,6 +25,13 @@ public class BroadcastNarrationRepository {
 
 	@Transactional
 	public BroadcastNarration createPending(long leagueId, int gameweek, String sourceEventId) {
+		return createPendingIfAbsent(leagueId, gameweek, sourceEventId)
+				.or(() -> findBySourceEvent(leagueId, gameweek, sourceEventId))
+				.orElseThrow();
+	}
+
+	@Transactional
+	public Optional<BroadcastNarration> createPendingIfAbsent(long leagueId, int gameweek, String sourceEventId) {
 		try {
 			jdbcTemplate.update("""
 					insert into broadcast_narration (league_id, gameweek, source_event_id, status)
@@ -32,9 +39,9 @@ public class BroadcastNarrationRepository {
 					""", leagueId, gameweek, sourceEventId, NarrationStatus.PENDING.name());
 		}
 		catch (DuplicateKeyException ignored) {
-			// Another poll or node already created this narration job.
+			return Optional.empty();
 		}
-		return findBySourceEvent(leagueId, gameweek, sourceEventId).orElseThrow();
+		return findBySourceEvent(leagueId, gameweek, sourceEventId);
 	}
 
 	public Optional<BroadcastNarration> findById(long id) {

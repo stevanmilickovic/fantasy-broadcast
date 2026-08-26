@@ -61,6 +61,7 @@ class BroadcastNarrationRepositoryTests {
 
 		assertThat(second.id()).isEqualTo(first.id());
 		assertThat(second.status()).isEqualTo(NarrationStatus.PENDING);
+		assertThat(repository.createPendingIfAbsent(1L, 3, "event-1")).isEmpty();
 		assertThat(repository.countForLeagueGameweek(1L, 3)).isEqualTo(1);
 	}
 
