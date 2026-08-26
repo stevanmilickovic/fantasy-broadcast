@@ -124,6 +124,7 @@ AI should not calculate scores or infer facts. It should only turn verified back
 - [Product brief](FPL%20Draft%20Broadcast%20Service.md)
 - [FPL discovery notes](docs/fpl-discovery.md)
 - [FPL JSON structures](docs/fpl-json-structures.md)
+- [AI narration setup](docs/narration.md)
 - [Backend FPL API notes](backend/docs/fpl-draft-api-notes.md)
 
 ## Security
