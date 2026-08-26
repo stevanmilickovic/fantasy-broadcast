@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { deleteOwnedLeague, followLeague, loadActiveBroadcastSchedules, loadClassicLeagueOverview, loadRegisteredLeagues, openLeagueBroadcast, registerLeague, searchRegisteredLeagues, type ClassicLeagueDiscovery } from '../../api/customerApi'
 import { loadLeagueDiscovery } from '../../api/fplDiscoveryApi'
 import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
-import type { LeagueDiscoveryState } from '../../types/fpl'
-import { LeagueDiscoverySummary } from '../discovery/LeagueDiscoverySummary'
+import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
 import { enablePointChangeSound } from '../../utils/broadcastSound'
 
 type Props = { token: string; user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
+type LeagueDisplayMode = 'standings' | 'teams' | 'matchups'
+type FplClubShirt = { name: string; shortName?: string; code: number }
+type LeaguePlayer = { id: number; name: string; fullName: string; club: string; position: string; points: number; starter: boolean; lineupPosition: number }
 
 export function CustomerDashboard({ token, user, pathname, search, onNavigate, onSignOut }: Props) {
   const [leagues, setLeagues] = useState<RegisteredLeague[]>([]); const [busy, setBusy] = useState(false); const [message, setMessage] = useState<string | null>(null)
@@ -26,7 +29,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
     {pathname === '/leagues/new' && <LeagueRegistrationForm leagueId={leagueId} leagueType={leagueType} busy={busy} message={message} searchResults={searchResults} user={user} onLeagueIdChange={setLeagueId} onLeagueTypeChange={setLeagueType} onSubmit={register} onSearch={searchRegistered} onFollow={follow} />}
     {pathname === '/leagues' && <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />}
     {pathname === '/league' && selectedLeague && activeBroadcasts.length > 0 && <aside className="customer-broadcast-access"><div><strong>Broadcast live now</strong><span>Available to all registered leagues until {new Date(activeBroadcasts[0].endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span></div><button onClick={() => void openBroadcast()} disabled={busy}>Open broadcast</button></aside>}
-    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <section className="league-discovery"><LeagueDiscoverySummary discovery={discovery} showMatchups={selectedLeague.scoringType === 'H2H'} showPointsFor={selectedLeague.scoringType === 'H2H'} leagueType={selectedLeague.leagueType} /></section>}{selectedLeague.ownerUserId === user.id && <button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button>}</section>}
+    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <LeagueStandingsOverview discovery={discovery} scoringType={selectedLeague.scoringType} />}{discovery && selectedLeague.ownerUserId === user.id && <details className="league-actions-menu"><summary aria-label="League actions">...</summary><div><button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button></div></details>}</section>}
   </main>
 }
 
@@ -37,6 +40,215 @@ function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number)
 }
 
 function OwnerBadge() { return <span className="owner-badge">My league</span> }
+function LeagueStandingsOverview({ discovery, scoringType }: { discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring }) {
+  const [mode, setMode] = useState<LeagueDisplayMode>('standings')
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
+  const [teamSearch, setTeamSearch] = useState('')
+  const [hasManagerOverflow, setHasManagerOverflow] = useState(false)
+  const managerListRef = useRef<HTMLDivElement>(null)
+  const shirtCodes = useShirtCodes()
+  const { details } = discovery
+  const showGamePoints = scoringType === 'H2H'
+  const entriesByLeagueEntryId = new Map(details.league_entries.map((entry) => [entry.id, entry]))
+  const entriesByEntryId = new Map(details.league_entries.map((entry) => [entry.entry_id, entry]))
+  const selectedEntry = details.league_entries.find((entry) => entry.entry_id === selectedEntryId) ?? null
+  const standings = details.standings.slice().sort((first, second) => first.rank - second.rank || standingPoints(second) - standingPoints(first))
+  const podiumGroups = groupedStandings(standings).slice(0, 3)
+  const podiumEntryIds = new Set(podiumGroups.flatMap((group) => group.standings.map(standingEntryId)))
+  const remainingStandings = standings.filter((standing) => !podiumEntryIds.has(standingEntryId(standing)))
+  const matches = details.matches.slice().sort((first, second) => first.event - second.event)
+  const matchweeks = groupedMatches(matches)
+  const filteredEntries = details.league_entries.filter((entry) => {
+    const query = teamSearch.trim().toLowerCase()
+    if (!query) return true
+    return `${entry.entry_name} ${entry.player_first_name} ${entry.player_last_name}`.toLowerCase().includes(query)
+  })
+
+  useEffect(() => {
+    const element = managerListRef.current
+    if (!element || mode !== 'teams') return
+    const updateOverflow = () => setHasManagerOverflow(element.scrollHeight > element.clientHeight + 1)
+    const observer = new ResizeObserver(updateOverflow)
+    observer.observe(element)
+    updateOverflow()
+    return () => observer.disconnect()
+  }, [mode, details.league_entries.length])
+
+  return (
+    <section className="selected-league-standings">
+      <header className="selected-league-heading">
+        <h1>{details.league?.name ?? 'League standings'}</h1>
+        <div className="league-view-toggle" role="tablist" aria-label="League display">
+          <button type="button" className={mode === 'standings' ? 'selected' : ''} onClick={() => setMode('standings')}>Standings</button>
+          <button type="button" className={mode === 'teams' ? 'selected' : ''} onClick={() => setMode('teams')}>Teams</button>
+          {showGamePoints && <button type="button" className={mode === 'matchups' ? 'selected' : ''} onClick={() => setMode('matchups')}>Matchups</button>}
+        </div>
+      </header>
+
+      {mode === 'standings' && (standings.length === 0 ? (
+        <p className="empty-text compact-empty">No standings returned by FPL yet.</p>
+      ) : (
+        <>
+          <div className="standings-podium" aria-label="Top standings podium">
+            {podiumGroups.map((group, index) => (
+              <article className={`podium-step podium-step-${index + 1}`} key={group.rank}>
+                <div className="podium-entries">
+                  {group.standings.map((standing) => {
+                    const entryId = standing.league_entry ?? standing.leagueEntryId ?? 0
+                    const entry = entriesByLeagueEntryId.get(entryId) ?? entriesByEntryId.get(entryId)
+                    return (
+                      <div className="podium-entry" key={entryId}>
+                        <strong>{entry?.entry_name ?? `Entry ${entryId}`}</strong>
+                        <span>{standingPoints(standing)} pts{showGamePoints ? ` · ${standingGamePoints(standing)} game pts` : ''}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="podium-base">
+                  <strong>{group.rank}</strong>
+                  <span>{placeLabel(group.rank)}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {remainingStandings.length > 0 && <div className="standings-list" aria-label="Remaining standings">
+            {remainingStandings.map((standing, index) => {
+              const entryId = standingEntryId(standing)
+              const entry = entriesByLeagueEntryId.get(entryId) ?? entriesByEntryId.get(entryId)
+              return (
+                <div className="standings-list-row" key={`${entryId}-${index}`}>
+                  <strong>{standing.rank || index + 1}</strong>
+                  <span>{entry?.entry_name ?? `Entry ${entryId}`}</span>
+                  <small>{standingPoints(standing)} pts{showGamePoints ? ` · ${standingGamePoints(standing)} game pts` : ''}</small>
+                </div>
+              )
+            })}
+          </div>}
+        </>
+      ))}
+
+      {mode === 'teams' && (
+        <section className="league-teams-view">
+          <div className="league-manager-panel">
+            {(hasManagerOverflow || teamSearch) && <input className="manager-search" value={teamSearch} onChange={(event) => setTeamSearch(event.target.value)} placeholder="Search clubs" />}
+            <div className="manager-grid" ref={managerListRef}>
+              {filteredEntries.map((entry) => (
+                <button type="button" className={selectedEntryId === entry.entry_id ? 'selected-manager' : ''} key={entry.entry_id} onClick={() => setSelectedEntryId(entry.entry_id)}>
+                  <strong>{entry.entry_name}</strong>
+                  <span>{managerName(entry.player_first_name, entry.player_last_name)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          {selectedEntry ? <LeagueTeamVisual discovery={discovery} entryId={selectedEntry.entry_id} entryName={selectedEntry.entry_name} manager={managerName(selectedEntry.player_first_name, selectedEntry.player_last_name)} shirtCodes={shirtCodes} /> : <div className="league-team-empty-card"><strong>Select a club</strong></div>}
+        </section>
+      )}
+
+      {mode === 'matchups' && showGamePoints && (
+        <section className="league-matchups-view">
+          {matchweeks.length === 0 ? <p className="empty-text compact-empty">No matchups returned by FPL yet.</p> : matchweeks.map((week) => (
+            <section className="matchweek-group" key={week.event}>
+              <header><strong>Gameweek {week.event}</strong></header>
+              <div>
+                {week.matches.map((match, index) => {
+                  const firstEntryId = match.league_entry_1 ?? match.firstLeagueEntryId ?? 0
+                  const secondEntryId = match.league_entry_2 ?? match.secondLeagueEntryId ?? 0
+                  const firstEntry = entriesByLeagueEntryId.get(firstEntryId) ?? entriesByEntryId.get(firstEntryId)
+                  const secondEntry = entriesByLeagueEntryId.get(secondEntryId) ?? entriesByEntryId.get(secondEntryId)
+                  const firstPoints = match.league_entry_1_points ?? match.firstPoints ?? 0
+                  const secondPoints = match.league_entry_2_points ?? match.secondPoints ?? 0
+                  const played = match.finished || firstPoints > 0 || secondPoints > 0
+                  const firstResultClass = !played || firstPoints === secondPoints ? '' : firstPoints > secondPoints ? 'winning-score' : 'losing-score'
+                  const secondResultClass = !played || firstPoints === secondPoints ? '' : secondPoints > firstPoints ? 'winning-score' : 'losing-score'
+                  return (
+                    <article className={`league-matchup-row ${played ? 'played' : 'upcoming'}`} key={`${match.event}-${firstEntryId}-${secondEntryId}-${index}`}>
+                      <strong className="matchup-team home-team">{firstEntry?.entry_name ?? firstEntryId}</strong>
+                      <div className="matchup-scoreline" aria-label={played ? `${firstPoints} versus ${secondPoints}` : 'Upcoming matchup'}>
+                        <span className={firstResultClass}>{played ? firstPoints : '-'}</span>
+                        <b>vs</b>
+                        <span className={secondResultClass}>{played ? secondPoints : '-'}</span>
+                      </div>
+                      <strong className="matchup-team away-team">{secondEntry?.entry_name ?? secondEntryId}</strong>
+                    </article>
+                  )
+                })}
+              </div>
+            </section>
+          ))}
+        </section>
+      )}
+    </section>
+  )
+}
+
+function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes }: { discovery: LeagueDiscoveryState; entryId: number; entryName: string; manager: string; shirtCodes: FplClubShirt[] }) {
+  const players = leaguePlayersForEntry(discovery, entryId)
+  const starters = players.filter((player) => player.starter)
+  const bench = players.filter((player) => !player.starter)
+  const groups = [
+    ['FWD', 'Forwards', starters.filter((player) => player.position === 'FWD')],
+    ['MID', 'Midfielders', starters.filter((player) => player.position === 'MID')],
+    ['DEF', 'Defenders', starters.filter((player) => player.position === 'DEF')],
+    ['GKP', 'Goalkeeper', starters.filter((player) => player.position === 'GKP')],
+    ['BENCH', 'Bench', bench],
+  ] as const
+  return <section className="league-team-stage" aria-label={`${entryName} players`}>
+    <header><span>{manager}</span><FitClubName text={entryName} /><strong>{players.reduce((total, player) => total + player.points, 0)} pts</strong></header>
+    <div className="league-total-player-rows">{groups.map(([key, label, groupPlayers]) => groupPlayers.length > 0 && <section className="league-total-player-row" key={key}><span>{label}</span><div>{groupPlayers.map((player, index) => <LeaguePlayerToken key={player.id} player={player} shirtCode={shirtCodeFor(player.club, shirtCodes)} position={rowPlayerPosition(index, groupPlayers.length)} />)}</div></section>)}</div>
+  </section>
+}
+
+function FitClubName({ text }: { text: string }) {
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  useLayoutEffect(() => {
+    const heading = headingRef.current
+    if (!heading) return
+    let frame = 0
+    const fit = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        heading.style.fontSize = ''
+        const maxFontSize = parseFloat(window.getComputedStyle(heading).fontSize) || 64
+        const minFontSize = 14
+        let low = minFontSize
+        let high = maxFontSize
+        heading.style.fontSize = `${maxFontSize}px`
+        if (heading.scrollWidth <= heading.clientWidth) return
+        while (high - low > 0.5) {
+          const next = (low + high) / 2
+          heading.style.fontSize = `${next}px`
+          if (heading.scrollWidth <= heading.clientWidth) low = next
+          else high = next
+        }
+        heading.style.fontSize = `${Math.max(minFontSize, low)}px`
+      })
+    }
+    const observer = new ResizeObserver(fit)
+    observer.observe(heading.parentElement ?? heading)
+    fit()
+    document.fonts?.ready.then(fit).catch(() => undefined)
+    window.addEventListener('resize', fit)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener('resize', fit)
+    }
+  }, [text])
+
+  return <h2 ref={headingRef} title={text}>{text}</h2>
+}
+
+function LeaguePlayerToken({ player, shirtCode, position }: { player: LeaguePlayer; shirtCode?: number; position: { x: number; y: number } }) {
+  const shirtUrl = shirtCode ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${shirtCode}-110.png` : undefined
+  return <div className="league-player-token" style={{ '--x': `${position.x}%`, '--y': `${position.y}%` } as CSSProperties}>
+    <div className="player-core">
+      <div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.club} shirt`} /> : <span>{player.name}</span>}</div>
+      <div className="player-meta"><strong>{player.name}</strong><b>{player.points === 0 ? '-' : player.points}</b></div>
+    </div>
+  </div>
+}
 function CustomerNavigation({ leagues, selectedLeague, user, onNavigate, onSignOut }: { leagues: RegisteredLeague[]; selectedLeague: RegisteredLeague | null; user: AuthUser; onNavigate: (path: string) => void; onSignOut: () => void }) { return <nav className="customer-navigation"><span className="brand-name">Fantasy Broadcast</span><div className="customer-navigation-actions">{selectedLeague && <details className="league-switcher"><summary>{selectedLeague.displayName}{selectedLeague.ownerUserId === user.id && <OwnerBadge />}</summary><div>{leagues.map((league) => <button type="button" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}>{league.displayName} · {scoringLabel(league.scoringType)}{league.ownerUserId === user.id && <OwnerBadge />}</button>)}<button type="button" className="switcher-add" onClick={() => onNavigate('/leagues/new')}>Add or find a league</button></div></details>}<details className="profile-menu"><summary>Profile</summary><div><strong>{user.displayName}</strong><button type="button" onClick={onSignOut}>Sign out</button></div></details></div></nav> }
 function LeagueRegistrationForm({ leagueId, leagueType, busy, message, searchResults, user, onLeagueIdChange, onLeagueTypeChange, onSubmit, onSearch, onFollow }: { leagueId: string; leagueType: FplLeagueType; busy: boolean; message: string | null; searchResults: RegisteredLeague[]; user: AuthUser; onLeagueIdChange: (value: string) => void; onLeagueTypeChange: (value: FplLeagueType) => void; onSubmit: (event: React.FormEvent) => void; onSearch: (query: string) => void; onFollow: (league: RegisteredLeague) => void }) {
   const [query, setQuery] = useState('')
@@ -44,3 +256,86 @@ function LeagueRegistrationForm({ leagueId, leagueType, busy, message, searchRes
 }
 function LeaguePicker({ leagues, user, onNavigate }: { leagues: RegisteredLeague[]; user: AuthUser; onNavigate: (path: string) => void }) { return <section className="league-picker"><header><span className="kicker">Welcome back, {user.displayName}</span><h1>Choose a league</h1><p>Select the league you want to open.</p></header><div className="league-cards">{leagues.map((league) => <button type="button" className="league-card" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}><span>{league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} · {scoringLabel(league.scoringType)}{league.ownerUserId === user.id && <OwnerBadge />}</span><strong>{league.displayName}</strong><small>FPL league #{league.fplLeagueId}</small></button>)}</div><button type="button" className="secondary-action add-league-card" onClick={() => onNavigate('/leagues/new')}>Add or find a league</button></section> }
 function scoringLabel(scoringType: FplLeagueScoring) { return scoringType === 'H2H' ? 'Head-to-head' : 'Total points' }
+function standingPoints(standing: FplStanding) { return standing.total ?? standing.headToHeadPoints ?? 0 }
+function standingGamePoints(standing: FplStanding) { return standing.points_for ?? standing.pointsFor ?? 0 }
+function standingEntryId(standing: FplStanding) { return standing.league_entry ?? standing.leagueEntryId ?? 0 }
+function managerName(firstName: string, lastName: string) { return `${firstName} ${lastName}`.trim() || 'Manager' }
+function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number): LeaguePlayer[] {
+  const playersById = new Map(discovery.players.map((player) => [player.id, player]))
+  const livePlayersById = new Map((discovery.livePlayers ?? []).map((player) => [player.id, player]))
+  const picksByElement = new Map((discovery.entryEvents?.[String(entryId)]?.picks ?? []).map((pick) => [pick.element, pick]))
+  return (discovery.elementStatus.element_status ?? [])
+    .filter((status) => status.owner === entryId)
+    .map((status) => {
+      const player = playersById.get(status.element)
+      const pick = picksByElement.get(status.element)
+      return {
+        id: status.element,
+        name: player?.webName ?? `Player ${status.element}`,
+        fullName: player?.fullName ?? 'Unknown player',
+        club: player?.premierLeagueClub ?? 'Unknown club',
+        position: player?.position ?? 'MID',
+        points: livePlayersById.get(status.element)?.stats.totalPoints ?? 0,
+        starter: pick ? pick.starter : true,
+        lineupPosition: pick?.position ?? 99,
+      }
+    })
+    .sort((first, second) => first.lineupPosition - second.lineupPosition || first.name.localeCompare(second.name))
+}
+function useShirtCodes() {
+  const [codes, setCodes] = useState<FplClubShirt[]>([])
+  useEffect(() => {
+    let alive = true
+    fetch('/api/fpl/discovery/shirts')
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Unable to load shirts')))
+      .then((teams: FplClubShirt[]) => { if (alive) setCodes(teams) })
+      .catch(() => undefined)
+    return () => { alive = false }
+  }, [])
+  return codes
+}
+function rowPlayerPosition(index: number, count: number) {
+  return { x: ((index + 1) / (count + 1)) * 100, y: 50 }
+}
+function shirtCodeFor(clubName: string, shirtCodes: FplClubShirt[]) {
+  const requestedName = normalizeClubName(clubName)
+  const exactMatch = shirtCodes.find((team) => [team.name, team.shortName].some((name) => normalizeClubName(name) === requestedName))
+  if (exactMatch) return exactMatch.code
+  return shirtCodes
+    .map((team) => ({ team, score: Math.max(clubNameSimilarity(requestedName, normalizeClubName(team.name)), clubNameSimilarity(requestedName, normalizeClubName(team.shortName))) }))
+    .filter((candidate) => candidate.score >= 50)
+    .sort((left, right) => right.score - left.score)[0]?.team.code
+}
+function normalizeClubName(name: string | undefined) { return (name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() }
+function clubNameSimilarity(firstName: string, secondName: string) {
+  if (!firstName || !secondName) return 0
+  if (firstName.includes(secondName) || secondName.includes(firstName)) return 100
+  const firstWords = firstName.split(' ')
+  const secondWords = secondName.split(' ')
+  return firstWords.filter((word) => secondWords.includes(word)).length * 35
+}
+function groupedStandings(standings: FplStanding[]) {
+  return standings.reduce<Array<{ rank: number; standings: FplStanding[] }>>((groups, standing) => {
+    const rank = standing.rank || groups.length + 1
+    const existing = groups.find((group) => group.rank === rank)
+    if (existing) existing.standings.push(standing)
+    else groups.push({ rank, standings: [standing] })
+    return groups
+  }, [])
+}
+function groupedMatches(matches: LeagueDiscoveryState['details']['matches']) {
+  return matches.reduce<Array<{ event: number; matches: typeof matches }>>((groups, match) => {
+    const existing = groups.find((group) => group.event === match.event)
+    if (existing) existing.matches.push(match)
+    else groups.push({ event: match.event, matches: [match] })
+    return groups
+  }, [])
+}
+function placeLabel(rank: number) {
+  const tens = rank % 100
+  if (tens >= 11 && tens <= 13) return `${rank}th`
+  if (rank % 10 === 1) return `${rank}st`
+  if (rank % 10 === 2) return `${rank}nd`
+  if (rank % 10 === 3) return `${rank}rd`
+  return `${rank}th`
+}
