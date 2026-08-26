@@ -9,6 +9,29 @@ fpl:
   draft-base-url: https://draft.premierleague.com/api
   fantasy-base-url: https://fantasy.premierleague.com/api
 
+broadcast:
+  narration:
+    enabled: ${BROADCAST_NARRATION_ENABLED:false}
+    audio-enabled: ${BROADCAST_NARRATION_AUDIO_ENABLED:false}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+      model: ${OPENAI_NARRATION_MODEL:gpt-5-nano}
+      timeout-seconds: ${OPENAI_NARRATION_TIMEOUT_SECONDS:20}
+    eleven-labs:
+      api-key: ${ELEVENLABS_API_KEY:}
+      base-url: ${ELEVENLABS_BASE_URL:https://api.elevenlabs.io/v1}
+      model-id: ${ELEVENLABS_MODEL_ID:eleven_multilingual_v2}
+      voice-id: ${ELEVENLABS_VOICE_ID:}
+      timeout-seconds: ${ELEVENLABS_TIMEOUT_SECONDS:30}
+    limits:
+      max-text-characters: ${BROADCAST_NARRATION_MAX_TEXT_CHARACTERS:220}
+      max-narrations-per-league-gameweek: ${BROADCAST_NARRATION_MAX_PER_LEAGUE_GAMEWEEK:40}
+      monthly-tts-character-budget: ${BROADCAST_NARRATION_MONTHLY_TTS_CHARACTERS:100000}
+    storage:
+      temp-directory: ${BROADCAST_NARRATION_TEMP_DIRECTORY:${java.io.tmpdir}/stk-broadcast/narrations}
+      audio-ttl: ${BROADCAST_NARRATION_AUDIO_TTL:30m}
+
 ---
 spring:
   config:
