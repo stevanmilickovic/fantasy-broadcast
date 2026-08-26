@@ -5,6 +5,7 @@ public record FplPlayer(
 		String webName,
 		String fullName,
 		String premierLeagueClub,
+		int premierLeagueClubId,
 		String position
 ) {
 }

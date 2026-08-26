@@ -22,6 +22,7 @@ export type PlayerView = {
   minutes?: number
   status: string
   recentDelta: number
+  autoSubstituted?: boolean
 }
 
 export type TeamView = {
@@ -31,6 +32,7 @@ export type TeamView = {
   shortName: string
   color: string
   score: number
+  automaticSubstitutions?: { playerInId: string; playerOutId: string; pointDelta: number }[]
   activePlayers: PlayerView[]
   benchPlayers: PlayerView[]
 }

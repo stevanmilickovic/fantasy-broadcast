@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react'
 import type { FantasyEventView, LiveStateResponse, MatchupView, PlayerGroup, PlayerView, RevealRect, TeamView } from '../types/live'
 
+export const TOTAL_POINTS_REVEAL_TEAM_SCALE = 4
+
 export const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView | undefined => {
   if (!state) {
     return undefined

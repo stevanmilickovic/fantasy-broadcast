@@ -2,7 +2,7 @@ import { ArrowLeft, Radio, Trophy, Volume2 } from 'lucide-react'
 import type { CSSProperties, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, TeamView } from '../../types/live'
-import { formatScoreline, playerCardName, revealCopyStyle, teamShortName } from '../../utils/broadcast'
+import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../../utils/broadcast'
 
 type BroadcastMatchdayProps = {
   displayLiveState: LiveStateResponse
@@ -29,6 +29,7 @@ type BroadcastMatchdayProps = {
 
 type FplClubShirt = { name: string; shortName?: string; code: number }
 type ShirtCodes = FplClubShirt[]
+const REVEAL_SCORE_CLEARANCE_PX = 42
 
 export function BroadcastMatchday({
   displayLiveState, matchup, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
@@ -190,6 +191,7 @@ function LivePitch({ matchup, shirtCodes, latestEvents, pendingEvents }: { match
 }
 
 function BenchRail({ side, team, shirtCodes, latestEvents, pendingEvents }: { side: 'left' | 'right'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
+  const goalkeeperHasNotification = team.activePlayers.some((player) => player.position === 'GKP' && latestEvents.some((event) => event.managerId === team.managerId && event.playerId === player.id))
   return <aside className={`bench-rail ${side}`} aria-label={`${team.clubName} bench`}>
     <span className="bench-rail-title">Bench</span>
     {team.benchPlayers.map((player, index) => {
@@ -197,12 +199,13 @@ function BenchRail({ side, team, shirtCodes, latestEvents, pendingEvents }: { si
       const verticalPosition = playerVerticalPosition(index, team.benchPlayers.length)
       const events = latestEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id)
       const pendingPointDelta = latestEvents.length === 0 ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0) : 0
-      return <BenchPlayer key={player.id} player={player} teamColor={team.color} shirtCode={shirtCode} verticalPosition={verticalPosition} events={events} pendingPointDelta={pendingPointDelta} />
+      const notificationShift = goalkeeperHasNotification && Math.abs(verticalPosition.y - 50) < 20 ? side === 'left' ? -88 : 88 : 0
+      return <BenchPlayer key={player.id} player={player} teamColor={team.color} shirtCode={shirtCode} verticalPosition={verticalPosition} events={events} pendingPointDelta={pendingPointDelta} notificationShift={notificationShift} />
     })}
   </aside>
 }
 
-function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, pendingPointDelta }: { player: PlayerView; teamColor: string; shirtCode?: number; verticalPosition: { y: number; yOffset: number }; events: FantasyEventView[]; pendingPointDelta: number }) {
+function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, pendingPointDelta, notificationShift }: { player: PlayerView; teamColor: string; shirtCode?: number; verticalPosition: { y: number; yOffset: number }; events: FantasyEventView[]; pendingPointDelta: number; notificationShift: number }) {
   const name = playerCardName(player).join(' ').trim()
   const shirtUrl = shirtCode ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${shirtCode}-66.png` : undefined
   const [notificationEventId, setNotificationEventId] = useState<string | null>(null)
@@ -215,7 +218,7 @@ function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, p
   const eventDelta = events.reduce((total, candidate) => total + candidate.pointDelta, 0)
   const eventWidth = Math.max(108, ...activeEvents.map(notificationWidthFor))
   const metadataWidth = 26 + Math.min(82, Math.max(34, name.length * 6 + 12))
-  const style = { '--team-color': teamColor, '--y': `${verticalPosition.y}%`, '--y-offset': `${verticalPosition.yOffset}px`, '--event-width': `${eventWidth}px`, '--metadata-width': `${metadataWidth}px`, '--event-shift': '0px' } as CSSProperties
+  const style = { '--team-color': teamColor, '--y': `${verticalPosition.y}%`, '--y-offset': `${verticalPosition.yOffset}px`, '--event-width': `${eventWidth}px`, '--metadata-width': `${metadataWidth}px`, '--event-shift': `${notificationShift}px` } as CSSProperties
   const pointsToRender = event && notificationEventId !== event.id ? player.points - eventDelta : !event && pendingPointDelta !== 0 ? player.points - pendingPointDelta : displayedPoints
 
   useEffect(() => {
@@ -338,7 +341,7 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
     }
   }, [event?.id, eventDelta, player.points])
 
-  return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''}`} style={style}>
+  return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''} ${player.autoSubstituted ? 'auto-substituted' : ''}`} style={style}>
     <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${29 + index * 25}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
 }
@@ -371,7 +374,7 @@ function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus
   const shirtCodes = useShirtCodes()
   return <main className={`broadcast-shell matchday-page total-points-broadcast ${revealingMatch ? 'revealing-match' : ''}`}>
     {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
-    {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} headingRef={totalHeadingRef} scoreRef={scoreRef} />}
+    {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} teamNameRef={totalTeamNameRef} scoreRef={scoreRef} />}
     <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
     <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
     <NarrationCaption text={latestCommentaryText} status={latestCommentaryStatus} />
@@ -467,9 +470,52 @@ function StandingValue({ value, signed = false, className }: { value: number; si
   return className === 'standing-total-points' ? <em className={className}>{text}</em> : <small className={className}>{text}</small>
 }
 
-function TotalPointsReveal({ layout, team, headingRef, scoreRef }: { layout: RevealLayout | null; team: TeamView; headingRef: RefObject<HTMLHeadingElement | null>; scoreRef: RefObject<HTMLElement | null> }) {
-  if (!layout) return null
-  return <div className="match-reveal-overlay total-points-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} name={team.clubName} headingRef={headingRef} /><TotalScoreRevealCopy layout={layout.score} score={team.score} scoreRef={scoreRef} /></div>
+function TotalPointsReveal({ layout, team, teamNameRef, scoreRef }: { layout: RevealLayout | null; team: TeamView; teamNameRef: RefObject<HTMLSpanElement | null>; scoreRef: RefObject<HTMLElement | null> }) {
+	if (!layout) return null
+	return <div className="match-reveal-overlay total-points-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><TotalPointsRevealTeamCopy layout={layout.home} scoreLayout={layout.score} name={team.clubName} teamNameRef={teamNameRef} /><TotalScoreRevealCopy layout={layout.score} score={team.score} scoreRef={scoreRef} /></div>
+}
+
+function rangeRect(element: HTMLElement) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  return range.getBoundingClientRect()
+}
+
+function TotalPointsRevealTeamCopy({ layout, scoreLayout, name, teamNameRef }: { layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; teamNameRef: RefObject<HTMLSpanElement | null> }) {
+  const measurementRef = useRef<HTMLElement>(null)
+  const [typography, setTypography] = useState<CSSProperties>()
+  const [revealScale, setRevealScale] = useState(1)
+  const [adjustedLayout, setAdjustedLayout] = useState<RevealLayout['home'] | null>(null)
+
+  useLayoutEffect(() => {
+    const teamName = teamNameRef.current
+    if (!teamName) return
+    const style = window.getComputedStyle(teamName)
+    setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing, textTransform: style.textTransform })
+    const context = document.createElement('canvas').getContext('2d')
+    if (!context) return
+    context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+    const textWidth = context.measureText(name).width
+    const scoreHalfWidth = scoreLayout.width * 1.08 / 2
+    const teamStartCentre = layout.left + layout.width / 2 + layout.revealX
+    const availableWidth = window.innerWidth / 2 - scoreHalfWidth - REVEAL_SCORE_CLEARANCE_PX - (teamStartCentre - layout.width / 2)
+    setRevealScale(Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))))
+    setAdjustedLayout(null)
+  }, [layout, name, scoreLayout.width, teamNameRef])
+
+  useLayoutEffect(() => {
+    const teamName = teamNameRef.current
+    const measurement = measurementRef.current
+    if (!typography || !teamName || !measurement) return
+    const target = rangeRect(teamName)
+    const copy = rangeRect(measurement)
+    const offsetX = target.left - copy.left
+    const offsetY = target.top - copy.top
+    setAdjustedLayout({ ...layout, left: layout.left + offsetX, top: layout.top + offsetY, revealX: layout.revealX - offsetX, revealY: layout.revealY - offsetY })
+  }, [layout, teamNameRef, typography])
+
+  const copyStyle: CSSProperties | undefined = typography ? { ...revealCopyStyle(layout, 1), ...typography, animation: 'none', transform: 'none', visibility: 'hidden' } : undefined
+  return <><strong ref={measurementRef} className="match-reveal-copy match-reveal-team reveal-home" style={copyStyle}>{name}</strong>{adjustedLayout && <strong className="match-reveal-copy match-reveal-team reveal-home" style={{ ...revealCopyStyle(adjustedLayout, revealScale * TOTAL_POINTS_REVEAL_TEAM_SCALE), ...typography }}>{name}</strong>}</>
 }
 
 function TotalScoreRevealCopy({ layout, score, scoreRef }: { layout: RevealLayout['score']; score: number; scoreRef: RefObject<HTMLElement | null> }) {
@@ -596,14 +642,14 @@ function MatchReveal({ layout, matchup, homeHeadingRef, awayHeadingRef }: { layo
   return <div className="match-reveal-overlay" aria-hidden="true"><div className="match-reveal-sheet" />{layout && <><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} name={matchup.home.clubName} headingRef={homeHeadingRef} /><strong className="match-reveal-copy match-reveal-score" style={revealCopyStyle(layout.score, 1.08)}>{formatScoreline(matchup.scoreline)}</strong><RevealTeamCopy className="reveal-away" layout={layout.away} scoreLayout={layout.score} name={matchup.away.clubName} headingRef={awayHeadingRef} /></>}</div>
 }
 
-function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef }: { className: string; layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; headingRef: RefObject<HTMLHeadingElement | null> }) {
+function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef, initialScaleMultiplier = 1 }: { className: string; layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; headingRef: RefObject<HTMLElement | null>; initialScaleMultiplier?: number }) {
   const [revealScale, setRevealScale] = useState(1)
   const [typography, setTypography] = useState<CSSProperties>()
   useLayoutEffect(() => {
     const heading = headingRef.current
     if (!heading) return
     const style = window.getComputedStyle(heading)
-    setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight })
+	setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight })
     const context = document.createElement('canvas').getContext('2d')
     if (!context) return
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
@@ -612,9 +658,9 @@ function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef }: { 
     const scoreCentre = window.innerWidth / 2
     const teamStartCentre = layout.left + layout.width / 2 + layout.revealX
     const availableWidth = className === 'reveal-home'
-      ? scoreCentre - scoreHalfWidth - 12 - (teamStartCentre - layout.width / 2)
-      : (teamStartCentre + layout.width / 2) - (scoreCentre + scoreHalfWidth + 12)
-    setRevealScale(Math.min(1, Math.max(0.35, availableWidth / Math.max(1, textWidth))))
+      ? scoreCentre - scoreHalfWidth - REVEAL_SCORE_CLEARANCE_PX - (teamStartCentre - layout.width / 2)
+      : (teamStartCentre + layout.width / 2) - (scoreCentre + scoreHalfWidth + REVEAL_SCORE_CLEARANCE_PX)
+    setRevealScale(Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))))
   }, [className, headingRef, layout.width, name, scoreLayout.width])
-  return <strong className={`match-reveal-copy match-reveal-team ${className}`} style={{ ...revealCopyStyle(layout, revealScale), ...typography }}>{name}</strong>
+	return <strong className={`match-reveal-copy match-reveal-team ${className}`} style={{ ...revealCopyStyle(layout, revealScale * initialScaleMultiplier), ...typography }}>{name}</strong>
 }

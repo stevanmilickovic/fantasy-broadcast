@@ -30,6 +30,7 @@ public class FplDraftMapper {
 					text(element, "web_name"),
 					(firstName + " " + secondName).trim(),
 					teams.getOrDefault(intValue(element, "team"), ""),
+					intValue(element, "team"),
 					positions.getOrDefault(intValue(element, "element_type"), "")));
 		}
 
@@ -225,7 +226,7 @@ public class FplDraftMapper {
 		return breakdowns;
 	}
 
-	private List<FplFixture> mapFixtures(JsonNode fixturesNode) {
+	public List<FplFixture> mapFixtures(JsonNode fixturesNode) {
 		var fixtures = new ArrayList<FplFixture>();
 		for (JsonNode fixture : fixturesNode) {
 			fixtures.add(new FplFixture(

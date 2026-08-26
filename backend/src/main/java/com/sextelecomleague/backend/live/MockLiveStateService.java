@@ -11,6 +11,7 @@ import com.sextelecomleague.backend.fpl.FplDraftMatch;
 import com.sextelecomleague.backend.fpl.FplDraftStanding;
 import com.sextelecomleague.backend.fpl.FplEntryEvent;
 import com.sextelecomleague.backend.fpl.FplEntryPick;
+import com.sextelecomleague.backend.fpl.FplFixture;
 import com.sextelecomleague.backend.fpl.FplLivePlayer;
 import com.sextelecomleague.backend.fpl.FplLeagueType;
 import com.sextelecomleague.backend.fpl.FplLeagueScoring;
@@ -73,6 +74,9 @@ public class MockLiveStateService {
 	private Map<String, Integer> previousRealPlayerPoints = Map.of();
 	private Map<Integer, FplLivePlayer> previousRealLivePlayers = Map.of();
 	private Map<Integer, FplLivePlayer> fetchedRealLivePlayers = Map.of();
+	private Map<Integer, FplFixture> fetchedFixtures = Map.of();
+	private int fetchedFixtureGameweek;
+	private Instant fixturesLoadedAt = Instant.EPOCH;
 	private final Map<String, LivePlayerCache> livePlayerCaches = new HashMap<>();
 	private int realPollCount;
 	private final Map<Long, RealSession> leagueSessions = new ConcurrentHashMap<>();
@@ -175,6 +179,20 @@ public class MockLiveStateService {
 		var liveById = loadLivePlayers(session.snapshot);
 		fetchedRealLivePlayers = liveById;
 		var state = buildSnapshotState(session.snapshot, liveById, session.previousPoints, session.previousLivePlayers);
+		var events = new ArrayList<>(state.events());
+		var currentAutoSubstitutions = new java.util.HashSet<String>();
+		for (var team : teams(state)) for (var substitution : team.automaticSubstitutions()) {
+			var key = team.managerId() + "-" + substitution.playerInId() + "-" + substitution.playerOutId();
+			currentAutoSubstitutions.add(key);
+			if (session.automaticSubstitutions.contains(key)) continue;
+			var incoming = allPlayers(team).stream().filter(player -> player.id().equals(substitution.playerInId())).findFirst().orElse(null);
+			if (incoming == null) continue;
+			events.add(new FantasyEventView("auto-sub-" + key + "-" + Instant.now().toEpochMilli(), Instant.now().toString(), "AUTO_SUB",
+					team.managerId(), incoming.id(), incoming.displayName() + " automatic substitution", substitution.pointDelta(), Math.abs(substitution.pointDelta())));
+		}
+		session.automaticSubstitutions = currentAutoSubstitutions;
+		events.sort(Comparator.comparingInt((FantasyEventView event) -> Math.abs(event.pointDelta())).reversed());
+		state = new LiveStateResponse(state.status(), state.sequence(), state.gameweek(), state.matchups(), state.teams(), state.standings(), events, state.commentary());
 		session.previousPoints = playerPoints(state);
 		session.previousLivePlayers = fetchedRealLivePlayers;
 		return state;
@@ -207,13 +225,27 @@ public class MockLiveStateService {
 	}
 
 	private Map<Integer, FplLivePlayer> loadLivePlayers(LeagueSnapshot snapshot) {
+		fetchedFixtureGameweek = snapshot.gameweek();
 		var cacheKey = snapshot.leagueType() + "-" + snapshot.gameweek();
 		var cached = livePlayerCaches.get(cacheKey);
-		if (cached != null && Instant.now().minusSeconds(STEP_INTERVAL_SECONDS).isBefore(cached.loadedAt())) return cached.players();
-		var players = snapshot.leagueType() == FplLeagueType.DRAFT
-				? indexLivePlayers(fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(snapshot.gameweek())).players())
-				: indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(snapshot.gameweek())));
-		livePlayerCaches.put(cacheKey, new LivePlayerCache(Instant.now(), players));
+		if (cached != null && Instant.now().minusSeconds(STEP_INTERVAL_SECONDS).isBefore(cached.loadedAt())) {
+			fetchedFixtures = cached.fixtures();
+			return cached.players();
+		}
+		Map<Integer, FplLivePlayer> players;
+		if (snapshot.leagueType() == FplLeagueType.DRAFT) {
+			var live = fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(snapshot.gameweek()));
+			players = indexLivePlayers(live.players());
+			fetchedFixtures = indexFixtures(live.fixtures());
+		}
+		else {
+			players = indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(snapshot.gameweek())));
+			if (Instant.now().minusSeconds(60).isAfter(fixturesLoadedAt)) {
+				fetchedFixtures = indexFixtures(fplMapper.mapFixtures(fplClient.getFantasyFixtures()));
+				fixturesLoadedAt = Instant.now();
+			}
+		}
+		livePlayerCaches.put(cacheKey, new LivePlayerCache(Instant.now(), players, fetchedFixtures));
 		return players;
 	}
 
@@ -299,7 +331,7 @@ public class MockLiveStateService {
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
 	}
 
-	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); int pollCount; ScheduledFuture<?> task; List<ScheduledFuture<?>> releaseTasks = new CopyOnWriteArrayList<>(); boolean aiNarrationEnabled; boolean voiceNarrationEnabled; }
+	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); java.util.Set<String> automaticSubstitutions = java.util.Set.of(); int pollCount; ScheduledFuture<?> task; List<ScheduledFuture<?>> releaseTasks = new CopyOnWriteArrayList<>(); boolean aiNarrationEnabled; boolean voiceNarrationEnabled; }
 
 	private record LeagueSnapshot(FplLeagueType leagueType, FplLeagueScoring scoringType, int gameweek,
 			Map<Integer, FplPlayer> playersById, FplDraftLeague draftLeague,
@@ -307,7 +339,7 @@ public class MockLiveStateService {
 			Map<Long, FplEntryEvent> entryEvents) {
 	}
 
-	private record LivePlayerCache(Instant loadedAt, Map<Integer, FplLivePlayer> players) {
+	private record LivePlayerCache(Instant loadedAt, Map<Integer, FplLivePlayer> players, Map<Integer, FplFixture> fixtures) {
 	}
 
 	public SseEmitter connectStream() {
@@ -580,10 +612,48 @@ public class MockLiveStateService {
 				if (classicRules && entryEvent.benchBoost()) liveScore += points;
 			}
 		}
+		var automaticSubstitutions = new ArrayList<AutoSubstitutionView>();
+		if (!classicRules || !entryEvent.benchBoost()) {
+			for (var outgoing : List.copyOf(active)) {
+				var outgoingPlayer = playersById.get(Integer.parseInt(outgoing.id()));
+				if (outgoing.minutes() == null || outgoing.minutes() != 0 || outgoingPlayer == null || !fixtureFinished(outgoingPlayer)) continue;
+				var incoming = bench.stream()
+						.filter(candidate -> candidate.minutes() != null && candidate.minutes() > 0)
+						.filter(candidate -> autoSubstitutionIsLegal(active, outgoing, candidate))
+						.findFirst()
+						.orElse(null);
+				if (incoming == null) continue;
+				active.remove(outgoing);
+				bench.remove(incoming);
+				active.add(markAutoSubstituted(incoming));
+				bench.add(outgoing);
+				liveScore += incoming.points();
+				automaticSubstitutions.add(new AutoSubstitutionView(incoming.id(), outgoing.id(), incoming.points()));
+			}
+		}
 		if (classicRules) liveScore -= entryEvent.transferCost();
 		var color = TEAM_COLORS[(int) Math.floorMod(teamId, TEAM_COLORS.length)];
 		return new TeamView(String.valueOf(teamId), managerName, entryName, displayName, color,
-				liveScore, entryEvent.officialGameweekPoints(), active, bench);
+				liveScore, entryEvent.officialGameweekPoints(), active, bench, automaticSubstitutions);
+	}
+
+	private boolean fixtureFinished(FplPlayer player) {
+		return fetchedFixtures.values().stream().anyMatch(fixture -> fixture.event() == fetchedFixtureGameweek && fixture.started() && (fixture.finished() || fixture.finishedProvisional())
+				&& (fixture.homeTeamId() == player.premierLeagueClubId() || fixture.awayTeamId() == player.premierLeagueClubId()));
+	}
+
+	private boolean autoSubstitutionIsLegal(List<PlayerView> active, PlayerView outgoing, PlayerView incoming) {
+		if ("GKP".equals(outgoing.position()) || "GKP".equals(incoming.position())) return outgoing.position().equals(incoming.position());
+		var defenders = active.stream().filter(player -> !player.id().equals(outgoing.id()) && "DEF".equals(player.position())).count() + ("DEF".equals(incoming.position()) ? 1 : 0);
+		var midfielders = active.stream().filter(player -> !player.id().equals(outgoing.id()) && "MID".equals(player.position())).count() + ("MID".equals(incoming.position()) ? 1 : 0);
+		var forwards = active.stream().filter(player -> !player.id().equals(outgoing.id()) && "FWD".equals(player.position())).count() + ("FWD".equals(incoming.position()) ? 1 : 0);
+		return defenders >= 3 && defenders <= 5
+				&& midfielders >= 2 && midfielders <= 5
+				&& forwards >= 1 && forwards <= 3;
+	}
+
+	private PlayerView markAutoSubstituted(PlayerView player) {
+		return new PlayerView(player.id(), player.displayName(), player.shortName(), player.premierLeagueClub(), player.position(), player.lineupSlot(), player.points(), player.minutes(), player.status(), player.recentDelta(), true);
 	}
 
 	private List<FantasyEventView> detectPointEvents(LiveStateResponse state, Map<String, Integer> priorPoints,
@@ -827,6 +897,12 @@ public class MockLiveStateService {
 	private Map<Integer, FplLivePlayer> indexLivePlayers(List<FplLivePlayer> players) {
 		var indexed = new HashMap<Integer, FplLivePlayer>();
 		for (var player : players) indexed.put(player.id(), player);
+		return indexed;
+	}
+
+	private Map<Integer, FplFixture> indexFixtures(List<FplFixture> fixtures) {
+		var indexed = new HashMap<Integer, FplFixture>();
+		for (var fixture : fixtures) indexed.put(fixture.id(), fixture);
 		return indexed;
 	}
 

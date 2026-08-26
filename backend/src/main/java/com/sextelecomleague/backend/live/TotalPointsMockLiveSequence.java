@@ -30,8 +30,8 @@ final class TotalPointsMockLiveSequence {
 		for (var team : TEAMS) for (var player : playersFor(team)) points.put(player.id(), 0);
 		var snapshots = new ArrayList<LiveStateResponse>();
 		snapshots.add(state(0, points, List.of(), "Total-points mock ready: twelve live league positions."));
-		var opening = List.of(event("aurora-fwd", "GOAL", 4), event("aurora-mid", "ASSIST", 3), event("lakes-fwd", "GOAL", 4));
-		apply(points, opening); snapshots.add(state(1, points, opening, "Aurora extends its lead while Lakeside starts a climb."));
+		var opening = List.of(event("aurora-fwd", "GOAL", 4), event("aurora-mid", "ASSIST", 3), event("lakes-fwd", "GOAL", 4), event("lakes-mid", "ASSIST", 3), event("lakes-def", "BONUS", 2));
+		apply(points, opening); snapshots.add(state(1, points, opening, "Lakeside opens with the largest live scoring swing."));
 		var swing = List.of(event("borough-fwd", "GOAL", 4), event("city-fwd", "GOAL", 4), event("city-fwd", "BONUS", 2), event("city-mid", "GOAL", 4));
 		apply(points, swing); snapshots.add(state(2, points, swing, "Borough and City create a live standings swing."));
 		var finalRush = List.of(event("lakes-fwd", "GOAL", 4), event("jupiter-mid", "BONUS", 2), event("aurora-def", "CLEAN_SHEET", 4));

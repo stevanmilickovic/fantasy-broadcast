@@ -998,7 +998,7 @@
 .player-event-notification.is-leaving { animation: player-notification-exit 200ms ease-in both; }
 @keyframes player-notification-exit { from { opacity: 1; transform: translate(calc(-50% + var(--event-shift, 0px)), 0); } to { opacity: 0; transform: translate(calc(-50% + var(--event-shift, 0px)), 7px); } }
 @keyframes player-shirt-glow-fade { from { filter: drop-shadow(0 0 9px rgba(0,255,133,.88)); } to { filter: drop-shadow(0 4px 5px rgba(0,0,0,.58)); } }
-.bench-rail { position: relative; z-index: 1; min-width: 0; }.bench-rail.left { grid-column: 1; grid-row: 1; }.bench-rail.right { grid-column: 10; grid-row: 1; text-align: right; }.bench-rail-title { position: absolute; top: 0; left: 50%; color: var(--pl-green); font-size: 10px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; transform: translateX(-50%); }.bench-player { position: absolute; top: calc(var(--y) + var(--y-offset)); left: 50%; width: 110px; transform: translate(-50%, -50%); }.bench-player.has-event { z-index: 5; }
+.bench-rail { position: relative; z-index: 1; min-width: 0; }.bench-rail:has(.bench-player.has-event) { z-index: 6; }.bench-rail.left { grid-column: 1; grid-row: 1; }.bench-rail.right { grid-column: 10; grid-row: 1; text-align: right; }.bench-rail-title { position: absolute; top: 0; left: 50%; color: var(--pl-green); font-size: 10px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; transform: translateX(-50%); }.bench-player { position: absolute; top: calc(var(--y) + var(--y-offset)); left: 50%; width: 110px; transform: translate(-50%, -50%); }.bench-player.has-event { z-index: 5; }
 
 @keyframes score-pop {
   0% {
