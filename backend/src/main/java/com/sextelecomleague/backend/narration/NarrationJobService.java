@@ -1,7 +1,11 @@
 package com.sextelecomleague.backend.narration;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,34 +67,64 @@ public class NarrationJobService {
 
 	public boolean enqueueForEvents(long leagueId, LiveStateResponse state, boolean voiceNarrationEnabled) {
 		if (!properties.isEnabled() || state.events().isEmpty()) return false;
-		var staged = false;
-		for (var event : selectedEvents(state)) {
-			if (!budgetService.canCreateNarration(leagueId, state.gameweek())) {
-				log.info("Skipping narration: leagueId={}, gameweek={}, sourceEventId={}, reason=league_gameweek_limit",
-						leagueId, state.gameweek(), event.id());
-				continue;
-			}
-			staged = true;
-			repository.createPendingIfAbsent(leagueId, state.gameweek(), event.id())
-					.ifPresent(narration -> executor.execute(() -> generate(narration.id(), context(leagueId, state, event, voiceNarrationEnabled))));
+		var events = selectedEvents(state);
+		if (events.isEmpty()) return false;
+		var sourceEventId = sourceEventId(events);
+		if (!budgetService.canCreateNarration(leagueId, state.gameweek())) {
+			log.info("Skipping narration: leagueId={}, gameweek={}, sourceEventId={}, reason=league_gameweek_limit",
+					leagueId, state.gameweek(), sourceEventId);
+			return false;
 		}
-		return staged;
+		repository.createPendingIfAbsent(leagueId, state.gameweek(), sourceEventId)
+				.ifPresent(narration -> executor.execute(() -> generate(narration.id(), context(leagueId, state, events, voiceNarrationEnabled))));
+		return true;
 	}
 
-	public Optional<GeneratedCommentary> generateMockText(LiveStateResponse state, FantasyEventView event) {
-		if (!selectedEvents(state).contains(event)) return Optional.empty();
-		return Optional.of(textGenerator.generate(context(0, state, event, false)));
+	public Optional<GeneratedCommentary> generateMockText(LiveStateResponse state) {
+		var events = selectedEvents(state);
+		if (events.isEmpty()) return Optional.empty();
+		return Optional.of(textGenerator.generate(context(0, state, events, false)));
+	}
+
+	public Optional<BroadcastNarration> generateMockNarration(long leagueId, LiveStateResponse state, boolean voiceNarrationEnabled) {
+		var events = selectedEvents(state);
+		if (events.isEmpty()) return Optional.empty();
+		var sourceEventId = "mock-" + sourceEventId(events);
+		var narration = repository.createPending(leagueId, state.gameweek(), sourceEventId);
+		generate(narration.id(), context(leagueId, state, events, voiceNarrationEnabled));
+		return repository.findById(narration.id());
 	}
 
 	/** Returns true only when every narration selected for this notification is ready to publish. */
 	public boolean areNarrationsReady(long leagueId, LiveStateResponse state, boolean voiceNarrationEnabled) {
+		var events = selectedEvents(state);
+		if (events.isEmpty()) return true;
+		var sourceEventId = sourceEventId(events);
 		var expectedStatus = properties.isAudioEnabled() && voiceNarrationEnabled
 				? NarrationStatus.AUDIO_READY
 				: NarrationStatus.TEXT_READY;
-		return selectedEvents(state).stream().allMatch(event -> repository
-				.findBySourceEvent(leagueId, state.gameweek(), event.id())
-				.map(narration -> narration.status() == expectedStatus)
-				.orElse(false));
+		return repository
+				.findBySourceEvent(leagueId, state.gameweek(), sourceEventId)
+				.map(narration -> narration.status() == expectedStatus || textFallbackReady(expectedStatus, narration))
+				.orElse(false);
+	}
+
+	public List<String> sourceEventIdsForState(LiveStateResponse state) {
+		var events = selectedEvents(state);
+		return events.isEmpty() ? List.of() : List.of(sourceEventId(events));
+	}
+
+	public List<String> mockSourceEventIdsForState(LiveStateResponse state) {
+		return sourceEventIdsForState(state).stream()
+				.map(sourceEventId -> "mock-" + sourceEventId)
+				.toList();
+	}
+
+	private boolean textFallbackReady(NarrationStatus expectedStatus, BroadcastNarration narration) {
+		return expectedStatus == NarrationStatus.AUDIO_READY
+				&& narration.status() == NarrationStatus.TEXT_READY
+				&& narration.errorMessage() != null
+				&& !narration.errorMessage().isBlank();
 	}
 
 	void generate(long narrationId, NarrationContext context) {
@@ -102,10 +136,18 @@ public class NarrationJobService {
 			}
 			if (!budgetService.canGenerateAudio(narration.text().length())) {
 				log.info("Publishing text-only narration: narrationId={}, reason=monthly_tts_budget", narration.id());
+				repository.markAudioFailedTextReady(narration.id(), "monthly_tts_budget");
 				return;
 			}
-			var voice = voiceGenerator.generate(context.sourceEventId(), narration.text());
-			repository.markAudioReady(narration.id(), voice.audioPath(), voice.characters(), voice.expiresAt());
+			try {
+				var voice = voiceGenerator.generate(context.sourceEventId(), narration.text());
+				repository.markAudioReady(narration.id(), voice.audioPath(), voice.characters(), voice.expiresAt());
+			}
+			catch (RuntimeException exception) {
+				log.warn("Voice narration generation failed; publishing text-only narration: narrationId={}, sourceEventId={}",
+						narration.id(), context.sourceEventId(), exception);
+				repository.markAudioFailedTextReady(narration.id(), exception.getMessage());
+			}
 		}
 		catch (RuntimeException exception) {
 			log.warn("Narration generation failed: narrationId={}, sourceEventId={}", narrationId, context.sourceEventId(), exception);
@@ -121,9 +163,29 @@ public class NarrationJobService {
 				.toList();
 	}
 
-	private NarrationContext context(long leagueId, LiveStateResponse state, FantasyEventView event, boolean voiceNarrationEnabled) {
-		return new NarrationContext(event.id(), event.type(), narrationData(state),
+	private NarrationContext context(long leagueId, LiveStateResponse state, List<FantasyEventView> events, boolean voiceNarrationEnabled) {
+		return new NarrationContext(sourceEventId(events), eventType(events), narrationData(state),
 				properties.getLimits().getMaxTextCharacters(), voiceNarrationEnabled);
+	}
+
+	private String eventType(List<FantasyEventView> events) {
+		return events.size() == 1 ? events.getFirst().type() : "NOTIFICATION";
+	}
+
+	private String sourceEventId(List<FantasyEventView> events) {
+		if (events.size() == 1) return events.getFirst().id();
+		var joined = events.stream().map(FantasyEventView::id).collect(java.util.stream.Collectors.joining("|"));
+		return "notification-" + sha256(joined).substring(0, 16);
+	}
+
+	private String sha256(String value) {
+		try {
+			var digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+			return HexFormat.of().formatHex(digest);
+		}
+		catch (NoSuchAlgorithmException exception) {
+			throw new IllegalStateException("SHA-256 is unavailable", exception);
+		}
 	}
 
 	private String narrationData(LiveStateResponse state) {

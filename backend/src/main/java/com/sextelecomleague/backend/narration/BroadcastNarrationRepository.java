@@ -23,6 +23,16 @@ public class BroadcastNarrationRepository {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
+	public long mockLeagueId() {
+		jdbcTemplate.update("""
+				insert ignore into league (fpl_league_id, display_name, league_type, scoring_type)
+				values (?, ?, ?, ?)
+				""", -1L, "Mock Broadcast", "DRAFT", "H2H");
+		var id = jdbcTemplate.queryForObject("select id from league where fpl_league_id = ?", Long.class, -1L);
+		if (id == null) throw new IllegalStateException("Mock broadcast league was not created");
+		return id;
+	}
+
 	@Transactional
 	public BroadcastNarration createPending(long leagueId, int gameweek, String sourceEventId) {
 		return createPendingIfAbsent(leagueId, gameweek, sourceEventId)
@@ -93,6 +103,15 @@ public class BroadcastNarrationRepository {
 				    error_message = null, updated_at = current_timestamp
 				where id = ?
 				""", NarrationStatus.AUDIO_READY.name(), audioPath, ttsCharacters, Timestamp.from(expiresAt), id);
+		return findById(id);
+	}
+
+	public Optional<BroadcastNarration> markAudioFailedTextReady(long id, String errorMessage) {
+		jdbcTemplate.update("""
+				update broadcast_narration
+				set status = ?, error_message = ?, updated_at = current_timestamp
+				where id = ?
+				""", NarrationStatus.TEXT_READY.name(), truncate(errorMessage, 500), id);
 		return findById(id);
 	}
 

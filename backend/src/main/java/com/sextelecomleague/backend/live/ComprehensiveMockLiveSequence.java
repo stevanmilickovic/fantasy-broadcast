@@ -9,10 +9,10 @@ import java.util.Map;
 final class ComprehensiveMockLiveSequence {
 
 	private static final List<TeamSeed> TEAMS = List.of(
-			new TeamSeed("alpha", "Ava Reed", "Northbank United", "NBU", "#2684ff", "Arsenal"),
+			new TeamSeed("alpha", "Ava Reed", "lospolloshermanos", "LPH", "#2684ff", "Arsenal"),
 			new TeamSeed("cornelius", "Cornelius Talmadge", "FCCornelius Talmadge", "FCT", "#f04770", "Chelsea"),
-			new TeamSeed("cedar", "Maya Stone", "Cedar City", "CDC", "#ffb000", "Liverpool"),
-			new TeamSeed("delta", "Jon Bell", "Delta Athletic", "DEA", "#24c47e", "Manchester City"),
+			new TeamSeed("cedar", "Maya Stone", "fudbaleri soker", "FSK", "#ffb000", "Liverpool"),
+			new TeamSeed("delta", "Jon Bell", "zemun cowboys", "ZCB", "#24c47e", "Manchester City"),
 			new TeamSeed("ember", "Nia Cole", "Ember Rovers", "EMR", "#9b59ff", "Tottenham Hotspur"),
 			new TeamSeed("forge", "Theo Nash", "Forge FC", "FGF", "#ff7a45", "Newcastle United")
 	);
@@ -33,7 +33,7 @@ final class ComprehensiveMockLiveSequence {
 			event("alpha-fwd1", "GOAL", 4),
 			event("alpha-mid1", "ASSIST", 3));
 		apply(points, goalAndAssist);
-		snapshots.add(state(1, points, goalAndAssist, "Goal and assist arrive together in Northbank United v FCCornelius Talmadge."));
+		snapshots.add(state(1, points, goalAndAssist, "Goal and assist arrive together in lospolloshermanos v FCCornelius Talmadge."));
 
 		var cleanSheets = List.of(
 			event("cedar-gk", "CLEAN_SHEET", 4),
@@ -131,19 +131,71 @@ final class ComprehensiveMockLiveSequence {
 	}
 
 	private static List<PlayerSeed> playersFor(TeamSeed team) {
-		return List.of(
-				player(team, "gk", "Goalkeeper", "GKP", "1", false),
-				player(team, "def1", "Defender One", "DEF", "2", false), player(team, "def2", "Defender Two", "DEF", "3", false),
-				player(team, "def3", "Defender Three", "DEF", "4", false), player(team, "def4", "Defender Four", "DEF", "5", false),
-				player(team, "mid1", "Midfielder One", "MID", "6", false), player(team, "mid2", "Midfielder Two", "MID", "7", false),
-				player(team, "mid3", "Midfielder Three", "MID", "8", false), player(team, "mid4", "Midfielder Four", "MID", "9", false),
-				player(team, "fwd1", "Forward One", "FWD", "10", false), player(team, "fwd2", "Forward Two", "FWD", "11", false),
-				player(team, "bench1", "Bench Defender", "DEF", "12", true), player(team, "bench2", "Bench Midfielder", "MID", "13", true),
-				player(team, "bench3", "Bench Forward", "FWD", "14", true), player(team, "bench4", "Reserve Goalkeeper", "GKP", "15", true));
+		return switch (team.id()) {
+			case "alpha" -> players(team,
+					player(team, "gk", "Raya", "GKP", "1", false),
+					player(team, "def1", "Saliba", "DEF", "2", false), player(team, "def2", "Gabriel", "DEF", "3", false),
+					player(team, "def3", "Timber", "DEF", "4", false), player(team, "def4", "Calafiori", "DEF", "5", false),
+					player(team, "mid1", "Saka", "MID", "6", false), player(team, "mid2", "Rice", "MID", "7", false),
+					player(team, "mid3", "Odegaard", "MID", "8", false), player(team, "mid4", "Martinelli", "MID", "9", false),
+					player(team, "fwd1", "Havertz", "FWD", "10", false), player(team, "fwd2", "Jesus", "FWD", "11", false),
+					player(team, "bench1", "White", "DEF", "12", true), player(team, "bench2", "Trossard", "MID", "13", true),
+					player(team, "bench3", "Nwaneri", "FWD", "14", true), player(team, "bench4", "Kepa", "GKP", "15", true));
+			case "cornelius" -> players(team,
+					player(team, "gk", "Sanchez", "GKP", "1", false),
+					player(team, "def1", "James", "DEF", "2", false), player(team, "def2", "Colwill", "DEF", "3", false),
+					player(team, "def3", "Cucurella", "DEF", "4", false), player(team, "def4", "Gusto", "DEF", "5", false),
+					player(team, "mid1", "Palmer", "MID", "6", false), player(team, "mid2", "Fernandez", "MID", "7", false),
+					player(team, "mid3", "Caicedo", "MID", "8", false), player(team, "mid4", "Neto", "MID", "9", false),
+					player(team, "fwd1", "Jackson", "FWD", "10", false), player(team, "fwd2", "Pedro", "FWD", "11", false),
+					player(team, "bench1", "Chalobah", "DEF", "12", true), player(team, "bench2", "Madueke", "MID", "13", true),
+					player(team, "bench3", "Nkunku", "FWD", "14", true), player(team, "bench4", "Jorgensen", "GKP", "15", true));
+			case "cedar" -> players(team,
+					player(team, "gk", "Alisson", "GKP", "1", false),
+					player(team, "def1", "Van Dijk", "DEF", "2", false), player(team, "def2", "Konate", "DEF", "3", false),
+					player(team, "def3", "Robertson", "DEF", "4", false), player(team, "def4", "Bradley", "DEF", "5", false),
+					player(team, "mid1", "Salah", "MID", "6", false), player(team, "mid2", "Mac Allister", "MID", "7", false),
+					player(team, "mid3", "Szoboszlai", "MID", "8", false), player(team, "mid4", "Diaz", "MID", "9", false),
+					player(team, "fwd1", "Nunez", "FWD", "10", false), player(team, "fwd2", "Jota", "FWD", "11", false),
+					player(team, "bench1", "Gomez", "DEF", "12", true), player(team, "bench2", "Jones", "MID", "13", true),
+					player(team, "bench3", "Gakpo", "FWD", "14", true), player(team, "bench4", "Kelleher", "GKP", "15", true));
+			case "delta" -> players(team,
+					player(team, "gk", "Ederson", "GKP", "1", false),
+					player(team, "def1", "Dias", "DEF", "2", false), player(team, "def2", "Gvardiol", "DEF", "3", false),
+					player(team, "def3", "Akanji", "DEF", "4", false), player(team, "def4", "Ake", "DEF", "5", false),
+					player(team, "mid1", "De Bruyne", "MID", "6", false), player(team, "mid2", "Foden", "MID", "7", false),
+					player(team, "mid3", "Rodri", "MID", "8", false), player(team, "mid4", "Savinho", "MID", "9", false),
+					player(team, "fwd1", "Haaland", "FWD", "10", false), player(team, "fwd2", "Marmoush", "FWD", "11", false),
+					player(team, "bench1", "Stones", "DEF", "12", true), player(team, "bench2", "Silva", "MID", "13", true),
+					player(team, "bench3", "Doku", "FWD", "14", true), player(team, "bench4", "Ortega", "GKP", "15", true));
+			case "ember" -> players(team,
+					player(team, "gk", "Vicario", "GKP", "1", false),
+					player(team, "def1", "Porro", "DEF", "2", false), player(team, "def2", "Romero", "DEF", "3", false),
+					player(team, "def3", "Van de Ven", "DEF", "4", false), player(team, "def4", "Udogie", "DEF", "5", false),
+					player(team, "mid1", "Maddison", "MID", "6", false), player(team, "mid2", "Kulusevski", "MID", "7", false),
+					player(team, "mid3", "Sarr", "MID", "8", false), player(team, "mid4", "Johnson", "MID", "9", false),
+					player(team, "fwd1", "Son", "FWD", "10", false), player(team, "fwd2", "Richarlison", "FWD", "11", false),
+					player(team, "bench1", "Davies", "DEF", "12", true), player(team, "bench2", "Bentancur", "MID", "13", true),
+					player(team, "bench3", "Solanke", "FWD", "14", true), player(team, "bench4", "Forster", "GKP", "15", true));
+			case "forge" -> players(team,
+					player(team, "gk", "Pope", "GKP", "1", false),
+					player(team, "def1", "Trippier", "DEF", "2", false), player(team, "def2", "Schar", "DEF", "3", false),
+					player(team, "def3", "Botman", "DEF", "4", false), player(team, "def4", "Livramento", "DEF", "5", false),
+					player(team, "mid1", "Gordon", "MID", "6", false), player(team, "mid2", "Guimaraes", "MID", "7", false),
+					player(team, "mid3", "Tonali", "MID", "8", false), player(team, "mid4", "Barnes", "MID", "9", false),
+					player(team, "fwd1", "Isak", "FWD", "10", false), player(team, "fwd2", "Wilson", "FWD", "11", false),
+					player(team, "bench1", "Burn", "DEF", "12", true), player(team, "bench2", "Willock", "MID", "13", true),
+					player(team, "bench3", "Murphy", "FWD", "14", true), player(team, "bench4", "Dubravka", "GKP", "15", true));
+			default -> throw new IllegalArgumentException("Unknown comprehensive mock team: " + team.id());
+		};
 	}
 
-	private static PlayerSeed player(TeamSeed team, String suffix, String role, String position, String slot, boolean bench) {
-		return new PlayerSeed(team.id() + "-" + suffix, team.manager().split(" ")[0] + " " + role, role, position, slot, bench);
+	private static List<PlayerSeed> players(TeamSeed team, PlayerSeed... players) {
+		return List.of(players);
+	}
+
+	private static PlayerSeed player(TeamSeed team, String suffix, String name, String position, String slot, boolean bench) {
+		return new PlayerSeed(team.id() + "-" + suffix, name, name, position, slot, bench);
 	}
 
 	private static PlayerSeed playerById(String id) {

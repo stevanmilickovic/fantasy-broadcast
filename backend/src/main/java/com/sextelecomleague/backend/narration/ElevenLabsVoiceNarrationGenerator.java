@@ -16,6 +16,8 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 @Service
 @Profile("db & !test")
@@ -26,12 +28,15 @@ public class ElevenLabsVoiceNarrationGenerator implements VoiceNarrationGenerato
 	private final NarrationProperties properties;
 	private final RestClient restClient;
 
-	public ElevenLabsVoiceNarrationGenerator(NarrationProperties properties, RestClient.Builder restClientBuilder) {
+	public ElevenLabsVoiceNarrationGenerator(NarrationProperties properties) {
 		this.properties = properties;
+		log.info("ElevenLabs narration configured: baseUrl={}, model={}, voiceId={}, apiKey={}",
+				properties.getElevenLabs().getBaseUrl(), properties.getElevenLabs().getModelId(),
+				properties.getElevenLabs().getVoiceId(), maskedKey(properties.getElevenLabs().getApiKey()));
 		var requestFactory = new SimpleClientHttpRequestFactory();
 		requestFactory.setConnectTimeout(java.time.Duration.ofSeconds(properties.getElevenLabs().getTimeoutSeconds()));
 		requestFactory.setReadTimeout(java.time.Duration.ofSeconds(properties.getElevenLabs().getTimeoutSeconds()));
-		this.restClient = restClientBuilder
+		this.restClient = RestClient.builder()
 				.baseUrl(properties.getElevenLabs().getBaseUrl())
 				.defaultHeader("xi-api-key", properties.getElevenLabs().getApiKey())
 				.requestFactory(requestFactory)
@@ -61,6 +66,15 @@ public class ElevenLabsVoiceNarrationGenerator implements VoiceNarrationGenerato
 					characterCost, Duration.between(startedAt, Instant.now()).toMillis());
 			return new GeneratedVoice(audioPath.toString(), characterCost, Instant.now().plus(properties.getStorage().getAudioTtl()));
 		}
+		catch (HttpClientErrorException.Unauthorized exception) {
+			logElevenLabsHttpError(exception);
+			throw new IllegalStateException("ElevenLabs authentication failed. Check ELEVENLABS_API_KEY or broadcast.narration.eleven-labs.api-key. "
+					+ elevenLabsErrorSummary(exception), exception);
+		}
+		catch (HttpStatusCodeException exception) {
+			logElevenLabsHttpError(exception);
+			throw new IllegalStateException("ElevenLabs narration request failed. " + elevenLabsErrorSummary(exception), exception);
+		}
 		catch (RestClientException exception) {
 			throw new IllegalStateException("ElevenLabs narration request failed", exception);
 		}
@@ -87,5 +101,40 @@ public class ElevenLabsVoiceNarrationGenerator implements VoiceNarrationGenerato
 		catch (NumberFormatException ignored) {
 			return fallback;
 		}
+	}
+
+	private void logElevenLabsHttpError(HttpStatusCodeException exception) {
+		log.warn("ElevenLabs narration HTTP error: status={}, statusText={}, requestId={}, body={}",
+				exception.getStatusCode().value(), exception.getStatusText(),
+				firstHeader(exception, "request-id", "x-request-id", "xi-request-id", "elevenlabs-request-id"),
+				responseBodyPreview(exception));
+	}
+
+	private String elevenLabsErrorSummary(HttpStatusCodeException exception) {
+		return "status=" + exception.getStatusCode().value()
+				+ ", requestId=" + firstHeader(exception, "request-id", "x-request-id", "xi-request-id", "elevenlabs-request-id")
+				+ ", body=" + responseBodyPreview(exception);
+	}
+
+	private String firstHeader(HttpStatusCodeException exception, String... names) {
+		for (var name : names) {
+			var value = exception.getResponseHeaders() == null ? null : exception.getResponseHeaders().getFirst(name);
+			if (value != null && !value.isBlank()) return value;
+		}
+		return "none";
+	}
+
+	private String responseBodyPreview(HttpStatusCodeException exception) {
+		var body = exception.getResponseBodyAsString();
+		if (body == null || body.isBlank()) return "empty";
+		var compact = body.replaceAll("\\s+", " ").trim();
+		return compact.length() <= 500 ? compact : compact.substring(0, 500);
+	}
+
+	private String maskedKey(String key) {
+		if (key == null || key.isBlank()) return "missing";
+		var trimmed = key.trim();
+		var suffix = trimmed.length() <= 4 ? trimmed : trimmed.substring(trimmed.length() - 4);
+		return "present(length=" + trimmed.length() + ", last4=" + suffix + ")";
 	}
 }

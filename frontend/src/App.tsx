@@ -699,7 +699,7 @@ function App() {
       </section>
 
       <section className="controls-row administration-controls" aria-label="Broadcast controls">
-		<label className="administration-form-field"><span>Mock narration</span><select className="administration-select" value={mockNarrationMode} onChange={(event) => setMockNarrationMode(event.target.value as MockNarrationMode)}><option value="NONE">None</option><option value="TEXT">Text</option></select></label>
+		<label className="administration-form-field"><span>Mock narration</span><select className="administration-select" value={mockNarrationMode} onChange={(event) => setMockNarrationMode(event.target.value as MockNarrationMode)}><option value="NONE">None</option><option value="TEXT">Text</option><option value="VOICE">Voice</option></select></label>
         <button type="button" onClick={startLiveBroadcast} disabled={isBusy || isLeagueLoading}>
           <Radio size={18} />
           Start live broadcast

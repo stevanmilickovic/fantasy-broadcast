@@ -105,7 +105,7 @@ public class NarrationProperties {
 		}
 
 		public void setApiKey(String apiKey) {
-			this.apiKey = apiKey;
+			this.apiKey = apiKey == null ? null : apiKey.trim();
 		}
 
 		public String getBaseUrl() {
@@ -176,7 +176,7 @@ public class NarrationProperties {
 		}
 
 		public void setVoiceId(String voiceId) {
-			this.voiceId = voiceId;
+			this.voiceId = voiceId == null ? null : voiceId.trim();
 		}
 
 		public int getTimeoutSeconds() {

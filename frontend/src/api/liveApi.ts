@@ -18,7 +18,7 @@ export const postMockAction = async (action: 'start' | 'advance' | 'reset', toke
   return response.json()
 }
 
-export type MockNarrationMode = 'NONE' | 'TEXT'
+export type MockNarrationMode = 'NONE' | 'TEXT' | 'VOICE'
 
 export const startComprehensiveMock = async (token: string, narrationMode: MockNarrationMode): Promise<LiveStateResponse> => {
   const response = await fetch(`/api/mock-live/comprehensive/start?${new URLSearchParams({ narrationMode })}`, { method: 'POST', headers: adminHeaders(token) })

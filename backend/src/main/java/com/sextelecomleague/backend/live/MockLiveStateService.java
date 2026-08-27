@@ -1005,7 +1005,7 @@ public class MockLiveStateService {
 	}
 
 	private LiveStateResponse publishMockState(LiveStateResponse state) {
-		if (mockNarrationMode != MockNarrationMode.TEXT || narrationJobService == null || state.events().isEmpty()) {
+		if (mockNarrationMode == MockNarrationMode.NONE || narrationJobService == null || state.events().isEmpty()) {
 			broadcast(state);
 			return state;
 		}
@@ -1025,23 +1025,28 @@ public class MockLiveStateService {
 	private MockNarrationResult generateMockNarration(LiveStateResponse state) {
 		var commentary = new ArrayList<CommentaryView>();
 		var complete = true;
-		for (var event : state.events()) {
-			try {
-				narrationJobService.generateMockText(state, event)
-						.ifPresent(generated -> commentary.add(new CommentaryView("mock-" + event.id(), event.occurredAt(), generated.text(),
-								event.priority(), "TEXT_READY", null)));
+		try {
+			if (mockNarrationMode == MockNarrationMode.VOICE) {
+				narrationJobService.generateMockNarration(narrationRepository.mockLeagueId(), state, true)
+						.ifPresent(narration -> commentary.add(toCommentaryView(narration)));
 			}
-			catch (RuntimeException exception) {
-				complete = false;
-				log.warn("Mock narration generation failed: gameweek={}, sourceEventId={}", state.gameweek(), event.id(), exception);
+			else {
+				narrationJobService.generateMockText(state)
+						.ifPresent(generated -> commentary.add(new CommentaryView(
+								narrationJobService.mockSourceEventIdsForState(state).stream().findFirst().orElse("mock-notification"),
+								state.events().getFirst().occurredAt(), generated.text(), 3, "TEXT_READY", null)));
 			}
+		}
+		catch (RuntimeException exception) {
+			complete = false;
+			log.warn("Mock narration generation failed: gameweek={}, events={}", state.gameweek(), state.events().size(), exception);
 		}
 		return new MockNarrationResult(commentary, complete);
 	}
 
 	private void releaseMockState(LiveStateResponse state, long narrationRunId,
 			CompletableFuture<MockNarrationResult> narration, Instant deadline) {
-		if (mockNarrationMode != MockNarrationMode.TEXT || narrationRunId != mockNarrationRunId) return;
+		if (mockNarrationMode == MockNarrationMode.NONE || narrationRunId != mockNarrationRunId) return;
 		try {
 			var result = narration.getNow(null);
 			var timedOut = !Instant.now().isBefore(deadline);
@@ -1079,8 +1084,7 @@ public class MockLiveStateService {
 
 	private LiveStateResponse withNarrations(long leagueKey, LiveStateResponse state) {
 		if (narrationRepository == null || state.events().isEmpty()) return state;
-		var eventIds = new HashSet<String>();
-		for (var event : state.events()) eventIds.add(event.id());
+		var eventIds = new HashSet<>(narrationJobService.sourceEventIdsForState(state));
 		var commentary = narrationRepository.readyForLeagueGameweek(leagueKey, state.gameweek()).stream()
 				.filter(narration -> eventIds.contains(narration.sourceEventId()))
 				.map(this::toCommentaryView)

@@ -94,12 +94,14 @@ class NarrationJobServiceTests {
 	void skipsNewJobsAfterLeagueGameweekLimit() {
 		properties.getLimits().setMaxNarrationsPerLeagueGameweek(1);
 		var service = service();
+		var state = state(List.of(event("event-1", "GOAL"), event("event-2", "ASSIST")));
 
-		var staged = service.enqueueForEvents(1L, state(List.of(event("event-1", "GOAL"), event("event-2", "ASSIST"))));
+		var staged = service.enqueueForEvents(1L, state);
 
 		assertThat(staged).isTrue();
-		assertThat(repository.findBySourceEvent(1L, 7, "event-1")).isPresent();
+		assertThat(repository.findBySourceEvent(1L, 7, service.sourceEventIdsForState(state).getFirst())).isPresent();
 		assertThat(repository.findBySourceEvent(1L, 7, "event-2")).isEmpty();
+		assertThat(repository.countForLeagueGameweek(1L, 7)).isEqualTo(1);
 	}
 
 	@Test

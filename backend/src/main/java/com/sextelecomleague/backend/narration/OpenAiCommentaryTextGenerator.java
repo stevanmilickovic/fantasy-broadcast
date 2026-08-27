@@ -29,13 +29,13 @@ public class OpenAiCommentaryTextGenerator implements CommentaryTextGenerator {
 	private final ObjectMapper objectMapper;
 	private final RestClient restClient;
 
-	public OpenAiCommentaryTextGenerator(NarrationProperties properties, ObjectMapper objectMapper, RestClient.Builder restClientBuilder) {
+	public OpenAiCommentaryTextGenerator(NarrationProperties properties, ObjectMapper objectMapper) {
 		this.properties = properties;
 		this.objectMapper = objectMapper;
 		var requestFactory = new SimpleClientHttpRequestFactory();
 		requestFactory.setConnectTimeout(java.time.Duration.ofSeconds(properties.getOpenai().getTimeoutSeconds()));
 		requestFactory.setReadTimeout(java.time.Duration.ofSeconds(properties.getOpenai().getTimeoutSeconds()));
-		this.restClient = restClientBuilder
+		this.restClient = RestClient.builder()
 				.baseUrl(properties.getOpenai().getBaseUrl())
 				.defaultHeader("Authorization", "Bearer " + properties.getOpenai().getApiKey())
 				.requestFactory(requestFactory)
