@@ -1,15 +1,9 @@
 package com.sextelecomleague.backend.narration;
 
 public record NarrationContext(
-		long leagueId,
-		int gameweek,
 		String sourceEventId,
 		String eventType,
-		String managerId,
-		String playerId,
-		String eventSummary,
-		String notificationContext,
-		int pointDelta,
+		String narrationData,
 		int maxCharacters,
 		boolean voiceNarrationEnabled) {
 }

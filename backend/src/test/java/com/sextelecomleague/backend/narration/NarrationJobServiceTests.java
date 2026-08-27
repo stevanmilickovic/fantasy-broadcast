@@ -8,7 +8,9 @@ import java.util.List;
 import com.sextelecomleague.backend.live.FantasyEventView;
 import com.sextelecomleague.backend.live.LiveStateResponse;
 import com.sextelecomleague.backend.live.LiveStatus;
+import com.sextelecomleague.backend.live.PlayerView;
 import com.sextelecomleague.backend.live.SequenceState;
+import com.sextelecomleague.backend.live.TeamView;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +61,7 @@ class NarrationJobServiceTests {
 		assertThat(staged).isTrue();
 		var narration = repository.findBySourceEvent(1L, 7, "event-1").orElseThrow();
 		assertThat(narration.status()).isEqualTo(NarrationStatus.TEXT_READY);
-		assertThat(narration.text()).isEqualTo("Player GOAL for +4 points.");
+		assertThat(narration.text()).isEqualTo("club: - Test Club: 2 -> 10 events: - Test Club / Player GOAL: goal changed_players: - Test Club / Player GOAL: 2 -> 10");
 		assertThat(repository.findBySourceEvent(1L, 7, "event-2")).isEmpty();
 	}
 
@@ -131,8 +133,10 @@ class NarrationJobServiceTests {
 	}
 
 	private LiveStateResponse state(List<FantasyEventView> events) {
+		var player = new PlayerView("20", "Player GOAL", "Player", "ARS", "MID", "STARTER", 10, 90, "LIVE", 4);
+		var team = new TeamView("10", "Test Manager", "Test Club", "TST", "#123456", 10, 10, List.of(player), List.of());
 		return new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "Testing."),
-				new SequenceState(1, 0, true, false), 7, List.of(), List.of(), List.of(), events, List.of());
+				new SequenceState(1, 0, true, false), 7, List.of(), List.of(team), List.of(), events, List.of());
 	}
 
 	private FantasyEventView event(String id, String type) {

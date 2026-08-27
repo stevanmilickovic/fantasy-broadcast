@@ -11,8 +11,7 @@ public class MockCommentaryTextGenerator implements CommentaryTextGenerator {
 
 	@Override
 	public GeneratedCommentary generate(NarrationContext context) {
-		var points = context.pointDelta() > 0 ? "+" + context.pointDelta() : String.valueOf(context.pointDelta());
-		var text = context.eventSummary() + " for " + points + " points.";
+		var text = context.narrationData().replaceAll("\\s+", " ").trim();
 		if (text.length() > context.maxCharacters()) {
 			text = text.substring(0, Math.max(0, context.maxCharacters() - 1)).trim() + ".";
 		}
