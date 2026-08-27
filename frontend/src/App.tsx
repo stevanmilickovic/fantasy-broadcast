@@ -23,6 +23,7 @@ const MATCH_REVEAL_MS = 1900
 const TOTAL_SCORE_REVEAL_Y_CORRECTION = 1
 const INACTIVITY_ROTATION_MS = 60_000
 const QUEUED_NOTIFICATION_START_GRACE_MS = 450
+const MAX_PENDING_BROADCAST_GROUPS = 3
 
 type BroadcastEventGroup = { id: string; events: FantasyEventView[]; totalChange: number }
 
@@ -190,12 +191,12 @@ function App() {
         const group = groups.get(id) ?? { id, events: [], totalChange: 0 }
         groups.set(id, { ...group, events: [...group.events, event].sort((left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta)), totalChange: group.totalChange + Math.abs(event.pointDelta) })
       }
-      return [...groups.values()].sort((left, right) => right.totalChange - left.totalChange)
+      return [...groups.values()].sort((left, right) => right.totalChange - left.totalChange).slice(0, MAX_PENDING_BROADCAST_GROUPS)
     }
     if ((liveState?.commentary?.length ?? 0) > 0) {
       const [highlight, ...queued] = mergeGroups([])
       if (highlight) setActiveBroadcastGroup(highlight)
-      setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight?.id)])
+      setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight?.id)].slice(0, MAX_PENDING_BROADCAST_GROUPS))
       return
     }
     setPendingBroadcastGroups(mergeGroups)
@@ -212,7 +213,7 @@ function App() {
     const [highlight, ...queued] = [...groups.values()].sort((left, right) => right.totalChange - left.totalChange)
     if (!highlight) return
     setActiveBroadcastGroup(highlight)
-    setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight.id)])
+    setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight.id)].slice(0, MAX_PENDING_BROADCAST_GROUPS))
   }, [liveState?.commentary?.[0]?.id])
 
   useEffect(() => {
