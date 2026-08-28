@@ -238,7 +238,7 @@ GET https://draft.premierleague.com/api/league/49824/details
 
 ### Situation
 
-- Current STK league.
+- Current Fantasy Broadcast league.
 - Draft has not started.
 - Draft is scheduled for `2026-08-19T18:00:00Z`.
 - League has 4 joined entries at capture time.
@@ -272,7 +272,7 @@ Observed fields:
   "make_code_public": false,
   "max_entries": 16,
   "min_entries": 8,
-  "name": "Seks Telecom League",
+  "name": "Fantasy Broadcast",
   "scoring": "h",
   "start_event": 1,
   "stop_event": 38,
@@ -343,7 +343,7 @@ GET https://draft.premierleague.com/api/league/49824/element-status
 
 ### Situation
 
-- Current STK league before draft.
+- Current Fantasy Broadcast league before draft.
 - Players are not owned yet.
 
 ### Top-Level Shape
@@ -398,7 +398,7 @@ GET https://draft.premierleague.com/api/draft/league/49824/transactions
 
 ### Situation
 
-- Current STK league before draft.
+- Current Fantasy Broadcast league before draft.
 
 ### Top-Level Shape
 
@@ -430,7 +430,7 @@ GET https://draft.premierleague.com/api/draft/49824/choices
 ### Situation
 
 - Tested with league id as a guessed draft id.
-- Current STK league before draft.
+- Current Fantasy Broadcast league before draft.
 
 ### Top-Level Shape
 

@@ -20,9 +20,9 @@ SPRING_PROFILES_ACTIVE=db ./mvnw spring-boot:run
 Default connection settings:
 
 ```text
-DB_URL=jdbc:mysql://localhost:3307/stk_broadcast
-DB_USERNAME=stk_broadcast
-DB_PASSWORD=stk_broadcast
+DB_URL=jdbc:mysql://localhost:3307/fantasy_broadcast
+DB_USERNAME=fantasy_broadcast
+DB_PASSWORD=fantasy_broadcast
 MYSQL_HOST_PORT=3307
 ```
 

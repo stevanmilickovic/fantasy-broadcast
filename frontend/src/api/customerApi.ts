@@ -3,7 +3,7 @@ import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSch
 import type { LiveStateResponse } from '../types/live'
 import type { FplLivePlayer, FplPlayer } from '../types/fpl'
 
-const tokenKey = 'stk-broadcast-session-token'
+const tokenKey = 'fantasy-broadcast-session-token'
 
 const request = async (path: string, token: string, options?: RequestInit) => {
   const response = await fetch(path, {

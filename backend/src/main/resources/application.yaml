@@ -31,7 +31,7 @@ broadcast:
       max-narrations-per-league-gameweek: ${BROADCAST_NARRATION_MAX_PER_LEAGUE_GAMEWEEK:40}
       monthly-tts-character-budget: ${BROADCAST_NARRATION_MONTHLY_TTS_CHARACTERS:100000}
     storage:
-      temp-directory: ${BROADCAST_NARRATION_TEMP_DIRECTORY:${java.io.tmpdir}/stk-broadcast/narrations}
+      temp-directory: ${BROADCAST_NARRATION_TEMP_DIRECTORY:${java.io.tmpdir}/fantasy-broadcast/narrations}
       audio-ttl: ${BROADCAST_NARRATION_AUDIO_TTL:30m}
       cleanup-interval: ${BROADCAST_NARRATION_CLEANUP_INTERVAL:5m}
 
@@ -43,9 +43,9 @@ spring:
   autoconfigure:
     exclude: []
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3307/stk_broadcast}
-    username: ${DB_USERNAME:stk_broadcast}
-    password: ${DB_PASSWORD:stk_broadcast}
+    url: ${DB_URL:jdbc:mysql://localhost:3307/fantasy_broadcast}
+    username: ${DB_USERNAME:fantasy_broadcast}
+    password: ${DB_PASSWORD:fantasy_broadcast}
     driver-class-name: com.mysql.cj.jdbc.Driver
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml

@@ -1,4 +1,4 @@
-# FPL Draft Broadcast Service
+# Fantasy Broadcast Service
 
 Live companion and broadcast service for Fantasy Premier League Draft leagues.
 
@@ -15,7 +15,7 @@ docs/      shared project notes and FPL discovery notes
 Main product brief:
 
 ```text
-FPL Draft Broadcast Service.md
+Fantasy Broadcast Service.md
 ```
 
 ## Requirements
@@ -121,7 +121,7 @@ AI should not calculate scores or infer facts. It should only turn verified back
 
 ## Documentation
 
-- [Product brief](FPL%20Draft%20Broadcast%20Service.md)
+- [Product brief](Fantasy%20Broadcast%20Service.md)
 - [FPL discovery notes](docs/fpl-discovery.md)
 - [FPL JSON structures](docs/fpl-json-structures.md)
 - [AI narration setup](docs/narration.md)
