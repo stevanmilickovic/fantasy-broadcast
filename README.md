@@ -1,8 +1,8 @@
 # Fantasy Broadcast Service
 
-Live companion and broadcast service for Fantasy Premier League Draft leagues.
+Live companion and broadcast service for Fantasy Premier League leagues, supporting both Draft and Classic formats.
 
-The app reads FPL Draft data, builds live league state, detects fantasy events, displays live matchups in a web UI, sends notification-worthy updates, and can generate broadcaster-style commentary for optional text-to-speech narration.
+The app reads the appropriate FPL or FPL Draft data source, builds live league state, detects fantasy events, displays live matchups in a web UI, sends notification-worthy updates, and can generate broadcaster-style commentary for optional text-to-speech narration.
 
 ## Repository Layout
 
@@ -104,12 +104,12 @@ npm run build
 
 ## Current Direction
 
-The service should be built for many registered Draft leagues, not one hardcoded private league.
+The service should be built for many registered FPL leagues—Draft or Classic—not one hardcoded private league.
 
 Core principle:
 
 ```text
-FPL Draft data
+FPL data
   -> deterministic backend state
   -> deterministic event detection
   -> commentary decision logic

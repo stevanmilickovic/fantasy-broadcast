@@ -2,7 +2,7 @@
 
 ## Current Findings
 
-FPL and FPL Draft APIs are undocumented, so every endpoint should stay behind `FplDraftClient`.
+FPL and FPL Draft APIs are undocumented, so every endpoint should stay behind `FplDraftClient` and be normalized for the shared broadcast pipeline.
 
 Known public endpoints to start with:
 
@@ -25,7 +25,7 @@ Known public endpoints to start with:
 
 The regular FPL live endpoint provides player points and stat categories. Draft ownership and H2H context come from Draft endpoints.
 
-## Regular FPL Head-to-Head Recording
+## Classic FPL Head-to-Head Recording
 
 Regular FPL head-to-head leagues use the Fantasy API rather than the Draft API:
 
@@ -39,7 +39,7 @@ event-live endpoint because the recorded matchup totals can lag behind ongoing m
 - `GET https://fantasy.premierleague.com/api/entry/{entryId}/event/{eventId}/picks/`
 
 Start a head-to-head recording through `POST /api/live-broadcast/start?leagueId={leagueId}&leagueType=CLASSIC`.
-It emits the same `LiveStateResponse` and player-point notifications as a Draft recording; league-specific API data is normalized before it reaches the live pipeline. Classic overall-scoring broadcasts are deliberately out of scope for this endpoint.
+It emits the same `LiveStateResponse` and player-point notifications as a Draft recording; league-specific API data is normalized before it reaches the live pipeline. Classic overall-scoring broadcasts use the same general broadcast service, with a standings-focused presentation when there are no head-to-head fixtures.
 
 ## Unknowns To Validate With Our League
 

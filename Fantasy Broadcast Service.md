@@ -2,15 +2,15 @@
 
 ## Purpose
 
-The product is a live companion and broadcast service for any Fantasy Premier League Draft league.
+The product is a live companion and broadcast service for Fantasy Premier League leagues. It supports both FPL Draft and Classic leagues.
 
-League members register their Draft league, connect or select their fantasy team, and use a live website during Premier League matchdays. The service reads FPL Draft data, shows live fantasy matchups, detects important point swings, sends notifications, and generates broadcaster-style commentary.
+League members register their FPL league, connect or select their fantasy team, and use a live website during Premier League matchdays. The service reads the relevant FPL or FPL Draft data, shows live fantasy matchups, detects important point swings, sends notifications, and generates broadcaster-style commentary.
 
 The app should work for a specific private league, but it should not be built as if there is only one hardcoded league. The target shape is multi-league from the start.
 
 ## Product Experience
 
-On matchdays, users can open a website and watch their Draft league as a live sports broadcast dashboard.
+On matchdays, users can open a website and watch their FPL league as a live sports broadcast dashboard.
 
 The live page should show:
 
@@ -35,14 +35,15 @@ That one goal has completely changed the shape of this matchup.
 
 ## Service Scope
 
-The app should support many registered Draft leagues.
+The app should support many registered FPL leagues, regardless of whether they use the Draft or Classic format.
 
 Each registered league has:
 
-- FPL Draft league ID;
+- FPL league ID;
+- league source type (`DRAFT` or `CLASSIC`);
 - league display name;
 - season;
-- list of league entries/managers from FPL Draft;
+- list of league entries/managers from the relevant FPL source;
 - app users who follow one or more league entries;
 - optional league-specific commentary context;
 - optional notification settings.
@@ -50,22 +51,22 @@ Each registered league has:
 Each user can:
 
 - register a profile;
-- join or follow a registered Draft league;
+- join or follow a registered league;
 - select their own fantasy team/league entry;
 - receive notifications for their team or selected players;
 - open the live broadcast page on matchdays.
 
-The app should avoid mutating users' real FPL Draft accounts unless there is a strong product reason. App-specific watchlists and notification preferences should live in our database.
+The app should avoid mutating users' real FPL accounts unless there is a strong product reason. App-specific watchlists and notification preferences should live in our database.
 
 ## Core Architecture
 
 ```text
-FPL Draft API
+FPL APIs
     |
     v
 Spring Boot Backend
     |
-    +--> FPL Draft integration
+    +--> FPL and FPL Draft integration
     +--> league registry
     +--> live state engine
     +--> event detector
@@ -98,50 +99,55 @@ Normal backend code must:
 
 The AI only turns structured facts into natural language.
 
-## FPL Draft Data Model
+## FPL Data Model
 
-The FPL Draft API is undocumented. Keep all endpoint access behind an integration layer.
+The FPL and FPL Draft APIs are undocumented. Keep all endpoint access behind an integration layer and normalize both formats before they reach the live-state pipeline.
 
 Known useful endpoints:
 
 ```text
-GET https://draft.premierleague.com/api/bootstrap-static
 GET https://draft.premierleague.com/api/league/{leagueId}/details
 GET https://draft.premierleague.com/api/league/{leagueId}/element-status
 GET https://draft.premierleague.com/api/entry/{entryId}/event/{gameweek}
 GET https://draft.premierleague.com/api/event/{gameweek}/live
+GET https://fantasy.premierleague.com/api/leagues-h2h/{leagueId}/standings/
+GET https://fantasy.premierleague.com/api/leagues-h2h-matches/league/{leagueId}/?event={gameweek}
+GET https://fantasy.premierleague.com/api/entry/{entryId}/event/{gameweek}/picks/
+GET https://fantasy.premierleague.com/api/event/{gameweek}/live/
 ```
 
 Data relationship:
 
 ```text
-bootstrap-static
+FPL bootstrap/static
   -> player identity
 
-league/{leagueId}/element-status
+Draft league/{leagueId}/element-status
   -> player ownership
 
-entry/{entryId}/event/{gameweek}
-  -> starting XI / bench
+  -> Draft starting XI / bench
 
-event/{gameweek}/live
+FPL entry/{entryId}/event/{gameweek}/picks
+  -> Classic starting XI / bench and captaincy
+
+FPL event/{gameweek}/live
   -> live player stats and total_points
 
-league/{leagueId}/details
-  -> official H2H matchup scores
+Draft league details or Classic H2H matches
+  -> league entries, fixtures, standings, and recorded matchup scores
 ```
 
 Use player `element` / `id` as the joining key across FPL data sources.
 
 ## Live Scoring Approach
 
-For total matchup score, prefer the official values exposed by:
+For Draft total matchup score, prefer the official values exposed by:
 
 ```text
 /api/league/{leagueId}/details
 ```
 
-if they update quickly enough during live play.
+if they update quickly enough during live play. For Classic H2H leagues, use the H2H matches endpoint for fixtures and recorded totals; calculate live scores from each entry's picks and live player data when those totals lag.
 
 For individual explanations and commentary, combine:
 
@@ -278,7 +284,7 @@ Examples:
 - major bonus swing;
 - selected watchlist player returned points.
 
-Use app-level notification preferences, not the user's real FPL Draft watchlist, unless direct FPL account mutation becomes a deliberate feature.
+Use app-level notification preferences, not the user's real FPL watchlist, unless direct FPL account mutation becomes a deliberate feature.
 
 Firebase Cloud Messaging or a similar push service should be sufficient for early scale.
 
@@ -289,9 +295,10 @@ All persisted and live state must be scoped by registered league.
 Important identifiers:
 
 - internal app league ID;
-- FPL Draft league ID;
-- FPL Draft league entry ID;
-- FPL/Draft entry ID;
+- FPL league ID;
+- FPL league source type;
+- FPL league entry ID;
+- FPL entry ID;
 - app user ID;
 - FPL player element ID.
 
@@ -452,12 +459,12 @@ Verify with real current-season data:
 
 ## Summary
 
-This is a deterministic FPL Draft live-data service with AI used as a presentation layer.
+This is a deterministic FPL live-data service for Draft and Classic leagues, with AI used as a presentation layer.
 
 Correct mental model:
 
 ```text
-FPL Draft data
+FPL data
     ->
 backend state
     ->
