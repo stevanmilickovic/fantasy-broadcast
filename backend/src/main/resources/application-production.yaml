@@ -1,0 +1,4 @@
+broadcast:
+  security:
+    league-registration-enabled: ${BROADCAST_LEAGUE_REGISTRATION_ENABLED:false}
+    development-endpoints-enabled: ${BROADCAST_DEVELOPMENT_ENDPOINTS_ENABLED:false}

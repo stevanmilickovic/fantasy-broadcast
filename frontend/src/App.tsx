@@ -82,7 +82,7 @@ function App() {
   const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
   const isBroadcastRoute = location.pathname === '/broadcast'
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
-  const shouldLoadLiveState = authUser?.role === 'ADMIN' || isLeagueBroadcast
+  const shouldLoadLiveState = Boolean(authToken) && (authUser?.role === 'ADMIN' || isLeagueBroadcast)
 
   useEffect(() => {
     if (!shouldLoadLiveState) return
@@ -90,7 +90,7 @@ function App() {
     let cancelled = false
     // Never show state from a previous/global broadcast while a league broadcast is loading.
     setLiveState(null)
-    loadLiveState(isLeagueBroadcast ? streamedLeagueId : undefined, controller.signal)
+    loadLiveState(authToken!, isLeagueBroadcast ? streamedLeagueId : undefined, controller.signal)
       .then((state) => {
         if (cancelled) return
         setLiveState(state)
@@ -152,7 +152,9 @@ function App() {
 
   useEffect(() => {
     if (!shouldLoadLiveState) return
-    const events = new EventSource(isLeagueBroadcast ? `/api/live-state/stream?leagueId=${streamedLeagueId}` : '/api/live-state/stream')
+    const streamParameters = new URLSearchParams({ accessToken: authToken! })
+    if (isLeagueBroadcast) streamParameters.set('leagueId', String(streamedLeagueId))
+    const events = new EventSource(`/api/live-state/stream?${streamParameters}`)
 
     events.addEventListener('live-state', (event) => {
       setLiveState(JSON.parse(event.data) as LiveStateResponse)
@@ -285,7 +287,7 @@ function App() {
   useEffect(() => {
     if (!latestNarration?.audioUrl || latestNarration.id === lastNarrationAudioIdRef.current) return
     lastNarrationAudioIdRef.current = latestNarration.id
-    void playNarrationAudio(latestNarration.audioUrl)
+    void playNarrationAudio(latestNarration.audioUrl, authToken!)
   }, [latestNarration?.audioUrl, latestNarration?.id])
 
   useEffect(() => {

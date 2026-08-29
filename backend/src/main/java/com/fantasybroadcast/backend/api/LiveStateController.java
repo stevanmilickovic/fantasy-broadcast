@@ -7,6 +7,8 @@ import com.fantasybroadcast.backend.fpl.FplLeagueType;
 import com.fantasybroadcast.backend.customer.LeagueRegistrationService;
 import org.springframework.context.annotation.Profile;
 import com.fantasybroadcast.backend.customer.SessionService;
+import com.fantasybroadcast.backend.customer.CurrentUser;
+import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,32 +24,38 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 @Profile("db & !test")
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${BROADCAST_ALLOWED_ORIGIN:http://localhost:5173}")
 public class LiveStateController {
 
 	private final MockLiveStateService liveStateService;
 	private final SessionService sessionService;
 	private final LeagueRegistrationService leagueService;
+	private final BroadcastSecurityProperties securityProperties;
 
-	public LiveStateController(MockLiveStateService liveStateService, SessionService sessionService, LeagueRegistrationService leagueService) {
+	public LiveStateController(MockLiveStateService liveStateService, SessionService sessionService, LeagueRegistrationService leagueService,
+			BroadcastSecurityProperties securityProperties) {
 		this.liveStateService = liveStateService;
 		this.sessionService = sessionService;
 		this.leagueService = leagueService;
+		this.securityProperties = securityProperties;
 	}
 
 	@GetMapping("/live-state")
-	public LiveStateResponse liveState(@RequestParam(required = false) Long leagueId) {
+	public LiveStateResponse liveState(@RequestHeader("Authorization") String authorization, @RequestParam(required = false) Long leagueId) {
+		requireLiveAccess(sessionService.require(authorization), leagueId);
 		return leagueId == null ? liveStateService.currentState() : liveStateService.currentState(leagueId);
 	}
 
 	@GetMapping(path = "/live-state/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter liveStateStream(@RequestParam(required = false) Long leagueId) {
+	public SseEmitter liveStateStream(@RequestParam String accessToken, @RequestParam(required = false) Long leagueId) {
+		requireLiveAccess(sessionService.require("Bearer " + accessToken), leagueId);
 		return leagueId == null ? liveStateService.connectStream() : liveStateService.connectStream(leagueId);
 	}
 
 	@PostMapping("/mock-live/start")
 	public LiveStateResponse start(@RequestHeader("Authorization") String authorization) {
 		requireAdmin(authorization);
+		requireDevelopmentEndpoints();
 		return liveStateService.start();
 	}
 
@@ -55,6 +63,7 @@ public class LiveStateController {
 	public LiveStateResponse startComprehensive(@RequestHeader("Authorization") String authorization,
 			@RequestParam(defaultValue = "NONE") MockNarrationMode narrationMode) {
 		requireAdmin(authorization);
+		requireDevelopmentEndpoints();
 		return liveStateService.startComprehensive(narrationMode);
 	}
 
@@ -62,18 +71,21 @@ public class LiveStateController {
 	public LiveStateResponse startTotalPointsMock(@RequestHeader("Authorization") String authorization,
 			@RequestParam(defaultValue = "NONE") MockNarrationMode narrationMode) {
 		requireAdmin(authorization);
+		requireDevelopmentEndpoints();
 		return liveStateService.startTotalPointsMock(narrationMode);
 	}
 
 	@PostMapping("/mock-live/advance")
 	public LiveStateResponse advance(@RequestHeader("Authorization") String authorization) {
 		requireAdmin(authorization);
+		requireDevelopmentEndpoints();
 		return liveStateService.advance();
 	}
 
 	@PostMapping("/mock-live/reset")
 	public LiveStateResponse reset(@RequestHeader("Authorization") String authorization) {
 		requireAdmin(authorization);
+		requireDevelopmentEndpoints();
 		return liveStateService.reset();
 	}
 
@@ -88,6 +100,20 @@ public class LiveStateController {
 	private void requireAdmin(String authorization) {
 		if (!sessionService.require(authorization).admin()) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required.");
+		}
+	}
+
+	private void requireLiveAccess(CurrentUser user, Long leagueId) {
+		if (leagueId == null) {
+			if (!user.admin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required.");
+			return;
+		}
+		leagueService.accessibleLeague(user, leagueId);
+	}
+
+	private void requireDevelopmentEndpoints() {
+		if (!securityProperties.isDevelopmentEndpointsEnabled()) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This development endpoint is disabled.");
 		}
 	}
 }

@@ -10,6 +10,11 @@ fpl:
   fantasy-base-url: https://fantasy.premierleague.com/api
 
 broadcast:
+  security:
+    league-registration-enabled: ${BROADCAST_LEAGUE_REGISTRATION_ENABLED:true}
+    development-endpoints-enabled: ${BROADCAST_DEVELOPMENT_ENDPOINTS_ENABLED:true}
+    initial-admin-email: ${BROADCAST_INITIAL_ADMIN_EMAIL:}
+    initial-admin-password: ${BROADCAST_INITIAL_ADMIN_PASSWORD:}
   narration:
     enabled: ${BROADCAST_NARRATION_ENABLED:false}
     audio-enabled: ${BROADCAST_NARRATION_AUDIO_ENABLED:false}

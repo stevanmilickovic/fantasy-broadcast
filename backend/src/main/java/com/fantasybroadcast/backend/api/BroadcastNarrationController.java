@@ -6,6 +6,8 @@ import java.time.Instant;
 
 import com.fantasybroadcast.backend.narration.BroadcastNarrationRepository;
 import com.fantasybroadcast.backend.narration.NarrationProperties;
+import com.fantasybroadcast.backend.customer.LeagueRegistrationService;
+import com.fantasybroadcast.backend.customer.SessionService;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
@@ -16,29 +18,36 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Profile("db & !test")
 @RequestMapping("/api/broadcast-narrations")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${BROADCAST_ALLOWED_ORIGIN:http://localhost:5173}")
 public class BroadcastNarrationController {
 
 	private final BroadcastNarrationRepository repository;
 	private final NarrationProperties properties;
+	private final SessionService sessionService;
+	private final LeagueRegistrationService leagueService;
 
-	public BroadcastNarrationController(BroadcastNarrationRepository repository, NarrationProperties properties) {
+	public BroadcastNarrationController(BroadcastNarrationRepository repository, NarrationProperties properties,
+			SessionService sessionService, LeagueRegistrationService leagueService) {
 		this.repository = repository;
 		this.properties = properties;
+		this.sessionService = sessionService;
+		this.leagueService = leagueService;
 	}
 
 	@GetMapping("/{id}/audio")
-	public ResponseEntity<FileSystemResource> audio(@PathVariable long id) {
+	public ResponseEntity<FileSystemResource> audio(@PathVariable long id, @RequestHeader("Authorization") String authorization) {
 		var narration = repository.findById(id).orElse(null);
 		if (narration == null || narration.audioPath() == null || narration.audioPath().isBlank()) {
 			return ResponseEntity.notFound().build();
 		}
+		leagueService.accessibleLeague(sessionService.require(authorization), narration.leagueId());
 		if (narration.expiresAt() != null && narration.expiresAt().isBefore(Instant.now())) {
 			return ResponseEntity.status(HttpStatus.GONE).build();
 		}

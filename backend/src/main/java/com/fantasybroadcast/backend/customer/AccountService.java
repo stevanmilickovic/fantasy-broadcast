@@ -50,15 +50,17 @@ public class AccountService {
 		return users.getFirst();
 	}
 
-	public void ensureAdminAccount() {
-		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where email = 'admin'", this::mapUser);
+	public void ensureInitialAdmin(String email, String password) {
+		var existingAdminCount = jdbcTemplate.queryForObject("select count(*) from app_user where role = 'ADMIN'", Long.class);
+		if (existingAdminCount != null && existingAdminCount > 0) return;
+		var normalizedEmail = normalizeEmail(email);
+		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where email = ?", this::mapUser, normalizedEmail);
 		if (users.isEmpty()) {
-			jdbcTemplate.update("insert into app_user (email, display_name, password_hash, role) values ('admin', 'Administrator', ?, 'ADMIN')",
-					passwordHasher.hash("admin"));
+			jdbcTemplate.update("insert into app_user (email, display_name, password_hash, role) values (?, ?, ?, 'ADMIN')",
+					normalizedEmail, displayName(normalizedEmail), passwordHasher.hash(password));
 			return;
 		}
-		jdbcTemplate.update("update app_user set role = 'ADMIN', password_hash = coalesce(password_hash, ?) where email = 'admin'",
-				passwordHasher.hash("admin"));
+		jdbcTemplate.update("update app_user set role = 'ADMIN', password_hash = ? where id = ?", passwordHasher.hash(password), users.getFirst().id());
 	}
 
 	private LoginRow mapLogin(ResultSet resultSet, int rowNumber) throws SQLException {

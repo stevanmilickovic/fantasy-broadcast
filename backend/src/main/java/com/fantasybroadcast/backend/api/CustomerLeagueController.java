@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Profile("db & !test")
 @RequestMapping("/api/customer")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${BROADCAST_ALLOWED_ORIGIN:http://localhost:5173}")
 public class CustomerLeagueController {
 
 	private final SessionService sessionService;

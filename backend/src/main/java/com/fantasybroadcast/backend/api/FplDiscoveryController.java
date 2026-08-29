@@ -11,6 +11,7 @@ import com.fantasybroadcast.backend.fpl.FplLivePlayer;
 import com.fantasybroadcast.backend.fpl.FplPlayer;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 
 @RestController
+@Profile("!production")
 @RequestMapping("/api/fpl/discovery")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${BROADCAST_ALLOWED_ORIGIN:http://localhost:5173}")
 public class FplDiscoveryController {
 
 	private final FplDraftClient client;

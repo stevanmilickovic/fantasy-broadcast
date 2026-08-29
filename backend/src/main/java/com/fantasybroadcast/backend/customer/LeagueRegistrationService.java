@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 
 @Service
 @Profile("db & !test")
@@ -23,13 +24,18 @@ public class LeagueRegistrationService {
 
 	private final JdbcTemplate jdbcTemplate;
 	private final FplDraftClient fplClient;
+	private final BroadcastSecurityProperties securityProperties;
 
-	public LeagueRegistrationService(JdbcTemplate jdbcTemplate, FplDraftClient fplClient) {
+	public LeagueRegistrationService(JdbcTemplate jdbcTemplate, FplDraftClient fplClient, BroadcastSecurityProperties securityProperties) {
 		this.jdbcTemplate = jdbcTemplate;
 		this.fplClient = fplClient;
+		this.securityProperties = securityProperties;
 	}
 
 	public RegisteredLeague register(CurrentUser user, long fplLeagueId, FplLeagueType leagueType) {
+		if (!user.admin() && !securityProperties.isLeagueRegistrationEnabled()) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "League registration is closed for this test.");
+		}
 		if (fplLeagueId <= 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "League ID must be positive.");
 		var league = findLeague(fplLeagueId, leagueType);
 		if (league == null) {

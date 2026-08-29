@@ -39,15 +39,19 @@ export const playPointChangeSound = (pointDelta: number) => {
 
 let narrationChain = Promise.resolve()
 
-export const playNarrationAudio = (audioUrl: string) => {
+export const playNarrationAudio = async (audioUrl: string, token: string) => {
   narrationChain = narrationChain
     .catch(() => undefined)
-    .then(() => new Promise<void>((resolve) => {
-      const audio = new Audio(audioUrl)
+    .then(async () => {
+      const response = await fetch(audioUrl, { headers: { Authorization: `Bearer ${token}` } })
+      if (!response.ok) return
+      const audio = new Audio(URL.createObjectURL(await response.blob()))
+      return new Promise<void>((resolve) => {
       audio.preload = 'auto'
-      audio.addEventListener('ended', () => resolve(), { once: true })
-      audio.addEventListener('error', () => resolve(), { once: true })
+      audio.addEventListener('ended', () => { URL.revokeObjectURL(audio.src); resolve() }, { once: true })
+      audio.addEventListener('error', () => { URL.revokeObjectURL(audio.src); resolve() }, { once: true })
       void audio.play().catch(() => resolve())
-    }))
+      })
+    })
   return narrationChain
 }
