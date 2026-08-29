@@ -1,7 +1,7 @@
 import { ArrowLeft, Radio, Trophy, Volume2 } from 'lucide-react'
 import type { CSSProperties, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, TeamView } from '../../types/live'
+import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, RevealRect, TeamView } from '../../types/live'
 import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../../utils/broadcast'
 
 type BroadcastMatchdayProps = {
@@ -23,6 +23,9 @@ type BroadcastMatchdayProps = {
   totalTeamNameRef: RefObject<HTMLSpanElement | null>
   totalHeadingRef: RefObject<HTMLHeadingElement | null>
   standings: LiveStandingView[]
+  showingLiveLeaderboard: boolean
+  leaderboardRevealLayout: RevealRect | null
+  leaderboardHeadingRef: RefObject<HTMLHeadingElement | null>
   holdingPendingUpdates: boolean
   onBack: () => void
   onSelectFocus: (focus: BroadcastFocus) => void
@@ -34,7 +37,7 @@ const REVEAL_SCORE_CLEARANCE_PX = 42
 
 export function BroadcastMatchday({
 	displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
-  revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, holdingPendingUpdates,
+  revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
   const displayLatestEvent = displayLiveState.events?.[0]
@@ -65,19 +68,53 @@ export function BroadcastMatchday({
   return (
     <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`}>
       {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
-      {revealingMatch && <MatchReveal layout={revealLayout} matchup={matchup} homeHeadingRef={homeHeadingRef} awayHeadingRef={awayHeadingRef} />}
+      {revealingMatch && (showingLiveLeaderboard
+        ? <LeaderboardReveal layout={leaderboardRevealLayout} headingRef={leaderboardHeadingRef} />
+        : <MatchReveal layout={revealLayout} matchup={matchup} homeHeadingRef={homeHeadingRef} awayHeadingRef={awayHeadingRef} />)}
       <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
       <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
       <NarrationCaption id={latestCommentaryId} text={latestCommentaryText} status={latestCommentaryStatus} />
       <MatchSelector latestEvent={displayLatestEvent} matchups={displayLiveState.matchups} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
 
-      <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
-        <BroadcastTeamColumn side="left" team={matchup.home} isLeader={matchup.leaderManagerId === matchup.home.managerId} headingRef={homeHeadingRef} />
-        <PitchStage gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
-        <BroadcastTeamColumn side="right" team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} headingRef={awayHeadingRef} />
-      </section>
+      {showingLiveLeaderboard
+        ? <HeadToHeadLeaderboard standings={standings} headingRef={leaderboardHeadingRef} />
+        : <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
+            <BroadcastTeamColumn side="left" team={matchup.home} isLeader={matchup.leaderManagerId === matchup.home.managerId} headingRef={homeHeadingRef} />
+            <PitchStage gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
+            <BroadcastTeamColumn side="right" team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} headingRef={awayHeadingRef} />
+          </section>}
     </main>
   )
+}
+
+function HeadToHeadLeaderboard({ standings, headingRef }: {
+  standings: LiveStandingView[]
+  headingRef: RefObject<HTMLHeadingElement | null>
+}) {
+  return <section className="live-leaderboard-page" aria-label="Live leaderboard">
+    <LiveStandings standings={standings} headingRef={headingRef} label="Live Leaderboard" showUnsignedLivePoints />
+  </section>
+}
+
+function LeaderboardReveal({ layout, headingRef }: { layout: RevealRect | null; headingRef: RefObject<HTMLHeadingElement | null> }) {
+  const [typography, setTypography] = useState<CSSProperties>()
+  useLayoutEffect(() => {
+    const heading = headingRef.current
+    if (!heading) return
+    const style = window.getComputedStyle(heading)
+    setTypography({
+      fontFamily: style.fontFamily,
+      fontSize: style.fontSize,
+      fontWeight: style.fontWeight,
+      fontStyle: style.fontStyle,
+      lineHeight: style.lineHeight,
+      letterSpacing: style.letterSpacing,
+      textTransform: style.textTransform,
+      textShadow: style.textShadow,
+    })
+  }, [headingRef, layout])
+  if (!layout) return null
+  return <div className="match-reveal-overlay leaderboard-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><strong className="match-reveal-copy leaderboard-reveal-copy" style={{ ...revealCopyStyle(layout, 1), ...typography }}>Live Leaderboard</strong></div>
 }
 
 function NarrationCaption({ id, text, status }: { id?: string; text: string; status: string }) {
@@ -429,7 +466,7 @@ function TotalPointsPlayerRows({ team, shirtCodes, latestEvents, pendingEvents }
   })}</div></section>)}</section>
 }
 
-function LiveStandings({ standings, focusedTeam }: { standings: LiveStandingView[]; focusedTeam: TeamView }) {
+function LiveStandings({ standings, focusedTeam, headingRef, label = 'Live standings', showUnsignedLivePoints = false }: { standings: LiveStandingView[]; focusedTeam?: TeamView; headingRef?: RefObject<HTMLHeadingElement | null>; label?: string; showUnsignedLivePoints?: boolean }) {
   const rowElements = useRef(new Map<string, HTMLLIElement>())
   const previousRowTops = useRef(new Map<string, number>())
   useLayoutEffect(() => {
@@ -444,7 +481,7 @@ function LiveStandings({ standings, focusedTeam }: { standings: LiveStandingView
     })
     previousRowTops.current = nextRowTops
   }, [standings])
-  return <aside className="live-standings" aria-label="Live standings"><header><strong>Live standings</strong></header><ol>{standings.slice(0, 12).map((standing) => <li ref={(element) => { if (element) rowElements.current.set(standing.teamId, element); else rowElements.current.delete(standing.teamId) }} key={standing.teamId} className={standing.teamId === focusedTeam.managerId ? 'focused-standing' : ''}><b>{standing.position}</b><div><strong>{standing.teamName}</strong><span>{standing.managerName}</span></div><StandingValue className="standing-gameweek-points" value={standing.gameweekPoints} signed /><StandingValue className="standing-total-points" value={standing.total} /></li>)}</ol></aside>
+  return <aside className={`live-standings ${showUnsignedLivePoints ? 'h2h-live-standings' : ''}`} aria-label={label}><header><strong ref={headingRef}>{label}</strong></header><ol>{standings.slice(0, 12).map((standing) => <li ref={(element) => { if (element) rowElements.current.set(standing.teamId, element); else rowElements.current.delete(standing.teamId) }} key={standing.teamId} className={standing.teamId === focusedTeam?.managerId ? 'focused-standing' : ''}><b>{standing.position}</b><div><strong>{standing.teamName}</strong><span>{standing.managerName}</span></div>{!showUnsignedLivePoints && <StandingValue className="standing-gameweek-points" value={standing.gameweekPoints} signed />}<StandingValue className="standing-total-points" value={standing.total} /></li>)}</ol></aside>
 }
 
 function StandingValue({ value, signed = false, className }: { value: number; signed?: boolean; className: string }) {

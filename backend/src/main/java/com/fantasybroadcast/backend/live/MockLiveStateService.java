@@ -65,6 +65,7 @@ public class MockLiveStateService {
 	private final NarrationJobService narrationJobService;
 	private final BroadcastNarrationRepository narrationRepository;
 	private final NarrationProperties narrationProperties;
+	private final BroadcastNotificationRepository notificationRepository;
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 	private final ScheduledExecutorService sequenceExecutor = Executors.newSingleThreadScheduledExecutor();
 	private int currentIndex;
@@ -91,12 +92,14 @@ public class MockLiveStateService {
 	public MockLiveStateService(ObjectMapper objectMapper, FplDraftClient fplClient, FplDraftMapper fplMapper,
 			ObjectProvider<NarrationJobService> narrationJobService,
 			ObjectProvider<BroadcastNarrationRepository> narrationRepository,
-			ObjectProvider<NarrationProperties> narrationProperties) {
+			ObjectProvider<NarrationProperties> narrationProperties,
+			ObjectProvider<BroadcastNotificationRepository> notificationRepository) {
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
 		this.narrationJobService = narrationJobService.getIfAvailable();
 		this.narrationRepository = narrationRepository.getIfAvailable();
 		this.narrationProperties = narrationProperties.getIfAvailable();
+		this.notificationRepository = notificationRepository.getIfAvailable();
 		try {
 			var resource = new ClassPathResource("mock/live-sequence.json");
 			this.snapshots = objectMapper.readValue(resource.getInputStream(), MockLiveSequence.class).snapshots();
@@ -350,13 +353,20 @@ public class MockLiveStateService {
 
 	private void publishLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
 		var stateWithNarrations = withNarrations(leagueKey, state);
+		recordPublishedNotifications(leagueKey, stateWithNarrations);
 		session.publishedState = stateWithNarrations;
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
 	}
 
 	private void publishRawLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
+		recordPublishedNotifications(leagueKey, state);
 		session.publishedState = state;
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, state);
+	}
+
+	private void recordPublishedNotifications(long leagueKey, LiveStateResponse state) {
+		if (notificationRepository == null) return;
+		for (var event : state.events()) notificationRepository.recordPublished(leagueKey, state.gameweek(), event);
 	}
 
 	private void cancelNarrationWait(RealSession session) {

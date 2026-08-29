@@ -11,7 +11,7 @@ import { CustomerDashboard } from './components/customer/CustomerDashboard'
 import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
 import type { AuthResponse, AuthUser } from './types/customer'
 import type { LeagueDiscoveryState } from './types/fpl'
-import type { AppView, BroadcastFocus, FantasyEventView, LiveStateResponse, RevealLayout } from './types/live'
+import type { AppView, BroadcastFocus, FantasyEventView, LiveStateResponse, RevealLayout, RevealRect } from './types/live'
 import type { LiveStandingView } from './types/live'
 import { findFocusedMatchup, toRevealRect, toScoreRevealRect, TOTAL_POINTS_REVEAL_TEAM_SCALE } from './utils/broadcast'
 import { enablePointChangeSound, playNarrationAudio, playPointChangeSound } from './utils/broadcastSound'
@@ -22,6 +22,7 @@ const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
 const MATCH_REVEAL_MS = 1900
 const TOTAL_SCORE_REVEAL_Y_CORRECTION = 1
 const INACTIVITY_ROTATION_MS = 60_000
+const IDLE_TRANSITIONS_BEFORE_LEADERBOARD = 4
 const QUEUED_NOTIFICATION_START_GRACE_MS = 450
 const MAX_PENDING_BROADCAST_GROUPS = 3
 
@@ -57,6 +58,9 @@ function App() {
   const [revealLayout, setRevealLayout] = useState<RevealLayout | null>(null)
   const [visibleEventId, setVisibleEventId] = useState<string | null>(null)
   const [holdingPendingUpdates, setHoldingPendingUpdates] = useState(false)
+  const [showingLiveLeaderboard, setShowingLiveLeaderboard] = useState(false)
+  const [displayingLiveLeaderboard, setDisplayingLiveLeaderboard] = useState(false)
+  const [leaderboardRevealLayout, setLeaderboardRevealLayout] = useState<RevealRect | null>(null)
   const [lastAutoMatchupId, setLastAutoMatchupId] = useState<string | null>(null)
   const lastFocusedMatchupIdRef = useRef<string | null>(null)
   const lastSoundedEventIdRef = useRef<string | null>(null)
@@ -66,6 +70,7 @@ function App() {
   const queuedNotificationStartTimerRef = useRef<number | null>(null)
   const inactivityRotationTimerRef = useRef<number | null>(null)
   const lastBackendEventAtRef = useRef(Date.now())
+  const idleTransitionCountRef = useRef(0)
   const recentlyShownFocusesRef = useRef(new Map<string, number>())
   const latestLiveStateRef = useRef<LiveStateResponse | null>(null)
   const receivedBroadcastEventIdsRef = useRef(new Set<string>())
@@ -74,6 +79,7 @@ function App() {
   const scoreRef = useRef<HTMLElement>(null)
   const totalTeamNameRef = useRef<HTMLSpanElement>(null)
   const totalHeadingRef = useRef<HTMLHeadingElement>(null)
+  const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
   const isBroadcastRoute = location.pathname === '/broadcast'
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
   const shouldLoadLiveState = authUser?.role === 'ADMIN' || isLeagueBroadcast
@@ -175,6 +181,10 @@ function App() {
     setDisplayedFocusId(null)
     setVisibleEventId(null)
     setHoldingPendingUpdates(false)
+    setShowingLiveLeaderboard(false)
+    setDisplayingLiveLeaderboard(false)
+    setLeaderboardRevealLayout(null)
+    idleTransitionCountRef.current = 0
     setTransitioningToMatch(false)
     setRevealingMatch(false)
     setRevealLayout(null)
@@ -290,7 +300,11 @@ function App() {
   }, [eventTargetMatchup?.id, eventTargetTeam?.managerId, isTotalPointsBroadcast, lastAutoMatchupId, targetLatestEvent?.id])
 
   useEffect(() => {
-    if (targetLatestEvent) lastBackendEventAtRef.current = Date.now()
+    if (targetLatestEvent) {
+      lastBackendEventAtRef.current = Date.now()
+      idleTransitionCountRef.current = 0
+      setShowingLiveLeaderboard(false)
+    }
     if (inactivityRotationTimerRef.current) window.clearTimeout(inactivityRotationTimerRef.current)
     if (!isBroadcastRoute || broadcastFocus !== 'multi' || !focusedMatchupId) return
 
@@ -302,12 +316,20 @@ function App() {
         ? state.teams?.map((team) => team.managerId) ?? []
         : state.matchups?.map((matchup) => matchup.id) ?? []
       if (candidates.length < 2) return
+      if (!isTotalPointsBroadcast && !showingLiveLeaderboard && idleTransitionCountRef.current >= IDLE_TRANSITIONS_BEFORE_LEADERBOARD) {
+        idleTransitionCountRef.current = 0
+        lastBackendEventAtRef.current = Date.now()
+        setShowingLiveLeaderboard(true)
+        return
+      }
       const nextFocus = candidates
         .filter((candidate) => candidate !== focusedMatchupId)
         .sort((left, right) => (recentlyShownFocusesRef.current.get(left) ?? 0) - (recentlyShownFocusesRef.current.get(right) ?? 0))[0]
       if (!nextFocus) return
       lastBackendEventAtRef.current = Date.now()
       recentlyShownFocusesRef.current.set(nextFocus, Date.now())
+      if (!isTotalPointsBroadcast) idleTransitionCountRef.current += 1
+      setShowingLiveLeaderboard(false)
       setLastAutoMatchupId(nextFocus)
     }, delay)
 
@@ -315,12 +337,14 @@ function App() {
       if (inactivityRotationTimerRef.current) window.clearTimeout(inactivityRotationTimerRef.current)
       inactivityRotationTimerRef.current = null
     }
-  }, [broadcastFocus, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast, targetLatestEvent?.id])
+  }, [broadcastFocus, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast, showingLiveLeaderboard, targetLatestEvent?.id])
+
+  const presentationFocusId = showingLiveLeaderboard && !isTotalPointsBroadcast ? 'live-leaderboard' : focusedMatchupId
 
   useEffect(() => {
     clearTransitionTimers()
 
-    if (!liveState || !focusedMatchupId || !isBroadcastRoute) {
+    if (!liveState || !presentationFocusId || !isBroadcastRoute) {
       lastFocusedMatchupIdRef.current = null
       lastBroadcastFocusRef.current = broadcastFocus
       setBroadcastLiveState(liveState)
@@ -330,6 +354,7 @@ function App() {
       setRevealLayout(null)
       setVisibleEventId(targetLatestEvent?.id ?? null)
       setHoldingPendingUpdates(false)
+      setDisplayingLiveLeaderboard(showingLiveLeaderboard)
       setDisplayedFocusId(focusedMatchupId)
       return
     }
@@ -337,9 +362,9 @@ function App() {
     const previousFocusedMatchupId = lastFocusedMatchupIdRef.current
     const previousBroadcastFocus = lastBroadcastFocusRef.current
     const firstBroadcastFocus = previousFocusedMatchupId === null
-    const focusChanged = previousFocusedMatchupId !== null && previousFocusedMatchupId !== focusedMatchupId
+    const focusChanged = previousFocusedMatchupId !== null && previousFocusedMatchupId !== presentationFocusId
     const userChangedFocus = previousBroadcastFocus !== broadcastFocus
-    lastFocusedMatchupIdRef.current = focusedMatchupId
+    lastFocusedMatchupIdRef.current = presentationFocusId
     lastBroadcastFocusRef.current = broadcastFocus
 
     if (userChangedFocus && !firstBroadcastFocus && !isTotalPointsBroadcast) {
@@ -351,6 +376,7 @@ function App() {
       setRevealLayout(null)
       setVisibleEventId(targetLatestEvent?.id ?? null)
       setHoldingPendingUpdates(false)
+      setDisplayingLiveLeaderboard(showingLiveLeaderboard)
       return clearTransitionTimers
     }
 
@@ -360,6 +386,7 @@ function App() {
       setDisplayedFocusId(focusedMatchupId)
       setVisibleEventId(null)
       setHoldingPendingUpdates(true)
+      setDisplayingLiveLeaderboard(showingLiveLeaderboard)
       setTransitioningToMatch(false)
       setRevealLayout(null)
       setRevealingMatch(false)
@@ -382,6 +409,8 @@ function App() {
       const swapTimer = window.setTimeout(() => {
         setBroadcastLiveState(liveState)
         setDisplayedFocusId(focusedMatchupId)
+        setBroadcastStandings(liveState.standings ?? null)
+        setDisplayingLiveLeaderboard(showingLiveLeaderboard)
         setRevealLayout(null)
         setHoldingPendingUpdates(true)
       }, SCENE_SWAP_MS)
@@ -406,14 +435,23 @@ function App() {
     setRevealingMatch(false)
     setVisibleEventId(targetLatestEvent?.id ?? null)
     setHoldingPendingUpdates(false)
+    setDisplayingLiveLeaderboard(showingLiveLeaderboard)
 
     return clearTransitionTimers
-  }, [broadcastFocus, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast, liveState, targetLatestEvent?.id])
+  }, [broadcastFocus, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast, liveState, presentationFocusId, showingLiveLeaderboard, targetLatestEvent?.id])
 
   useLayoutEffect(() => {
-    if (!isBroadcastRoute || !scoreRef.current) {
+    if (!isBroadcastRoute) {
       return
     }
+
+    if (displayingLiveLeaderboard) {
+      if (!leaderboardHeadingRef.current) return
+      setLeaderboardRevealLayout(toRevealRect(leaderboardHeadingRef.current.getBoundingClientRect(), window.innerWidth / 2))
+      return
+    }
+
+    if (!scoreRef.current) return
 
     if (isTotalPointsBroadcast) {
       if (!totalTeamNameRef.current) return
@@ -445,7 +483,7 @@ function App() {
       score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
       away: toRevealRect(awayHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.73),
     })
-  }, [broadcastLiveState, displayedFocusId, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast])
+  }, [broadcastLiveState, displayedFocusId, displayingLiveLeaderboard, focusedMatchupId, isBroadcastRoute, isTotalPointsBroadcast])
 
   const runAction = async (action: 'start' | 'advance' | 'reset') => {
     setIsBusy(true)
@@ -636,9 +674,12 @@ function App() {
         totalTeamNameRef={totalTeamNameRef}
         totalHeadingRef={totalHeadingRef}
         standings={displayStandings}
+        showingLiveLeaderboard={displayingLiveLeaderboard}
+        leaderboardRevealLayout={leaderboardRevealLayout}
+        leaderboardHeadingRef={leaderboardHeadingRef}
         holdingPendingUpdates={holdingPendingUpdates}
         onBack={() => { setAppView('setup'); navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues') }}
-        onSelectFocus={setBroadcastFocus}
+        onSelectFocus={(focus) => { setShowingLiveLeaderboard(false); setDisplayingLiveLeaderboard(false); setBroadcastFocus(focus) }}
       />
     )
   }

@@ -1,0 +1,68 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-broadcast-notifications
+      author: codex
+      changes:
+        - createTable:
+            tableName: broadcast_notification
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: league_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: gameweek
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_event_id
+                  type: VARCHAR(190)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: occurred_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: broadcast_notification
+            baseColumnNames: league_id
+            referencedTableName: league
+            referencedColumnNames: id
+            constraintName: fk_broadcast_notification_league
+            onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: broadcast_notification
+            columnNames: league_id, gameweek, source_event_id
+            constraintName: uq_broadcast_notification_source_event
+
+        - createIndex:
+            tableName: broadcast_notification
+            indexName: ix_broadcast_notification_league_published
+            columns:
+              - column:
+                  name: league_id
+              - column:
+                  name: published_at
