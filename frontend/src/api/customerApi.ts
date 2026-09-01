@@ -1,7 +1,7 @@
 import type { FplLeagueType } from './liveApi'
 import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, LeagueRegistrationAccess, RegisteredLeague } from '../types/customer'
 import type { LiveStateResponse } from '../types/live'
-import type { FplLivePlayer, FplPlayer } from '../types/fpl'
+import type { FplElementStatusRaw, FplLeagueDetailsRaw, FplLivePlayer, FplPlayer } from '../types/fpl'
 
 const tokenKey = 'fantasy-broadcast-session-token'
 
@@ -49,6 +49,10 @@ export const registerLeague = async (token: string, fplLeagueId: string, leagueT
   (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
 export const loadClassicLeagueOverview = async (token: string, leagueId: number): Promise<ClassicLeagueDiscovery> =>
   (await request(`/api/customer/leagues/${leagueId}/overview`, token)).json()
+export const loadDraftLeagueOverview = async (token: string, leagueId: number): Promise<DraftLeagueDiscovery> =>
+  (await request(`/api/customer/leagues/${leagueId}/draft-overview`, token)).json()
+export const loadFplShirts = async (token: string): Promise<FplClubShirt[]> =>
+  (await request('/api/customer/fpl/shirts', token)).json()
 export const loadAdminLeagues = async (token: string, page = 0, size = 10, search = ''): Promise<AdminLeaguePage> => {
   const query = new URLSearchParams({ page: String(page), size: String(size), search })
   const response: AdminLeaguePage | AdminLeague[] = await (await request(`/api/customer/admin/leagues?${query}`, token)).json()
@@ -83,3 +87,11 @@ export type ClassicLeagueDiscovery = {
   livePlayers: FplLivePlayer[]
   matches: Array<{ firstEntryId: number; secondEntryId: number; firstPoints: number; secondPoints: number }>
 }
+
+export type DraftLeagueDiscovery = {
+  details: FplLeagueDetailsRaw
+  elementStatus: FplElementStatusRaw
+  players: FplPlayer[]
+}
+
+export type FplClubShirt = { name: string; shortName?: string; code: number }

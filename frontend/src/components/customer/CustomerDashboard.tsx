@@ -1,8 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
-import { deleteOwnedLeague, followLeague, loadActiveBroadcastSchedules, loadClassicLeagueOverview, loadLeagueRegistrationAccess, loadRegisteredLeagues, openLeagueBroadcast, registerLeague, searchRegisteredLeagues, type ClassicLeagueDiscovery } from '../../api/customerApi'
-import { loadLeagueDiscovery } from '../../api/fplDiscoveryApi'
+import { deleteOwnedLeague, followLeague, loadActiveBroadcastSchedules, loadClassicLeagueOverview, loadDraftLeagueOverview, loadFplShirts, loadLeagueRegistrationAccess, loadRegisteredLeagues, openLeagueBroadcast, registerLeague, searchRegisteredLeagues, type ClassicLeagueDiscovery } from '../../api/customerApi'
 import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
@@ -20,7 +19,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
   const [canRegisterLeague, setCanRegisterLeague] = useState<boolean | null>(null)
   const selectedLeagueId = Number(new URLSearchParams(search).get('leagueId')); const selectedLeague = leagues.find((league) => league.id === selectedLeagueId) ?? null
   useEffect(() => { loadRegisteredLeagues(token).then((nextLeagues) => { setLeagues(nextLeagues); if (pathname === '/leagues/new') return; if (nextLeagues.length === 0) onNavigate('/leagues/new'); else if (nextLeagues.length === 1) onNavigate(`/league?leagueId=${nextLeagues[0].id}`); else if (pathname !== '/leagues' && !nextLeagues.some((league) => league.id === selectedLeagueId)) onNavigate('/leagues') }).catch((error: Error) => setMessage(error.message)) }, [token])
-  useEffect(() => { if (!selectedLeague || pathname !== '/league') { setDiscovery(null); return }; setMessage(null); setBusy(true); if (selectedLeague.leagueType === 'CLASSIC') { setDiscovery(null); loadClassicLeagueOverview(token, selectedLeague.id).then((classic) => setDiscovery(toLeagueDiscovery(classic, selectedLeague.fplLeagueId))).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false)); return }; loadLeagueDiscovery(String(selectedLeague.fplLeagueId)).then(setDiscovery).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false)) }, [selectedLeague?.id, pathname, token])
+  useEffect(() => { if (!selectedLeague || pathname !== '/league') { setDiscovery(null); return }; setMessage(null); setBusy(true); if (selectedLeague.leagueType === 'CLASSIC') { setDiscovery(null); loadClassicLeagueOverview(token, selectedLeague.id).then((classic) => setDiscovery(toLeagueDiscovery(classic, selectedLeague.fplLeagueId))).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false)); return }; loadDraftLeagueOverview(token, selectedLeague.id).then(setDiscovery).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false)) }, [selectedLeague?.id, pathname, token])
   useEffect(() => { void loadActiveBroadcastSchedules(token).then(setActiveBroadcasts).catch(() => setActiveBroadcasts([])) }, [token])
   useEffect(() => { void loadLeagueRegistrationAccess(token).then((access) => setCanRegisterLeague(access.canRegisterLeague)).catch((error: Error) => setMessage(error.message)) }, [token])
   const register = async (event: React.FormEvent) => { event.preventDefault(); setBusy(true); try { const league = await registerLeague(token, leagueId, leagueType); setLeagues(await loadRegisteredLeagues(token)); onNavigate(`/league?leagueId=${league.id}`) } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to register league.') } finally { setBusy(false) } }
@@ -32,7 +31,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
     {pathname === '/leagues/new' && <LeagueRegistrationForm canRegisterLeague={canRegisterLeague === true} leagueId={leagueId} leagueType={leagueType} busy={busy} message={message} searchResults={searchResults} user={user} onLeagueIdChange={setLeagueId} onLeagueTypeChange={setLeagueType} onSubmit={register} onSearch={searchRegistered} onFollow={follow} />}
     {pathname === '/leagues' && <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />}
     {pathname === '/league' && selectedLeague && activeBroadcasts.length > 0 && <aside className="customer-broadcast-access"><div><strong>Broadcast live now</strong><span>Available to all registered leagues until {new Date(activeBroadcasts[0].endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span></div><button onClick={() => void openBroadcast()} disabled={busy}>Open broadcast</button></aside>}
-    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <LeagueStandingsOverview discovery={discovery} scoringType={selectedLeague.scoringType} />}{discovery && selectedLeague.ownerUserId === user.id && <details className="league-actions-menu"><summary aria-label="League actions">...</summary><div><button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button></div></details>}</section>}
+    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <LeagueStandingsOverview token={token} discovery={discovery} scoringType={selectedLeague.scoringType} />}{discovery && selectedLeague.ownerUserId === user.id && <details className="league-actions-menu"><summary aria-label="League actions">...</summary><div><button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button></div></details>}</section>}
   </main>
 }
 
@@ -43,13 +42,13 @@ function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number)
 }
 
 function OwnerBadge() { return <span className="owner-badge">My league</span> }
-function LeagueStandingsOverview({ discovery, scoringType }: { discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring }) {
+function LeagueStandingsOverview({ token, discovery, scoringType }: { token: string; discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring }) {
   const [mode, setMode] = useState<LeagueDisplayMode>('standings')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const [teamSearch, setTeamSearch] = useState('')
   const [hasManagerOverflow, setHasManagerOverflow] = useState(false)
   const managerListRef = useRef<HTMLDivElement>(null)
-  const shirtCodes = useShirtCodes()
+  const shirtCodes = useShirtCodes(token)
   const { details } = discovery
   const showGamePoints = scoringType === 'H2H'
   const entriesByLeagueEntryId = new Map(details.league_entries.map((entry) => [entry.id, entry]))
@@ -306,16 +305,15 @@ function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number)
     })
     .sort((first, second) => first.lineupPosition - second.lineupPosition || first.name.localeCompare(second.name))
 }
-function useShirtCodes() {
+function useShirtCodes(token: string) {
   const [codes, setCodes] = useState<FplClubShirt[]>([])
   useEffect(() => {
     let alive = true
-    fetch('/api/fpl/discovery/shirts')
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Unable to load shirts')))
+    loadFplShirts(token)
       .then((teams: FplClubShirt[]) => { if (alive) setCodes(teams) })
       .catch(() => undefined)
     return () => { alive = false }
-  }, [])
+  }, [token])
   return codes
 }
 function rowPlayerPosition(index: number, count: number) {

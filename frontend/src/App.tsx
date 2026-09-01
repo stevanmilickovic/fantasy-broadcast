@@ -658,6 +658,7 @@ function App() {
   if (location.pathname === '/broadcast' && (appView === 'broadcast' || authUser.role !== 'ADMIN')) {
     return (
       <BroadcastMatchday
+		authToken={authToken!}
         displayLiveState={displayLiveState}
         matchup={matchup}
         latestCommentaryId={latestCommentary?.id}

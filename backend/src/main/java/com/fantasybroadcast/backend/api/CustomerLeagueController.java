@@ -9,6 +9,7 @@ import com.fantasybroadcast.backend.customer.SessionService;
 import com.fantasybroadcast.backend.customer.BroadcastScheduleService;
 import com.fantasybroadcast.backend.fpl.FplDraftClient;
 import com.fantasybroadcast.backend.fpl.FplDraftMapper;
+import com.fantasybroadcast.backend.fpl.FplClubShirt;
 import com.fantasybroadcast.backend.fpl.FplEntryEvent;
 import com.fantasybroadcast.backend.fpl.FplLeagueScoring;
 import com.fantasybroadcast.backend.fpl.FplLeagueType;
@@ -150,6 +151,23 @@ public class CustomerLeagueController {
 	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType) {
 	}
 
+	@GetMapping("/leagues/{leagueId}/draft-overview")
+	public DraftLeagueDiscovery draftLeagueOverview(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
+		var league = leagueService.accessibleLeague(currentUser(authorization), leagueId);
+		if (league.leagueType() != FplLeagueType.DRAFT) {
+			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+					"This overview is only available for Draft leagues.");
+		}
+		return new DraftLeagueDiscovery(fplClient.getLeagueDetails(league.fplLeagueId()), fplClient.getLeagueElementStatus(league.fplLeagueId()),
+				fplMapper.mapPlayers(fplClient.getDraftBootstrapStatic()));
+	}
+
+	@GetMapping("/fpl/shirts")
+	public List<FplClubShirt> shirts(@RequestHeader("Authorization") String authorization) {
+		currentUser(authorization);
+		return fplMapper.mapClubShirts(fplClient.getFantasyBootstrapStatic());
+	}
+
 	public record LeagueRegistrationAccess(boolean canRegisterLeague) {
 	}
 
@@ -169,5 +187,9 @@ public class CustomerLeagueController {
 			List<com.fantasybroadcast.backend.fpl.FplClassicLeagueEntry> entries, List<FplPlayer> players,
 			java.util.Map<Long, FplEntryEvent> entryEvents, List<FplLivePlayer> livePlayers,
 			List<com.fantasybroadcast.backend.fpl.FplClassicMatch> matches) {
+	}
+
+	public record DraftLeagueDiscovery(tools.jackson.databind.JsonNode details, tools.jackson.databind.JsonNode elementStatus,
+			List<FplPlayer> players) {
 	}
 }

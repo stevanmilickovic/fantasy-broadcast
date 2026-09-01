@@ -5,6 +5,7 @@ import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateRespo
 import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../../utils/broadcast'
 
 type BroadcastMatchdayProps = {
+	authToken: string
 	displayLiveState: LiveStateResponse
 	matchup?: MatchupView
 	latestCommentaryId?: string
@@ -36,7 +37,7 @@ type ShirtCodes = FplClubShirt[]
 const REVEAL_SCORE_CLEARANCE_PX = 42
 
 export function BroadcastMatchday({
-	displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
+	authToken, displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
   revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
@@ -44,6 +45,7 @@ export function BroadcastMatchday({
   const displayEvents = visibleEventId === displayLatestEvent?.id ? displayLiveState.events : []
   if (!matchup && (displayLiveState.teams?.length ?? 0) > 0) {
     return <TotalPointsBroadcast
+		authToken={authToken}
       displayLiveState={displayLiveState}
       broadcastFocus={broadcastFocus}
       automaticFocus={automaticFocus}
@@ -80,7 +82,7 @@ export function BroadcastMatchday({
         ? <HeadToHeadLeaderboard standings={standings} headingRef={leaderboardHeadingRef} />
         : <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
             <BroadcastTeamColumn side="left" team={matchup.home} isLeader={matchup.leaderManagerId === matchup.home.managerId} headingRef={homeHeadingRef} />
-            <PitchStage gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
+            <PitchStage authToken={authToken} gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
             <BroadcastTeamColumn side="right" team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} headingRef={awayHeadingRef} />
           </section>}
     </main>
@@ -196,8 +198,8 @@ function BroadcastTeamColumn({ side, team, isLeader, headingRef }: { side: 'left
   </section>
 }
 
-function PitchStage({ gameweek, scoreline, leaderName, scoreRef, matchup, latestEvents, pendingEvents }: { gameweek: number; scoreline: string; leaderName: string; scoreRef: RefObject<HTMLElement | null>; matchup: MatchupView; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
-  const shirtCodes = useShirtCodes()
+function PitchStage({ authToken, gameweek, scoreline, leaderName, scoreRef, matchup, latestEvents, pendingEvents }: { authToken: string; gameweek: number; scoreline: string; leaderName: string; scoreRef: RefObject<HTMLElement | null>; matchup: MatchupView; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
+	const shirtCodes = useShirtCodes(authToken)
   return <section className="pitch-panel pitch-panel-live">
     <div className="match-score-strip"><span>GW{gameweek}</span><strong ref={scoreRef}>{formatScoreline(scoreline)}</strong><small><Trophy size={14} />{leaderName === 'No one' ? 'Level' : leaderName}</small></div>
     <div className="pitch-and-benches">
@@ -289,11 +291,11 @@ function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, p
   </div>
 }
 
-function useShirtCodes(): ShirtCodes {
+function useShirtCodes(token: string): ShirtCodes {
   const [codes, setCodes] = useState<ShirtCodes>([])
   useEffect(() => {
     let alive = true
-    fetch('/api/fpl/discovery/shirts')
+    fetch('/api/customer/fpl/shirts', { headers: { Authorization: `Bearer ${token}` } })
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('Unable to load shirts')))
       .then((teams: FplClubShirt[]) => {
         if (!alive) return
@@ -306,7 +308,7 @@ function useShirtCodes(): ShirtCodes {
         })
       }).catch(() => undefined)
     return () => { alive = false }
-  }, [])
+  }, [token])
   return codes
 }
 
@@ -386,7 +388,8 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
   </div>
 }
 
-function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+	authToken: string
   displayLiveState: LiveStateResponse
   broadcastFocus: BroadcastFocus
   automaticFocus: BroadcastFocus
@@ -412,7 +415,7 @@ function TotalPointsBroadcast({ displayLiveState, broadcastFocus, automaticFocus
   const selectedTeam = broadcastFocus === 'multi' ? undefined : displayLiveState.teams?.find((candidate) => candidate.managerId === broadcastFocus)
   const team = selectedTeam ?? automaticallyFocusedTeam ?? displayLiveState.teams?.[0]
   if (!team) return null
-  const shirtCodes = useShirtCodes()
+  const shirtCodes = useShirtCodes(authToken)
   return <main className={`broadcast-shell matchday-page total-points-broadcast ${revealingMatch ? 'revealing-match' : ''}`}>
     {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
     {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} teamNameRef={totalTeamNameRef} scoreRef={scoreRef} />}
