@@ -1,5 +1,5 @@
 import type { FplLeagueType } from './liveApi'
-import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, RegisteredLeague } from '../types/customer'
+import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, LeagueRegistrationAccess, RegisteredLeague } from '../types/customer'
 import type { LiveStateResponse } from '../types/live'
 import type { FplLivePlayer, FplPlayer } from '../types/fpl'
 
@@ -37,6 +37,8 @@ export const authenticate = async (path: 'login' | 'register', email: string, pa
 export const loadCurrentUser = async (token: string): Promise<AuthUser> => (await request('/api/auth/me', token)).json()
 export const logout = async (token: string) => { await request('/api/auth/logout', token, { method: 'POST' }) }
 export const loadRegisteredLeagues = async (token: string): Promise<RegisteredLeague[]> => (await request('/api/customer/leagues', token)).json()
+export const loadLeagueRegistrationAccess = async (token: string): Promise<LeagueRegistrationAccess> =>
+  (await request('/api/customer/league-registration', token)).json()
 export const searchRegisteredLeagues = async (token: string, query: string): Promise<RegisteredLeague[]> =>
   (await request(`/api/customer/leagues/search?${new URLSearchParams({ query })}`, token)).json()
 export const followLeague = async (token: string, leagueId: number): Promise<RegisteredLeague> =>

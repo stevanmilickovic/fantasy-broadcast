@@ -33,7 +33,7 @@ public class LeagueRegistrationService {
 	}
 
 	public RegisteredLeague register(CurrentUser user, long fplLeagueId, FplLeagueType leagueType) {
-		if (!user.admin() && !securityProperties.isLeagueRegistrationEnabled()) {
+		if (!securityProperties.canRegisterLeague(user)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "League registration is closed for this test.");
 		}
 		if (fplLeagueId <= 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "League ID must be positive.");

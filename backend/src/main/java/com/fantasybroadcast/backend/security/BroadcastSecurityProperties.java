@@ -1,5 +1,6 @@
 package com.fantasybroadcast.backend.security;
 
+import com.fantasybroadcast.backend.customer.CurrentUser;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "broadcast.security")
@@ -11,6 +12,7 @@ public class BroadcastSecurityProperties {
 
 	public boolean isLeagueRegistrationEnabled() { return leagueRegistrationEnabled; }
 	public void setLeagueRegistrationEnabled(boolean leagueRegistrationEnabled) { this.leagueRegistrationEnabled = leagueRegistrationEnabled; }
+	public boolean canRegisterLeague(CurrentUser user) { return user != null && (user.admin() || leagueRegistrationEnabled); }
 	public boolean isDevelopmentEndpointsEnabled() { return developmentEndpointsEnabled; }
 	public void setDevelopmentEndpointsEnabled(boolean developmentEndpointsEnabled) { this.developmentEndpointsEnabled = developmentEndpointsEnabled; }
 	public String getInitialAdminEmail() { return initialAdminEmail; }

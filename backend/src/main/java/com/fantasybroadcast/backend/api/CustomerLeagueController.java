@@ -16,6 +16,7 @@ import com.fantasybroadcast.backend.fpl.FplLivePlayer;
 import com.fantasybroadcast.backend.fpl.FplPlayer;
 import com.fantasybroadcast.backend.live.LiveStateResponse;
 import com.fantasybroadcast.backend.live.MockLiveStateService;
+import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -46,20 +47,27 @@ public class CustomerLeagueController {
 	private final MockLiveStateService liveStateService;
 	private final FplDraftClient fplClient;
 	private final FplDraftMapper fplMapper;
+	private final BroadcastSecurityProperties securityProperties;
 
 	public CustomerLeagueController(SessionService sessionService, LeagueRegistrationService leagueService, BroadcastScheduleService scheduleService,
-			MockLiveStateService liveStateService, FplDraftClient fplClient, FplDraftMapper fplMapper) {
+			MockLiveStateService liveStateService, FplDraftClient fplClient, FplDraftMapper fplMapper, BroadcastSecurityProperties securityProperties) {
 		this.sessionService = sessionService;
 		this.leagueService = leagueService;
 		this.scheduleService = scheduleService;
 		this.liveStateService = liveStateService;
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
+		this.securityProperties = securityProperties;
 	}
 
 	@GetMapping("/leagues")
 	public List<RegisteredLeague> leagues(@RequestHeader("Authorization") String authorization) {
 		return leagueService.forUser(currentUser(authorization));
+	}
+
+	@GetMapping("/league-registration")
+	public LeagueRegistrationAccess leagueRegistrationAccess(@RequestHeader("Authorization") String authorization) {
+		return new LeagueRegistrationAccess(securityProperties.canRegisterLeague(currentUser(authorization)));
 	}
 
 	@PostMapping("/leagues")
@@ -140,6 +148,9 @@ public class CustomerLeagueController {
 	}
 
 	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType) {
+	}
+
+	public record LeagueRegistrationAccess(boolean canRegisterLeague) {
 	}
 
 	@PostMapping("/leagues/{leagueId}/broadcast/open")

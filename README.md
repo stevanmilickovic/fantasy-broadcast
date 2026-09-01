@@ -48,7 +48,7 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-To enable the database-backed customer accounts, registered leagues, and the seeded `admin` / `admin` local account, start with the `db` profile:
+To enable the database-backed customer accounts and registered leagues, start with the `db` profile. To bootstrap the first administrator, set `BROADCAST_INITIAL_ADMIN_EMAIL` and `BROADCAST_INITIAL_ADMIN_PASSWORD` to strong local-only credentials before starting the service.
 
 ```bash
 docker compose up -d db

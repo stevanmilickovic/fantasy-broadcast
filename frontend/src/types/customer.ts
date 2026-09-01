@@ -12,6 +12,10 @@ export type AuthResponse = {
   user: AuthUser
 }
 
+export type LeagueRegistrationAccess = {
+  canRegisterLeague: boolean
+}
+
 export type RegisteredLeague = {
   id: number
   fplLeagueId: number
