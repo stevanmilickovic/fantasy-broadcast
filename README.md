@@ -130,3 +130,16 @@ AI should not calculate scores or infer facts. It should only turn verified back
 ## Security
 
 Never commit API keys, FPL cookies, FPL access tokens, refresh tokens, Cloudflare tokens, database passwords, or model-provider secrets.
+
+## Server configuration
+
+The backend optionally imports an external configuration file from `./data/backend/application.yaml`, relative to the process that starts it. Set `BROADCAST_CONFIG_DIRECTORY` when that file is mounted elsewhere (for example, inside a future container).
+
+Keep this server-only file out of Git. When authentication email is added, email delivery is enabled only when both `broadcast.email.from` and `broadcast.email.public-base-url` are set; otherwise the service will not attempt to use an email provider.
+
+```yaml
+broadcast:
+  email:
+    from: no-reply@your-domain.example
+    public-base-url: https://preprod.your-domain.example
+```

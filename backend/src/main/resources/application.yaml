@@ -1,6 +1,8 @@
 spring:
   application:
     name: backend
+  config:
+    import: optional:file:${BROADCAST_CONFIG_DIRECTORY:./data/backend}/application.yaml
   autoconfigure:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
@@ -10,6 +12,10 @@ fpl:
   fantasy-base-url: https://fantasy.premierleague.com/api
 
 broadcast:
+  email:
+    enabled: ${BROADCAST_EMAIL_ENABLED:true}
+    from: ${BROADCAST_EMAIL_FROM:}
+    public-base-url: ${BROADCAST_PUBLIC_BASE_URL:}
   security:
     league-registration-enabled: ${BROADCAST_LEAGUE_REGISTRATION_ENABLED:true}
     development-endpoints-enabled: ${BROADCAST_DEVELOPMENT_ENDPOINTS_ENABLED:true}
