@@ -25,6 +25,8 @@ export type FplStanding = {
   league_entry?: number
   leagueEntryId?: number
   rank: number
+  last_rank?: number | null
+  lastRank?: number | null
   total?: number
   headToHeadPoints?: number
   points_for?: number

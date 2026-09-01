@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { deleteOwnedLeague, followLeague, loadActiveBroadcastSchedules, loadClassicLeagueOverview, loadRegisteredLeagues, openLeagueBroadcast, registerLeague, searchRegisteredLeagues, type ClassicLeagueDiscovery } from '../../api/customerApi'
 import { loadLeagueDiscovery } from '../../api/fplDiscoveryApi'
 import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
@@ -36,7 +37,7 @@ export function CustomerDashboard({ token, user, pathname, search, onNavigate, o
 function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number): LeagueDiscoveryState {
   const entries = classic.entries.map((entry) => ({ id: entry.entryId, entry_id: entry.entryId, entry_name: entry.entryName, player_first_name: entry.playerName, player_last_name: '', short_name: '' }))
   const entryEvents = Object.fromEntries(Object.entries(classic.entryEvents).map(([id, event]) => [id, { picks: event.picks.map((pick) => ({ ...pick, starter: pick.position <= 11, benched: pick.position > 11 })) }]))
-  return { details: { league: { id: fplLeagueId, name: classic.leagueName, draft_status: '', draft_dt: '', max_entries: entries.length, min_entries: 0, scoring: classic.scoringType, start_event: 0, stop_event: 0 }, league_entries: entries, matches: classic.matches.map((match, index) => ({ id: index, event: classic.gameweek, league_entry_1: match.firstEntryId, league_entry_2: match.secondEntryId, league_entry_1_points: match.firstPoints, league_entry_2_points: match.secondPoints, finished: false })), standings: classic.entries.map((entry) => ({ league_entry: entry.entryId, rank: entry.rank, total: entry.total, points_for: entry.pointsFor })) }, elementStatus: { element_status: classic.entries.flatMap((entry) => (classic.entryEvents[String(entry.entryId)]?.picks ?? []).map((pick) => ({ element: pick.element, owner: entry.entryId, status: 'o', in_accepted_trade: false }))) }, players: classic.players, entryEvents, livePlayers: classic.livePlayers }
+  return { details: { league: { id: fplLeagueId, name: classic.leagueName, draft_status: '', draft_dt: '', max_entries: entries.length, min_entries: 0, scoring: classic.scoringType, start_event: 0, stop_event: 0 }, league_entries: entries, matches: classic.matches.map((match, index) => ({ id: index, event: classic.gameweek, league_entry_1: match.firstEntryId, league_entry_2: match.secondEntryId, league_entry_1_points: match.firstPoints, league_entry_2_points: match.secondPoints, finished: false })), standings: classic.entries.map((entry) => ({ league_entry: entry.entryId, rank: entry.rank, lastRank: entry.lastRank, total: entry.total, points_for: entry.pointsFor })) }, elementStatus: { element_status: classic.entries.flatMap((entry) => (classic.entryEvents[String(entry.entryId)]?.picks ?? []).map((pick) => ({ element: pick.element, owner: entry.entryId, status: 'o', in_accepted_trade: false }))) }, players: classic.players, entryEvents, livePlayers: classic.livePlayers }
 }
 
 function OwnerBadge() { return <span className="owner-badge">My league</span> }
@@ -99,7 +100,8 @@ function LeagueStandingsOverview({ discovery, scoringType }: { discovery: League
                     return (
                       <div className="podium-entry" key={entryId}>
                         <strong>{entry?.entry_name ?? `Entry ${entryId}`}</strong>
-                        <span>{standingPoints(standing)} pts{showGamePoints ? ` · ${standingGamePoints(standing)} game pts` : ''}</span>
+                        <StandingPoints standing={standing} showGamePoints={showGamePoints} />
+                        <StandingMovement standing={standing} />
                       </div>
                     )
                   })}
@@ -120,7 +122,8 @@ function LeagueStandingsOverview({ discovery, scoringType }: { discovery: League
                 <div className="standings-list-row" key={`${entryId}-${index}`}>
                   <strong>{standing.rank || index + 1}</strong>
                   <span>{entry?.entry_name ?? `Entry ${entryId}`}</span>
-                  <small>{standingPoints(standing)} pts{showGamePoints ? ` · ${standingGamePoints(standing)} game pts` : ''}</small>
+                  <StandingMovement standing={standing} />
+                  <StandingPoints standing={standing} showGamePoints={showGamePoints} />
                 </div>
               )
             })}
@@ -259,6 +262,18 @@ function scoringLabel(scoringType: FplLeagueScoring) { return scoringType === 'H
 function standingPoints(standing: FplStanding) { return standing.total ?? standing.headToHeadPoints ?? 0 }
 function standingGamePoints(standing: FplStanding) { return standing.points_for ?? standing.pointsFor ?? 0 }
 function standingEntryId(standing: FplStanding) { return standing.league_entry ?? standing.leagueEntryId ?? 0 }
+function standingLastRank(standing: FplStanding) { return standing.last_rank ?? standing.lastRank ?? null }
+function StandingPoints({ standing, showGamePoints }: { standing: FplStanding; showGamePoints: boolean }) {
+  return <small className="standing-points">{showGamePoints && <><span>{standingGamePoints(standing)}</span><i>·</i></>}<b>{standingPoints(standing)} pts</b></small>
+}
+function StandingMovement({ standing }: { standing: FplStanding }) {
+  const lastRank = standingLastRank(standing)
+  if (!lastRank || !standing.rank) return null
+  const movement = lastRank > standing.rank ? 'up' : lastRank < standing.rank ? 'down' : 'same'
+  const label = movement === 'up' ? 'Moved up' : movement === 'down' ? 'Moved down' : 'No movement'
+  const Icon = movement === 'up' ? ArrowUp : movement === 'down' ? ArrowDown : Minus
+  return <em className={`standing-movement standing-movement-${movement}`} aria-label={label} title={label}><Icon size={13} strokeWidth={3} /></em>
+}
 function managerName(firstName: string, lastName: string) { return `${firstName} ${lastName}`.trim() || 'Manager' }
 function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number): LeaguePlayer[] {
   const playersById = new Map(discovery.players.map((player) => [player.id, player]))

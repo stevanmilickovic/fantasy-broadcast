@@ -75,7 +75,7 @@ export type ClassicLeagueDiscovery = {
   leagueName: string
   scoringType: 'H2H' | 'TOTAL_POINTS'
   gameweek: number
-  entries: Array<{ entryId: number; entryName: string; playerName: string; rank: number; total: number; pointsFor: number }>
+  entries: Array<{ entryId: number; entryName: string; playerName: string; rank: number; lastRank?: number | null; total: number; pointsFor: number }>
   players: FplPlayer[]
   entryEvents: Record<string, { picks: Array<{ element: number; position: number; multiplier: number }> }>
   livePlayers: FplLivePlayer[]

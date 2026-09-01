@@ -56,11 +56,12 @@ public class FplDraftMapper {
 			entries.add(new FplClassicLeagueEntry(
 					standing.path("entry").asLong(),
 					text(standing, "entry_name"),
-				text(standing, "player_name"),
-				intValue(standing, "rank"),
-				standing.has("points_total") ? intValue(standing, "points_total") : intValue(standing, "total"),
-				intValue(standing, "event_total"),
-				intValue(standing, "points_for")));
+					text(standing, "player_name"),
+					intValue(standing, "rank"),
+					integerValue(standing, "last_rank"),
+					standing.has("points_total") ? intValue(standing, "points_total") : intValue(standing, "total"),
+					intValue(standing, "event_total"),
+					intValue(standing, "points_for")));
 		}
 		return entries;
 	}
@@ -278,6 +279,7 @@ public class FplDraftMapper {
 			standings.add(new FplDraftStanding(
 					intValue(standing, "league_entry"),
 					intValue(standing, "rank"),
+					integerValue(standing, "last_rank"),
 					intValue(standing, "total"),
 					intValue(standing, "points_for")));
 		}

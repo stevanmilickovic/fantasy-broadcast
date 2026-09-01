@@ -28,8 +28,8 @@ class FplDraftMapperTests {
 				.containsExactly(1, 101, 102, 39, 37);
 		assertThat(league.standings().getFirst())
 				.extracting(FplDraftStanding::leagueEntryId, FplDraftStanding::rank,
-						FplDraftStanding::headToHeadPoints, FplDraftStanding::pointsFor)
-				.containsExactly(101, 1, 3, 39);
+						FplDraftStanding::lastRank, FplDraftStanding::headToHeadPoints, FplDraftStanding::pointsFor)
+				.containsExactly(101, 1, 2, 3, 39);
 	}
 
 	@Test
@@ -39,8 +39,9 @@ class FplDraftMapperTests {
 
 		assertThat(league.entries()).hasSize(2);
 		assertThat(league.entries().getFirst())
-				.extracting(FplClassicLeagueEntry::entryId, FplClassicLeagueEntry::entryName, FplClassicLeagueEntry::playerName)
-				.containsExactly(9001L, "Red Star FC", "Stevan Petrovic");
+				.extracting(FplClassicLeagueEntry::entryId, FplClassicLeagueEntry::entryName, FplClassicLeagueEntry::playerName,
+						FplClassicLeagueEntry::lastRank)
+				.containsExactly(9001L, "Red Star FC", "Stevan Petrovic", 2);
 		assertThat(league.matches().getFirst())
 				.extracting(FplClassicMatch::firstEntryId, FplClassicMatch::secondEntryId,
 						FplClassicMatch::firstPoints, FplClassicMatch::secondPoints)

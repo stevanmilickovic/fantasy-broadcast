@@ -2279,8 +2279,9 @@ blockquote {
 .podium-entry {
   display: grid;
   gap: 3px;
+  position: relative;
   min-width: 0;
-  padding: 14px 16px;
+  padding: 14px 48px 14px 16px;
   background: #31003a;
   color: #fff;
 }
@@ -2292,7 +2293,8 @@ blockquote {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.podium-entry span {
+.podium-entry span,
+.podium-entry small {
   color: #20e6ff;
   font-size: .88rem;
   font-weight: 850;
@@ -2335,9 +2337,9 @@ blockquote {
 }
 .standings-list-row {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 92px;
+  grid-template-columns: 56px minmax(0, 1fr) 28px 104px;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-height: 56px;
   padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, .08);
@@ -2353,6 +2355,35 @@ blockquote {
   color: #37003c;
   font-size: 1rem;
 }
+.standing-movement {
+  display: inline-grid;
+  place-items: center;
+  justify-self: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: #37003c;
+  font-style: normal;
+  line-height: 1;
+}
+.standing-movement svg {
+  display: block;
+}
+.podium-entry .standing-movement {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+}
+.standing-movement-up {
+  background: #00d084;
+}
+.standing-movement-down {
+  background: #ff365e;
+  color: #fff;
+}
+.standing-movement-same {
+  background: #edf2f7;
+}
 .standings-list-row span {
   min-width: 0;
   overflow: hidden;
@@ -2365,7 +2396,32 @@ blockquote {
   color: #c8f9ff;
   font-size: .9rem;
   font-weight: 850;
+  font-variant-numeric: tabular-nums;
   text-align: right;
+  white-space: nowrap;
+}
+.standing-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.standings-list-row .standing-points {
+  justify-content: flex-end;
+}
+.standing-points span {
+  color: inherit;
+  font: inherit;
+}
+.standing-points i {
+  color: rgba(255, 255, 255, .45);
+  font-style: normal;
+}
+.standing-points b {
+  color: #00d084;
+  font: inherit;
+}
+.standings-list-row small b {
+  color: #00d084;
 }
 .league-teams-view {
   display: grid;
@@ -2667,7 +2723,7 @@ blockquote {
   .podium-step-1, .podium-step-2, .podium-step-3 { order: initial; }
   .podium-base, .podium-step-1 .podium-base, .podium-step-2 .podium-base, .podium-step-3 .podium-base { min-height: 110px; }
   .podium-entry strong { white-space: normal; }
-  .standings-list-row { grid-template-columns: 44px minmax(0, 1fr) 76px; gap: 8px; padding-right: 10px; padding-left: 10px; }
+  .standings-list-row { grid-template-columns: 44px minmax(0, 1fr) 24px 104px; gap: 8px; padding-right: 10px; padding-left: 10px; }
   .league-teams-view { grid-template-columns: 1fr; }
   .manager-grid { max-height: 70vh; }
   .league-team-stage { grid-template-columns: 1fr; padding: 18px 12px; }
