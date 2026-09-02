@@ -41,9 +41,16 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    ports:
-      - "127.0.0.1:8080:8080"
     networks: [internal]
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      web:
+        condition: service_started
+    networks: [internal, egress]
 
 networks:
   internal:
