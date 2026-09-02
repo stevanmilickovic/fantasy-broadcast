@@ -40,7 +40,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public AuthResponse login(@Valid @RequestBody Credentials credentials, HttpServletResponse response) {
+	public AuthResponse login(@Valid @RequestBody LoginCredentials credentials, HttpServletResponse response) {
 		return authenticated(accountService.authenticate(credentials.email(), credentials.password()), response);
 	}
 
@@ -66,6 +66,10 @@ public class AuthController {
 	}
 
 	public record Credentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 12, max = 200) String password) {
+	}
+
+	/** Existing accounts keep their configured passwords; new registrations require the stronger minimum. */
+	public record LoginCredentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 5, max = 200) String password) {
 	}
 
 	public record AuthResponse(CurrentUser user) {
