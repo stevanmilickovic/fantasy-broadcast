@@ -12,7 +12,7 @@ ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="Fantasy Broadcast backend" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${VCS_REF}"
-RUN addgroup -S broadcast && adduser -S broadcast -G broadcast && mkdir -p /var/lib/fantasy-broadcast/narrations && chown -R broadcast:broadcast /var/lib/fantasy-broadcast
+RUN apk upgrade --no-cache && addgroup -S broadcast && adduser -S broadcast -G broadcast && mkdir -p /var/lib/fantasy-broadcast/narrations && chown -R broadcast:broadcast /var/lib/fantasy-broadcast
 USER broadcast
 WORKDIR /app
 COPY --from=build /workspace/backend/target/backend-*.jar app.jar

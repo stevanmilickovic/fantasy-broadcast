@@ -12,6 +12,7 @@ ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="Fantasy Broadcast web" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${VCS_REF}"
+RUN apk upgrade --no-cache
 COPY frontend/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /workspace/dist /usr/share/nginx/html
 EXPOSE 8080

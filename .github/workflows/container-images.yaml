@@ -39,6 +39,7 @@ jobs:
         with:
           context: .
           file: backend/Dockerfile
+          pull: true
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/fantasy-broadcast-backend:${{ steps.version.outputs.value }}
@@ -55,6 +56,7 @@ jobs:
         with:
           context: .
           file: frontend/Dockerfile
+          pull: true
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/fantasy-broadcast-web:${{ steps.version.outputs.value }}
