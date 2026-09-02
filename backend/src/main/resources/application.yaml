@@ -10,6 +10,8 @@ spring:
 fpl:
   draft-base-url: https://draft.premierleague.com/api
   fantasy-base-url: https://fantasy.premierleague.com/api
+  timeout-seconds: ${FPL_TIMEOUT_SECONDS:15}
+  cache-ttl-seconds: ${FPL_CACHE_TTL_SECONDS:3600}
 
 broadcast:
   email:

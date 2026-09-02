@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class BroadcastSecurityProperties {
 	private boolean leagueRegistrationEnabled = true;
 	private boolean developmentEndpointsEnabled = true;
+	private boolean secureCookies;
 	private String initialAdminEmail = "";
 	private String initialAdminPassword = "";
 
@@ -15,6 +16,8 @@ public class BroadcastSecurityProperties {
 	public boolean canRegisterLeague(CurrentUser user) { return user != null && (user.admin() || leagueRegistrationEnabled); }
 	public boolean isDevelopmentEndpointsEnabled() { return developmentEndpointsEnabled; }
 	public void setDevelopmentEndpointsEnabled(boolean developmentEndpointsEnabled) { this.developmentEndpointsEnabled = developmentEndpointsEnabled; }
+	public boolean isSecureCookies() { return secureCookies; }
+	public void setSecureCookies(boolean secureCookies) { this.secureCookies = secureCookies; }
 	public String getInitialAdminEmail() { return initialAdminEmail; }
 	public void setInitialAdminEmail(String initialAdminEmail) { this.initialAdminEmail = initialAdminEmail; }
 	public String getInitialAdminPassword() { return initialAdminPassword; }

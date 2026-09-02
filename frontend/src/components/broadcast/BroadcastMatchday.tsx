@@ -295,7 +295,7 @@ function useShirtCodes(token: string): ShirtCodes {
   const [codes, setCodes] = useState<ShirtCodes>([])
   useEffect(() => {
     let alive = true
-    fetch('/api/customer/fpl/shirts', { headers: { Authorization: `Bearer ${token}` } })
+		fetch('/api/customer/fpl/shirts')
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('Unable to load shirts')))
       .then((teams: FplClubShirt[]) => {
         if (!alive) return

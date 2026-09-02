@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @Profile("db & !test")
@@ -41,50 +41,50 @@ public class LiveStateController {
 	}
 
 	@GetMapping("/live-state")
-	public LiveStateResponse liveState(@RequestHeader("Authorization") String authorization, @RequestParam(required = false) Long leagueId) {
-		requireLiveAccess(sessionService.require(authorization), leagueId);
+	public LiveStateResponse liveState(HttpServletRequest request, @RequestParam(required = false) Long leagueId) {
+		requireLiveAccess(sessionService.require(request), leagueId);
 		return leagueId == null ? liveStateService.currentState() : liveStateService.currentState(leagueId);
 	}
 
 	@GetMapping(path = "/live-state/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter liveStateStream(@RequestParam String accessToken, @RequestParam(required = false) Long leagueId) {
-		requireLiveAccess(sessionService.require("Bearer " + accessToken), leagueId);
+	public SseEmitter liveStateStream(HttpServletRequest request, @RequestParam(required = false) Long leagueId) {
+		requireLiveAccess(sessionService.require(request), leagueId);
 		return leagueId == null ? liveStateService.connectStream() : liveStateService.connectStream(leagueId);
 	}
 
 	@PostMapping("/mock-live/start")
-	public LiveStateResponse start(@RequestHeader("Authorization") String authorization) {
-		requireAdmin(authorization);
+	public LiveStateResponse start(HttpServletRequest request) {
+		requireAdmin(request);
 		requireDevelopmentEndpoints();
 		return liveStateService.start();
 	}
 
 	@PostMapping("/mock-live/comprehensive/start")
-	public LiveStateResponse startComprehensive(@RequestHeader("Authorization") String authorization,
+	public LiveStateResponse startComprehensive(HttpServletRequest request,
 			@RequestParam(defaultValue = "NONE") MockNarrationMode narrationMode) {
-		requireAdmin(authorization);
+		requireAdmin(request);
 		requireDevelopmentEndpoints();
 		return liveStateService.startComprehensive(narrationMode);
 	}
 
 	@PostMapping("/mock-live/total-points/start")
-	public LiveStateResponse startTotalPointsMock(@RequestHeader("Authorization") String authorization,
+	public LiveStateResponse startTotalPointsMock(HttpServletRequest request,
 			@RequestParam(defaultValue = "NONE") MockNarrationMode narrationMode) {
-		requireAdmin(authorization);
+		requireAdmin(request);
 		requireDevelopmentEndpoints();
 		return liveStateService.startTotalPointsMock(narrationMode);
 	}
 
 	@PostMapping("/mock-live/advance")
-	public LiveStateResponse advance(@RequestHeader("Authorization") String authorization) {
-		requireAdmin(authorization);
+	public LiveStateResponse advance(HttpServletRequest request) {
+		requireAdmin(request);
 		requireDevelopmentEndpoints();
 		return liveStateService.advance();
 	}
 
 	@PostMapping("/mock-live/reset")
-	public LiveStateResponse reset(@RequestHeader("Authorization") String authorization) {
-		requireAdmin(authorization);
+	public LiveStateResponse reset(HttpServletRequest request) {
+		requireAdmin(request);
 		requireDevelopmentEndpoints();
 		return liveStateService.reset();
 	}
@@ -92,13 +92,13 @@ public class LiveStateController {
 	@PostMapping("/live-broadcast/start")
 	public LiveStateResponse startRealBroadcast(@RequestParam long leagueId,
 			@RequestParam(defaultValue = "DRAFT") FplLeagueType leagueType,
-			@RequestHeader("Authorization") String authorization) {
-		requireAdmin(authorization);
+			HttpServletRequest request) {
+		requireAdmin(request);
 		return liveStateService.startReal(leagueId, leagueType, leagueService.detectScoring(leagueId, leagueType));
 	}
 
-	private void requireAdmin(String authorization) {
-		if (!sessionService.require(authorization).admin()) {
+	private void requireAdmin(HttpServletRequest request) {
+		if (!sessionService.require(request).admin()) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required.");
 		}
 	}

@@ -32,9 +32,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @Profile("db & !test")
@@ -62,50 +62,50 @@ public class CustomerLeagueController {
 	}
 
 	@GetMapping("/leagues")
-	public List<RegisteredLeague> leagues(@RequestHeader("Authorization") String authorization) {
-		return leagueService.forUser(currentUser(authorization));
+	public List<RegisteredLeague> leagues(HttpServletRequest request) {
+		return leagueService.forUser(currentUser(request));
 	}
 
 	@GetMapping("/league-registration")
-	public LeagueRegistrationAccess leagueRegistrationAccess(@RequestHeader("Authorization") String authorization) {
-		return new LeagueRegistrationAccess(securityProperties.canRegisterLeague(currentUser(authorization)));
+	public LeagueRegistrationAccess leagueRegistrationAccess(HttpServletRequest request) {
+		return new LeagueRegistrationAccess(securityProperties.canRegisterLeague(currentUser(request)));
 	}
 
 	@PostMapping("/leagues")
-	public RegisteredLeague registerLeague(@RequestHeader("Authorization") String authorization,
+	public RegisteredLeague registerLeague(HttpServletRequest httpRequest,
 			@Valid @RequestBody LeagueRequest request) {
 		var leagueType = request.leagueType() == null ? FplLeagueType.DRAFT : request.leagueType();
-		return leagueService.register(currentUser(authorization), request.fplLeagueId(), leagueType);
+		return leagueService.register(currentUser(httpRequest), request.fplLeagueId(), leagueType);
 	}
 
 	@GetMapping("/admin/leagues")
-	public AdminLeaguePage allLeagues(@RequestHeader("Authorization") String authorization,
+	public AdminLeaguePage allLeagues(HttpServletRequest request,
 			@RequestParam(defaultValue = "0") @PositiveOrZero int page,
 			@RequestParam(defaultValue = "10") @Positive @Max(100) int size,
 			@RequestParam(defaultValue = "") String search) {
-		return leagueService.allForAdmin(currentUser(authorization), page, size, search);
+		return leagueService.allForAdmin(currentUser(request), page, size, search);
 	}
 
 	@GetMapping("/leagues/search")
-	public List<RegisteredLeague> searchRegisteredLeagues(@RequestHeader("Authorization") String authorization,
+	public List<RegisteredLeague> searchRegisteredLeagues(HttpServletRequest request,
 			@RequestParam(defaultValue = "") String query) {
-		currentUser(authorization);
+		currentUser(request);
 		return leagueService.searchRegistered(query);
 	}
 
 	@PostMapping("/leagues/{leagueId}/follow")
-	public RegisteredLeague followLeague(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
-		return leagueService.follow(currentUser(authorization), leagueId);
+	public RegisteredLeague followLeague(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+		return leagueService.follow(currentUser(request), leagueId);
 	}
 
 	@DeleteMapping("/leagues/{leagueId}")
-	public void deleteOwnedLeague(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
-		leagueService.deleteOwned(currentUser(authorization), leagueId);
+	public void deleteOwnedLeague(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+		leagueService.deleteOwned(currentUser(request), leagueId);
 	}
 
 	@GetMapping("/leagues/{leagueId}/overview")
-	public ClassicLeagueDiscovery leagueOverview(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
-		var league = leagueService.accessibleLeague(currentUser(authorization), leagueId);
+	public ClassicLeagueDiscovery leagueOverview(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+		var league = leagueService.accessibleLeague(currentUser(request), leagueId);
 		if (league.leagueType() != FplLeagueType.CLASSIC) {
 			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
 					"This overview is only available for Classic leagues.");
@@ -138,22 +138,22 @@ public class CustomerLeagueController {
 	}
 
 	@PatchMapping("/admin/leagues/{leagueId}")
-	public AdminLeague updateLeague(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId,
+	public AdminLeague updateLeague(HttpServletRequest httpRequest, @PathVariable @Positive long leagueId,
 			@Valid @RequestBody AdminLeagueSettingsRequest request) {
-		return leagueService.updateForAdmin(currentUser(authorization), leagueId, request.serviceEnabled(),
+		return leagueService.updateForAdmin(currentUser(httpRequest), leagueId, request.serviceEnabled(),
 				request.aiNarrationEnabled(), request.voiceNarrationEnabled());
 	}
 
-	private CurrentUser currentUser(String authorization) {
-		return sessionService.require(authorization);
+	private CurrentUser currentUser(HttpServletRequest request) {
+		return sessionService.require(request);
 	}
 
 	public record LeagueRequest(@Positive long fplLeagueId, FplLeagueType leagueType) {
 	}
 
 	@GetMapping("/leagues/{leagueId}/draft-overview")
-	public DraftLeagueDiscovery draftLeagueOverview(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
-		var league = leagueService.accessibleLeague(currentUser(authorization), leagueId);
+	public DraftLeagueDiscovery draftLeagueOverview(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+		var league = leagueService.accessibleLeague(currentUser(request), leagueId);
 		if (league.leagueType() != FplLeagueType.DRAFT) {
 			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
 					"This overview is only available for Draft leagues.");
@@ -163,8 +163,8 @@ public class CustomerLeagueController {
 	}
 
 	@GetMapping("/fpl/shirts")
-	public List<FplClubShirt> shirts(@RequestHeader("Authorization") String authorization) {
-		currentUser(authorization);
+	public List<FplClubShirt> shirts(HttpServletRequest request) {
+		currentUser(request);
 		return fplMapper.mapClubShirts(fplClient.getFantasyBootstrapStatic());
 	}
 
@@ -172,8 +172,8 @@ public class CustomerLeagueController {
 	}
 
 	@PostMapping("/leagues/{leagueId}/broadcast/open")
-	public LiveStateResponse openBroadcast(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long leagueId) {
-		var user = currentUser(authorization);
+	public LiveStateResponse openBroadcast(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+		var user = currentUser(request);
 		if (scheduleService.activeFor(user).isEmpty()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "There is no active broadcast for this time.");
 		var league = leagueService.accessibleLeague(user, leagueId);
 		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType(), league.scoringType(),

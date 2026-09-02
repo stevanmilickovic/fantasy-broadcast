@@ -3,12 +3,10 @@ import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSch
 import type { LiveStateResponse } from '../types/live'
 import type { FplElementStatusRaw, FplLeagueDetailsRaw, FplLivePlayer, FplPlayer } from '../types/fpl'
 
-const tokenKey = 'fantasy-broadcast-session-token'
-
-const request = async (path: string, token: string, options?: RequestInit) => {
+const request = async (path: string, options?: RequestInit) => {
   const response = await fetch(path, {
     ...options,
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...options?.headers },
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
   if (!response.ok) {
     const body = await response.json().catch(() => null)
@@ -16,10 +14,6 @@ const request = async (path: string, token: string, options?: RequestInit) => {
   }
   return response
 }
-
-export const storedToken = () => localStorage.getItem(tokenKey)
-export const storeToken = (token: string) => localStorage.setItem(tokenKey, token)
-export const clearToken = () => localStorage.removeItem(tokenKey)
 
 export const authenticate = async (path: 'login' | 'register', email: string, password: string): Promise<AuthResponse> => {
   const response = await fetch(`/api/auth/${path}`, {
@@ -34,48 +28,47 @@ export const authenticate = async (path: 'login' | 'register', email: string, pa
   return response.json()
 }
 
-export const loadCurrentUser = async (token: string): Promise<AuthUser> => (await request('/api/auth/me', token)).json()
-export const logout = async (token: string) => { await request('/api/auth/logout', token, { method: 'POST' }) }
-export const loadRegisteredLeagues = async (token: string): Promise<RegisteredLeague[]> => (await request('/api/customer/leagues', token)).json()
-export const loadLeagueRegistrationAccess = async (token: string): Promise<LeagueRegistrationAccess> =>
-  (await request('/api/customer/league-registration', token)).json()
-export const searchRegisteredLeagues = async (token: string, query: string): Promise<RegisteredLeague[]> =>
-  (await request(`/api/customer/leagues/search?${new URLSearchParams({ query })}`, token)).json()
-export const followLeague = async (token: string, leagueId: number): Promise<RegisteredLeague> =>
-  (await request(`/api/customer/leagues/${leagueId}/follow`, token, { method: 'POST' })).json()
-export const deleteOwnedLeague = async (token: string, leagueId: number) =>
-  { await request(`/api/customer/leagues/${leagueId}`, token, { method: 'DELETE' }) }
-export const registerLeague = async (token: string, fplLeagueId: string, leagueType: FplLeagueType): Promise<RegisteredLeague> =>
-  (await request('/api/customer/leagues', token, { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
-export const loadClassicLeagueOverview = async (token: string, leagueId: number): Promise<ClassicLeagueDiscovery> =>
-  (await request(`/api/customer/leagues/${leagueId}/overview`, token)).json()
-export const loadDraftLeagueOverview = async (token: string, leagueId: number): Promise<DraftLeagueDiscovery> =>
-  (await request(`/api/customer/leagues/${leagueId}/draft-overview`, token)).json()
-export const loadFplShirts = async (token: string): Promise<FplClubShirt[]> =>
-  (await request('/api/customer/fpl/shirts', token)).json()
-export const loadAdminLeagues = async (token: string, page = 0, size = 10, search = ''): Promise<AdminLeaguePage> => {
+export const loadCurrentUser = async (): Promise<AuthUser> => (await request('/api/auth/me')).json()
+export const logout = async () => { await request('/api/auth/logout', { method: 'POST' }) }
+export const loadRegisteredLeagues = async (_legacyToken?: string): Promise<RegisteredLeague[]> => { void _legacyToken; return (await request('/api/customer/leagues')).json() }
+export const loadLeagueRegistrationAccess = async (_legacyToken?: string): Promise<LeagueRegistrationAccess> => { void _legacyToken; return (await request('/api/customer/league-registration')).json() }
+export const searchRegisteredLeagues = async (tokenOrQuery: string, query?: string): Promise<RegisteredLeague[]> => (await request(`/api/customer/leagues/search?${new URLSearchParams({ query: query ?? tokenOrQuery })}`)).json()
+export const followLeague = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<RegisteredLeague> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/follow`, { method: 'POST' })).json()
+export const deleteOwnedLeague = async (tokenOrLeagueId: string | number, leagueId?: number) => { await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}`, { method: 'DELETE' }) }
+export const registerLeague = async (tokenOrLeagueId: string, leagueIdOrType: string | FplLeagueType, legacyType?: FplLeagueType): Promise<RegisteredLeague> => {
+	const fplLeagueId = legacyType === undefined ? tokenOrLeagueId : leagueIdOrType as string
+	const leagueType = legacyType ?? leagueIdOrType as FplLeagueType
+	return (await request('/api/customer/leagues', { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }) })).json()
+}
+export const loadClassicLeagueOverview = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<ClassicLeagueDiscovery> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/overview`)).json()
+export const loadDraftLeagueOverview = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<DraftLeagueDiscovery> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/draft-overview`)).json()
+export const loadFplShirts = async (_legacyToken?: string): Promise<FplClubShirt[]> => { void _legacyToken; return (await request('/api/customer/fpl/shirts')).json() }
+export const loadAdminLeagues = async (tokenOrPage: string | number = 0, pageOrSize = 0, sizeOrSearch: number | string = 10, legacySearch = ''): Promise<AdminLeaguePage> => {
+	const legacyCall = typeof tokenOrPage === 'string'
+	const page = legacyCall ? pageOrSize : tokenOrPage
+	const size = legacyCall ? sizeOrSearch as number : pageOrSize
+	const search = legacyCall ? legacySearch : sizeOrSearch as string
   const query = new URLSearchParams({ page: String(page), size: String(size), search })
-  const response: AdminLeaguePage | AdminLeague[] = await (await request(`/api/customer/admin/leagues?${query}`, token)).json()
+  const response: AdminLeaguePage | AdminLeague[] = await (await request(`/api/customer/admin/leagues?${query}`)).json()
   if (Array.isArray(response)) return { items: response, page: 0, size: response.length, totalItems: response.length }
   return response
 }
-export const updateAdminLeague = async (token: string, league: AdminLeague): Promise<AdminLeague> =>
-  (await request(`/api/customer/admin/leagues/${league.id}`, token, {
+export const updateAdminLeague = async (tokenOrLeague: string | AdminLeague, legacyLeague?: AdminLeague): Promise<AdminLeague> => {
+	const league = legacyLeague ?? tokenOrLeague as AdminLeague
+	return (await request(`/api/customer/admin/leagues/${league.id}`, {
     method: 'PATCH', body: JSON.stringify({
       serviceEnabled: league.serviceEnabled,
       aiNarrationEnabled: league.aiNarrationEnabled,
       voiceNarrationEnabled: league.voiceNarrationEnabled,
     }),
-  })).json()
-export const loadBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/admin/broadcast-schedules', token)).json()
-export const saveBroadcastSchedule = async (token: string, startsAt: string, endsAt: string, id?: number): Promise<BroadcastSchedule> =>
-  (await request(id ? `/api/customer/admin/broadcast-schedules/${id}` : '/api/customer/admin/broadcast-schedules', token, { method: id ? 'PUT' : 'POST', body: JSON.stringify({ startsAt: new Date(startsAt).toISOString(), endsAt: new Date(endsAt).toISOString() }) })).json()
-export const generateTodayBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> =>
-  (await request('/api/customer/admin/broadcast-schedules/generate-today', token, { method: 'POST' })).json()
-export const deleteBroadcastSchedule = async (token: string, scheduleId: number) =>
-  { await request(`/api/customer/admin/broadcast-schedules/${scheduleId}`, token, { method: 'DELETE' }) }
-export const loadActiveBroadcastSchedules = async (token: string): Promise<BroadcastSchedule[]> => (await request('/api/customer/broadcast-schedules/active', token)).json()
-export const openLeagueBroadcast = async (token: string, leagueId: number): Promise<LiveStateResponse> => (await request(`/api/customer/leagues/${leagueId}/broadcast/open`, token, { method: 'POST' })).json()
+	})).json()
+}
+export const loadBroadcastSchedules = async (_legacyToken?: string): Promise<BroadcastSchedule[]> => { void _legacyToken; return (await request('/api/customer/admin/broadcast-schedules')).json() }
+export const saveBroadcastSchedule = async (tokenOrStartsAt: string, startsAtOrEndsAt: string, endsAtOrId?: string | number, legacyId?: number): Promise<BroadcastSchedule> => { const startsAt = legacyId === undefined ? tokenOrStartsAt : startsAtOrEndsAt; const endsAt = legacyId === undefined ? endsAtOrId as string : endsAtOrId as string; const id = legacyId === undefined ? undefined : legacyId; return (await request(id ? `/api/customer/admin/broadcast-schedules/${id}` : '/api/customer/admin/broadcast-schedules', { method: id ? 'PUT' : 'POST', body: JSON.stringify({ startsAt: new Date(startsAt).toISOString(), endsAt: new Date(endsAt).toISOString() }) })).json() }
+export const generateTodayBroadcastSchedules = async (_legacyToken?: string): Promise<BroadcastSchedule[]> => { void _legacyToken; return (await request('/api/customer/admin/broadcast-schedules/generate-today', { method: 'POST' })).json() }
+export const deleteBroadcastSchedule = async (tokenOrScheduleId: string | number, scheduleId?: number) => { await request(`/api/customer/admin/broadcast-schedules/${scheduleId ?? tokenOrScheduleId}`, { method: 'DELETE' }) }
+export const loadActiveBroadcastSchedules = async (_legacyToken?: string): Promise<BroadcastSchedule[]> => { void _legacyToken; return (await request('/api/customer/broadcast-schedules/active')).json() }
+export const openLeagueBroadcast = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<LiveStateResponse> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/broadcast/open`, { method: 'POST' })).json()
 
 export type ClassicLeagueDiscovery = {
   leagueName: string

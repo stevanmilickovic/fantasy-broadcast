@@ -7,21 +7,22 @@ import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/
 import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
 import { enablePointChangeSound } from '../../utils/broadcastSound'
 
-type Props = { token: string; user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
+type Props = { user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
 type LeagueDisplayMode = 'standings' | 'teams' | 'matchups'
 type FplClubShirt = { name: string; shortName?: string; code: number }
 type LeaguePlayer = { id: number; name: string; fullName: string; club: string; position: string; points: number; starter: boolean; lineupPosition: number }
 
-export function CustomerDashboard({ token, user, pathname, search, onNavigate, onSignOut }: Props) {
+export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOut }: Props) {
+	const token = ''
   const [leagues, setLeagues] = useState<RegisteredLeague[]>([]); const [busy, setBusy] = useState(false); const [message, setMessage] = useState<string | null>(null)
   const [leagueId, setLeagueId] = useState(''); const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT'); const [discovery, setDiscovery] = useState<LeagueDiscoveryState | null>(null)
   const [activeBroadcasts, setActiveBroadcasts] = useState<BroadcastSchedule[]>([]); const [searchResults, setSearchResults] = useState<RegisteredLeague[]>([])
   const [canRegisterLeague, setCanRegisterLeague] = useState<boolean | null>(null)
   const selectedLeagueId = Number(new URLSearchParams(search).get('leagueId')); const selectedLeague = leagues.find((league) => league.id === selectedLeagueId) ?? null
-  useEffect(() => { loadRegisteredLeagues(token).then((nextLeagues) => { setLeagues(nextLeagues); if (pathname === '/leagues/new') return; if (nextLeagues.length === 0) onNavigate('/leagues/new'); else if (nextLeagues.length === 1) onNavigate(`/league?leagueId=${nextLeagues[0].id}`); else if (pathname !== '/leagues' && !nextLeagues.some((league) => league.id === selectedLeagueId)) onNavigate('/leagues') }).catch((error: Error) => setMessage(error.message)) }, [token])
+  useEffect(() => { loadRegisteredLeagues().then((nextLeagues) => { setLeagues(nextLeagues); if (pathname === '/leagues/new') return; if (nextLeagues.length === 0) onNavigate('/leagues/new'); else if (nextLeagues.length === 1) onNavigate(`/league?leagueId=${nextLeagues[0].id}`); else if (pathname !== '/leagues' && !nextLeagues.some((league) => league.id === selectedLeagueId)) onNavigate('/leagues') }).catch((error: Error) => setMessage(error.message)) }, [])
   useEffect(() => { if (!selectedLeague || pathname !== '/league') { setDiscovery(null); return }; setMessage(null); setBusy(true); if (selectedLeague.leagueType === 'CLASSIC') { setDiscovery(null); loadClassicLeagueOverview(token, selectedLeague.id).then((classic) => setDiscovery(toLeagueDiscovery(classic, selectedLeague.fplLeagueId))).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false)); return }; loadDraftLeagueOverview(token, selectedLeague.id).then(setDiscovery).catch((error: Error) => setMessage(error.message)).finally(() => setBusy(false)) }, [selectedLeague?.id, pathname, token])
-  useEffect(() => { void loadActiveBroadcastSchedules(token).then(setActiveBroadcasts).catch(() => setActiveBroadcasts([])) }, [token])
-  useEffect(() => { void loadLeagueRegistrationAccess(token).then((access) => setCanRegisterLeague(access.canRegisterLeague)).catch((error: Error) => setMessage(error.message)) }, [token])
+  useEffect(() => { void loadActiveBroadcastSchedules().then(setActiveBroadcasts).catch(() => setActiveBroadcasts([])) }, [])
+  useEffect(() => { void loadLeagueRegistrationAccess().then((access) => setCanRegisterLeague(access.canRegisterLeague)).catch((error: Error) => setMessage(error.message)) }, [])
   const register = async (event: React.FormEvent) => { event.preventDefault(); setBusy(true); try { const league = await registerLeague(token, leagueId, leagueType); setLeagues(await loadRegisteredLeagues(token)); onNavigate(`/league?leagueId=${league.id}`) } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to register league.') } finally { setBusy(false) } }
   const searchRegistered = async (query: string) => { setBusy(true); try { setSearchResults(await searchRegisteredLeagues(token, query)); setMessage(null) } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to search registered leagues.') } finally { setBusy(false) } }
   const follow = async (league: RegisteredLeague) => { setBusy(true); try { await followLeague(token, league.id); setLeagues(await loadRegisteredLeagues(token)); onNavigate(`/league?leagueId=${league.id}`) } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to follow the league.') } finally { setBusy(false) } }

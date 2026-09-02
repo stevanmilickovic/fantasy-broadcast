@@ -18,9 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @Profile("db & !test")
@@ -42,12 +42,12 @@ public class BroadcastNarrationController {
 	}
 
 	@GetMapping("/{id}/audio")
-	public ResponseEntity<FileSystemResource> audio(@PathVariable long id, @RequestHeader("Authorization") String authorization) {
+	public ResponseEntity<FileSystemResource> audio(@PathVariable long id, HttpServletRequest request) {
 		var narration = repository.findById(id).orElse(null);
 		if (narration == null || narration.audioPath() == null || narration.audioPath().isBlank()) {
 			return ResponseEntity.notFound().build();
 		}
-		leagueService.accessibleLeague(sessionService.require(authorization), narration.leagueId());
+		leagueService.accessibleLeague(sessionService.require(request), narration.leagueId());
 		if (narration.expiresAt() != null && narration.expiresAt().isBefore(Instant.now())) {
 			return ResponseEntity.status(HttpStatus.GONE).build();
 		}

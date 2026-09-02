@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @Profile("db & !test")
@@ -34,18 +34,18 @@ public class BroadcastScheduleController {
 	}
 
 	@GetMapping("/admin/broadcast-schedules")
-	public List<BroadcastSchedule> all(@RequestHeader("Authorization") String authorization) { return schedules.allForAdmin(currentUser(authorization)); }
+	public List<BroadcastSchedule> all(HttpServletRequest request) { return schedules.allForAdmin(currentUser(request)); }
 	@PostMapping("/admin/broadcast-schedules")
-	public BroadcastSchedule create(@RequestHeader("Authorization") String authorization, @Valid @RequestBody ScheduleRequest request) { return schedules.create(currentUser(authorization), request.startsAt(), request.endsAt()); }
+	public BroadcastSchedule create(HttpServletRequest httpRequest, @Valid @RequestBody ScheduleRequest request) { return schedules.create(currentUser(httpRequest), request.startsAt(), request.endsAt()); }
 	@PutMapping("/admin/broadcast-schedules/{scheduleId}")
-	public BroadcastSchedule update(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long scheduleId, @Valid @RequestBody ScheduleRequest request) { return schedules.update(currentUser(authorization), scheduleId, request.startsAt(), request.endsAt()); }
+	public BroadcastSchedule update(HttpServletRequest httpRequest, @PathVariable @Positive long scheduleId, @Valid @RequestBody ScheduleRequest request) { return schedules.update(currentUser(httpRequest), scheduleId, request.startsAt(), request.endsAt()); }
 	@DeleteMapping("/admin/broadcast-schedules/{scheduleId}")
-	public void delete(@RequestHeader("Authorization") String authorization, @PathVariable @Positive long scheduleId) { schedules.delete(currentUser(authorization), scheduleId); }
+	public void delete(HttpServletRequest request, @PathVariable @Positive long scheduleId) { schedules.delete(currentUser(request), scheduleId); }
 	@PostMapping("/admin/broadcast-schedules/generate-today")
-	public List<BroadcastSchedule> generateToday(@RequestHeader("Authorization") String authorization) { return schedules.generateForToday(currentUser(authorization)); }
+	public List<BroadcastSchedule> generateToday(HttpServletRequest request) { return schedules.generateForToday(currentUser(request)); }
 	@GetMapping("/broadcast-schedules/active")
-	public List<BroadcastSchedule> active(@RequestHeader("Authorization") String authorization) { return schedules.activeFor(currentUser(authorization)); }
+	public List<BroadcastSchedule> active(HttpServletRequest request) { return schedules.activeFor(currentUser(request)); }
 
-	private CurrentUser currentUser(String authorization) { return sessionService.require(authorization); }
+	private CurrentUser currentUser(HttpServletRequest request) { return sessionService.require(request); }
 	public record ScheduleRequest(@NotNull Instant startsAt, @NotNull Instant endsAt) { }
 }

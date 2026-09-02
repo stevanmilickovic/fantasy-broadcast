@@ -21,6 +21,8 @@ import com.fantasybroadcast.backend.live.MockLiveStateService;
 import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.mock.web.MockHttpServletRequest;
+import jakarta.servlet.http.Cookie;
 import tools.jackson.databind.JsonNode;
 
 class CustomerLeagueControllerTests {
@@ -29,7 +31,8 @@ class CustomerLeagueControllerTests {
 	void providesDraftOverviewOnlyAfterCheckingTheUsersLeagueAccess() {
 		var sessions = new SessionService();
 		var user = new CurrentUser(7, "viewer@example.com", "Viewer", UserRole.USER);
-		var authorization = "Bearer " + sessions.create(user);
+		var request = new MockHttpServletRequest();
+		request.setCookies(new Cookie(SessionService.COOKIE_NAME, sessions.create(user)));
 		var leagues = mock(LeagueRegistrationService.class);
 		var client = mock(FplDraftClient.class);
 		var mapper = mock(FplDraftMapper.class);
@@ -45,7 +48,7 @@ class CustomerLeagueControllerTests {
 		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
 				client, mapper, new BroadcastSecurityProperties());
 
-		var overview = controller.draftLeagueOverview(authorization, 41);
+		var overview = controller.draftLeagueOverview(request, 41);
 
 		assertThat(overview.details()).isSameAs(details);
 		assertThat(overview.elementStatus()).isSameAs(elementStatus);
@@ -58,7 +61,7 @@ class CustomerLeagueControllerTests {
 		var controller = new CustomerLeagueController(new SessionService(), mock(LeagueRegistrationService.class), mock(BroadcastScheduleService.class),
 				mock(MockLiveStateService.class), mock(FplDraftClient.class), mock(FplDraftMapper.class), new BroadcastSecurityProperties());
 
-		assertThatThrownBy(() -> controller.draftLeagueOverview(null, 41))
+		assertThatThrownBy(() -> controller.draftLeagueOverview(new MockHttpServletRequest(), 41))
 				.isInstanceOf(ResponseStatusException.class)
 				.hasMessageContaining("Sign in is required");
 	}

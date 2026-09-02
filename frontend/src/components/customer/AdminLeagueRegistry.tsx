@@ -3,9 +3,9 @@ import { loadAdminLeagues, registerLeague, updateAdminLeague } from '../../api/c
 import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AdminLeague } from '../../types/customer'
 
-type Props = { token: string; onOpenLeague: (leagueId: number) => void }
+type Props = { onOpenLeague: (leagueId: number) => void }
 
-export function AdminLeagueRegistry({ token, onOpenLeague }: Props) {
+export function AdminLeagueRegistry({ onOpenLeague }: Props) {
   const [leagues, setLeagues] = useState<AdminLeague[]>([])
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
@@ -16,10 +16,10 @@ export function AdminLeagueRegistry({ token, onOpenLeague }: Props) {
   const [search, setSearch] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const refresh = async (requestedPage = page) => { const result = await loadAdminLeagues(token, requestedPage, pageSize, search); setLeagues(result.items); setPage(result.page); setTotalItems(result.totalItems) }
-  useEffect(() => { void refresh(page).catch((error: Error) => setMessage(error.message)) }, [token, page, pageSize, search])
-  const submit = async (event: React.FormEvent) => { event.preventDefault(); setBusy(true); try { await registerLeague(token, leagueId, leagueType); setPage(0); await refresh(0); setLeagueId(''); setMessage('League registered.') } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to register league.') } finally { setBusy(false) } }
-  const save = async (league: AdminLeague) => { setBusy(true); try { await updateAdminLeague(token, league); await refresh(); setMessage(`Saved settings for ${league.displayName}.`) } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to save league settings.') } finally { setBusy(false) } }
+  const refresh = async (requestedPage = page) => { const result = await loadAdminLeagues(requestedPage, pageSize, search); setLeagues(result.items); setPage(result.page); setTotalItems(result.totalItems) }
+  useEffect(() => { void refresh(page).catch((error: Error) => setMessage(error.message)) }, [page, pageSize, search])
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); setBusy(true); try { await registerLeague(leagueId, leagueType); setPage(0); await refresh(0); setLeagueId(''); setMessage('League registered.') } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to register league.') } finally { setBusy(false) } }
+  const save = async (league: AdminLeague) => { setBusy(true); try { await updateAdminLeague(league); await refresh(); setMessage(`Saved settings for ${league.displayName}.`) } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to save league settings.') } finally { setBusy(false) } }
   const updateLeagueFlag = (leagueId: number, changes: Partial<Pick<AdminLeague, 'serviceEnabled' | 'aiNarrationEnabled' | 'voiceNarrationEnabled'>>) =>
     setLeagues((current) => current.map((item) => item.id === leagueId ? { ...item, ...changes } : item))
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))

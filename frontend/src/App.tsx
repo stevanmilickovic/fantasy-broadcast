@@ -2,7 +2,7 @@ import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
 import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType, type MockNarrationMode } from './api/liveApi'
-import { clearToken, loadCurrentUser, loadRegisteredLeagues, logout, storeToken, storedToken } from './api/customerApi'
+import { loadCurrentUser, loadRegisteredLeagues, logout } from './api/customerApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
 import { BroadcastScheduleManager } from './components/customer/BroadcastScheduleManager'
@@ -38,8 +38,7 @@ function App() {
   const [location, setLocation] = useState(() => ({ pathname: window.location.pathname, search: window.location.search }))
   const streamedLeagueId = Number(new URLSearchParams(location.search).get('leagueId')) || undefined
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
-  const [authToken, setAuthToken] = useState<string | null>(storedToken())
-  const [isAuthLoading, setIsAuthLoading] = useState(Boolean(storedToken()))
+	const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
@@ -85,7 +84,7 @@ function App() {
   const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
   const isBroadcastRoute = location.pathname === '/broadcast'
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
-  const shouldLoadLiveState = Boolean(authToken) && (authUser?.role === 'ADMIN' || isLeagueBroadcast)
+  const shouldLoadLiveState = Boolean(authUser) && (authUser?.role === 'ADMIN' || isLeagueBroadcast)
 
   useEffect(() => {
     if (!shouldLoadLiveState) return
@@ -93,7 +92,7 @@ function App() {
     let cancelled = false
     // Never show state from a previous/global broadcast while a league broadcast is loading.
     setLiveState(null)
-    loadLiveState(authToken!, isLeagueBroadcast ? streamedLeagueId : undefined, controller.signal)
+    loadLiveState(isLeagueBroadcast ? streamedLeagueId : undefined, controller.signal)
       .then((state) => {
         if (cancelled) return
         setLiveState(state)
@@ -120,42 +119,28 @@ function App() {
   }
 
   useEffect(() => {
-    if (!authToken) {
-      setIsAuthLoading(false)
-      return
-    }
-    loadCurrentUser(authToken)
-      .then(setAuthUser)
-      .catch(() => {
-        clearToken()
-        setAuthToken(null)
-      })
-      .finally(() => setIsAuthLoading(false))
-  }, [authToken])
+    loadCurrentUser().then(setAuthUser).catch(() => setAuthUser(null)).finally(() => setIsAuthLoading(false))
+  }, [])
 
   const handleAuthenticated = async (result: AuthResponse) => {
-    storeToken(result.token)
     setAuthUser(result.user)
-    setAuthToken(result.token)
     if (result.user.role === 'ADMIN') {
       navigate('/administration', true)
       return
     }
-    const leagues = await loadRegisteredLeagues(result.token)
+    const leagues = await loadRegisteredLeagues()
     navigate(leagues.length === 0 ? '/leagues/new' : leagues.length === 1 ? `/league?leagueId=${leagues[0].id}` : '/leagues', true)
   }
 
   const signOut = async () => {
-    if (authToken) await logout(authToken).catch(() => undefined)
-    clearToken()
-    setAuthToken(null)
+    await logout().catch(() => undefined)
     setAuthUser(null)
     navigate('/login', true)
   }
 
   useEffect(() => {
     if (!shouldLoadLiveState) return
-    const streamParameters = new URLSearchParams({ accessToken: authToken! })
+    const streamParameters = new URLSearchParams()
     if (isLeagueBroadcast) streamParameters.set('leagueId', String(streamedLeagueId))
     const events = new EventSource(`/api/live-state/stream?${streamParameters}`)
 
@@ -290,7 +275,7 @@ function App() {
   useEffect(() => {
     if (!latestNarration?.audioUrl || latestNarration.id === lastNarrationAudioIdRef.current) return
     lastNarrationAudioIdRef.current = latestNarration.id
-    void playNarrationAudio(latestNarration.audioUrl, authToken!)
+    void playNarrationAudio(latestNarration.audioUrl)
   }, [latestNarration?.audioUrl, latestNarration?.id])
 
   useEffect(() => {
@@ -494,7 +479,7 @@ function App() {
     setIsBusy(true)
     try {
 		if (action === 'start') resetBroadcastPlayback()
-      const nextState = await postMockAction(action, authToken!)
+      const nextState = await postMockAction(action)
       setLiveState(nextState)
       if (action === 'start') {
         setBroadcastFocus('multi')
@@ -563,7 +548,7 @@ function App() {
     setIsBusy(true)
     try {
 		resetBroadcastPlayback()
-      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType, authToken!)
+      const nextState = await startRealBroadcast(normalizedLeagueId, leagueType)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -581,7 +566,7 @@ function App() {
     setIsBusy(true)
     try {
 		resetBroadcastPlayback()
-      const nextState = await startComprehensiveMock(authToken!, mockNarrationMode)
+      const nextState = await startComprehensiveMock(mockNarrationMode)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -604,14 +589,14 @@ function App() {
   }
 
   if (authUser.role !== 'ADMIN' && location.pathname !== '/broadcast') {
-    return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
+    return <CustomerDashboard user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
   const startTotalPointsMockBroadcast = async () => {
     setIsBusy(true)
     try {
 		resetBroadcastPlayback()
-      const nextState = await startTotalPointsMock(authToken!, mockNarrationMode)
+      const nextState = await startTotalPointsMock(mockNarrationMode)
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
@@ -625,7 +610,7 @@ function App() {
   }
 
   if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new')) {
-    return <CustomerDashboard token={authToken!} user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
+    return <CustomerDashboard user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
   if (authUser.role === 'ADMIN' && location.pathname !== '/administration' && location.pathname !== '/broadcast') navigate('/administration', true)
@@ -661,7 +646,7 @@ function App() {
   if (location.pathname === '/broadcast' && (appView === 'broadcast' || authUser.role !== 'ADMIN')) {
     return (
       <BroadcastMatchday
-		authToken={authToken!}
+		authToken=""
         displayLiveState={displayLiveState}
         matchup={matchup}
         latestCommentaryId={latestCommentary?.id}
@@ -703,8 +688,8 @@ function App() {
         <div className="account-nav administration-account-nav"><span>Administrator · {authUser.email}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></div>
       </header>
 
-      <AdminLeagueRegistry token={authToken!} onOpenLeague={(selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`)} />
-      <BroadcastScheduleManager token={authToken!} />
+      <AdminLeagueRegistry onOpenLeague={(selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`)} />
+      <BroadcastScheduleManager />
 
       <section className="league-discovery administration-card" aria-label="FPL league setup">
         <div className="discovery-form">

@@ -1,11 +1,12 @@
 package com.fantasybroadcast.backend.fpl;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
+import java.time.Duration;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,19 +20,20 @@ public class FplDraftClient {
 	private final FplDraftProperties properties;
 	private final ObjectMapper objectMapper;
 	private final HttpClient httpClient;
+	private final ConcurrentHashMap<String, CachedJson> cache = new ConcurrentHashMap<>();
 
 	public FplDraftClient(FplDraftProperties properties, ObjectMapper objectMapper) {
 		this.properties = properties;
 		this.objectMapper = objectMapper;
-		this.httpClient = HttpClient.newHttpClient();
+		this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(properties.getTimeoutSeconds())).build();
 	}
 
 	public JsonNode getDraftBootstrapStatic() {
-		return getJson(properties.getDraftBaseUrl() + "/bootstrap-static");
+		return getCachedJson(properties.getDraftBaseUrl() + "/bootstrap-static");
 	}
 
 	public JsonNode getFantasyBootstrapStatic() {
-		return getJson(properties.getFantasyBaseUrl() + "/bootstrap-static/");
+		return getCachedJson(properties.getFantasyBaseUrl() + "/bootstrap-static/");
 	}
 
 	public JsonNode getFantasyFixtures() {
@@ -39,19 +41,19 @@ public class FplDraftClient {
 	}
 
 	public JsonNode getLeagueDetails(long leagueId) {
-		return getJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details");
+		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details");
 	}
 
 	public JsonNode getLeagueElementStatus(long leagueId) {
-		return getJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/element-status");
+		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/element-status");
 	}
 
 	public JsonNode getLeagueTransactions(long leagueId) {
-		return getJson(properties.getDraftBaseUrl() + "/draft/league/" + leagueId + "/transactions");
+		return getCachedJson(properties.getDraftBaseUrl() + "/draft/league/" + leagueId + "/transactions");
 	}
 
 	public JsonNode getDraftChoices(long draftId) {
-		return getJson(properties.getDraftBaseUrl() + "/draft/" + draftId + "/choices");
+		return getCachedJson(properties.getDraftBaseUrl() + "/draft/" + draftId + "/choices");
 	}
 
 	public JsonNode getEntryEvent(long entryId, int eventId) {
@@ -86,6 +88,7 @@ public class FplDraftClient {
 
 	private JsonNode getJson(String url) {
 		var request = HttpRequest.newBuilder(URI.create(url))
+				.timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
 				.header("Accept", "application/json")
 				.header("User-Agent", "fantasy-broadcast/0.1")
 				.header("Cache-Control", "no-cache, no-store, max-age=0")
@@ -106,12 +109,21 @@ public class FplDraftClient {
 			return objectMapper.readTree(response.body());
 		}
 		catch (IOException exception) {
-			throw new UncheckedIOException("FPL request failed: " + url, exception);
+			throw new FplDraftClientException("FPL request failed: " + url, exception);
 		}
 		catch (InterruptedException exception) {
 			Thread.currentThread().interrupt();
 			throw new FplDraftClientException("FPL request interrupted: " + url, exception);
 		}
+	}
+
+	private JsonNode getCachedJson(String url) {
+		var now = java.time.Instant.now();
+		var cached = cache.get(url);
+		if (cached != null && cached.expiresAt().isAfter(now)) return cached.value().deepCopy();
+		var value = getJson(url);
+		cache.put(url, new CachedJson(value.deepCopy(), now.plusSeconds(properties.getCacheTtlSeconds())));
+		return value;
 	}
 
 	private String preview(String body) {
@@ -124,4 +136,6 @@ public class FplDraftClient {
 		}
 		return compactBody.substring(0, 500);
 	}
+
+	private record CachedJson(JsonNode value, java.time.Instant expiresAt) { }
 }

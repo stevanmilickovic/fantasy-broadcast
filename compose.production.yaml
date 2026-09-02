@@ -31,7 +31,7 @@ services:
       interval: 20s
       timeout: 5s
       retries: 6
-    networks: [internal]
+    networks: [internal, egress]
 
   web:
     image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY}/fantasy-broadcast-web:${IMAGE_TAG:?Set IMAGE_TAG}
@@ -48,6 +48,7 @@ services:
 networks:
   internal:
     internal: true
+  egress:
 
 volumes:
   mysql-data:
