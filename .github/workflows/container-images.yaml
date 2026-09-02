@@ -46,7 +46,7 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.version.outputs.value }}
             VCS_REF=${{ github.sha }}
-      - uses: aquasecurity/trivy-action@0.32.0
+      - uses: aquasecurity/trivy-action@v0.32.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/fantasy-broadcast-backend:sha-${{ github.sha }}
           severity: HIGH,CRITICAL
@@ -62,7 +62,7 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.version.outputs.value }}
             VCS_REF=${{ github.sha }}
-      - uses: aquasecurity/trivy-action@0.32.0
+      - uses: aquasecurity/trivy-action@v0.32.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/fantasy-broadcast-web:sha-${{ github.sha }}
           severity: HIGH,CRITICAL
