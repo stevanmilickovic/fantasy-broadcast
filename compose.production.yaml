@@ -1,0 +1,53 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file:
+      - ./data/backend/application.env
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [internal]
+
+  backend:
+    image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY}/fantasy-broadcast-backend:${IMAGE_TAG:?Set IMAGE_TAG}
+    restart: unless-stopped
+    env_file:
+      - ./data/backend/application.env
+    environment:
+      BROADCAST_CONFIG_DIRECTORY: /config
+    volumes:
+      - ./data/backend/application.yaml:/config/application.yaml:ro
+      - ./data/audio:/var/lib/fantasy-broadcast/narrations
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    networks: [internal]
+
+  web:
+    image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY}/fantasy-broadcast-web:${IMAGE_TAG:?Set IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      BACKEND_HOST: backend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks: [internal]
+
+networks:
+  internal:
+    internal: true
+
+volumes:
+  mysql-data:
