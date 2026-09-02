@@ -2145,6 +2145,7 @@ blockquote {
 .register-league-card form > button[type='submit']:hover { background: #38ebff; filter: brightness(1.04); }
 .register-league-card form > button[type='submit']:active { filter: brightness(.92); }
 .register-league-card form > button[type='submit']:disabled { cursor: wait; opacity: .65; }
+.register-league-card .discovery-error { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 .league-onboarding { grid-template-columns: repeat(2, minmax(0, 430px)); align-content: center; align-items: start; justify-content: center; gap: 18px; }
 .league-onboarding .register-league-card { width: 100%; }
 .league-search { display: grid; gap: 9px; }

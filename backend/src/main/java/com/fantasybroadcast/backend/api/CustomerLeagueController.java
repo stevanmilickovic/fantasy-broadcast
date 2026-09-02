@@ -158,8 +158,15 @@ public class CustomerLeagueController {
 			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
 					"This overview is only available for Draft leagues.");
 		}
-		return new DraftLeagueDiscovery(fplClient.getLeagueDetails(league.fplLeagueId()), fplClient.getLeagueElementStatus(league.fplLeagueId()),
-				fplMapper.mapPlayers(fplClient.getDraftBootstrapStatic()));
+		var details = fplClient.getLeagueDetails(league.fplLeagueId());
+		var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic());
+		var entryEvents = new java.util.LinkedHashMap<Long, FplEntryEvent>();
+		for (var entry : fplMapper.mapLeagueDetails(details).entries()) {
+			entryEvents.put((long) entry.entryId(), fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek)));
+		}
+		var livePlayers = fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players();
+		return new DraftLeagueDiscovery(details, fplClient.getLeagueElementStatus(league.fplLeagueId()),
+				fplMapper.mapPlayers(fplClient.getDraftBootstrapStatic()), entryEvents, livePlayers);
 	}
 
 	@GetMapping("/fpl/shirts")
@@ -190,6 +197,6 @@ public class CustomerLeagueController {
 	}
 
 	public record DraftLeagueDiscovery(tools.jackson.databind.JsonNode details, tools.jackson.databind.JsonNode elementStatus,
-			List<FplPlayer> players) {
+			List<FplPlayer> players, java.util.Map<Long, FplEntryEvent> entryEvents, List<FplLivePlayer> livePlayers) {
 	}
 }
