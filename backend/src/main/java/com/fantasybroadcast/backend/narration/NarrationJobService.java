@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 
 import com.fantasybroadcast.backend.live.FantasyEventView;
 import com.fantasybroadcast.backend.live.LiveStateResponse;
+import com.fantasybroadcast.backend.live.LiveStandingView;
 import com.fantasybroadcast.backend.live.MatchupView;
 import com.fantasybroadcast.backend.live.PlayerView;
 import com.fantasybroadcast.backend.live.TeamView;
@@ -157,10 +158,47 @@ public class NarrationJobService {
 
 	private List<FantasyEventView> selectedEvents(LiveStateResponse state) {
 		var highlightManagers = highlightManagerIds(state);
-		return state.events().stream()
+		var events = state.events().stream()
 				.filter(eventSelector::shouldNarrate)
 				.filter(event -> highlightManagers.contains(event.managerId()))
 				.toList();
+		if (events.stream().anyMatch(event -> Math.abs(event.pointDelta()) >= 3)) return events;
+		return changesHeadToHeadOutcome(state, events) || changesTopTwelveTotalPointsPosition(state, events) ? events : List.of();
+	}
+
+	private boolean changesTopTwelveTotalPointsPosition(LiveStateResponse state, List<FantasyEventView> events) {
+		if (!state.matchups().isEmpty() || state.standings().isEmpty()) return false;
+		var deltas = new java.util.HashMap<String, Integer>();
+		for (var event : state.events()) deltas.merge(event.managerId(), event.pointDelta(), Integer::sum);
+		var previous = state.standings().stream()
+				.sorted(Comparator.comparingInt((LiveStandingView standing) -> standing.total() - deltas.getOrDefault(standing.teamId(), 0)).reversed()
+						.thenComparing(LiveStandingView::teamName))
+				.toList();
+		var previousPositions = new java.util.HashMap<String, Integer>();
+		for (var index = 0; index < previous.size(); index++) previousPositions.put(previous.get(index).teamId(), index + 1);
+		return events.stream().map(FantasyEventView::managerId).distinct().anyMatch(managerId -> {
+			var current = state.standings().stream().filter(standing -> standing.teamId().equals(managerId)).findFirst().orElse(null);
+			if (current == null) return false;
+			var previousPosition = previousPositions.getOrDefault(managerId, current.position());
+			return current.position() != previousPosition && (current.position() <= 12 || previousPosition <= 12);
+		});
+	}
+
+	private boolean changesHeadToHeadOutcome(LiveStateResponse state, List<FantasyEventView> events) {
+		for (var matchup : state.matchups()) {
+			var homeDelta = events.stream().filter(event -> event.managerId().equals(matchup.home().managerId())).mapToInt(FantasyEventView::pointDelta).sum();
+			var awayDelta = events.stream().filter(event -> event.managerId().equals(matchup.away().managerId())).mapToInt(FantasyEventView::pointDelta).sum();
+			if (homeDelta == 0 && awayDelta == 0) continue;
+			var previousOutcome = outcome(matchup.home().score() - homeDelta, matchup.away().score() - awayDelta);
+			var currentOutcome = outcome(matchup.home().score(), matchup.away().score());
+			if (!previousOutcome.equals(currentOutcome)) return true;
+		}
+		return false;
+	}
+
+	private String outcome(int homeScore, int awayScore) {
+		if (homeScore == awayScore) return "DRAW";
+		return homeScore > awayScore ? "HOME" : "AWAY";
 	}
 
 	private NarrationContext context(long leagueId, LiveStateResponse state, List<FantasyEventView> events, boolean voiceNarrationEnabled) {
@@ -198,7 +236,60 @@ public class NarrationJobService {
 				%s
 				changed_players:
 				%s
-				""".formatted(teamScoreBlock(state, teams, changedPlayers), eventLines(state, changedPlayers), playerLines(changedPlayers));
+				standings_changes:
+				%s
+				""".formatted(teamScoreBlock(state, teams, changedPlayers), eventLines(state, changedPlayers), playerLines(changedPlayers),
+						standingChangeLines(state, teams));
+	}
+
+	private String standingChangeLines(LiveStateResponse state, List<TeamView> teams) {
+		if (state.standings().isEmpty() || teams.isEmpty()) return "- none";
+		var deltas = eventDeltas(state);
+		var previous = state.matchups().isEmpty() ? previousTotalPointsStandings(state, deltas) : previousH2hStandings(state, deltas);
+		var previousPositions = new java.util.HashMap<String, Integer>();
+		for (var index = 0; index < previous.size(); index++) previousPositions.put(previous.get(index).teamId(), index + 1);
+		var lines = teams.stream().map(TeamView::managerId).distinct().map(managerId -> state.standings().stream()
+				.filter(standing -> standing.teamId().equals(managerId)).findFirst().orElse(null))
+				.filter(java.util.Objects::nonNull)
+				.filter(standing -> previousPositions.getOrDefault(standing.teamId(), standing.position()) != standing.position())
+				.map(standing -> "- " + standing.teamName() + ": " + previousPositions.get(standing.teamId()) + " -> " + standing.position())
+				.toList();
+		return lines(lines);
+	}
+
+	private Map<String, Integer> eventDeltas(LiveStateResponse state) {
+		var deltas = new java.util.HashMap<String, Integer>();
+		for (var event : state.events()) deltas.merge(event.managerId(), event.pointDelta(), Integer::sum);
+		return deltas;
+	}
+
+	private List<LiveStandingView> previousTotalPointsStandings(LiveStateResponse state, Map<String, Integer> deltas) {
+		return state.standings().stream()
+				.sorted(Comparator.comparingInt((LiveStandingView standing) -> standing.total() - deltas.getOrDefault(standing.teamId(), 0)).reversed()
+						.thenComparing(LiveStandingView::teamName))
+				.toList();
+	}
+
+	private List<LiveStandingView> previousH2hStandings(LiveStateResponse state, Map<String, Integer> deltas) {
+		var tablePointAdjustments = new java.util.HashMap<String, Integer>();
+		for (var matchup : state.matchups()) {
+			var currentHomePoints = tablePoints(matchup.home().score(), matchup.away().score(), true);
+			var currentAwayPoints = tablePoints(matchup.home().score(), matchup.away().score(), false);
+			var previousHomePoints = tablePoints(matchup.home().score() - deltas.getOrDefault(matchup.home().managerId(), 0), matchup.away().score() - deltas.getOrDefault(matchup.away().managerId(), 0), true);
+			var previousAwayPoints = tablePoints(matchup.home().score() - deltas.getOrDefault(matchup.home().managerId(), 0), matchup.away().score() - deltas.getOrDefault(matchup.away().managerId(), 0), false);
+			tablePointAdjustments.put(matchup.home().managerId(), currentHomePoints - previousHomePoints);
+			tablePointAdjustments.put(matchup.away().managerId(), currentAwayPoints - previousAwayPoints);
+		}
+		return state.standings().stream()
+				.sorted(Comparator.comparingInt((LiveStandingView standing) -> standing.total() - tablePointAdjustments.getOrDefault(standing.teamId(), 0)).reversed()
+						.thenComparing(Comparator.comparingInt((LiveStandingView standing) -> standing.pointsFor() - deltas.getOrDefault(standing.teamId(), 0)).reversed())
+						.thenComparing(LiveStandingView::teamName))
+				.toList();
+	}
+
+	private int tablePoints(int homeScore, int awayScore, boolean home) {
+		if (homeScore == awayScore) return 1;
+		return home == (homeScore > awayScore) ? 3 : 0;
 	}
 
 	private Set<String> highlightManagerIds(LiveStateResponse state) {

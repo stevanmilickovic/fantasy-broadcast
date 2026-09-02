@@ -31,6 +31,9 @@ type BroadcastEventGroup = { id: string; events: FantasyEventView[]; totalChange
 const eventGroupId = (state: LiveStateResponse, event: FantasyEventView) =>
   state.matchups.find((matchup) => [matchup.home.managerId, matchup.away.managerId].includes(event.managerId))?.id ?? `team-${event.managerId}`
 
+const visibleNotificationGroups = (groups: BroadcastEventGroup[], voiceNarrationEnabled: boolean | undefined) =>
+  voiceNarrationEnabled ? groups.filter((group) => group.events.some((event) => event.type !== 'AUTO_SUB')) : groups
+
 function App() {
   const [location, setLocation] = useState(() => ({ pathname: window.location.pathname, search: window.location.search }))
   const streamedLeagueId = Number(new URLSearchParams(location.search).get('leagueId')) || undefined
@@ -203,7 +206,7 @@ function App() {
         const group = groups.get(id) ?? { id, events: [], totalChange: 0 }
         groups.set(id, { ...group, events: [...group.events, event].sort((left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta)), totalChange: group.totalChange + Math.abs(event.pointDelta) })
       }
-      return [...groups.values()].sort((left, right) => right.totalChange - left.totalChange).slice(0, MAX_PENDING_BROADCAST_GROUPS)
+		return visibleNotificationGroups([...groups.values()].sort((left, right) => right.totalChange - left.totalChange), liveState!.voiceNarrationEnabled).slice(0, MAX_PENDING_BROADCAST_GROUPS)
     }
     if ((liveState?.commentary?.length ?? 0) > 0) {
       const [highlight, ...queued] = mergeGroups([])
@@ -222,7 +225,7 @@ function App() {
       const group = groups.get(id) ?? { id, events: [], totalChange: 0 }
       groups.set(id, { ...group, events: [...group.events, event].sort((left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta)), totalChange: group.totalChange + Math.abs(event.pointDelta) })
     }
-    const [highlight, ...queued] = [...groups.values()].sort((left, right) => right.totalChange - left.totalChange)
+	const [highlight, ...queued] = visibleNotificationGroups([...groups.values()].sort((left, right) => right.totalChange - left.totalChange), liveState.voiceNarrationEnabled)
     if (!highlight) return
     setActiveBroadcastGroup(highlight)
     setPendingBroadcastGroups((current) => [...queued, ...current.filter((group) => !queued.some((candidate) => candidate.id === group.id) && group.id !== highlight.id)].slice(0, MAX_PENDING_BROADCAST_GROUPS))

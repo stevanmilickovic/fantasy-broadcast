@@ -137,7 +137,7 @@ public class MockLiveStateService {
 		var session = new RealSession();
 		session.aiNarrationEnabled = aiNarrationEnabled;
 		session.voiceNarrationEnabled = voiceNarrationEnabled;
-		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
+		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType).withVoiceNarrationEnabled(voiceNarrationEnabled);
 		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
 		leagueSessions.put(leagueKey, session);
 		publishLeagueState(leagueKey, session, session.state);
@@ -352,16 +352,17 @@ public class MockLiveStateService {
 	}
 
 	private void publishLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
-		var stateWithNarrations = withNarrations(leagueKey, state);
+		var stateWithNarrations = withNarrations(leagueKey, state).withVoiceNarrationEnabled(session.voiceNarrationEnabled);
 		recordPublishedNotifications(leagueKey, stateWithNarrations);
 		session.publishedState = stateWithNarrations;
 		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithNarrations);
 	}
 
 	private void publishRawLeagueState(long leagueKey, RealSession session, LiveStateResponse state) {
-		recordPublishedNotifications(leagueKey, state);
-		session.publishedState = state;
-		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, state);
+		var stateWithSettings = state.withVoiceNarrationEnabled(session.voiceNarrationEnabled);
+		recordPublishedNotifications(leagueKey, stateWithSettings);
+		session.publishedState = stateWithSettings;
+		for (var emitter : leagueEmitters.getOrDefault(leagueKey, List.of())) send(emitter, stateWithSettings);
 	}
 
 	private void recordPublishedNotifications(long leagueKey, LiveStateResponse state) {

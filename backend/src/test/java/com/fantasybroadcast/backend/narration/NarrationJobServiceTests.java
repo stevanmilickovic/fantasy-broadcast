@@ -8,6 +8,8 @@ import java.util.List;
 import com.fantasybroadcast.backend.live.FantasyEventView;
 import com.fantasybroadcast.backend.live.LiveStateResponse;
 import com.fantasybroadcast.backend.live.LiveStatus;
+import com.fantasybroadcast.backend.live.LiveStandingView;
+import com.fantasybroadcast.backend.live.MatchupView;
 import com.fantasybroadcast.backend.live.PlayerView;
 import com.fantasybroadcast.backend.live.SequenceState;
 import com.fantasybroadcast.backend.live.TeamView;
@@ -61,7 +63,7 @@ class NarrationJobServiceTests {
 		assertThat(staged).isTrue();
 		var narration = repository.findBySourceEvent(1L, 7, "event-1").orElseThrow();
 		assertThat(narration.status()).isEqualTo(NarrationStatus.TEXT_READY);
-		assertThat(narration.text()).isEqualTo("club: - Test Club: 2 -> 10 events: - Test Club / Player GOAL: goal changed_players: - Test Club / Player GOAL: 2 -> 10");
+		assertThat(narration.text()).isEqualTo("club: - Test Club: 2 -> 10 events: - Test Club / Player GOAL: goal changed_players: - Test Club / Player GOAL: 2 -> 10 standings_changes: - none");
 		assertThat(repository.findBySourceEvent(1L, 7, "event-2")).isEmpty();
 	}
 
@@ -129,6 +131,30 @@ class NarrationJobServiceTests {
 		assertThat(repository.countForLeagueGameweek(1L, 7)).isZero();
 	}
 
+	@Test
+	void skipsAHighSignalEventBelowThreePointsWhenItDoesNotChangeAH2hOutcome() {
+		var service = service();
+
+		assertThat(service.enqueueForEvents(1L, h2hState(12, 8, event("event-1", "GOAL", 2)))).isFalse();
+	}
+
+	@Test
+	void narratesASmallEventThatCreatesAH2hDrawOrChangesTheLeader() {
+		var service = service();
+
+		assertThat(service.enqueueForEvents(1L, h2hState(10, 10, event("draw", "GOAL", 2)))).isTrue();
+		assertThat(service.enqueueForEvents(1L, h2hState(10, 9, event("leader", "GOAL", 2)))).isTrue();
+	}
+
+	@Test
+	void narratesASmallEventThatChangesATopTwelveTotalPointsPosition() {
+		var service = service();
+		var state = totalPointsState(event("table-switch", "GOAL", 2));
+
+		assertThat(service.enqueueForEvents(1L, state)).isTrue();
+		assertThat(service.generateMockText(state).orElseThrow().text()).contains("standings_changes: - Mover Club: 2 -> 1");
+	}
+
 	private NarrationJobService service() {
 		return new NarrationJobService(properties, repository, new NarrationEventSelector(), new NarrationBudgetService(properties, repository),
 				new MockCommentaryTextGenerator(), new MockVoiceNarrationGenerator(properties), Runnable::run);
@@ -143,5 +169,27 @@ class NarrationJobServiceTests {
 
 	private FantasyEventView event(String id, String type) {
 		return new FantasyEventView(id, Instant.now().toString(), type, "10", "20", "Player " + type, 4, 4);
+	}
+
+	private FantasyEventView event(String id, String type, int pointDelta) {
+		return new FantasyEventView(id, Instant.now().toString(), type, "10", "20", "Player " + type, pointDelta, 4);
+	}
+
+	private LiveStateResponse h2hState(int homeScore, int awayScore, FantasyEventView event) {
+		var home = new TeamView("10", "Home", "Home Club", "HOM", "#123456", homeScore, homeScore, List.of(), List.of());
+		var away = new TeamView("11", "Away", "Away Club", "AWY", "#654321", awayScore, awayScore, List.of(), List.of());
+		return new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "Testing."), new SequenceState(1, 0, true, false), 7,
+				List.of(new MatchupView("match", home, away, homeScore == awayScore ? null : homeScore > awayScore ? "10" : "11", homeScore + "-" + awayScore)),
+				List.of(home, away), List.of(), List.of(event), List.of());
+	}
+
+	private LiveStateResponse totalPointsState(FantasyEventView event) {
+		var player = new PlayerView("20", "Player GOAL", "Player", "ARS", "MID", "STARTER", 2, 90, "LIVE", 4);
+		var mover = new TeamView("10", "Mover", "Mover Club", "MOV", "#123456", 100, 100, List.of(player), List.of());
+		var standings = List.of(
+				new LiveStandingView("10", "Mover", "Mover Club", 1, 100, 0, 100),
+				new LiveStandingView("11", "Passed", "Passed Club", 2, 99, 0, 99));
+		return new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "Testing."), new SequenceState(1, 0, true, false), 7,
+				List.of(), List.of(mover), standings, List.of(event), List.of());
 	}
 }

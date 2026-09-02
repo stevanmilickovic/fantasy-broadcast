@@ -84,6 +84,7 @@ export type LiveStateResponse = {
   standings: LiveStandingView[]
   events: FantasyEventView[]
   commentary: CommentaryView[]
+  voiceNarrationEnabled?: boolean
 }
 
 export type AppView = 'setup' | 'broadcast'
