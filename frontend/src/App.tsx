@@ -1,16 +1,14 @@
-import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
+import { Radio } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { loadLiveState, postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType, type MockNarrationMode } from './api/liveApi'
-import { loadCurrentUser, loadRegisteredLeagues, logout } from './api/customerApi'
+import { postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType, type MockNarrationMode } from './api/liveApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
-import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
-import { BroadcastScheduleManager } from './components/customer/BroadcastScheduleManager'
+import { AdministrationScreen } from './components/administration/AdministrationScreen'
 import { AuthScreen } from './components/customer/AuthScreen'
 import { CustomerDashboard } from './components/customer/CustomerDashboard'
-import { UserAdministration } from './components/customer/UserAdministration'
-import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
-import type { AuthResponse, AuthUser } from './types/customer'
+import { useAuthSession } from './hooks/useAuthSession'
+import { useBrowserNavigation } from './hooks/useBrowserNavigation'
+import { useLiveState } from './hooks/useLiveState'
 import type { LeagueDiscoveryState } from './types/fpl'
 import type { AppView, BroadcastFocus, FantasyEventView, LiveStateResponse, RevealLayout, RevealRect } from './types/live'
 import type { LiveStandingView } from './types/live'
@@ -36,12 +34,9 @@ const visibleNotificationGroups = (groups: BroadcastEventGroup[], voiceNarration
   voiceNarrationEnabled ? groups.filter((group) => group.events.some((event) => event.type !== 'AUTO_SUB')) : groups
 
 function App() {
-  const [location, setLocation] = useState(() => ({ pathname: window.location.pathname, search: window.location.search }))
+  const { location, navigate } = useBrowserNavigation()
+  const { user: authUser, isLoading: isAuthLoading, handleAuthenticated, signOut } = useAuthSession(navigate)
   const streamedLeagueId = Number(new URLSearchParams(location.search).get('leagueId')) || undefined
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
-	const [isAuthLoading, setIsAuthLoading] = useState(true)
-  const [liveState, setLiveState] = useState<LiveStateResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
   const [leagueId, setLeagueId] = useState('49824')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
@@ -86,74 +81,23 @@ function App() {
   const isBroadcastRoute = location.pathname === '/broadcast'
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
   const shouldLoadLiveState = Boolean(authUser) && (authUser?.role === 'ADMIN' || isLeagueBroadcast)
+  const { liveState, error, setLiveState, setError } = useLiveState({
+    enabled: shouldLoadLiveState,
+    leagueId: isLeagueBroadcast ? streamedLeagueId : undefined,
+  })
 
   useEffect(() => {
-    if (!shouldLoadLiveState) return
-    const controller = new AbortController()
-    let cancelled = false
-    // Never show state from a previous/global broadcast while a league broadcast is loading.
-    setLiveState(null)
-    loadLiveState(isLeagueBroadcast ? streamedLeagueId : undefined, controller.signal)
-      .then((state) => {
-        if (cancelled) return
-        setLiveState(state)
-        setError(null)
-      })
-      .catch((requestError: Error) => {
-        if (!cancelled && requestError.name !== 'AbortError') setError(requestError.message)
-      })
-    return () => {
-      cancelled = true
-      controller.abort()
-    }
-  }, [isLeagueBroadcast, shouldLoadLiveState, streamedLeagueId])
-
-  useEffect(() => {
-    const onPopState = () => setLocation({ pathname: window.location.pathname, search: window.location.search })
-    window.addEventListener('popstate', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
-  }, [])
-
-  const navigate = (path: string, replace = false) => {
-    window.history[replace ? 'replaceState' : 'pushState']({}, '', path)
-    setLocation({ pathname: window.location.pathname, search: window.location.search })
-  }
-
-  useEffect(() => {
-    loadCurrentUser().then(setAuthUser).catch(() => setAuthUser(null)).finally(() => setIsAuthLoading(false))
-  }, [])
-
-  const handleAuthenticated = async (result: AuthResponse) => {
-    setAuthUser(result.user)
-    if (result.user.role === 'ADMIN') {
-      navigate('/administration', true)
+    if (isAuthLoading) return
+    if (!authUser && location.pathname !== '/login') {
+      navigate('/login', true)
       return
     }
-    const leagues = await loadRegisteredLeagues()
-    navigate(leagues.length === 0 ? '/leagues/new' : leagues.length === 1 ? `/league?leagueId=${leagues[0].id}` : '/leagues', true)
-  }
-
-  const signOut = async () => {
-    await logout().catch(() => undefined)
-    setAuthUser(null)
-    navigate('/login', true)
-  }
-
-  useEffect(() => {
-    if (!shouldLoadLiveState) return
-    const streamParameters = new URLSearchParams()
-    if (isLeagueBroadcast) streamParameters.set('leagueId', String(streamedLeagueId))
-    const events = new EventSource(`/api/live-state/stream?${streamParameters}`)
-
-    events.addEventListener('live-state', (event) => {
-      setLiveState(JSON.parse(event.data) as LiveStateResponse)
-      setError(null)
-    })
-
-    return () => {
-      events.close()
+    const customerRoutes = ['/league', '/leagues', '/leagues/new']
+    const isKnownAdminRoute = location.pathname === '/administration' || location.pathname === '/broadcast'
+    if (authUser?.role === 'ADMIN' && !isKnownAdminRoute && !customerRoutes.includes(location.pathname)) {
+      navigate('/administration', true)
     }
-  }, [isLeagueBroadcast, shouldLoadLiveState, streamedLeagueId])
+  }, [authUser, isAuthLoading, location.pathname, navigate])
 
   const clearTransitionTimers = () => {
     transitionTimersRef.current.forEach((timer) => window.clearTimeout(timer))
@@ -585,7 +529,6 @@ function App() {
   }
 
   if (!authUser) {
-    if (location.pathname !== '/login') navigate('/login', true)
     return <AuthScreen onAuthenticated={handleAuthenticated} />
   }
 
@@ -613,8 +556,6 @@ function App() {
   if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new')) {
     return <CustomerDashboard user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
-
-  if (authUser.role === 'ADMIN' && location.pathname !== '/administration' && location.pathname !== '/broadcast') navigate('/administration', true)
 
   const totalPointsBroadcast = (liveState?.matchups?.length ?? 0) === 0 && (liveState?.teams?.length ?? 0) > 0
   if (!liveState || (!targetMatchup && !totalPointsBroadcast)) {
@@ -677,95 +618,37 @@ function App() {
   }
 
   return (
-    <main className="broadcast-shell administration-shell">
-      <header className="broadcast-header administration-header">
-        <div>
-          <span className="kicker">
-            <Radio size={16} />
-            Gameweek {liveState.gameweek}
-          </span>
-          <h1>Fantasy Broadcast Administration</h1>
-        </div>
-        <div className="account-nav administration-account-nav"><span>Administrator · {authUser.email}</span><button className="secondary-action" onClick={() => void signOut()}>Sign out</button></div>
-      </header>
-
-      <AdminLeagueRegistry onOpenLeague={(selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`)} />
-      <BroadcastScheduleManager />
-      <UserAdministration currentUserId={authUser.id} />
-
-      <section className="league-discovery administration-card" aria-label="FPL league setup">
-        <div className="discovery-form">
-          <div>
-            <span className="kicker">
-              <Database size={16} />
-              FPL league setup
-            </span>
-            <h2>League Data Check</h2>
-          </div>
-          <form
-            className="administration-check-form"
-            onSubmit={(event) => {
-              event.preventDefault()
-              void inspectLeague()
-            }}
-          >
-            <div className="administration-form-field"><label htmlFor="league-id">League ID</label><input
-              id="league-id" inputMode="numeric" value={leagueId} onChange={(event) => setLeagueId(event.target.value)} placeholder="49824"
-            /></div>
-            <div className="administration-form-field"><label htmlFor="league-type">League type</label><select id="league-type" className="administration-select" value={leagueType} onChange={(event) => setLeagueType(event.target.value as FplLeagueType)}><option value="DRAFT">Draft</option><option value="CLASSIC">Classic</option></select></div>
-            <div className="administration-form-actions">
-              <button type="submit" disabled={isLeagueLoading}>
-                <Search size={18} />
-                Load
-              </button>
-              <button type="button" className="secondary-action" disabled={isLeagueLoading} onClick={inspectMockLeague}>
-                <FlaskConical size={18} />
-                Test
-              </button>
-            </div>
-          </form>
-        </div>
-        {leagueType === 'CLASSIC' && (
-          <p className="discovery-error">Classic league discovery is not built yet; live head-to-head recording is available.</p>
-        )}
-        {leagueError && <p className="discovery-error">{leagueError}</p>}
-        {leagueDiscovery ? <LeagueDiscoverySummary discovery={leagueDiscovery} /> : null}
-      </section>
-
-      <section className="controls-row administration-controls" aria-label="Broadcast controls">
-		<label className="administration-form-field"><span>Mock narration</span><select className="administration-select" value={mockNarrationMode} onChange={(event) => setMockNarrationMode(event.target.value as MockNarrationMode)}><option value="NONE">None</option><option value="TEXT">Text</option><option value="VOICE">Voice</option></select></label>
-        <button type="button" onClick={startLiveBroadcast} disabled={isBusy || isLeagueLoading}>
-          <Radio size={18} />
-          Start live broadcast
-        </button>
-        <button type="button" onClick={() => runAction('start')} disabled={isBusy}>
-          <Activity size={18} />
-          Start mock broadcast
-        </button>
-        <button type="button" onClick={startComprehensiveMockBroadcast} disabled={isBusy}>
-          <FlaskConical size={18} />
-          Start comprehensive test
-        </button>
-        <button type="button" onClick={startTotalPointsMockBroadcast} disabled={isBusy}>
-          <FlaskConical size={18} />
-          Start total-points test
-        </button>
-        {liveState.sequence.started && !liveState.sequence.complete && (
-          <button type="button" onClick={() => setAppView('broadcast')} disabled={isBusy}>
-            <Radio size={18} />
-            Live
-          </button>
-        )}
-        <button type="button" onClick={() => runAction('advance')} disabled={isBusy || liveState.sequence.complete}>
-          <SkipForward size={18} />
-          Advance
-        </button>
-        <button type="button" onClick={() => runAction('reset')} disabled={isBusy}>
-          <RotateCcw size={18} />
-          Reset
-        </button>
-      </section>
-    </main>
+    <AdministrationScreen
+      session={{
+        user: authUser,
+        onOpenLeague: (selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`),
+        onSignOut: () => void signOut(),
+      }}
+      leagueSetup={{
+        leagueId,
+        leagueType,
+        leagueDiscovery,
+        leagueError,
+        isLeagueLoading,
+        onLeagueIdChange: setLeagueId,
+        onLeagueTypeChange: setLeagueType,
+        onInspectLeague: () => void inspectLeague(),
+        onInspectMockLeague: () => void inspectMockLeague(),
+      }}
+      broadcastControls={{
+        liveState,
+        mockNarrationMode,
+        isBusy,
+        onMockNarrationModeChange: setMockNarrationMode,
+        onStartLiveBroadcast: () => void startLiveBroadcast(),
+        onStartMockBroadcast: () => void runAction('start'),
+        onStartComprehensiveMockBroadcast: () => void startComprehensiveMockBroadcast(),
+        onStartTotalPointsMockBroadcast: () => void startTotalPointsMockBroadcast(),
+        onShowLiveBroadcast: () => setAppView('broadcast'),
+        onAdvanceBroadcast: () => void runAction('advance'),
+        onResetBroadcast: () => void runAction('reset'),
+      }}
+    />
   )
 }
 
