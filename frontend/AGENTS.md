@@ -55,6 +55,48 @@ clear product requirements justify the additional complexity.
   documented constraint makes them necessary.
 - Check new and modified UI at the app's relevant viewport sizes and interaction states.
 
+## Client responsive-design standard
+
+The customer-facing frontend is a multi-device product. Treat responsive design as a
+first-class requirement for all client experiences: authentication, league discovery and
+management, league views, and live broadcasts. The administration workspace is an
+operator-facing, desktop/PC experience; it must remain usable and must not be regressed,
+but it is not the target of this responsive-design initiative unless a task explicitly
+says otherwise.
+
+- Design for the available space and orientation, not for a named device or user-agent.
+  Use responsive CSS, layout primitives, and content-aware sizing rather than device
+  detection or separate mobile-only application flows.
+- Every client-facing change must be considered at phone portrait, phone landscape,
+  tablet, laptop/desktop, and large landscape TV/display sizes. Check both narrow width
+  and short-height cases: a phone in landscape is not simply a smaller desktop.
+- Treat phone portrait as the primary small-screen experience. In phone landscape,
+  intentionally use the additional width while respecting the reduced height. Desktop
+  and TV layouts may show richer simultaneous information, but must preserve clear
+  reading distance, safe margins, and the core information hierarchy.
+- Adapt composition and information density instead of only shrinking desktop UI. For a
+  live broadcast, prioritise current score/status and the active event/commentary before
+  secondary detail; use stacking, reordering, collapsing, or a deliberate compact view
+  where the full desktop composition would become unreadable.
+- Prefer fluid layouts (`minmax`, `auto-fit`, `clamp`, intrinsic sizing, flexible gaps)
+  over fixed widths, fixed heights, and fixed-position assumptions. Remove or constrain
+  minimum sizes that cause horizontal overflow. Use horizontal scrolling only for a
+  clearly bounded, appropriate control such as a selector, and make its affordance clear.
+- Account for safe areas and dynamic viewport height on mobile (`svh`/`dvh` where
+  appropriate). Do not hide essential content behind browser UI, captions, floating
+  controls, or decorative overlays.
+- Maintain touch-friendly controls, readable type, keyboard operation, visible focus,
+  text truncation/wrapping rules, and graceful handling of long club, league, player,
+  and manager names at every layout mode. Respect reduced-motion preferences for
+  non-essential broadcast animation.
+- Keep responsive rules local to the feature where practical and document the intent of
+  non-obvious breakpoints. Avoid a growing collection of one-off overrides; establish
+  clear layout modes and reuse their spacing, type, and component rules.
+- Validate responsive work with representative real viewport sizes and orientations,
+  including narrow phones, wide phones in landscape, tablets, common laptops, desktop
+  monitors, and 16:9 TVs. Also check loading, empty, error, overflowing-data, and active
+  interaction states.
+
 ## Naming and documentation
 
 - Use explicit names that express intent for components, props, state, handlers, and

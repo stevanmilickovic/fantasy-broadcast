@@ -233,7 +233,7 @@
 .floating-back,
 .live-indicator {
   position: absolute;
-  top: 28px;
+  top: max(clamp(16px, 2.4vw, 32px), env(safe-area-inset-top));
   z-index: 24;
   display: inline-flex;
   align-items: center;
@@ -249,14 +249,14 @@
 }
 
 .floating-back {
-  left: 28px;
+  left: max(clamp(16px, 2.4vw, 32px), env(safe-area-inset-left));
   color: var(--pl-purple);
   background: var(--pl-green);
   cursor: pointer;
 }
 
 .live-indicator {
-  right: 28px;
+  right: max(clamp(16px, 2.4vw, 32px), env(safe-area-inset-right));
   color: var(--pl-green);
   background: rgba(55, 0, 60, 0.72);
   backdrop-filter: blur(10px);
@@ -264,9 +264,9 @@
 
 .match-selector {
   position: absolute;
-  top: 28px;
-  left: 142px;
-  right: 132px;
+  top: max(clamp(16px, 2.4vw, 32px), env(safe-area-inset-top));
+  left: clamp(124px, 11vw, 168px);
+  right: clamp(116px, 10vw, 160px);
   z-index: 24;
   display: flex;
   align-items: center;
@@ -277,7 +277,7 @@
 .narration-caption {
   position: absolute;
   left: 50%;
-  bottom: 28px;
+  bottom: max(clamp(16px, 2.4vw, 32px), env(safe-area-inset-bottom));
   z-index: 32;
   display: inline-flex;
   align-items: center;
@@ -476,6 +476,7 @@
   letter-spacing: 0;
   white-space: nowrap;
   overflow: visible;
+  text-shadow: 0 10px 32px rgba(55, 0, 60, 0.44);
 }
 
 .broadcast-team-column.left .broadcast-team-heading h2 { text-align: left; }
@@ -956,6 +957,7 @@
 .pitch-panel-live { position: static; display: block; grid-column: 1 / -1; grid-row: 2; margin-top: 0; padding: 0; border: 0; background: transparent; }
 .pitch-panel-live .match-score-strip { top: calc(8px + 10vh); }
 .pitch-and-benches { position: relative; top: -32px; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: 1fr; width: 62.5%; height: 55vh; margin: 0 auto; }
+.compact-player-panels { display: none; }
 
 .live-pitch {
   position: relative;
@@ -1947,6 +1949,174 @@ blockquote {
   .total-points-stage { grid-template-columns: 1fr; gap: 28px; width: min(620px, calc(100% - 32px)); padding-top: 84px; }
   .total-points-team-column { min-height: 0; }
   .live-standings { max-width: 620px; }
+}
+
+/*
+ * A phone cannot show a meaningful full pitch, eleven player tokens, and both benches
+ * at once. This is a distinct compact broadcast composition, not a scaled desktop
+ * layout. The score occupies the centre while each club keeps its five most relevant
+ * player cards visible.
+ */
+@media (max-width: 760px), (max-width: 960px) and (max-height: 540px) and (orientation: landscape) {
+  .matchday-page .live-indicator { display: none; }
+
+  .matchday-page .floating-back {
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    height: 40px;
+    width: 82px;
+    padding: 0 11px;
+  }
+
+  .matchday-page .match-selector {
+    top: max(12px, env(safe-area-inset-top));
+    left: max(102px, calc(env(safe-area-inset-left) + 90px));
+    right: max(12px, env(safe-area-inset-right));
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .matchday-page .match-selector::-webkit-scrollbar { display: none; }
+  .matchday-page .match-selector .multiview-chip { position: sticky; left: 0; z-index: 1; }
+  .matchday-page .match-chip-track { display: contents; }
+
+  .matchday-page .narration-caption {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: max(12px, env(safe-area-inset-left));
+    width: auto;
+    min-height: 42px;
+    padding: 8px 12px;
+    transform: none;
+  }
+
+  .pitch-broadcast-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: clamp(12px, 5vw, 32px);
+    min-height: 100svh;
+    padding: calc(106px - 8vh) 0 88px;
+  }
+
+  .pitch-broadcast-stage .broadcast-team-column.left { grid-column: 1; grid-row: 1; }
+  .pitch-broadcast-stage .broadcast-team-column.right { grid-column: 2; grid-row: 1; }
+  .pitch-broadcast-stage .broadcast-team-column { align-self: start; padding: 8px 0; }
+  .pitch-broadcast-stage .broadcast-team-column.right .broadcast-team-heading { text-align: right; }
+  .pitch-broadcast-stage .broadcast-team-column.right .broadcast-team-heading > strong { justify-self: end; }
+  .pitch-broadcast-stage .broadcast-team-heading { gap: 2px; }
+  .pitch-broadcast-stage .broadcast-team-heading > span { font-size: 10px; }
+  .pitch-broadcast-stage .broadcast-team-heading h2 { font-size: clamp(24px, 9vw, 42px); }
+  .pitch-broadcast-stage .broadcast-team-heading p { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .pitch-broadcast-stage .broadcast-team-heading > strong { margin-top: 4px; padding: 3px 5px; font-size: 9px; }
+
+  .pitch-panel-live { display: contents; }
+
+  .pitch-panel-live .pitch-and-benches { display: none; }
+  .pitch-panel-live .compact-player-panels { display: grid; grid-column: 1 / -1; grid-row: 3; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 5vw, 32px); min-height: min(58svh, 460px); transform: translateY(-3vh); }
+  .compact-player-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; }
+  .compact-player-panel-label { color: rgba(255, 255, 255, .62); font-size: 9px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; }
+  .compact-player-panel.away .compact-player-panel-label { text-align: right; }
+  .compact-player-list { display: grid; grid-template-rows: repeat(5, minmax(74px, 1fr)); align-items: center; gap: 12px; min-height: 0; padding-top: 10px; }
+  .compact-player-panel .pitch-player { position: relative; top: auto; left: auto; width: 100%; animation: compact-player-enter 320ms cubic-bezier(.22, 1, .36, 1); transform: none; }
+  .compact-player-panel.home .pitch-player { justify-self: start; }
+  .compact-player-panel.away .pitch-player { justify-self: end; }
+  .compact-player-panel .player-token, .compact-player-panel .player-core { width: min(100%, 92px); }
+  .compact-player-panel.home .player-token { margin-left: 0; }
+  .compact-player-panel.away .player-token { margin-right: 0; }
+  .compact-player-panel .player-core { grid-template-rows: 37px auto; }
+  .compact-player-panel .shirt-wrap { width: 38px; height: 38px; }
+  .compact-player-panel .shirt-wrap img { width: 45px; height: 45px; }
+  .compact-player-panel .player-meta { margin-top: 2px; }
+  .compact-player-panel .player-meta strong { max-width: 58px; min-height: 20px; padding: 0 3px; font-size: 8px; }
+  .compact-player-panel .player-meta b { min-width: 20px; height: 20px; font-size: 12px; }
+  .compact-player-panel .player-event-stack.has-event { width: 92px; height: 24px; }
+  .compact-player-panel .player-event-stack.has-event .player-meta { top: 2px; }
+  .compact-player-panel .player-event-notification { top: 23px; height: 22px; padding: 0 5px; font-size: 8px; }
+  .compact-player-panel .player-event-notification strong, .compact-player-panel .player-event-notification > span { font-size: 9px; }
+
+  .pitch-panel-live .match-score-strip {
+    position: static;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    z-index: 7;
+    min-width: 0;
+    gap: 2px;
+    margin: 3vh 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: translateY(-3vh);
+  }
+  .pitch-panel-live .match-score-strip span, .pitch-panel-live .match-score-strip small { font-size: 9px; }
+  .pitch-panel-live .match-score-strip small { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pitch-panel-live .match-score-strip strong { font-size: clamp(34px, 10vw, 54px); }
+
+  /* The reveal begins around the centre score; its final keyframe remains the measured
+     real heading rectangle and its computed typography. */
+  .match-reveal-overlay:not(.total-points-reveal) .reveal-home { animation-name: compact-match-reveal-home; }
+  .match-reveal-overlay:not(.total-points-reveal) .reveal-away { animation-name: compact-match-reveal-away; }
+}
+
+@keyframes compact-player-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes compact-match-reveal-home {
+  0%, 42% {
+    top: calc(50svh - 21svh);
+    left: 10vw;
+    width: 80vw;
+    height: 18svh;
+    justify-content: center;
+    color: white;
+    font-size: var(--reveal-source-font-size);
+    text-align: center;
+    transform: none;
+  }
+  88%, 100% {
+    top: var(--reveal-final-top);
+    left: var(--reveal-final-left);
+    width: var(--reveal-final-width);
+    height: var(--reveal-final-height);
+    justify-content: flex-start;
+    font-size: var(--reveal-final-font-size);
+    text-align: left;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes compact-match-reveal-away {
+  0%, 42% {
+    top: calc(50svh + 3svh);
+    left: 10vw;
+    width: 80vw;
+    height: 18svh;
+    justify-content: center;
+    color: white;
+    font-size: var(--reveal-source-font-size);
+    text-align: center;
+    transform: none;
+  }
+  88%, 100% {
+    top: var(--reveal-final-top);
+    left: var(--reveal-final-left);
+    width: var(--reveal-final-width);
+    height: var(--reveal-final-height);
+    justify-content: flex-end;
+    font-size: var(--reveal-final-font-size);
+    text-align: right;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compact-player-panel .pitch-player { animation: none; }
 }
 
 .account-shell, .customer-shell {

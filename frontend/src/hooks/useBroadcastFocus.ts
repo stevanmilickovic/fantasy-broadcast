@@ -4,6 +4,8 @@ import { findFocusedMatchup } from '../utils/broadcast'
 
 const INACTIVITY_ROTATION_MS = 60_000
 const IDLE_TRANSITIONS_BEFORE_LEADERBOARD = 4
+const COMPREHENSIVE_MOCK_ROTATION_MS = 4_000
+const COMPREHENSIVE_MOCK_TRANSITIONS_BEFORE_LEADERBOARD = 1
 
 type RotationState = {
   rotatedFocusId: string | null
@@ -70,6 +72,11 @@ export function useBroadcastFocus({
   const isTotalPointsBroadcast = (
     matchups.length === 0 && teams.length > 0
   )
+  const isComprehensiveMock = liveState?.status.mode === 'COMPREHENSIVE MOCK'
+  const inactivityRotationMs = isComprehensiveMock ? COMPREHENSIVE_MOCK_ROTATION_MS : INACTIVITY_ROTATION_MS
+  const idleTransitionsBeforeLeaderboard = isComprehensiveMock
+    ? COMPREHENSIVE_MOCK_TRANSITIONS_BEFORE_LEADERBOARD
+    : IDLE_TRANSITIONS_BEFORE_LEADERBOARD
   const eventFocusId = isTotalPointsBroadcast ? eventTargetTeam?.managerId : eventTargetMatchup?.id
   const automaticFocusId = eventFocusId ?? rotation.rotatedFocusId
   const automaticMatchup = automaticFocusId
@@ -108,7 +115,7 @@ export function useBroadcastFocus({
     if (!isBroadcastRoute || selectedFocus !== 'multi' || !focusedId) return
     const lastActivityAt = lastBackendEventAtRef.current ?? Date.now()
     lastBackendEventAtRef.current = lastActivityAt
-    const delay = Math.max(0, INACTIVITY_ROTATION_MS - (Date.now() - lastActivityAt))
+    const delay = Math.max(0, inactivityRotationMs - (Date.now() - lastActivityAt))
 
     const timer = window.setTimeout(() => {
       const state = latestLiveStateRef.current
@@ -121,7 +128,7 @@ export function useBroadcastFocus({
       if (
         !isTotalPointsBroadcast
         && !rotation.showingLeaderboard
-        && idleTransitionCountRef.current >= IDLE_TRANSITIONS_BEFORE_LEADERBOARD
+        && idleTransitionCountRef.current >= idleTransitionsBeforeLeaderboard
       ) {
         idleTransitionCountRef.current = 0
         lastBackendEventAtRef.current = Date.now()
@@ -149,6 +156,8 @@ export function useBroadcastFocus({
     isBroadcastRoute,
     isTotalPointsBroadcast,
     latestEvent?.id,
+    inactivityRotationMs,
+    idleTransitionsBeforeLeaderboard,
     rotation.showingLeaderboard,
     selectedFocus,
   ])

@@ -72,7 +72,7 @@ export function BroadcastMatchday({
       {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
       {revealingMatch && (showingLiveLeaderboard
         ? <LeaderboardReveal layout={leaderboardRevealLayout} headingRef={leaderboardHeadingRef} />
-        : <MatchReveal layout={revealLayout} matchup={matchup} homeHeadingRef={homeHeadingRef} awayHeadingRef={awayHeadingRef} />)}
+        : <MatchReveal layout={revealLayout} matchup={matchup} homeHeadingRef={homeHeadingRef} awayHeadingRef={awayHeadingRef} scoreRef={scoreRef} />)}
       <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
       <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
       <NarrationCaption id={latestCommentaryId} text={latestCommentaryText} status={latestCommentaryStatus} />
@@ -207,7 +207,51 @@ function PitchStage({ authToken, gameweek, scoreline, leaderName, scoreRef, matc
       <LivePitch matchup={matchup} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
       <BenchRail side="right" team={matchup.away} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
     </div>
+    <CompactPlayerPanels matchup={matchup} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
   </section>
+}
+
+/**
+ * The pitch becomes unreadable before the rest of the broadcast does. In compact
+ * layouts, keep the same player cards but reserve the five visible slots for the
+ * scorers and temporarily promote any player involved in the current notification.
+ */
+function CompactPlayerPanels({ matchup, shirtCodes, latestEvents, pendingEvents }: { matchup: MatchupView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
+  return <div className="compact-player-panels" aria-label="Leading fantasy scorers">
+    <CompactPlayerPanel side="home" team={matchup.home} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
+    <CompactPlayerPanel side="away" team={matchup.away} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
+  </div>
+}
+
+function CompactPlayerPanel({ side, team, shirtCodes, latestEvents, pendingEvents }: { side: 'home' | 'away'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
+  const players = compactPlayersFor(team, latestEvents)
+  return <section className={`compact-player-panel ${side}`} aria-label={`${team.clubName} leading scorers`}>
+    <span className="compact-player-panel-label">Top scorers</span>
+    <div className="compact-player-list">
+      {players.map((player) => {
+        const events = latestEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id)
+        const pendingPointDelta = latestEvents.length === 0
+          ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0)
+          : 0
+        return <PitchPlayer key={player.id} player={player} side={side} teamColor={team.color} position={{ x: 50, y: 50, yOffset: 0 }} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={compactNotificationShiftFor(events, side)} />
+      })}
+    </div>
+  </section>
+}
+
+function compactPlayersFor(team: TeamView, latestEvents: FantasyEventView[]) {
+  const players = [...team.activePlayers, ...team.benchPlayers]
+  const notifiedIds = new Set(latestEvents.filter((event) => event.managerId === team.managerId).map((event) => event.playerId))
+  const byPoints = [...players].sort((first, second) => second.points - first.points || first.displayName.localeCompare(second.displayName))
+  const promoted = players.filter((player) => notifiedIds.has(player.id))
+  return [...promoted, ...byPoints.filter((player) => !notifiedIds.has(player.id))].slice(0, 5)
+}
+
+function compactNotificationShiftFor(events: FantasyEventView[], side: 'home' | 'away') {
+  if (events.length === 0) return 0
+  const notificationWidth = Math.max(...events.map(notificationWidthFor))
+  const inwardShift = Math.max(0, notificationWidth / 2 - 38)
+  return side === 'home' ? inwardShift : -inwardShift
 }
 
 function LivePitch({ matchup, shirtCodes, latestEvents, pendingEvents }: { matchup: MatchupView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
@@ -684,22 +728,36 @@ function abbreviatedWordMatches(firstWord: string | undefined, secondWord: strin
   return firstWord.startsWith(secondWord) || secondWord.startsWith(firstWord) || firstWord.slice(0, 3) === secondWord.slice(0, 3) || (firstWord[0] === secondWord[0] && firstWord.at(-1) === secondWord.at(-1))
 }
 
-function MatchReveal({ layout, matchup, homeHeadingRef, awayHeadingRef }: { layout: RevealLayout | null; matchup: MatchupView; homeHeadingRef: RefObject<HTMLHeadingElement | null>; awayHeadingRef: RefObject<HTMLHeadingElement | null> }) {
-  return <div className="match-reveal-overlay" aria-hidden="true"><div className="match-reveal-sheet" />{layout && <><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} name={matchup.home.clubName} headingRef={homeHeadingRef} /><strong className="match-reveal-copy match-reveal-score" style={revealCopyStyle(layout.score, 1.08)}>{formatScoreline(matchup.scoreline)}</strong><RevealTeamCopy className="reveal-away" layout={layout.away} scoreLayout={layout.score} name={matchup.away.clubName} headingRef={awayHeadingRef} /></>}</div>
+function MatchReveal({ layout, matchup, homeHeadingRef, awayHeadingRef, scoreRef }: { layout: RevealLayout | null; matchup: MatchupView; homeHeadingRef: RefObject<HTMLHeadingElement | null>; awayHeadingRef: RefObject<HTMLHeadingElement | null>; scoreRef: RefObject<HTMLElement | null> }) {
+  return <div className="match-reveal-overlay" aria-hidden="true"><div className="match-reveal-sheet" />{layout && <><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} name={matchup.home.clubName} headingRef={homeHeadingRef} /><RevealScoreCopy layout={layout.score} score={formatScoreline(matchup.scoreline)} scoreRef={scoreRef} /><RevealTeamCopy className="reveal-away" layout={layout.away} scoreLayout={layout.score} name={matchup.away.clubName} headingRef={awayHeadingRef} /></>}</div>
+}
+
+function RevealScoreCopy({ layout, score, scoreRef }: { layout: RevealLayout['score']; score: string; scoreRef: RefObject<HTMLElement | null> }) {
+  const [typography, setTypography] = useState<CSSProperties>()
+  useLayoutEffect(() => {
+    const scoreElement = scoreRef.current
+    if (!scoreElement) return
+    const style = window.getComputedStyle(scoreElement)
+    setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, fontStyle: style.fontStyle, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing, textTransform: style.textTransform, textShadow: style.textShadow })
+  }, [scoreRef, layout])
+  return <strong className="match-reveal-copy match-reveal-score" style={{ ...revealCopyStyle(layout, 1.08), ...typography }}>{score}</strong>
 }
 
 function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef, initialScaleMultiplier = 1 }: { className: string; layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; headingRef: RefObject<HTMLElement | null>; initialScaleMultiplier?: number }) {
   const [revealScale, setRevealScale] = useState(1)
   const [typography, setTypography] = useState<CSSProperties>()
+  const [sourceFontSize, setSourceFontSize] = useState<number>()
   useLayoutEffect(() => {
     const heading = headingRef.current
     if (!heading) return
     const style = window.getComputedStyle(heading)
-	setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight })
+	setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing, textTransform: style.textTransform })
     const context = document.createElement('canvas').getContext('2d')
     if (!context) return
+    const naturalSize = Number.parseFloat(style.fontSize)
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
     const textWidth = context.measureText(name).width
+    setSourceFontSize(naturalSize * (window.innerWidth * 0.8) / Math.max(1, textWidth))
     const scoreHalfWidth = scoreLayout.width * 1.08 / 2
     const scoreCentre = window.innerWidth / 2
     const teamStartCentre = layout.left + layout.width / 2 + layout.revealX
@@ -708,5 +766,5 @@ function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef, init
       : (teamStartCentre + layout.width / 2) - (scoreCentre + scoreHalfWidth + REVEAL_SCORE_CLEARANCE_PX)
     setRevealScale(Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))))
   }, [className, headingRef, layout.width, name, scoreLayout.width])
-	return <strong className={`match-reveal-copy match-reveal-team ${className}`} style={{ ...revealCopyStyle(layout, revealScale * initialScaleMultiplier), ...typography }}>{name}</strong>
+	return <strong className={`match-reveal-copy match-reveal-team ${className}`} style={{ ...revealCopyStyle(layout, revealScale * initialScaleMultiplier), ...typography, '--reveal-source-font-size': `${sourceFontSize ?? 0}px`, '--reveal-final-font-size': typography?.fontSize ?? 'inherit' } as CSSProperties}>{name}</strong>
 }

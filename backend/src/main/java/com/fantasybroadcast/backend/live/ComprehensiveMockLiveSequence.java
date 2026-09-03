@@ -1,6 +1,7 @@
 package com.fantasybroadcast.backend.live;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,8 +109,33 @@ final class ComprehensiveMockLiveSequence {
 					change.delta(), Math.abs(change.delta())));
 		}
 		events.sort((left, right) -> Integer.compare(right.priority(), left.priority()));
+		var standings = standings(teams, matchups);
 		return new LiveStateResponse(new LiveStatus("COMPREHENSIVE MOCK", "2026-08-21T20:" + String.format("%02d", step) + ":00Z", message),
-				new SequenceState(step + 1, 8, true, step == 7), 1, matchups, events, List.of());
+				new SequenceState(step + 1, 8, true, step == 7), 1, matchups, List.of(), standings, events, List.of());
+	}
+
+	private static List<LiveStandingView> standings(List<TeamView> teams, List<MatchupView> matchups) {
+		var liveTablePoints = new HashMap<String, Integer>();
+		for (var matchup : matchups) {
+			if (matchup.home().score() > matchup.away().score()) liveTablePoints.put(matchup.home().managerId(), 3);
+			else if (matchup.home().score() < matchup.away().score()) liveTablePoints.put(matchup.away().managerId(), 3);
+			else {
+				liveTablePoints.put(matchup.home().managerId(), 1);
+				liveTablePoints.put(matchup.away().managerId(), 1);
+			}
+		}
+		var orderedTeams = new ArrayList<>(teams);
+		orderedTeams.sort(Comparator
+				.comparingInt((TeamView team) -> 18 + liveTablePoints.getOrDefault(team.managerId(), 0)).reversed()
+				.thenComparing(Comparator.comparingInt(TeamView::score).reversed())
+				.thenComparing(TeamView::clubName));
+		var standings = new ArrayList<LiveStandingView>();
+		for (var index = 0; index < orderedTeams.size(); index++) {
+			var team = orderedTeams.get(index);
+			var total = 18 + liveTablePoints.getOrDefault(team.managerId(), 0);
+			standings.add(new LiveStandingView(team.managerId(), team.displayName(), team.clubName(), index + 1, total, team.score(), 38 + team.score()));
+		}
+		return standings;
 	}
 
 	private static MatchupView matchup(String id, TeamView home, TeamView away) {
