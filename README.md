@@ -56,6 +56,8 @@ cd backend
 SPRING_PROFILES_ACTIVE=db ./mvnw spring-boot:run
 ```
 
+Use `SPRING_PROFILES_ACTIVE=db,local` to include local-only testing defaults such as Gmail SMTP host/from address. Provide secrets separately, for example `SMTP_PASSWORD=your-gmail-app-password`.
+
 The Compose service starts only the local MySQL database using the backend's default database settings. It publishes MySQL on host port `3307` by default so it does not conflict with a local MySQL already using `3306`. Override it with `MYSQL_HOST_PORT=3308 docker compose up -d db` if needed, and set `DB_URL` to the matching port when running the backend. Stop it with `docker compose down`; use `docker compose down -v` to also remove its local database data.
 
 Windows PowerShell equivalents:
@@ -74,6 +76,35 @@ Default local URL:
 ```text
 http://localhost:8080
 ```
+
+Optional Google sign-in requires a Google OAuth client. Add these values to the server-only `data/backend/application.yaml` file or provide the matching Spring environment variables:
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: your-google-client-id
+            client-secret: your-google-client-secret
+            redirect-uri: http://localhost:5173/login/oauth2/code/google
+            scope: openid,email,profile
+```
+
+For local Vite testing, add this authorized redirect URI in Google Cloud Console:
+
+```text
+http://localhost:5173/login/oauth2/code/google
+```
+
+For production, add the same path on your public domain:
+
+```text
+https://your-domain.example/login/oauth2/code/google
+```
+
+Set `GOOGLE_REDIRECT_URI` to the matching value for the environment if supplying OAuth settings as environment variables.
 
 Health check:
 
@@ -135,11 +166,45 @@ Never commit API keys, FPL cookies, FPL access tokens, refresh tokens, Cloudflar
 
 The backend optionally imports an external configuration file from `./data/backend/application.yaml`, relative to the process that starts it. Set `BROADCAST_CONFIG_DIRECTORY` when that file is mounted elsewhere (for example, inside a future container).
 
-Keep this server-only file out of Git. When authentication email is added, email delivery is enabled only when both `broadcast.email.from` and `broadcast.email.public-base-url` are set; otherwise the service will not attempt to use an email provider.
+Keep this server-only file out of Git. Email delivery is enabled only when SMTP settings, `broadcast.email.from`, and `broadcast.email.public-base-url` are configured. Local testing defaults live in `backend/src/main/resources/application-local.yaml`; keep the app password in `SMTP_PASSWORD`.
 
 ```yaml
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: fantasybroadcastapp@gmail.com
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 broadcast:
   email:
-    from: no-reply@your-domain.example
-    public-base-url: https://preprod.your-domain.example
+    enabled: true
+    from: fantasybroadcastapp@gmail.com
+    public-base-url: http://localhost:5173
+```
+
+The same settings can be supplied as environment variables:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=fantasybroadcastapp@gmail.com
+SMTP_PASSWORD=your-gmail-app-password
+BROADCAST_EMAIL_FROM=fantasybroadcastapp@gmail.com
+BROADCAST_PUBLIC_BASE_URL=http://localhost:5173
+```
+
+After signing in as an admin, verify SMTP delivery with:
+
+```bash
+curl -X POST http://localhost:5173/api/customer/admin/email/test \
+  -H 'Content-Type: application/json' \
+  -b 'fantasy_broadcast_session=your-session-cookie-value' \
+  -d '{"to":"your-address@example.com"}'
 ```

@@ -10,6 +10,7 @@ public class BroadcastSecurityProperties {
 	private boolean secureCookies;
 	private String initialAdminEmail = "";
 	private String initialAdminPassword = "";
+	private String publicBaseUrl = "";
 
 	public boolean isLeagueRegistrationEnabled() { return leagueRegistrationEnabled; }
 	public void setLeagueRegistrationEnabled(boolean leagueRegistrationEnabled) { this.leagueRegistrationEnabled = leagueRegistrationEnabled; }
@@ -22,4 +23,6 @@ public class BroadcastSecurityProperties {
 	public void setInitialAdminEmail(String initialAdminEmail) { this.initialAdminEmail = initialAdminEmail; }
 	public String getInitialAdminPassword() { return initialAdminPassword; }
 	public void setInitialAdminPassword(String initialAdminPassword) { this.initialAdminPassword = initialAdminPassword; }
+	public String getPublicBaseUrl() { return publicBaseUrl; }
+	public void setPublicBaseUrl(String publicBaseUrl) { this.publicBaseUrl = publicBaseUrl == null ? "" : publicBaseUrl.trim(); }
 }

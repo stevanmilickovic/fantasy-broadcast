@@ -1976,6 +1976,29 @@ blockquote {
   color: inherit;
 }
 
+.password-field {
+  display: grid;
+  grid-template-columns: 1fr 46px;
+  min-height: 42px;
+  background: #1b0021;
+}
+
+.password-field input {
+  min-width: 0;
+  background: transparent;
+}
+
+.password-field button {
+  min-height: 42px;
+  border-left: 1px solid rgba(255, 255, 255, .12);
+  color: #fff;
+  background: transparent;
+}
+
+.password-field button:hover {
+  background: #30266f;
+}
+
 .account-nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 5vw; background: #0d1b2a; color: #f7fbff; }
 .customer-header { margin-bottom: 28px; }
 .customer-leagues { margin-top: 28px; }
@@ -2684,9 +2707,36 @@ blockquote {
 .account-card button { display: flex; align-items: center; justify-content: center; min-height: 48px; border: 0; border-radius: 0; cursor: pointer; font-weight: 800; letter-spacing: .05em; transition: background .16s ease, filter .16s ease; }
 .account-card > button:not(.secondary-action) { margin-top: 8px; color: #37003c; background: #20e6ff; text-transform: uppercase; }
 .account-card > button:not(.secondary-action):hover { background: #38ebff; filter: brightness(1.04); }
+.account-card .google-auth-link {
+  display: grid;
+  grid-template-columns: 22px 1fr 22px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  background: #fff;
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-align: center;
+  text-decoration: none;
+}
+.account-card .google-auth-link:hover { background: #f8fafd; border-color: #d2e3fc; }
+.google-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+.auth-secondary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.auth-secondary-actions button,
+.auth-secondary-actions a { min-width: 0; }
 .account-card button.secondary-action { color: #fff; background: #30266f; }
 .account-card button.secondary-action:hover { background: #443783; }
 .account-card button:disabled { cursor: wait; opacity: .65; }
+.auth-success { margin: 0; color: #20e6ff; font-size: .92rem; font-weight: 750; }
 .customer-shell .league-discovery, .customer-shell .discovery-results, .customer-shell .discovery-panel, .customer-shell .discovery-title, .customer-shell .readiness-item, .customer-shell .team-card, .customer-shell .standings-row { border: 0 !important; border-radius: 0 !important; }
 .customer-shell .league-discovery { background: #31003a; box-shadow: none; }
 .customer-shell .discovery-results { padding: 24px; }

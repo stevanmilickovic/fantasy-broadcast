@@ -1,5 +1,5 @@
 import type { FplLeagueType } from './liveApi'
-import type { AdminLeague, AdminLeaguePage, AuthResponse, AuthUser, BroadcastSchedule, LeagueRegistrationAccess, RegisteredLeague } from '../types/customer'
+import type { AdminLeague, AdminLeaguePage, AuthOptions, AuthResponse, AuthUser, BroadcastSchedule, LeagueRegistrationAccess, PendingRegistrationResponse, RegisteredLeague } from '../types/customer'
 import type { LiveStateResponse } from '../types/live'
 import type { FplElementStatusRaw, FplLeagueDetailsRaw, FplLivePlayer, FplPlayer } from '../types/fpl'
 
@@ -15,7 +15,7 @@ const request = async (path: string, options?: RequestInit) => {
   return response
 }
 
-export const authenticate = async (path: 'login' | 'register', email: string, password: string): Promise<AuthResponse> => {
+export const authenticate = async (path: 'login', email: string, password: string): Promise<AuthResponse> => {
   const response = await fetch(`/api/auth/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -28,6 +28,33 @@ export const authenticate = async (path: 'login' | 'register', email: string, pa
   return response.json()
 }
 
+export const requestRegistration = async (email: string, password: string): Promise<PendingRegistrationResponse> => {
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.detail ?? body?.message ?? 'Unable to register.')
+  }
+  return response.json()
+}
+
+export const verifyRegistration = async (email: string, code: string): Promise<AuthResponse> => {
+  const response = await fetch('/api/auth/register/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code }),
+  })
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.detail ?? body?.message ?? 'Unable to verify registration.')
+  }
+  return response.json()
+}
+
+export const loadAuthOptions = async (): Promise<AuthOptions> => (await request('/api/auth/options')).json()
 export const loadCurrentUser = async (): Promise<AuthUser> => (await request('/api/auth/me')).json()
 export const logout = async () => { await request('/api/auth/logout', { method: 'POST' }) }
 export const loadRegisteredLeagues = async (_legacyToken?: string): Promise<RegisteredLeague[]> => { void _legacyToken; return (await request('/api/customer/leagues')).json() }

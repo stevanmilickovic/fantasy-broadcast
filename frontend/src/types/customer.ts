@@ -11,6 +11,15 @@ export type AuthResponse = {
   user: AuthUser
 }
 
+export type AuthOptions = {
+  googleSignInEnabled: boolean
+}
+
+export type PendingRegistrationResponse = {
+  email: string
+  message: string
+}
+
 export type LeagueRegistrationAccess = {
   canRegisterLeague: boolean
 }

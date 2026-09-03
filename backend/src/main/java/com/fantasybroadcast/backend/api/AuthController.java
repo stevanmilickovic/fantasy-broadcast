@@ -1,12 +1,15 @@
 package com.fantasybroadcast.backend.api;
 
 import com.fantasybroadcast.backend.customer.AccountService;
+import com.fantasybroadcast.backend.customer.AccountService.PendingRegistration;
 import com.fantasybroadcast.backend.customer.CurrentUser;
 import com.fantasybroadcast.backend.customer.SessionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,16 +30,29 @@ public class AuthController {
 	private final AccountService accountService;
 	private final SessionService sessionService;
 	private final BroadcastSecurityProperties securityProperties;
+	private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository;
 
-	public AuthController(AccountService accountService, SessionService sessionService, BroadcastSecurityProperties securityProperties) {
+	public AuthController(AccountService accountService, SessionService sessionService, BroadcastSecurityProperties securityProperties,
+			ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository) {
 		this.accountService = accountService;
 		this.sessionService = sessionService;
 		this.securityProperties = securityProperties;
+		this.clientRegistrationRepository = clientRegistrationRepository;
+	}
+
+	@GetMapping("/options")
+	public AuthOptions options() {
+		return new AuthOptions(clientRegistrationRepository.getIfAvailable() != null);
 	}
 
 	@PostMapping("/register")
-	public AuthResponse register(@Valid @RequestBody Credentials credentials, HttpServletResponse response) {
-		return authenticated(accountService.register(credentials.email(), credentials.password()), response);
+	public PendingRegistration register(@Valid @RequestBody Credentials credentials) {
+		return accountService.register(credentials.email(), credentials.password());
+	}
+
+	@PostMapping("/register/verify")
+	public AuthResponse verifyRegistration(@Valid @RequestBody VerificationCredentials credentials, HttpServletResponse response) {
+		return authenticated(accountService.verifyRegistration(credentials.email(), credentials.code()), response);
 	}
 
 	@PostMapping("/login")
@@ -68,10 +84,16 @@ public class AuthController {
 	public record Credentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 12, max = 200) String password) {
 	}
 
+	public record VerificationCredentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 6, max = 20) String code) {
+	}
+
 	/** Existing accounts keep their configured passwords; new registrations require the stronger minimum. */
 	public record LoginCredentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 5, max = 200) String password) {
 	}
 
 	public record AuthResponse(CurrentUser user) {
+	}
+
+	public record AuthOptions(boolean googleSignInEnabled) {
 	}
 }

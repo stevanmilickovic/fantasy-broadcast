@@ -3,9 +3,29 @@ spring:
     name: backend
   config:
     import: optional:file:${BROADCAST_CONFIG_DIRECTORY:./data/backend}/application.yaml
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:true}
+          starttls:
+            enable: ${SMTP_STARTTLS_ENABLE:true}
   autoconfigure:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: ${GOOGLE_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+
+server:
+  forward-headers-strategy: framework
 
 fpl:
   draft-base-url: https://draft.premierleague.com/api
@@ -19,6 +39,7 @@ broadcast:
     from: ${BROADCAST_EMAIL_FROM:}
     public-base-url: ${BROADCAST_PUBLIC_BASE_URL:}
   security:
+    public-base-url: ${BROADCAST_PUBLIC_BASE_URL:}
     league-registration-enabled: ${BROADCAST_LEAGUE_REGISTRATION_ENABLED:true}
     development-endpoints-enabled: ${BROADCAST_DEVELOPMENT_ENDPOINTS_ENABLED:true}
     initial-admin-email: ${BROADCAST_INITIAL_ADMIN_EMAIL:}
