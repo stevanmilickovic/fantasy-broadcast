@@ -14,6 +14,15 @@ type UseLiveStateOptions = {
 
 const sourceKeyFor = (leagueId: number | undefined) => leagueId === undefined ? 'global' : `league-${leagueId}`
 
+const normalizeLiveState = (state: LiveStateResponse): LiveStateResponse => ({
+  ...state,
+  matchups: state.matchups ?? [],
+  teams: state.teams ?? [],
+  standings: state.standings ?? [],
+  events: state.events ?? [],
+  commentary: state.commentary ?? [],
+})
+
 export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
   const sourceKey = sourceKeyFor(leagueId)
   const [snapshot, setSnapshot] = useState<LiveStateSnapshot | null>(null)
@@ -21,7 +30,7 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
   const liveState = enabled && snapshot?.sourceKey === sourceKey ? snapshot.state : null
 
   const updateLiveState = useCallback((state: LiveStateResponse) => {
-    setSnapshot({ sourceKey, state })
+    setSnapshot({ sourceKey, state: normalizeLiveState(state) })
   }, [sourceKey])
 
   useEffect(() => {
@@ -30,7 +39,7 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
     const controller = new AbortController()
     loadLiveState(leagueId, controller.signal)
       .then((state) => {
-        setSnapshot({ sourceKey, state })
+        setSnapshot({ sourceKey, state: normalizeLiveState(state) })
         setError(null)
       })
       .catch((requestError: Error) => {
@@ -49,7 +58,7 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
     const events = new EventSource(`/api/live-state/stream${query}`)
 
     events.addEventListener('live-state', (event) => {
-      setSnapshot({ sourceKey, state: JSON.parse(event.data) as LiveStateResponse })
+      setSnapshot({ sourceKey, state: normalizeLiveState(JSON.parse(event.data) as LiveStateResponse) })
       setError(null)
     })
 

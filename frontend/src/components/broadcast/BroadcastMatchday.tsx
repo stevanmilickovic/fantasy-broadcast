@@ -409,9 +409,11 @@ function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, aut
   onBack: () => void
   onSelectFocus: (focus: BroadcastFocus) => void
 }) {
-  const automaticallyFocusedTeam = latestEvent
-    ? displayLiveState.teams?.find((candidate) => candidate.managerId === latestEvent.managerId)
-    : automaticFocus === 'multi' ? undefined : displayLiveState.teams?.find((candidate) => candidate.managerId === automaticFocus)
+  const automaticallyFocusedTeam = automaticFocus !== 'multi'
+    ? displayLiveState.teams?.find((candidate) => candidate.managerId === automaticFocus)
+    : latestEvent
+      ? displayLiveState.teams?.find((candidate) => candidate.managerId === latestEvent.managerId)
+      : undefined
   const selectedTeam = broadcastFocus === 'multi' ? undefined : displayLiveState.teams?.find((candidate) => candidate.managerId === broadcastFocus)
   const team = selectedTeam ?? automaticallyFocusedTeam ?? displayLiveState.teams?.[0]
   if (!team) return null
