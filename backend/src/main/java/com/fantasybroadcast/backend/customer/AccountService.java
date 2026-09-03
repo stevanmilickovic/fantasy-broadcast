@@ -6,12 +6,14 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.fantasybroadcast.backend.email.BroadcastEmailService;
 
@@ -106,6 +108,52 @@ public class AccountService {
 		return users.getFirst();
 	}
 
+	public AdminUserPage allForAdmin(CurrentUser currentUser, int page, int size, String search) {
+		requireAdmin(currentUser);
+		var searchTerm = search == null ? "" : search.trim();
+		var total = jdbcTemplate.queryForObject("""
+				select count(*) from app_user
+				where lower(email) like concat('%', lower(?), '%') or lower(display_name) like concat('%', lower(?), '%')
+				""", Long.class, searchTerm, searchTerm);
+		var users = jdbcTemplate.query("""
+				select u.id, u.email, u.display_name, u.role, u.created_at, count(distinct r.league_id) as registered_league_count,
+				       count(distinct owned.id) as owned_league_count
+				from (
+					select id, email, display_name, role, created_at
+					from app_user
+					where lower(email) like concat('%', lower(?), '%') or lower(display_name) like concat('%', lower(?), '%')
+					order by created_at desc, id desc limit ? offset ?
+				) u
+				left join league_registration r on r.user_id = u.id
+				left join league owned on owned.owner_user_id = u.id
+				group by u.id, u.email, u.display_name, u.role, u.created_at
+				order by u.created_at desc, u.id desc
+				""", this::mapAdminUser, searchTerm, searchTerm, size, (long) page * size);
+		return new AdminUserPage(users, page, size, total == null ? 0 : total);
+	}
+
+	public AdminUser promoteToAdmin(CurrentUser currentUser, long userId) {
+		requireAdmin(currentUser);
+		var updated = jdbcTemplate.update("update app_user set role = 'ADMIN', updated_at = current_timestamp where id = ?", userId);
+		if (updated == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found.");
+		return adminUser(userId);
+	}
+
+	@Transactional
+	public void deleteForAdmin(CurrentUser currentUser, long userId) {
+		requireAdmin(currentUser);
+		if (currentUser.id() == userId) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot delete your own account.");
+		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where id = ?", this::mapUser, userId);
+		if (users.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found.");
+		if (users.getFirst().role() == UserRole.ADMIN && adminCount() <= 1) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot delete the last administrator.");
+		}
+		jdbcTemplate.update("delete from league where owner_user_id = ?", userId);
+		jdbcTemplate.update("delete from league_registration where user_id = ?", userId);
+		jdbcTemplate.update("delete from pending_user_registration where email = ?", users.getFirst().email());
+		jdbcTemplate.update("delete from app_user where id = ?", userId);
+	}
+
 	public void ensureInitialAdmin(String email, String password) {
 		var existingAdminCount = jdbcTemplate.queryForObject("select count(*) from app_user where role = 'ADMIN'", Long.class);
 		if (existingAdminCount != null && existingAdminCount > 0) return;
@@ -133,6 +181,12 @@ public class AccountService {
 				UserRole.valueOf(resultSet.getString("role")));
 	}
 
+	private AdminUser mapAdminUser(ResultSet resultSet, int rowNumber) throws SQLException {
+		return new AdminUser(resultSet.getLong("id"), resultSet.getString("email"), resultSet.getString("display_name"),
+				UserRole.valueOf(resultSet.getString("role")), resultSet.getTimestamp("created_at").toInstant().toString(),
+				resultSet.getLong("registered_league_count"), resultSet.getLong("owned_league_count"));
+	}
+
 	private String normalizeEmail(String email) {
 		return email.trim().toLowerCase(Locale.ROOT);
 	}
@@ -151,6 +205,29 @@ public class AccountService {
 		return existingUserCount != null && existingUserCount == 0 ? UserRole.ADMIN : UserRole.USER;
 	}
 
+	private AdminUser adminUser(long userId) {
+		var users = jdbcTemplate.query("""
+				select u.id, u.email, u.display_name, u.role, u.created_at, count(distinct r.league_id) as registered_league_count,
+				       count(distinct owned.id) as owned_league_count
+				from app_user u
+				left join league_registration r on r.user_id = u.id
+				left join league owned on owned.owner_user_id = u.id
+				where u.id = ?
+				group by u.id, u.email, u.display_name, u.role, u.created_at
+				""", this::mapAdminUser, userId);
+		if (users.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found.");
+		return users.getFirst();
+	}
+
+	private long adminCount() {
+		var count = jdbcTemplate.queryForObject("select count(*) from app_user where role = 'ADMIN'", Long.class);
+		return count == null ? 0 : count;
+	}
+
+	private void requireAdmin(CurrentUser currentUser) {
+		if (!currentUser.admin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required.");
+	}
+
 	private boolean emailExists(String email) {
 		var existingCount = jdbcTemplate.queryForObject("select count(*) from app_user where email = ?", Long.class, email);
 		return existingCount != null && existingCount > 0;
@@ -167,5 +244,12 @@ public class AccountService {
 	}
 
 	public record PendingRegistration(String email, String message) {
+	}
+
+	public record AdminUser(long id, String email, String displayName, UserRole role, String createdAt, long registeredLeagueCount,
+			long ownedLeagueCount) {
+	}
+
+	public record AdminUserPage(List<AdminUser> items, int page, int size, long totalItems) {
 	}
 }

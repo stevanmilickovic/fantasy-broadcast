@@ -49,4 +49,21 @@ export type AdminLeaguePage = {
   totalItems: number
 }
 
+export type AdminUser = {
+  id: number
+  email: string
+  displayName: string
+  role: 'USER' | 'ADMIN'
+  createdAt: string
+  registeredLeagueCount: number
+  ownedLeagueCount: number
+}
+
+export type AdminUserPage = {
+  items: AdminUser[]
+  page: number
+  size: number
+  totalItems: number
+}
+
 export type BroadcastSchedule = { id: number; startsAt: string; endsAt: string }

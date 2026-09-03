@@ -8,6 +8,7 @@ import { AdminLeagueRegistry } from './components/customer/AdminLeagueRegistry'
 import { BroadcastScheduleManager } from './components/customer/BroadcastScheduleManager'
 import { AuthScreen } from './components/customer/AuthScreen'
 import { CustomerDashboard } from './components/customer/CustomerDashboard'
+import { UserAdministration } from './components/customer/UserAdministration'
 import { LeagueDiscoverySummary } from './components/discovery/LeagueDiscoverySummary'
 import type { AuthResponse, AuthUser } from './types/customer'
 import type { LeagueDiscoveryState } from './types/fpl'
@@ -690,6 +691,7 @@ function App() {
 
       <AdminLeagueRegistry onOpenLeague={(selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`)} />
       <BroadcastScheduleManager />
+      <UserAdministration currentUserId={authUser.id} />
 
       <section className="league-discovery administration-card" aria-label="FPL league setup">
         <div className="discovery-form">

@@ -1,5 +1,5 @@
 import type { FplLeagueType } from './liveApi'
-import type { AdminLeague, AdminLeaguePage, AuthOptions, AuthResponse, AuthUser, BroadcastSchedule, LeagueRegistrationAccess, PendingRegistrationResponse, RegisteredLeague } from '../types/customer'
+import type { AdminLeague, AdminLeaguePage, AdminUser, AdminUserPage, AuthOptions, AuthResponse, AuthUser, BroadcastSchedule, LeagueRegistrationAccess, PendingRegistrationResponse, RegisteredLeague } from '../types/customer'
 import type { LiveStateResponse } from '../types/live'
 import type { FplElementStatusRaw, FplLeagueDetailsRaw, FplLivePlayer, FplPlayer } from '../types/fpl'
 
@@ -90,6 +90,9 @@ export const updateAdminLeague = async (tokenOrLeague: string | AdminLeague, leg
     }),
 	})).json()
 }
+export const loadAdminUsers = async (page = 0, size = 10, search = ''): Promise<AdminUserPage> => (await request(`/api/customer/admin/users?${new URLSearchParams({ page: String(page), size: String(size), search })}`)).json()
+export const promoteAdminUser = async (userId: number): Promise<AdminUser> => (await request(`/api/customer/admin/users/${userId}/admin`, { method: 'PATCH' })).json()
+export const deleteAdminUser = async (userId: number) => { await request(`/api/customer/admin/users/${userId}`, { method: 'DELETE' }) }
 export const loadBroadcastSchedules = async (_legacyToken?: string): Promise<BroadcastSchedule[]> => { void _legacyToken; return (await request('/api/customer/admin/broadcast-schedules')).json() }
 export const saveBroadcastSchedule = async (tokenOrStartsAt: string, startsAtOrEndsAt: string, endsAtOrId?: string | number, legacyId?: number): Promise<BroadcastSchedule> => { const startsAt = legacyId === undefined ? tokenOrStartsAt : startsAtOrEndsAt; const endsAt = legacyId === undefined ? endsAtOrId as string : endsAtOrId as string; const id = legacyId === undefined ? undefined : legacyId; return (await request(id ? `/api/customer/admin/broadcast-schedules/${id}` : '/api/customer/admin/broadcast-schedules', { method: id ? 'PUT' : 'POST', body: JSON.stringify({ startsAt: new Date(startsAt).toISOString(), endsAt: new Date(endsAt).toISOString() }) })).json() }
 export const generateTodayBroadcastSchedules = async (_legacyToken?: string): Promise<BroadcastSchedule[]> => { void _legacyToken; return (await request('/api/customer/admin/broadcast-schedules/generate-today', { method: 'POST' })).json() }

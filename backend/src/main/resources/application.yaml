@@ -17,12 +17,6 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            redirect-uri: ${GOOGLE_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
 
 server:
   forward-headers-strategy: framework
