@@ -126,8 +126,7 @@ export function useBroadcastFocus({
       if (candidates.length < 2) return
 
       if (
-        !isTotalPointsBroadcast
-        && !rotation.showingLeaderboard
+        !rotation.showingLeaderboard
         && idleTransitionCountRef.current >= idleTransitionsBeforeLeaderboard
       ) {
         idleTransitionCountRef.current = 0
@@ -146,7 +145,7 @@ export function useBroadcastFocus({
 
       lastBackendEventAtRef.current = Date.now()
       recentlyShownFocusesRef.current.set(nextFocusId, Date.now())
-      if (!isTotalPointsBroadcast) idleTransitionCountRef.current += 1
+      idleTransitionCountRef.current += 1
       dispatch({ type: 'show-focus', focusId: nextFocusId })
     }, delay)
 

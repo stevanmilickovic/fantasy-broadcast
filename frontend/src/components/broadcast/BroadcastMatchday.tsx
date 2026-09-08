@@ -36,6 +36,11 @@ type FplClubShirt = { name: string; shortName?: string; code: number }
 type ShirtCodes = FplClubShirt[]
 const REVEAL_SCORE_CLEARANCE_PX = 42
 
+const notificationTopFor = (index: number) => {
+  const metadataHeight = window.matchMedia('(max-width: 900px)').matches ? 20 : 26
+  return 29 + index * (metadataHeight - 1)
+}
+
 export function BroadcastMatchday({
 	authToken, displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
   revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, holdingPendingUpdates,
@@ -59,6 +64,9 @@ export function BroadcastMatchday({
       latestCommentaryText={latestCommentaryText}
       latestCommentaryStatus={latestCommentaryStatus}
       standings={standings}
+      showingLiveLeaderboard={showingLiveLeaderboard}
+      leaderboardRevealLayout={leaderboardRevealLayout}
+      leaderboardHeadingRef={leaderboardHeadingRef}
       totalTeamNameRef={totalTeamNameRef}
       totalHeadingRef={totalHeadingRef}
       scoreRef={scoreRef}
@@ -98,7 +106,7 @@ function HeadToHeadLeaderboard({ standings, headingRef }: {
   </section>
 }
 
-function LeaderboardReveal({ layout, headingRef }: { layout: RevealRect | null; headingRef: RefObject<HTMLHeadingElement | null> }) {
+function LeaderboardReveal({ layout, headingRef, label = 'Live Leaderboard' }: { layout: RevealRect | null; headingRef: RefObject<HTMLHeadingElement | null>; label?: string }) {
   const [typography, setTypography] = useState<CSSProperties>()
   useLayoutEffect(() => {
     const heading = headingRef.current
@@ -116,7 +124,7 @@ function LeaderboardReveal({ layout, headingRef }: { layout: RevealRect | null; 
     })
   }, [headingRef, layout])
   if (!layout) return null
-  return <div className="match-reveal-overlay leaderboard-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><strong className="match-reveal-copy leaderboard-reveal-copy" style={{ ...revealCopyStyle(layout, 1), ...typography }}>Live Leaderboard</strong></div>
+  return <div className="match-reveal-overlay leaderboard-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><strong className="match-reveal-copy leaderboard-reveal-copy" style={{ ...revealCopyStyle(layout, 1), ...typography }}>{label}</strong></div>
 }
 
 function NarrationCaption({ id, text, status }: { id?: string; text: string; status: string }) {
@@ -225,7 +233,24 @@ function CompactPlayerPanels({ matchup, shirtCodes, latestEvents, pendingEvents 
 
 function CompactPlayerPanel({ side, team, shirtCodes, latestEvents, pendingEvents }: { side: 'home' | 'away'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
   const players = compactPlayersFor(team, latestEvents)
-  return <section className={`compact-player-panel ${side}`} aria-label={`${team.clubName} leading scorers`}>
+  const panelRef = useRef<HTMLElement>(null)
+  const [panelBounds, setPanelBounds] = useState<DOMRect | null>(null)
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+    const updateBounds = () => setPanelBounds(panel.getBoundingClientRect())
+    const observer = new ResizeObserver(updateBounds)
+    observer.observe(panel)
+    window.addEventListener('resize', updateBounds)
+    updateBounds()
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updateBounds)
+    }
+  }, [])
+
+  return <section ref={panelRef} className={`compact-player-panel ${side}`} aria-label={`${team.clubName} leading scorers`}>
     <span className="compact-player-panel-label">Top scorers</span>
     <div className="compact-player-list">
       {players.map((player) => {
@@ -233,7 +258,7 @@ function CompactPlayerPanel({ side, team, shirtCodes, latestEvents, pendingEvent
         const pendingPointDelta = latestEvents.length === 0
           ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0)
           : 0
-        return <PitchPlayer key={player.id} player={player} side={side} teamColor={team.color} position={{ x: 50, y: 50, yOffset: 0 }} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={compactNotificationShiftFor(events, side)} />
+        return <PitchPlayer key={player.id} player={player} side={side} teamColor={team.color} position={{ x: 50, y: 50, yOffset: 0 }} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={compactNotificationShiftFor(events, side, panelBounds)} />
       })}
     </div>
   </section>
@@ -247,11 +272,17 @@ function compactPlayersFor(team: TeamView, latestEvents: FantasyEventView[]) {
   return [...promoted, ...byPoints.filter((player) => !notifiedIds.has(player.id))].slice(0, 5)
 }
 
-function compactNotificationShiftFor(events: FantasyEventView[], side: 'home' | 'away') {
-  if (events.length === 0) return 0
+function compactNotificationShiftFor(events: FantasyEventView[], side: 'home' | 'away', panelBounds: DOMRect | null) {
+  if (events.length === 0 || !panelBounds) return 0
   const notificationWidth = Math.max(...events.map(notificationWidthFor))
-  const inwardShift = Math.max(0, notificationWidth / 2 - 38)
-  return side === 'home' ? inwardShift : -inwardShift
+  // Compact cards are anchored to their panel's outer edge. Measure that edge instead
+  // of applying a blanket inward offset, so a card moves only when it would clip.
+  const notificationCentre = side === 'home' ? panelBounds.left + 46 : panelBounds.right - 46
+  const notificationLeft = notificationCentre - notificationWidth / 2
+  const notificationRight = notificationCentre + notificationWidth / 2
+  if (notificationLeft < 0) return -notificationLeft
+  if (notificationRight > window.innerWidth) return window.innerWidth - notificationRight
+  return 0
 }
 
 function LivePitch({ matchup, shirtCodes, latestEvents, pendingEvents }: { matchup: MatchupView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
@@ -331,7 +362,7 @@ function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, p
   }, [event?.id, eventDelta, player.points])
 
   return <div className={`bench-player ${activeEvent ? 'has-event' : ''}`} style={style}>
-    <div className={`player-token bench-player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${29 + index * 25}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
+    <div className={`player-token bench-player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${notificationTopFor(index)}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
 }
 
@@ -428,11 +459,11 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
   }, [event?.id, eventDelta, player.points])
 
   return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''} ${player.autoSubstituted ? 'auto-substituted' : ''}`} style={style}>
-    <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${29 + index * 25}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
+    <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${notificationTopFor(index)}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
 }
 
-function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
 	authToken: string
   displayLiveState: LiveStateResponse
   broadcastFocus: BroadcastFocus
@@ -447,6 +478,9 @@ function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, aut
 	latestCommentaryText: string
   latestCommentaryStatus: string
   standings: LiveStandingView[]
+  showingLiveLeaderboard: boolean
+  leaderboardRevealLayout: RevealRect | null
+  leaderboardHeadingRef: RefObject<HTMLHeadingElement | null>
   totalTeamNameRef: RefObject<HTMLSpanElement | null>
   totalHeadingRef: RefObject<HTMLHeadingElement | null>
   scoreRef: RefObject<HTMLElement | null>
@@ -462,21 +496,61 @@ function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, aut
   const team = selectedTeam ?? automaticallyFocusedTeam ?? displayLiveState.teams?.[0]
   if (!team) return null
   const shirtCodes = useShirtCodes(authToken)
+  useLayoutEffect(() => {
+    const heading = totalHeadingRef.current
+    const teamName = totalTeamNameRef.current
+    const score = scoreRef.current
+    if (!heading || !teamName || !score) return
+    const compactQuery = window.matchMedia('(max-width: 900px)')
+
+    const fitName = () => {
+      teamName.style.fontSize = ''
+      if (!compactQuery.matches) return
+      const style = window.getComputedStyle(teamName)
+      const naturalSize = Number.parseFloat(style.fontSize)
+      const scoreStyle = window.getComputedStyle(score)
+      const scoreMargin = Number.parseFloat(scoreStyle.marginLeft) || 0
+      const availableWidth = heading.clientWidth - score.offsetWidth - scoreMargin
+      const context = document.createElement('canvas').getContext('2d')
+      if (!context || !availableWidth) return
+      context.font = `${style.fontWeight} ${naturalSize}px ${style.fontFamily}`
+      const textWidth = context.measureText(team.clubName).width
+      if (textWidth > availableWidth) teamName.style.fontSize = `${Math.max(16, naturalSize * availableWidth / textWidth)}px`
+    }
+
+    const observer = new ResizeObserver(fitName)
+    observer.observe(heading)
+    observer.observe(score)
+    compactQuery.addEventListener('change', fitName)
+    fitName()
+    return () => {
+      observer.disconnect()
+      compactQuery.removeEventListener('change', fitName)
+    }
+  }, [scoreRef, team.clubName, totalHeadingRef, totalTeamNameRef])
   return <main className={`broadcast-shell matchday-page total-points-broadcast ${revealingMatch ? 'revealing-match' : ''}`}>
     {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
-    {revealingMatch && <TotalPointsReveal layout={revealLayout} team={team} teamNameRef={totalTeamNameRef} scoreRef={scoreRef} />}
+    {revealingMatch && (showingLiveLeaderboard
+      ? <LeaderboardReveal layout={leaderboardRevealLayout} headingRef={leaderboardHeadingRef} label="Live standings" />
+      : <TotalPointsReveal layout={revealLayout} team={team} teamNameRef={totalTeamNameRef} scoreRef={scoreRef} />)}
     <button className="floating-back" type="button" onClick={onBack}><ArrowLeft size={18} />Back</button>
     <div className="live-indicator"><Radio size={16} /><span>Live</span></div>
 	    <NarrationCaption id={latestCommentaryId} text={latestCommentaryText} status={latestCommentaryStatus} />
     <ClubSelector teams={displayLiveState.teams} latestEvent={latestEvent} selectedFocus={broadcastFocus} onSelect={onSelectFocus} />
-    <section className="matchday-stage total-points-stage" aria-label="Focused total-points club broadcast">
+    {showingLiveLeaderboard
+      ? <TotalPointsLeaderboard standings={standings} headingRef={leaderboardHeadingRef} />
+      : <section className="matchday-stage total-points-stage" aria-label="Focused total-points club broadcast">
       <section className="broadcast-team-column left total-points-team-column" style={{ '--team-color': team.color } as CSSProperties}>
         <div className="broadcast-team-heading"><span>{teamShortName(team)}</span><h2 ref={totalHeadingRef}><span ref={totalTeamNameRef} className="total-team-name">{team.clubName}</span><strong ref={scoreRef} className="total-team-score">{team.score}<span className="total-score-unit">pts</span></strong></h2><p>{team.displayName}</p><strong className="leader-placeholder">Leading</strong></div>
         <TotalPointsPlayerRows team={team} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
       </section>
       <LiveStandings standings={standings} focusedTeam={team} />
-    </section>
+    </section>}
   </main>
+}
+
+function TotalPointsLeaderboard({ standings, headingRef }: { standings: LiveStandingView[]; headingRef: RefObject<HTMLHeadingElement | null> }) {
+  return <section className="live-leaderboard-page" aria-label="Live standings"><LiveStandings standings={standings} headingRef={headingRef} label="Live standings" /></section>
 }
 
 function ClubSelector({ teams, latestEvent, selectedFocus, onSelect }: { teams: TeamView[]; latestEvent?: FantasyEventView; selectedFocus: BroadcastFocus; onSelect: (focus: BroadcastFocus) => void }) {
@@ -511,7 +585,7 @@ function TotalPointsPlayerRows({ team, shirtCodes, latestEvents, pendingEvents }
   return <section ref={rowsRef} className="total-player-rows" aria-label={`${team.clubName} players`}>{rows.map(([key, label, players]) => players.length > 0 && <section className="total-player-row" key={key}><span>{label}</span><div>{players.map((player, index) => {
     const events = latestEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id)
     const pendingPointDelta = latestEvents.length === 0 ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0) : 0
-    return <PitchPlayer key={player.id} player={player} side="home" teamColor={team.color} position={rowPlayerPosition(index, players.length)} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={notificationShifts.get(player.id) ?? 0} />
+    return <PitchPlayer key={player.id} player={player} side="home" teamColor={team.color} position={totalRowPlayerPosition(index, players.length, width)} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={notificationShifts.get(player.id) ?? 0} />
   })}</div></section>)}</section>
 }
 
@@ -562,13 +636,139 @@ function StandingValue({ value, signed = false, className }: { value: number; si
 
 function TotalPointsReveal({ layout, team, teamNameRef, scoreRef }: { layout: RevealLayout | null; team: TeamView; teamNameRef: RefObject<HTMLSpanElement | null>; scoreRef: RefObject<HTMLElement | null> }) {
 	if (!layout) return null
-	return <div className="match-reveal-overlay total-points-reveal" aria-hidden="true"><div className="match-reveal-sheet" /><TotalPointsRevealTeamCopy layout={layout.home} scoreLayout={layout.score} name={team.clubName} teamNameRef={teamNameRef} /><TotalScoreRevealCopy layout={layout.score} score={team.score} scoreRef={scoreRef} /></div>
+	const compactTransition = window.matchMedia('(max-width: 900px)').matches
+	return <div className="match-reveal-overlay total-points-reveal" aria-hidden="true"><div className="match-reveal-sheet" />{compactTransition
+		? <><TotalPointsRevealTeamCopy layout={layout.home} scoreLayout={layout.score} name={team.clubName} teamNameRef={teamNameRef} /><TotalScoreRevealCopy layout={layout.score} score={team.score} scoreRef={scoreRef} /></>
+		: <><DesktopTotalPointsRevealTeamCopy layout={layout.home} scoreLayout={layout.score} name={team.clubName} teamNameRef={teamNameRef} /><DesktopTotalScoreRevealCopy layout={layout.score} score={team.score} scoreRef={scoreRef} /><DesktopTotalScoreUnitRevealCopy layout={layout.score} scoreRef={scoreRef} /></>}</div>
 }
 
 function rangeRect(element: HTMLElement) {
   const range = document.createRange()
   range.selectNodeContents(element)
   return range.getBoundingClientRect()
+}
+
+function exactRevealTypography(style: CSSStyleDeclaration): CSSProperties {
+  return {
+    fontFamily: style.fontFamily,
+    fontSize: style.fontSize,
+    fontWeight: style.fontWeight,
+    fontStyle: style.fontStyle,
+    fontStretch: style.fontStretch,
+    fontVariant: style.fontVariant,
+    fontKerning: style.fontKerning as CSSProperties['fontKerning'],
+    fontSynthesis: style.fontSynthesis as CSSProperties['fontSynthesis'],
+    fontOpticalSizing: style.fontOpticalSizing as CSSProperties['fontOpticalSizing'],
+    fontFeatureSettings: style.fontFeatureSettings,
+    fontVariationSettings: style.fontVariationSettings,
+    lineHeight: style.lineHeight,
+    letterSpacing: style.letterSpacing,
+    wordSpacing: style.wordSpacing,
+    textTransform: style.textTransform,
+    textShadow: style.textShadow,
+    textRendering: style.textRendering as CSSProperties['textRendering'],
+  }
+}
+
+function desktopRevealAppearance(style: CSSStyleDeclaration): CSSProperties {
+  return {
+    ...exactRevealTypography(style),
+    color: style.color,
+    display: style.display,
+    boxSizing: style.boxSizing as CSSProperties['boxSizing'],
+    margin: style.margin,
+    padding: style.padding,
+    textAlign: style.textAlign as CSSProperties['textAlign'],
+    verticalAlign: style.verticalAlign,
+    whiteSpace: style.whiteSpace,
+  }
+}
+
+function preserveRevealStart(layout: RevealRect, offsetX: number, offsetY: number): RevealRect {
+  return {
+    ...layout,
+    left: layout.left + offsetX,
+    top: layout.top + offsetY,
+    revealX: layout.revealX - offsetX,
+    revealY: layout.revealY - offsetY,
+  }
+}
+
+function DesktopTotalPointsRevealTeamCopy({ layout, scoreLayout, name, teamNameRef }: { layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; teamNameRef: RefObject<HTMLSpanElement | null> }) {
+  const measurementRef = useRef<HTMLElement>(null)
+  const [typography, setTypography] = useState<CSSProperties>()
+  const [revealScale, setRevealScale] = useState(1)
+  const [adjustedLayout, setAdjustedLayout] = useState<RevealLayout['home'] | null>(null)
+  useLayoutEffect(() => {
+    const teamName = teamNameRef.current
+    if (!teamName) return
+    const style = window.getComputedStyle(teamName)
+    setTypography(desktopRevealAppearance(style))
+    const context = document.createElement('canvas').getContext('2d')
+    if (!context) return
+    context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+    const textWidth = context.measureText(name).width
+    const scoreHalfWidth = scoreLayout.width * 1.08 / 2
+    const teamStartCentre = layout.left + layout.width / 2 + layout.revealX
+    const availableWidth = window.innerWidth / 2 - scoreHalfWidth - REVEAL_SCORE_CLEARANCE_PX - (teamStartCentre - layout.width / 2)
+    setRevealScale(Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))))
+    setAdjustedLayout(null)
+  }, [layout, name, scoreLayout.width, teamNameRef])
+  useLayoutEffect(() => {
+    const teamName = teamNameRef.current
+    const measurement = measurementRef.current
+    if (!typography || !teamName || !measurement) return
+    const target = rangeRect(teamName)
+    const copy = rangeRect(measurement)
+    setAdjustedLayout(preserveRevealStart(layout, target.left - copy.left, target.top - copy.top))
+  }, [layout, teamNameRef, typography])
+  const copyStyle: CSSProperties | undefined = typography ? { ...revealCopyStyle(layout, 1), ...typography, animation: 'none', transform: 'none', visibility: 'hidden' } : undefined
+  return <><span ref={measurementRef} className="match-reveal-copy match-reveal-team reveal-home total-team-name desktop-total-reveal-copy" style={copyStyle}>{name}</span>{adjustedLayout && <span className="match-reveal-copy match-reveal-team reveal-home total-team-name desktop-total-reveal-copy" style={{ ...revealCopyStyle(adjustedLayout, revealScale * TOTAL_POINTS_REVEAL_TEAM_SCALE), ...typography }}>{name}</span>}</>
+}
+
+function DesktopTotalScoreRevealCopy({ layout, score, scoreRef }: { layout: RevealLayout['score']; score: number; scoreRef: RefObject<HTMLElement | null> }) {
+  const measurementRef = useRef<HTMLElement>(null)
+  const [typography, setTypography] = useState<CSSProperties>()
+  const [adjustedLayout, setAdjustedLayout] = useState<RevealLayout['score'] | null>(null)
+  useLayoutEffect(() => {
+    const scoreElement = scoreRef.current
+    if (!scoreElement) return
+    const style = window.getComputedStyle(scoreElement)
+    setTypography(desktopRevealAppearance(style))
+    setAdjustedLayout(null)
+  }, [layout, scoreRef])
+  useLayoutEffect(() => {
+    const scoreElement = scoreRef.current
+    const measurement = measurementRef.current
+    if (!typography || !scoreElement || !measurement) return
+    const target = rangeRect(scoreElement)
+    const copy = rangeRect(measurement)
+    setAdjustedLayout(preserveRevealStart(layout, target.left - copy.left, target.top - copy.top))
+  }, [layout, scoreRef, typography])
+  const copyStyle: CSSProperties | undefined = typography ? { ...revealCopyStyle(layout, 1), ...typography, animation: 'none', transform: 'none', visibility: 'hidden' } : undefined
+  return <><strong ref={measurementRef} className="match-reveal-copy total-reveal-score total-team-score desktop-total-reveal-copy" style={copyStyle}>{score}<span className="total-score-unit">pts</span></strong>{adjustedLayout && <strong className="match-reveal-copy total-reveal-score total-team-score desktop-total-reveal-copy" style={{ ...revealCopyStyle(adjustedLayout, 1), ...typography }}>{score}<span className="total-score-unit">pts</span></strong>}</>
+}
+
+function DesktopTotalScoreUnitRevealCopy({ layout, scoreRef }: { layout: RevealLayout['score']; scoreRef: RefObject<HTMLElement | null> }) {
+  const [unitLayout, setUnitLayout] = useState<RevealLayout['score'] | null>(null)
+  const [appearance, setAppearance] = useState<CSSProperties>()
+  useLayoutEffect(() => {
+    const scoreElement = scoreRef.current
+    const unit = scoreElement?.querySelector<HTMLElement>('.total-score-unit')
+    if (!unit) return
+    const target = rangeRect(unit)
+    setAppearance({ ...exactRevealTypography(window.getComputedStyle(unit)), marginLeft: 0 })
+    setUnitLayout({
+      left: target.left,
+      top: target.top,
+      width: target.width,
+      height: target.height,
+      revealX: layout.revealX,
+      revealY: layout.revealY,
+    })
+  }, [layout, scoreRef])
+  if (!unitLayout) return null
+  return <span className="match-reveal-copy total-score-unit desktop-total-reveal-copy" style={{ ...revealCopyStyle(unitLayout, 1), ...appearance }}>pts</span>
 }
 
 function TotalPointsRevealTeamCopy({ layout, scoreLayout, name, teamNameRef }: { layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; teamNameRef: RefObject<HTMLSpanElement | null> }) {
@@ -581,15 +781,19 @@ function TotalPointsRevealTeamCopy({ layout, scoreLayout, name, teamNameRef }: {
     const teamName = teamNameRef.current
     if (!teamName) return
     const style = window.getComputedStyle(teamName)
-    setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing, textTransform: style.textTransform })
+    setTypography(exactRevealTypography(style))
     const context = document.createElement('canvas').getContext('2d')
     if (!context) return
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
     const textWidth = context.measureText(name).width
+    const compactTransition = window.matchMedia('(max-width: 900px)').matches
     const scoreHalfWidth = scoreLayout.width * 1.08 / 2
     const teamStartCentre = layout.left + layout.width / 2 + layout.revealX
     const availableWidth = window.innerWidth / 2 - scoreHalfWidth - REVEAL_SCORE_CLEARANCE_PX - (teamStartCentre - layout.width / 2)
-    setRevealScale(Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))))
+    const sourceScale = compactTransition
+      ? Math.min(TOTAL_POINTS_REVEAL_TEAM_SCALE, Math.max(0.1, (window.innerWidth * 0.9 * 0.75 - 10) / Math.max(1, textWidth)))
+      : Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))) * TOTAL_POINTS_REVEAL_TEAM_SCALE
+    setRevealScale(sourceScale / TOTAL_POINTS_REVEAL_TEAM_SCALE)
     setAdjustedLayout(null)
   }, [layout, name, scoreLayout.width, teamNameRef])
 
@@ -601,33 +805,58 @@ function TotalPointsRevealTeamCopy({ layout, scoreLayout, name, teamNameRef }: {
     const copy = rangeRect(measurement)
     const offsetX = target.left - copy.left
     const offsetY = target.top - copy.top
-    setAdjustedLayout({ ...layout, left: layout.left + offsetX, top: layout.top + offsetY, revealX: layout.revealX - offsetX, revealY: layout.revealY - offsetY })
+    setAdjustedLayout(preserveRevealStart(layout, offsetX, offsetY))
   }, [layout, teamNameRef, typography])
 
   const copyStyle: CSSProperties | undefined = typography ? { ...revealCopyStyle(layout, 1), ...typography, animation: 'none', transform: 'none', visibility: 'hidden' } : undefined
-  return <><strong ref={measurementRef} className="match-reveal-copy match-reveal-team reveal-home" style={copyStyle}>{name}</strong>{adjustedLayout && <strong className="match-reveal-copy match-reveal-team reveal-home" style={{ ...revealCopyStyle(adjustedLayout, revealScale * TOTAL_POINTS_REVEAL_TEAM_SCALE), ...typography }}>{name}</strong>}</>
+  return <><span ref={measurementRef} className="match-reveal-copy match-reveal-team reveal-home total-team-name" style={copyStyle}>{name}</span>{adjustedLayout && <span className="match-reveal-copy match-reveal-team reveal-home total-team-name" style={{ ...revealCopyStyle(adjustedLayout, revealScale * TOTAL_POINTS_REVEAL_TEAM_SCALE), ...typography }}>{name}</span>}</>
 }
 
 function TotalScoreRevealCopy({ layout, score, scoreRef }: { layout: RevealLayout['score']; score: number; scoreRef: RefObject<HTMLElement | null> }) {
+  const measurementRef = useRef<HTMLElement>(null)
   const [typography, setTypography] = useState<CSSProperties>()
+  const [adjustedLayout, setAdjustedLayout] = useState<RevealLayout['score'] | null>(null)
+  const [sourceScale, setSourceScale] = useState(1)
   useLayoutEffect(() => {
     const scoreElement = scoreRef.current
     if (!scoreElement) return
     const style = window.getComputedStyle(scoreElement)
-    setTypography({ fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, fontStyle: style.fontStyle, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing, textTransform: style.textTransform })
-  }, [scoreRef])
-  return <strong className="match-reveal-copy total-reveal-score" style={{ ...revealCopyStyle(layout, 1), ...typography }}>{score}<span className="total-score-unit">pts</span></strong>
+    setTypography(exactRevealTypography(style))
+    setAdjustedLayout(null)
+    const compactTransition = window.matchMedia('(max-width: 900px)').matches
+    const scoreBoxWidth = window.innerWidth * 0.9 * 0.25
+    setSourceScale(compactTransition ? Math.min(1, Math.max(0.1, (scoreBoxWidth - 10) / Math.max(1, layout.width))) : 1)
+  }, [layout, scoreRef])
+  useLayoutEffect(() => {
+    const scoreElement = scoreRef.current
+    const measurement = measurementRef.current
+    if (!typography || !scoreElement || !measurement) return
+    const target = rangeRect(scoreElement)
+    const copy = rangeRect(measurement)
+    setAdjustedLayout(preserveRevealStart(layout, target.left - copy.left, target.top - copy.top))
+  }, [layout, scoreRef, typography])
+
+  const copyStyle: CSSProperties | undefined = typography
+    ? { ...revealCopyStyle(layout, 1), ...typography, animation: 'none', transform: 'none', visibility: 'hidden' }
+    : undefined
+  return <><strong ref={measurementRef} className="match-reveal-copy total-reveal-score total-team-score" style={copyStyle}>{score}<span className="total-score-unit">pts</span></strong>{adjustedLayout && <strong className="match-reveal-copy total-reveal-score total-team-score" style={{ ...revealCopyStyle(adjustedLayout, sourceScale), ...typography }}>{score}<span className="total-score-unit">pts</span></strong>}</>
 }
 
-function rowPlayerPosition(index: number, count: number) {
-  return { x: ((index + 1) / (count + 1)) * 100, y: 50, yOffset: 0 }
+function totalRowPlayerPosition(index: number, count: number, rowWidth: number) {
+  if (count <= 1) return { x: 50, y: 50, yOffset: 0 }
+  if (!rowWidth) return { x: 50, y: 50, yOffset: 0 }
+  const compactCards = window.matchMedia('(max-width: 900px)').matches
+  const cardWidth = compactCards ? 70 : 110
+  const adjacentDistance = cardWidth + window.innerWidth * 0.01
+  const offsetFromCentre = index - (count - 1) / 2
+  return { x: 50 + offsetFromCentre * adjacentDistance / rowWidth * 100, y: 50, yOffset: 0 }
 }
 
 function totalNotificationShifts(rows: ReadonlyArray<readonly [string, string, PlayerView[]]>, managerId: string, latestEvents: FantasyEventView[], width: number) {
   if (!width) return new Map<string, number>()
   const notifiedPlayers = rows.flatMap(([, , players], rowIndex) => players.map((player, index) => {
     const events = latestEvents.filter((event) => event.managerId === managerId && event.playerId === player.id)
-    return { id: player.id, hasEvent: events.length > 0, width: Math.max(108, ...events.map(notificationWidthFor)), x: rowPlayerPosition(index, players.length).x * width / 100, y: rowIndex * 70 }
+    return { id: player.id, hasEvent: events.length > 0, width: Math.max(108, ...events.map(notificationWidthFor)), x: totalRowPlayerPosition(index, players.length, width).x * width / 100, y: rowIndex * 70 }
   }).filter((player) => player.hasEvent))
   return notificationShiftsForPlayers(notifiedPlayers)
 }

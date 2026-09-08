@@ -17,12 +17,16 @@ const stageTotalPointsState = (
   incomingState: LiveStateResponse | null,
   displayedState: LiveStateResponse | null,
   focusedId: string | null,
+  displayedFocusId: string | null,
+  isNotificationActive: boolean,
 ) => {
-  if (!incomingState || !displayedState || !focusedId) return incomingState
-  const incomingTeam = (incomingState.teams ?? []).find((team) => team.managerId === focusedId)
-  if (!incomingTeam) return incomingState
-
+  if (!incomingState || !displayedState || !focusedId || !displayedFocusId) return incomingState
   const displayedEventIds = new Set((displayedState.events ?? []).map((event) => event.id))
+  const hasIncomingEvent = (incomingState.events ?? []).some((event) => !displayedEventIds.has(event.id))
+  if (!isNotificationActive && !hasIncomingEvent) return incomingState
+  const displayedTeam = (displayedState.teams ?? []).find((team) => team.managerId === displayedFocusId)
+  if (!displayedTeam) return incomingState
+
   const focusedEvents = (incomingState.events ?? []).filter((event) => event.managerId === focusedId)
   const stagedEvents = [
     ...focusedEvents,
@@ -30,22 +34,18 @@ const stageTotalPointsState = (
       !focusedEvents.some((focusedEvent) => focusedEvent.id === event.id)
     )),
   ]
-  const remainingEvents = (incomingState.events ?? []).filter((event) => (
-    !displayedEventIds.has(event.id) && event.managerId !== focusedId
-  ))
-  if (remainingEvents.length === 0) return incomingState
-
-  const incomingStanding = (incomingState.standings ?? []).find((standing) => standing.teamId === focusedId)
-  const stagedStandings = (displayedState.standings ?? []).map((standing) => (
-    standing.teamId === focusedId && incomingStanding ? incomingStanding : standing
-  ))
+  const stagedStandings = displayedState.standings ?? []
 
   return {
     ...incomingState,
-    teams: (displayedState.teams ?? []).map((team) => (
-      team.managerId === focusedId ? incomingTeam : team
+    teams: (incomingState.teams ?? []).map((team) => (
+      team.managerId === displayedFocusId ? displayedTeam : team
     )),
-    standings: stagedStandings,
+    standings: (incomingState.standings ?? []).map((standing) => (
+      standing.teamId === displayedFocusId
+        ? stagedStandings.find((candidate) => candidate.teamId === displayedFocusId) ?? standing
+        : standing
+    )),
     events: stagedEvents,
   }
 }
@@ -201,7 +201,7 @@ export function useBroadcastPresentation({
   const totalTeamNameRef = useRef<HTMLSpanElement>(null)
   const totalHeadingRef = useRef<HTMLHeadingElement>(null)
   const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
-  const presentationFocusId = showingLeaderboard && !isTotalPointsBroadcast
+  const presentationFocusId = showingLeaderboard
     ? 'live-leaderboard'
     : focusedId
   const isWaitingForQueuedFocus = (
@@ -223,7 +223,13 @@ export function useBroadcastPresentation({
 
   useEffect(() => {
     const snapshotLiveState = isTotalPointsBroadcast
-      ? stageTotalPointsState(stateForActiveNotification, displayedLiveStateRef.current, focusedId)
+      ? stageTotalPointsState(
+        stateForActiveNotification,
+        displayedLiveStateRef.current,
+        focusedId,
+        presentation.displayedFocusId,
+        activeLiveState !== null,
+      )
       : stateForActiveNotification
     const snapshot: PresentationSnapshot = {
       liveState: snapshotLiveState,
@@ -231,7 +237,6 @@ export function useBroadcastPresentation({
       eventId: latestEventId ?? null,
       showingLeaderboard,
     }
-
     // Keep the current score frozen until the notification queue starts the
     // corresponding focus transition. The server state arrives one render earlier.
     if (isWaitingForQueuedFocus) return
@@ -288,6 +293,7 @@ export function useBroadcastPresentation({
     dispatch({ type: 'sync', snapshot, preserveRevealLayout: true })
     return clearTransitionTimers
   }, [
+    activeLiveState,
     clearTransitionTimers,
     focusedId,
     isBroadcastRoute,
@@ -317,29 +323,39 @@ export function useBroadcastPresentation({
       if (!totalTeamNameRef.current) return
       const teamNameRect = totalTeamNameRef.current.getBoundingClientRect()
       const scoreRect = scoreRef.current.getBoundingClientRect()
+      const compactTransition = window.matchMedia('(max-width: 900px)').matches
       const revealGap = 24
       const teamNameStyle = window.getComputedStyle(totalTeamNameRef.current)
       const teamNameMeasure = document.createElement('canvas').getContext('2d')
       if (!teamNameMeasure) return
       teamNameMeasure.font = `${teamNameStyle.fontWeight} ${teamNameStyle.fontSize} ${teamNameStyle.fontFamily}`
       const textWidth = teamNameMeasure.measureText(totalTeamNameRef.current.textContent ?? '').width
-      const teamStartCentre = window.innerWidth / 2 - (scoreRect.width + revealGap) / 2
+      const monitorTeamStartCentre = window.innerWidth / 2 - (scoreRect.width + revealGap) / 2
       const availableWidth = (
         window.innerWidth / 2
         - (scoreRect.width * 1.08) / 2
         - 42
-        - (teamStartCentre - teamNameRect.width / 2)
+        - (monitorTeamStartCentre - teamNameRect.width / 2)
       )
       const fittedScale = Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth)))
-      const visibleTeamWidth = textWidth * fittedScale * TOTAL_POINTS_REVEAL_TEAM_SCALE
+      const horizontalMargin = window.innerWidth * 0.05
+      const transitionWidth = window.innerWidth - horizontalMargin * 2
+      const teamBoxWidth = transitionWidth * 0.75
+      const scoreBoxWidth = transitionWidth * 0.25
+      const teamStartCentre = compactTransition
+        ? horizontalMargin + teamBoxWidth / 2
+        : monitorTeamStartCentre
+      const scoreStartCentre = compactTransition
+        ? horizontalMargin + teamBoxWidth + scoreBoxWidth / 2
+        : monitorTeamStartCentre + textWidth * fittedScale * TOTAL_POINTS_REVEAL_TEAM_SCALE / 2 + revealGap + scoreRect.width / 2
       const scoreReveal = toRevealRect(
         scoreRect,
-        teamStartCentre + visibleTeamWidth / 2 + revealGap + scoreRect.width / 2,
+        scoreStartCentre,
       )
       dispatch({
         type: 'set-reveal-layout',
         layout: {
-          home: toRevealRect(teamNameRect, window.innerWidth / 2 - (scoreRect.width + revealGap) / 2),
+          home: toRevealRect(teamNameRect, teamStartCentre),
           score: {
             ...scoreReveal,
             top: scoreReveal.top + TOTAL_SCORE_REVEAL_Y_CORRECTION,
