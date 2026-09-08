@@ -3011,11 +3011,53 @@ blockquote {
 .customer-shell .standings-row { border-color: transparent; }
 
 @media (max-width: 700px) {
-  .customer-navigation { align-items: flex-start; flex-direction: column; padding-top: 14px; padding-bottom: 14px; }
-  .customer-navigation-actions { width: 100%; flex-wrap: wrap; }
-  .customer-empty, .league-picker, .selected-league-page { padding: 34px 0; }
+  .account-shell { display: grid; min-height: 100svh; padding: 24px 16px; }
+  .account-card { width: 100%; margin: auto; padding: clamp(22px, 7vw, 32px); }
+  .account-card h1 { font-size: clamp(1.65rem, 8vw, 2rem); }
+
+  /* Keep the product name and account control on the same top line. The league
+     switcher gets a dedicated, full-width second line rather than squeezing both. */
+  .customer-navigation {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 12px;
+    min-height: 0;
+    padding: 14px 16px;
+  }
+  .brand-name { min-width: 0; font-size: clamp(1.25rem, 6vw, 1.6rem); white-space: nowrap; }
+  .customer-navigation-actions { display: contents; }
+  .profile-menu { grid-column: 2; grid-row: 1; }
+  .league-switcher { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+  .profile-menu summary { padding: 0 10px; }
+  .league-switcher summary { width: 100%; min-width: 0; padding-right: 38px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .league-switcher > div { right: 0; left: 0; min-width: 0; }
+  .league-switcher > div button { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .profile-menu > div { right: 0; }
+
+  .customer-empty, .league-picker, .selected-league-page { width: min(1120px, calc(100% - 32px)); padding: 34px 0; }
+  .customer-empty { min-height: calc(100svh - 122px); }
   .register-league-card { padding: 22px; }
+  .register-league-card h1 { font-size: clamp(1.5rem, 7vw, 2rem); }
   .league-onboarding { grid-template-columns: minmax(0, 430px); padding-top: 34px; padding-bottom: 34px; }
+  .league-search > div { align-items: stretch; }
+  .league-search-result { gap: 10px; }
+  .league-search-result span { min-width: 0; }
+  .league-search-result strong, .league-search-result small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .league-picker header { margin-bottom: 22px; }
+  .league-picker h1 { font-size: clamp(2rem, 10vw, 3rem); line-height: .98; }
+  .league-cards { grid-template-columns: 1fr; }
+  .league-card { min-height: 132px; padding: 18px; }
+  .league-card strong { overflow: hidden; font-size: clamp(1.08rem, 5vw, 1.25rem); text-overflow: ellipsis; white-space: nowrap; }
+  .league-picker .add-league-card { width: 100%; }
+
+  .customer-broadcast-access { width: calc(100% - 32px); margin-top: 16px; padding: 16px; }
+  .selected-league-standings { gap: 22px; }
+  .selected-league-heading { gap: 14px; }
+  .selected-league-heading h1 { font-size: clamp(2rem, 11vw, 3.2rem); overflow-wrap: anywhere; }
+  .league-view-toggle { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .league-view-toggle button { min-width: 0; padding: 0 10px; font-size: .82rem; }
   .standings-podium { grid-template-columns: 1fr; min-height: 0; }
   .podium-step-1, .podium-step-2, .podium-step-3 { order: initial; }
   .podium-base, .podium-step-1 .podium-base, .podium-step-2 .podium-base, .podium-step-3 .podium-base { min-height: 110px; }
@@ -3032,4 +3074,16 @@ blockquote {
   .home-team, .away-team { text-align: center; white-space: normal; }
   .matchup-scoreline { width: min(220px, 100%); justify-self: center; }
   .admin-league-table > div { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .auth-secondary-actions { grid-template-columns: 1fr; }
+  .league-search > div { display: grid; grid-template-columns: 1fr; }
+  .league-search button { width: 100%; min-height: 42px; }
+  .league-search-result { align-items: stretch; grid-template-columns: 1fr; }
+  .league-search-result button { width: 100%; }
+  .customer-broadcast-access { display: grid; grid-template-columns: 1fr; }
+  .customer-broadcast-access button { width: 100%; }
+  .standings-list-row { grid-template-columns: 38px minmax(0, 1fr) 20px 86px; gap: 6px; padding-right: 8px; padding-left: 8px; }
+  .standings-list-row small { font-size: .78rem; }
 }
