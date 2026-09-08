@@ -2096,7 +2096,7 @@ blockquote {
   .compact-player-panel .player-meta strong { max-width: 58px; min-height: 20px; padding: 0 3px; font-size: 8px; }
   .compact-player-panel .player-meta b { min-width: 20px; height: 20px; font-size: 12px; }
   .compact-player-panel .player-event-stack.has-event { --player-meta-top: 2px; --player-meta-height: 20px; width: 92px; height: 22px; }
-  .compact-player-panel .player-event-notification { padding: 0 5px; font-size: 8px; }
+  .compact-player-panel .player-event-notification { width: min(var(--event-width), calc(100vw - 24px)); padding: 0 5px; font-size: 8px; }
   .compact-player-panel .player-event-notification strong, .compact-player-panel .player-event-notification > span { font-size: 9px; }
 
   .pitch-panel-live .match-score-strip {

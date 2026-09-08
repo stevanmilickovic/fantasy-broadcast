@@ -35,6 +35,7 @@ type BroadcastMatchdayProps = {
 type FplClubShirt = { name: string; shortName?: string; code: number }
 type ShirtCodes = FplClubShirt[]
 const REVEAL_SCORE_CLEARANCE_PX = 42
+const COMPACT_NOTIFICATION_SCREEN_INSET_PX = 12
 
 const notificationTopFor = (index: number) => {
   const metadataHeight = window.matchMedia('(max-width: 900px)').matches ? 20 : 26
@@ -274,14 +275,14 @@ function compactPlayersFor(team: TeamView, latestEvents: FantasyEventView[]) {
 
 function compactNotificationShiftFor(events: FantasyEventView[], side: 'home' | 'away', panelBounds: DOMRect | null) {
   if (events.length === 0 || !panelBounds) return 0
-  const notificationWidth = Math.max(...events.map(notificationWidthFor))
+  const notificationWidth = Math.min(Math.max(...events.map(notificationWidthFor)), window.innerWidth - COMPACT_NOTIFICATION_SCREEN_INSET_PX * 2)
   // Compact cards are anchored to their panel's outer edge. Measure that edge instead
   // of applying a blanket inward offset, so a card moves only when it would clip.
   const notificationCentre = side === 'home' ? panelBounds.left + 46 : panelBounds.right - 46
   const notificationLeft = notificationCentre - notificationWidth / 2
   const notificationRight = notificationCentre + notificationWidth / 2
-  if (notificationLeft < 0) return -notificationLeft
-  if (notificationRight > window.innerWidth) return window.innerWidth - notificationRight
+  if (notificationLeft < COMPACT_NOTIFICATION_SCREEN_INSET_PX) return COMPACT_NOTIFICATION_SCREEN_INSET_PX - notificationLeft
+  if (notificationRight > window.innerWidth - COMPACT_NOTIFICATION_SCREEN_INSET_PX) return window.innerWidth - COMPACT_NOTIFICATION_SCREEN_INSET_PX - notificationRight
   return 0
 }
 
