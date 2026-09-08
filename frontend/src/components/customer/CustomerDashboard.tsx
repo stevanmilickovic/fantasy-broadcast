@@ -101,13 +101,7 @@ function LeagueStandingsOverview({ token, discovery, scoringType }: { token: str
                   {group.standings.map((standing) => {
                     const entryId = standing.league_entry ?? standing.leagueEntryId ?? 0
                     const entry = entriesByLeagueEntryId.get(entryId) ?? entriesByEntryId.get(entryId)
-                    return (
-                      <div className="podium-entry" key={entryId}>
-                        <strong>{entry?.entry_name ?? `Entry ${entryId}`}</strong>
-                        <StandingPoints standing={standing} showGamePoints={showGamePoints} />
-                        <StandingMovement standing={standing} />
-                      </div>
-                    )
+                    return <div className="podium-entry" key={entryId}><strong>{entry?.entry_name ?? `Entry ${entryId}`}</strong><div className="podium-entry-meta">{showGamePoints && <i className="podium-points-divider">·</i>}<StandingPoints standing={standing} showGamePoints={showGamePoints} /><StandingMovement standing={standing} /></div></div>
                   })}
                 </div>
                 <div className="podium-base">
@@ -190,6 +184,7 @@ function LeagueStandingsOverview({ token, discovery, scoringType }: { token: str
 }
 
 function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes }: { discovery: LeagueDiscoveryState; entryId: number; entryName: string; manager: string; shirtCodes: FplClubShirt[] }) {
+  const stageRef = useRef<HTMLElement>(null)
   const players = leaguePlayersForEntry(discovery, entryId)
   const starters = players.filter((player) => player.starter)
   const bench = players.filter((player) => !player.starter)
@@ -200,7 +195,13 @@ function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes }
     ['GKP', 'Goalkeeper', starters.filter((player) => player.position === 'GKP')],
     ['BENCH', 'Bench', bench],
   ] as const
-  return <section className="league-team-stage" aria-label={`${entryName} players`}>
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 700px)').matches) return
+    const frame = window.requestAnimationFrame(() => stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    return () => window.cancelAnimationFrame(frame)
+  }, [entryId])
+
+  return <section ref={stageRef} className="league-team-stage" aria-label={`${entryName} players`}>
     <header><span>{manager}</span><FitClubName text={entryName} /><strong>{players.reduce((total, player) => total + player.points, 0)} pts</strong></header>
     <div className="league-total-player-rows">{groups.map(([key, label, groupPlayers]) => groupPlayers.length > 0 && <section className="league-total-player-row" key={key}><span>{label}</span><div>{groupPlayers.map((player, index) => <LeaguePlayerToken key={player.id} player={player} shirtCode={shirtCodeFor(player.club, shirtCodes)} position={rowPlayerPosition(index, groupPlayers.length)} />)}</div></section>)}</div>
   </section>
@@ -331,6 +332,7 @@ function useShirtCodes(token: string) {
   return codes
 }
 function rowPlayerPosition(index: number, count: number) {
+  if (count === 5 && window.matchMedia('(max-width: 700px)').matches) return { x: 10 + index * 20, y: 50 }
   return { x: ((index + 1) / (count + 1)) * 100, y: 50 }
 }
 function shirtCodeFor(clubName: string, shirtCodes: FplClubShirt[]) {
