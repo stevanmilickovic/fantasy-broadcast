@@ -3060,6 +3060,12 @@ blockquote {
   .league-picker .add-league-card { width: 100%; }
 
   .customer-broadcast-access { width: calc(100% - 32px); margin-top: 16px; padding: 16px; }
+  .league-actions-menu > div {
+    top: 0;
+    right: calc(100% + 8px);
+    min-width: min(180px, calc(100vw - 82px));
+    margin-top: 0;
+  }
   .selected-league-standings { gap: 22px; }
   .selected-league-heading { gap: 14px; }
   .selected-league-heading h1 { font-size: clamp(2rem, 11vw, 3.2rem); overflow-wrap: anywhere; }
