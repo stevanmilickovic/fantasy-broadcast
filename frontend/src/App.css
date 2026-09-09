@@ -2988,6 +2988,18 @@ blockquote {
 .auth-secondary-actions a { min-width: 0; }
 .account-card button.secondary-action { color: #fff; background: #30266f; }
 .account-card button.secondary-action:hover { background: #443783; }
+.account-card button.forgot-password-link {
+  justify-self: start;
+  min-height: 0;
+  margin-top: -7px;
+  padding: 0;
+  color: #c8f9ff;
+  background: transparent;
+  font-size: .8rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+.account-card button.forgot-password-link:hover { color: #20e6ff; background: transparent; text-decoration: underline; }
 .account-card button:disabled { cursor: wait; opacity: .65; }
 .auth-success { margin: 0; color: #20e6ff; font-size: .92rem; font-weight: 750; }
 .customer-shell .league-discovery, .customer-shell .discovery-results, .customer-shell .discovery-panel, .customer-shell .discovery-title, .customer-shell .readiness-item, .customer-shell .team-card, .customer-shell .standings-row { border: 0 !important; border-radius: 0 !important; }

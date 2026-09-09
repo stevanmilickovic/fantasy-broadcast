@@ -96,7 +96,8 @@ function App() {
 
   useEffect(() => {
     if (isAuthLoading) return
-    if (!authUser && location.pathname !== '/login') {
+    if (location.pathname === '/reset-password') return
+    if (!authUser && !['/login', '/reset-password'].includes(location.pathname)) {
       navigate('/login', true)
       return
     }
@@ -221,8 +222,8 @@ function App() {
     return <main className="account-shell"><p>Checking your session…</p></main>
   }
 
-  if (!authUser) {
-    return <AuthScreen onAuthenticated={handleAuthenticated} />
+  if (!authUser || location.pathname === '/reset-password') {
+    return <AuthScreen pathname={location.pathname} search={location.search} onAuthenticated={handleAuthenticated} onNavigate={navigate} />
   }
 
   if (authUser.role !== 'ADMIN' && location.pathname !== '/broadcast') {

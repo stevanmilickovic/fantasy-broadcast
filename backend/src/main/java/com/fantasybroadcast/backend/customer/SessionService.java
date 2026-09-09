@@ -52,6 +52,10 @@ public class SessionService {
 		}
 	}
 
+	public void removeForUser(long userId) {
+		sessions.entrySet().removeIf(entry -> entry.getValue().user().id() == userId);
+	}
+
 	private ResponseStatusException unauthorized() {
 		return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign in is required.");
 	}

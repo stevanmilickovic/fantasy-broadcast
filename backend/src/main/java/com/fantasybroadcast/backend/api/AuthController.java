@@ -2,6 +2,7 @@ package com.fantasybroadcast.backend.api;
 
 import com.fantasybroadcast.backend.customer.AccountService;
 import com.fantasybroadcast.backend.customer.AccountService.PendingRegistration;
+import com.fantasybroadcast.backend.customer.AccountService.PasswordResetRequest;
 import com.fantasybroadcast.backend.customer.CurrentUser;
 import com.fantasybroadcast.backend.customer.SessionService;
 import jakarta.validation.Valid;
@@ -60,6 +61,16 @@ public class AuthController {
 		return authenticated(accountService.authenticate(credentials.email(), credentials.password()), response);
 	}
 
+	@PostMapping("/password/forgot")
+	public PasswordResetRequest forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+		return accountService.requestPasswordReset(request.email());
+	}
+
+	@PostMapping("/password/reset")
+	public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+		accountService.resetPassword(request.token(), request.password());
+	}
+
 	@PostMapping("/logout")
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		sessionService.remove(request);
@@ -85,6 +96,13 @@ public class AuthController {
 	}
 
 	public record VerificationCredentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 6, max = 20) String code) {
+	}
+
+	public record ForgotPasswordRequest(@NotBlank @Size(max = 320) String email) {
+	}
+
+	public record ResetPasswordRequest(@NotBlank @Size(max = 200) String token,
+			@NotBlank @Size(min = 12, max = 200) String password) {
 	}
 
 	/** Existing accounts keep their configured passwords; new registrations require the stronger minimum. */

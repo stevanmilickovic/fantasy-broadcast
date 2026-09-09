@@ -54,6 +54,13 @@ export const verifyRegistration = async (email: string, code: string): Promise<A
   return response.json()
 }
 
+export const requestPasswordReset = async (email: string): Promise<{ message: string }> =>
+  (await request('/api/auth/password/forgot', { method: 'POST', body: JSON.stringify({ email }) })).json()
+
+export const resetPassword = async (token: string, password: string): Promise<void> => {
+  await request('/api/auth/password/reset', { method: 'POST', body: JSON.stringify({ token, password }) })
+}
+
 export const loadAuthOptions = async (): Promise<AuthOptions> => (await request('/api/auth/options')).json()
 export const loadCurrentUser = async (): Promise<AuthUser> => (await request('/api/auth/me')).json()
 export const logout = async () => { await request('/api/auth/logout', { method: 'POST' }) }
