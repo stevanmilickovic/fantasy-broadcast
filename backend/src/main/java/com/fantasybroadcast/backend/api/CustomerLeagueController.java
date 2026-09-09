@@ -114,10 +114,10 @@ public class CustomerLeagueController {
 				? fplClient.getClassicLeagueStandings(league.fplLeagueId())
 				: fplClient.getClassicPointsLeagueStandings(league.fplLeagueId());
 		var entries = fplMapper.mapClassicLeagueEntries(standingsRoot);
-		var trackedPlayerCount = entries.size() * 15;
-		if (trackedPlayerCount > 200) {
+		var managerCount = entries.size();
+		if (managerCount > 50) {
 			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
-					"This league requires " + trackedPlayerCount + " tracked players; the maximum is 200.");
+					"This league has " + managerCount + " managers; the maximum is 50.");
 		}
 		var bootstrap = fplClient.getFantasyBootstrapStatic();
 		var gameweek = currentGameweek(bootstrap);

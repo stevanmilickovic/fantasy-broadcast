@@ -63,6 +63,13 @@ broadcast:
       audio-ttl: ${BROADCAST_NARRATION_AUDIO_TTL:30m}
       cleanup-interval: ${BROADCAST_NARRATION_CLEANUP_INTERVAL:5m}
 
+paddle:
+  api-key: ${PADDLE_API_KEY:}
+  client-side-token: ${PADDLE_CLIENT_SIDE_TOKEN:}
+  standard-price-id: ${PADDLE_STANDARD_PRICE_ID:}
+  ai-broadcaster-price-id: ${PADDLE_AI_BROADCASTER_PRICE_ID:}
+  api-url: ${PADDLE_API_URL:https://sandbox-api.paddle.com}
+
 ---
 spring:
   config:

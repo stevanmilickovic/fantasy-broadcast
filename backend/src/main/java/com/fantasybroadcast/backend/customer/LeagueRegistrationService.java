@@ -19,7 +19,7 @@ import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 @Service
 @Profile("db & !test")
 public class LeagueRegistrationService {
-	private static final int MAX_TRACKED_PLAYERS = 200;
+	private static final int MAX_MANAGERS = 50;
 	private static final String LEAGUE_COLUMNS = "id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, owner_user_id";
 
 	private final JdbcTemplate jdbcTemplate;
@@ -156,14 +156,23 @@ public class LeagueRegistrationService {
 		return resolveLeague(fplLeagueId, leagueType).scoringType();
 	}
 
+	public LeaguePreview preview(long fplLeagueId, FplLeagueType leagueType) {
+		var source = resolveLeague(fplLeagueId, leagueType);
+		var validationMessage = source.mockLeague()
+				? "Mock leagues cannot be registered. Enter an active FPL league ID instead."
+				: source.managerCount() > MAX_MANAGERS
+						? "This league has " + source.managerCount() + " managers; the maximum is " + MAX_MANAGERS + "."
+						: null;
+		return new LeaguePreview(source.displayName(), source.managerCount(), validationMessage);
+	}
+
 	private SourceLeague resolveLeague(long fplLeagueId, FplLeagueType leagueType) {
 		if (leagueType == FplLeagueType.DRAFT) {
 			var root = fplClient.getLeagueDetails(fplLeagueId);
-			var trackedPlayerCount = 0;
-			for (var status : fplClient.getLeagueElementStatus(fplLeagueId).path("element_status")) {
-				if (status.path("owner").isValueNode() && !status.path("owner").isNull()) trackedPlayerCount++;
-			}
-			return new SourceLeague(leagueName(root), scoringFrom(root), trackedPlayerCount);
+			var managerCount = 0;
+			for (var ignored : root.path("league_entries")) managerCount++;
+			return new SourceLeague(leagueName(root), scoringFrom(root), managerCount, managerCount,
+					root.path("league").path("scoring").asString("").trim().equalsIgnoreCase("m"));
 		}
 		try {
 			var root = fplClient.getClassicLeagueStandings(fplLeagueId);
@@ -178,17 +187,24 @@ public class LeagueRegistrationService {
 
 	private SourceLeague classicSourceLeague(tools.jackson.databind.JsonNode root, FplLeagueScoring scoringType) {
 		var standings = root.path("standings");
-		var entryCount = 0;
-		for (var ignored : standings.path("results")) entryCount++;
-		// FPL returns standings in pages of 50. A second page is already well above our 200-player limit.
-		if (standings.path("has_next").asBoolean(false)) entryCount = (MAX_TRACKED_PLAYERS / 15) + 1;
-		return new SourceLeague(leagueName(root), scoringType, entryCount * 15);
+		var entryCount = entriesOnPage(standings);
+		if (standings.path("has_next").asBoolean(false)) entryCount++;
+		return new SourceLeague(leagueName(root), scoringType, entryCount, entryCount, false);
+	}
+
+	private int entriesOnPage(tools.jackson.databind.JsonNode standings) {
+		var count = 0;
+		for (var ignored : standings.path("results")) count++;
+		return count;
 	}
 
 	private void validateTrackedPlayerCount(SourceLeague sourceLeague) {
-		if (sourceLeague.trackedPlayerCount() > MAX_TRACKED_PLAYERS) {
+		if (sourceLeague.mockLeague()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mock leagues cannot be registered.");
+		}
+		if (sourceLeague.managerCount() > MAX_MANAGERS) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"This league has " + sourceLeague.trackedPlayerCount() + " tracked players; the maximum is " + MAX_TRACKED_PLAYERS + ".");
+					"This league has " + sourceLeague.managerCount() + " managers; the maximum is " + MAX_MANAGERS + ".");
 		}
 	}
 
@@ -200,7 +216,7 @@ public class LeagueRegistrationService {
 
 	private FplLeagueScoring scoringFrom(tools.jackson.databind.JsonNode root) {
 		return switch (root.path("league").path("scoring").asString("").trim().toLowerCase()) {
-			case "h", "h2h", "head-to-head" -> FplLeagueScoring.H2H;
+			case "h", "h2h", "head-to-head", "m" -> FplLeagueScoring.H2H;
 			case "c", "classic", "total_points", "total-points" -> FplLeagueScoring.TOTAL_POINTS;
 			default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "FPL did not return a recognised league scoring type.");
 		};
@@ -238,6 +254,7 @@ public class LeagueRegistrationService {
 	public record AdminLeaguePage(List<AdminLeague> items, int page, int size, long totalItems) {
 	}
 
-	private record SourceLeague(String displayName, FplLeagueScoring scoringType, int trackedPlayerCount) {
+	public record LeaguePreview(String displayName, int managerCount, String validationMessage) { }
+	private record SourceLeague(String displayName, FplLeagueScoring scoringType, int trackedPlayerCount, int managerCount, boolean mockLeague) {
 	}
 }
