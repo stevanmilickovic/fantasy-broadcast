@@ -10,7 +10,7 @@ type AuthMode = 'login' | 'register' | 'forgot'
 const PASSWORD_MIN_LENGTH = 12
 
 export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Props) {
-  const [mode, setMode] = useState<AuthMode>('login')
+  const [mode, setMode] = useState<AuthMode>(pathname === '/register' ? 'register' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')

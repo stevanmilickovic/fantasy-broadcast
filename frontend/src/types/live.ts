@@ -103,6 +103,7 @@ export type RevealLayout = {
   home: RevealRect
   away: RevealRect
   score: RevealRect
+  viewportWidth?: number
 }
 
 export type PlayerGroup = {

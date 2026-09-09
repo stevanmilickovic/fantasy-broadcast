@@ -6,6 +6,7 @@ import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdministrationScreen } from './components/administration/AdministrationScreen'
 import { AuthScreen } from './components/customer/AuthScreen'
 import { CustomerDashboard } from './components/customer/CustomerDashboard'
+import { WelcomePage } from './components/customer/WelcomePage'
 import { useAuthSession } from './hooks/useAuthSession'
 import { useBroadcastEventQueue } from './hooks/useBroadcastEventQueue'
 import { useBroadcastFocus } from './hooks/useBroadcastFocus'
@@ -97,8 +98,13 @@ function App() {
   useEffect(() => {
     if (isAuthLoading) return
     if (location.pathname === '/reset-password') return
-    if (!authUser && !['/login', '/reset-password'].includes(location.pathname)) {
+    const publicRoutes = ['/', '/login', '/register', '/reset-password']
+    if (!authUser && !publicRoutes.includes(location.pathname)) {
       navigate('/login', true)
+      return
+    }
+    if (authUser && ['/', '/login', '/register'].includes(location.pathname)) {
+      navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues', true)
       return
     }
     const customerRoutes = ['/league', '/leagues', '/leagues/new']
@@ -220,6 +226,10 @@ function App() {
 
   if (isAuthLoading) {
     return <main className="account-shell"><p>Checking your session…</p></main>
+  }
+
+  if (!authUser && location.pathname === '/') {
+    return <WelcomePage onNavigate={navigate} />
   }
 
   if (!authUser || location.pathname === '/reset-password') {

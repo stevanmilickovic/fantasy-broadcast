@@ -44,7 +44,7 @@ function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number)
 }
 
 function OwnerBadge() { return <span className="owner-badge">My league</span> }
-function LeagueStandingsOverview({ token, discovery, scoringType }: { token: string; discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring }) {
+export function LeagueStandingsOverview({ token, discovery, scoringType }: { token: string; discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring }) {
   const [mode, setMode] = useState<LeagueDisplayMode>('standings')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const [teamSearch, setTeamSearch] = useState('')
@@ -323,6 +323,7 @@ function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number)
 function useShirtCodes(token: string) {
   const [codes, setCodes] = useState<FplClubShirt[]>([])
   useEffect(() => {
+    if (token === 'demo') return
     let alive = true
     loadFplShirts(token)
       .then((teams: FplClubShirt[]) => { if (alive) setCodes(teams) })

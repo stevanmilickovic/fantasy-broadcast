@@ -374,6 +374,7 @@ export function useBroadcastPresentation({
         home: toRevealRect(homeHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.27),
         score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
         away: toRevealRect(awayHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.73),
+        viewportWidth: window.innerWidth,
       },
     })
   }, [

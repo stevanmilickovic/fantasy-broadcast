@@ -6,6 +6,7 @@ import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_
 
 type BroadcastMatchdayProps = {
 	authToken: string
+	shirtCodesOverride?: ShirtCodes
 	displayLiveState: LiveStateResponse
 	matchup?: MatchupView
 	latestCommentaryId?: string
@@ -43,7 +44,7 @@ const notificationTopFor = (index: number) => {
 }
 
 export function BroadcastMatchday({
-	authToken, displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
+	authToken, shirtCodesOverride, displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
   revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
@@ -52,6 +53,7 @@ export function BroadcastMatchday({
   if (!matchup && (displayLiveState.teams?.length ?? 0) > 0) {
     return <TotalPointsBroadcast
 		authToken={authToken}
+		shirtCodesOverride={shirtCodesOverride}
       displayLiveState={displayLiveState}
       broadcastFocus={broadcastFocus}
       automaticFocus={automaticFocus}
@@ -91,7 +93,7 @@ export function BroadcastMatchday({
         ? <HeadToHeadLeaderboard standings={standings} headingRef={leaderboardHeadingRef} />
         : <section className="matchday-stage pitch-broadcast-stage" aria-label="Focused matchup broadcast">
             <BroadcastTeamColumn side="left" team={matchup.home} isLeader={matchup.leaderManagerId === matchup.home.managerId} headingRef={homeHeadingRef} />
-            <PitchStage authToken={authToken} gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
+            <PitchStage authToken={authToken} shirtCodesOverride={shirtCodesOverride} gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
             <BroadcastTeamColumn side="right" team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} headingRef={awayHeadingRef} />
           </section>}
     </main>
@@ -207,8 +209,8 @@ function BroadcastTeamColumn({ side, team, isLeader, headingRef }: { side: 'left
   </section>
 }
 
-function PitchStage({ authToken, gameweek, scoreline, leaderName, scoreRef, matchup, latestEvents, pendingEvents }: { authToken: string; gameweek: number; scoreline: string; leaderName: string; scoreRef: RefObject<HTMLElement | null>; matchup: MatchupView; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
-	const shirtCodes = useShirtCodes(authToken)
+function PitchStage({ authToken, shirtCodesOverride, gameweek, scoreline, leaderName, scoreRef, matchup, latestEvents, pendingEvents }: { authToken: string; shirtCodesOverride?: ShirtCodes; gameweek: number; scoreline: string; leaderName: string; scoreRef: RefObject<HTMLElement | null>; matchup: MatchupView; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
+	const shirtCodes = useShirtCodes(authToken, shirtCodesOverride)
   return <section className="pitch-panel pitch-panel-live">
     <div className="match-score-strip"><span>GW{gameweek}</span><strong ref={scoreRef}>{formatScoreline(scoreline)}</strong><small><Trophy size={14} />{leaderName === 'No one' ? 'Level' : leaderName}</small></div>
     <div className="pitch-and-benches">
@@ -367,9 +369,10 @@ function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, p
   </div>
 }
 
-function useShirtCodes(token: string): ShirtCodes {
+function useShirtCodes(token: string, shirtCodesOverride?: ShirtCodes): ShirtCodes {
   const [codes, setCodes] = useState<ShirtCodes>([])
   useEffect(() => {
+    if (shirtCodesOverride) return
     let alive = true
 		fetch('/api/customer/fpl/shirts')
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('Unable to load shirts')))
@@ -384,8 +387,8 @@ function useShirtCodes(token: string): ShirtCodes {
         })
       }).catch(() => undefined)
     return () => { alive = false }
-  }, [token])
-  return codes
+  }, [shirtCodesOverride, token])
+  return shirtCodesOverride ?? codes
 }
 
 function PitchTeam({ side, team, shirtCodes, latestEvents, pendingEvents, notificationShifts }: { side: 'home' | 'away'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[]; notificationShifts: Map<string, number> }) {
@@ -464,8 +467,9 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
   </div>
 }
 
-function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+function TotalPointsBroadcast({ authToken, shirtCodesOverride, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
 	authToken: string
+  shirtCodesOverride?: ShirtCodes
   displayLiveState: LiveStateResponse
   broadcastFocus: BroadcastFocus
   automaticFocus: BroadcastFocus
@@ -496,7 +500,7 @@ function TotalPointsBroadcast({ authToken, displayLiveState, broadcastFocus, aut
   const selectedTeam = broadcastFocus === 'multi' ? undefined : displayLiveState.teams?.find((candidate) => candidate.managerId === broadcastFocus)
   const team = selectedTeam ?? automaticallyFocusedTeam ?? displayLiveState.teams?.[0]
   if (!team) return null
-  const shirtCodes = useShirtCodes(authToken)
+  const shirtCodes = useShirtCodes(authToken, shirtCodesOverride)
   useLayoutEffect(() => {
     const heading = totalHeadingRef.current
     const teamName = totalTeamNameRef.current
@@ -959,7 +963,8 @@ function abbreviatedWordMatches(firstWord: string | undefined, secondWord: strin
 }
 
 function MatchReveal({ layout, matchup, homeHeadingRef, awayHeadingRef, scoreRef }: { layout: RevealLayout | null; matchup: MatchupView; homeHeadingRef: RefObject<HTMLHeadingElement | null>; awayHeadingRef: RefObject<HTMLHeadingElement | null>; scoreRef: RefObject<HTMLElement | null> }) {
-  return <div className="match-reveal-overlay" aria-hidden="true"><div className="match-reveal-sheet" />{layout && <><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} name={matchup.home.clubName} headingRef={homeHeadingRef} /><RevealScoreCopy layout={layout.score} score={formatScoreline(matchup.scoreline)} scoreRef={scoreRef} /><RevealTeamCopy className="reveal-away" layout={layout.away} scoreLayout={layout.score} name={matchup.away.clubName} headingRef={awayHeadingRef} /></>}</div>
+  const viewportWidth = layout?.viewportWidth ?? window.innerWidth
+  return <div className="match-reveal-overlay" aria-hidden="true"><div className="match-reveal-sheet" />{layout && <><RevealTeamCopy className="reveal-home" layout={layout.home} scoreLayout={layout.score} viewportWidth={viewportWidth} name={matchup.home.clubName} headingRef={homeHeadingRef} /><RevealScoreCopy layout={layout.score} score={formatScoreline(matchup.scoreline)} scoreRef={scoreRef} /><RevealTeamCopy className="reveal-away" layout={layout.away} scoreLayout={layout.score} viewportWidth={viewportWidth} name={matchup.away.clubName} headingRef={awayHeadingRef} /></>}</div>
 }
 
 function RevealScoreCopy({ layout, score, scoreRef }: { layout: RevealLayout['score']; score: string; scoreRef: RefObject<HTMLElement | null> }) {
@@ -973,7 +978,7 @@ function RevealScoreCopy({ layout, score, scoreRef }: { layout: RevealLayout['sc
   return <strong className="match-reveal-copy match-reveal-score" style={{ ...revealCopyStyle(layout, 1.08), ...typography }}>{score}</strong>
 }
 
-function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef, initialScaleMultiplier = 1 }: { className: string; layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; name: string; headingRef: RefObject<HTMLElement | null>; initialScaleMultiplier?: number }) {
+function RevealTeamCopy({ className, layout, scoreLayout, viewportWidth, name, headingRef, initialScaleMultiplier = 1 }: { className: string; layout: RevealLayout['home']; scoreLayout: RevealLayout['score']; viewportWidth: number; name: string; headingRef: RefObject<HTMLElement | null>; initialScaleMultiplier?: number }) {
   const [revealScale, setRevealScale] = useState(1)
   const [typography, setTypography] = useState<CSSProperties>()
   const [sourceFontSize, setSourceFontSize] = useState<number>()
@@ -987,14 +992,21 @@ function RevealTeamCopy({ className, layout, scoreLayout, name, headingRef, init
     const naturalSize = Number.parseFloat(style.fontSize)
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
     const textWidth = context.measureText(name).width
-    setSourceFontSize(naturalSize * (window.innerWidth * 0.8) / Math.max(1, textWidth))
+    setSourceFontSize(naturalSize * (viewportWidth * 0.8) / Math.max(1, textWidth))
     const scoreHalfWidth = scoreLayout.width * 1.08 / 2
-    const scoreCentre = window.innerWidth / 2
-    const teamStartCentre = layout.left + layout.width / 2 + layout.revealX
+    const scoreCentre = viewportWidth / 2
+    const revealGap = viewportWidth * 0.05
     const availableWidth = className === 'reveal-home'
-      ? scoreCentre - scoreHalfWidth - REVEAL_SCORE_CLEARANCE_PX - (teamStartCentre - layout.width / 2)
-      : (teamStartCentre + layout.width / 2) - (scoreCentre + scoreHalfWidth + REVEAL_SCORE_CLEARANCE_PX)
+      ? scoreCentre - scoreHalfWidth - revealGap - viewportWidth * 0.05
+      : viewportWidth - viewportWidth * 0.05 - scoreCentre - scoreHalfWidth - revealGap
     setRevealScale(Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth))))
-  }, [className, headingRef, layout.width, name, scoreLayout.width])
-	return <strong className={`match-reveal-copy match-reveal-team ${className}`} style={{ ...revealCopyStyle(layout, revealScale * initialScaleMultiplier), ...typography, '--reveal-source-font-size': `${sourceFontSize ?? 0}px`, '--reveal-final-font-size': typography?.fontSize ?? 'inherit' } as CSSProperties}>{name}</strong>
+  }, [className, headingRef, name, scoreLayout.width, viewportWidth])
+  const revealCopyScale = revealScale * initialScaleMultiplier
+  const scoreHalfWidth = scoreLayout.width * 1.08 / 2
+  const revealGap = viewportWidth * 0.05
+  const finalCentre = layout.left + layout.width / 2
+  const initialCentre = className === 'reveal-home'
+    ? viewportWidth / 2 - scoreHalfWidth - revealGap - layout.width * revealCopyScale / 2
+    : viewportWidth / 2 + scoreHalfWidth + revealGap + layout.width * revealCopyScale / 2
+	return <strong className={`match-reveal-copy match-reveal-team ${className}`} style={{ ...revealCopyStyle(layout, revealCopyScale), ...typography, '--reveal-x': `${initialCentre - finalCentre}px`, '--reveal-box-width': `${layout.width}px`, '--reveal-source-font-size': `${sourceFontSize ?? 0}px`, '--reveal-final-font-size': typography?.fontSize ?? 'inherit' } as CSSProperties}><span>{name}</span></strong>
 }
