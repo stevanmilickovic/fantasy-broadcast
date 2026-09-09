@@ -40,7 +40,7 @@ export function useAuthSession(navigate: Navigate) {
   const signOut = useCallback(async () => {
     await logout().catch(() => undefined)
     setUser(null)
-    navigate('/login', true)
+    navigate('/', true)
   }, [navigate])
 
   return { user, isLoading, handleAuthenticated, signOut }

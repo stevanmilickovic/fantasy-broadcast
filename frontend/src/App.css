@@ -2396,6 +2396,7 @@ blockquote {
 }
 
 .brand-name { margin-right: auto; color: #fff; font-size: clamp(1.45rem, 2.2vw, 2rem); font-weight: 850; letter-spacing: -.04em; line-height: 1; }
+.customer-navigation .customer-brand { min-height: 0; padding: 0; background: transparent; }
 .customer-navigation-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .customer-navigation button, .profile-menu summary, .league-switcher summary {
   min-height: 38px;
@@ -3137,6 +3138,7 @@ blockquote {
   .welcome-nav { width: calc(100% - 32px); min-height: 70px; }
   .welcome-nav nav { gap: 2px; }
   .welcome-nav nav button { min-height: 39px; padding: 0 10px; font-size: .75rem; }
+  .welcome-sign-in { display: none; }
   .welcome-register svg { display: none; }
   .welcome-hero { width: calc(100% - 32px); min-height: 0; padding: 62px 0 72px; }
   .welcome-hero h1 { margin: 19px 0; font-size: clamp(3.6rem, 19vw, 5.3rem); }
@@ -3147,9 +3149,8 @@ blockquote {
   .welcome-proof { display: grid; padding: 25px 20px; text-align: center; }
   .welcome-proof > p { margin: 0 auto; }
   .welcome-proof > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 22px; }
-  .welcome-real-broadcast { width: 100%; aspect-ratio: auto; min-height: 670px; transform: rotate(.65deg); }
-  .welcome-broadcast-scale { width: 100%; height: 100%; transform: none; }
-  .welcome-broadcast-scale > .matchday-page { min-height: 670px; }
+  /* The demo needs more space than a phone portrait layout can provide. */
+  .welcome-real-broadcast { display: none; }
   .welcome-features { width: calc(100% - 32px); padding-bottom: 95px; }
   .welcome-features article { min-height: 215px; padding: 25px; }
   .welcome-final-cta { padding: 75px 20px; }
