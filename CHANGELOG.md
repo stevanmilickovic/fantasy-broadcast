@@ -5,6 +5,7 @@
 - Added public pricing, privacy, terms, and refund pages.
 - Added consistent legal-policy links across account pages, excluding live broadcasts.
 - Improved checkout and pricing layouts on phone-sized screens.
+- Updated embedded Tomcat to 11.0.25 to address critical security fixes.
 
 ## 1.0.0-BUILD-3 - 2026-09-09
 
