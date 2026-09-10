@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-BUILD-4 - 2026-09-10
+
+- Added public pricing, privacy, terms, and refund pages.
+- Added consistent legal-policy links across account pages, excluding live broadcasts.
+- Improved checkout and pricing layouts on phone-sized screens.
+
 ## 1.0.0-BUILD-3 - 2026-09-09
 
 - Improved the welcome page on phone-sized screens by hiding the broadcast preview and top sign-in action.
