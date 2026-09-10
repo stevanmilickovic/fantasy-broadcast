@@ -2,7 +2,10 @@ spring:
   application:
     name: backend
   config:
-    import: optional:file:${BROADCAST_CONFIG_DIRECTORY:./data/backend}/application.yaml
+    # Maven runs Spring Boot with backend/ as the working directory, while the
+    # packaged app is normally launched from the repository root. Support both
+    # local layouts; deployments set BROADCAST_CONFIG_DIRECTORY explicitly.
+    import: optional:file:${BROADCAST_CONFIG_DIRECTORY:./data/backend}/application.yaml,optional:file:../data/backend/application.yaml
   mail:
     host: ${SMTP_HOST:}
     port: ${SMTP_PORT:587}
@@ -68,6 +71,7 @@ paddle:
   client-side-token: ${PADDLE_CLIENT_SIDE_TOKEN:}
   standard-price-id: ${PADDLE_STANDARD_PRICE_ID:}
   ai-broadcaster-price-id: ${PADDLE_AI_BROADCASTER_PRICE_ID:}
+  webhook-secret-key: ${PADDLE_WEBHOOK_SECRET_KEY:}
   api-url: ${PADDLE_API_URL:https://sandbox-api.paddle.com}
 
 ---

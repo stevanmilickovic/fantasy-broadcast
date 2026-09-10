@@ -1,0 +1,81 @@
+# Local configuration template. Copy it to application.yaml, then replace only
+# the values you use. application.yaml is ignored by Git and is loaded when
+# the backend is started from the repository root.
+
+spring:
+  mail:
+    host: smtp.example.com
+    port: 587
+    username: replace-me@example.com
+    password: replace-me
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: replace-me
+            client-secret: replace-me
+            redirect-uri: http://localhost:5173/login/oauth2/code/google
+            scope: openid,email,profile
+  datasource:
+    url: jdbc:mysql://localhost:3307/fantasy_broadcast
+    username: fantasy_broadcast
+    password: fantasy_broadcast
+
+# Required only when the FPL defaults need changing.
+fpl:
+  timeout-seconds: 15
+  cache-ttl-seconds: 3600
+
+# This spelling is used directly by the API controllers for CORS.
+BROADCAST_ALLOWED_ORIGIN: http://localhost:5173
+
+broadcast:
+  email:
+    enabled: false
+    from: replace-me@example.com
+    public-base-url: http://localhost:5173
+  security:
+    public-base-url: http://localhost:5173
+    league-registration-enabled: true
+    development-endpoints-enabled: true
+    secure-cookies: false
+    initial-admin-email: admin@example.com
+    initial-admin-password: replace-me-with-a-strong-local-password
+  narration:
+    enabled: false
+    audio-enabled: false
+    release-delay: 1m
+    openai:
+      api-key: replace-me
+      base-url: https://api.openai.com/v1
+      model: gpt-5-nano
+      timeout-seconds: 20
+    eleven-labs:
+      api-key: replace-me
+      base-url: https://api.elevenlabs.io/v1
+      model-id: eleven_multilingual_v2
+      voice-id: replace-me
+      timeout-seconds: 30
+    limits:
+      max-text-characters: 220
+      max-narrations-per-league-gameweek: 40
+      monthly-tts-character-budget: 100000
+    storage:
+      temp-directory: C:/temp/fantasy-broadcast/narrations
+      audio-ttl: 30m
+      cleanup-interval: 5m
+
+paddle:
+  api-key: pdl_sdbx_apikey_replace-me
+  client-side-token: test_replace-me
+  standard-price-id: pri_replace-me
+  ai-broadcaster-price-id: pri_replace-me
+  webhook-secret-key: pdl_ntfset_replace-me
+  api-url: https://sandbox-api.paddle.com

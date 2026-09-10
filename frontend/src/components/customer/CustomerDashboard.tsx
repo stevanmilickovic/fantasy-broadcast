@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowLeft, ArrowUp, Check, CircleCheck, Minus, Sparkles } from 'lucide-react'
-import { deleteOwnedLeague, followLeague, loadActiveBroadcastSchedules, loadClassicLeagueOverview, loadDraftLeagueOverview, loadFplShirts, loadLeagueRegistrationAccess, loadRegisteredLeagues, openLeagueBroadcast, previewLeaguePayment, searchRegisteredLeagues, type ClassicLeagueDiscovery, type LeaguePaymentPreview } from '../../api/customerApi'
+import { createPaddleCheckout, deleteOwnedLeague, followLeague, loadActiveBroadcastSchedules, loadClassicLeagueOverview, loadDraftLeagueOverview, loadFplShirts, loadLeagueRegistrationAccess, loadRegisteredLeagues, openLeagueBroadcast, previewLeaguePayment, searchRegisteredLeagues, type ClassicLeagueDiscovery, type LeaguePaymentPreview } from '../../api/customerApi'
+import { openPaddleCheckout } from '../../utils/paddleCheckout'
 import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
@@ -54,8 +55,24 @@ function LeagueCheckoutProfessional({ search, onNavigate }: { search: string; on
   const [leagueType, setLeagueType] = useState<FplLeagueType>((parameters.get('leagueType') as FplLeagueType) ?? 'DRAFT')
   const [preview, setPreview] = useState<LeaguePaymentPreview | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [openingPlan, setOpeningPlan] = useState<'STANDARD' | 'AI_BROADCASTER' | null>(null)
   useEffect(() => { if (!leagueId) return; setPreview(null); setError(null); void previewLeaguePayment(leagueId, leagueType).then(setPreview).catch((reason: Error) => setError(reason.message)) }, [leagueId, leagueType])
   const leagueIsValid = preview?.registrationEligible === true
+  const openCheckout = async (plan: 'STANDARD' | 'AI_BROADCASTER') => {
+    setError(null); setOpeningPlan(plan)
+    try { await openPaddleCheckout(await createPaddleCheckout(leagueId, leagueType, plan)) }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to open checkout.') }
+    finally { setOpeningPlan(null) }
+  }
+  useEffect(() => {
+    const handlePlanSelection = (event: MouseEvent) => {
+      const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('.checkout-plan > button') : null
+      if (!button || button.disabled || openingPlan) return
+      void openCheckout(button.textContent?.includes('AI Broadcaster') ? 'AI_BROADCASTER' : 'STANDARD')
+    }
+    document.addEventListener('click', handlePlanSelection)
+    return () => document.removeEventListener('click', handlePlanSelection)
+  }, [leagueId, leagueType, openingPlan])
   return <main className="league-checkout-page"><button type="button" className="checkout-back" onClick={() => onNavigate('/leagues/new')}><ArrowLeft size={17} /> Back to league ID</button><header className="checkout-heading"><span className="kicker">Fantasy Broadcast</span><h1>Bring your league to the broadcast.</h1><p>Review your league, then choose the experience your managers will see on matchday.</p></header><section className="checkout-layout"><aside className="checkout-league-card"><div><span className="checkout-eyebrow">Your league</span><strong>{preview?.displayName ?? 'Looking up your league…'}{leagueIsValid && <CircleCheck className="league-verified" size={23} aria-label="League verified" />}</strong><span>{preview ? `${preview.managerCount} managers · ${leagueType === 'DRAFT' ? 'Draft' : 'Classic'} league` : 'Checking FPL data'}</span></div><div className="checkout-league-controls"><label htmlFor="payment-league-id-professional">FPL league ID</label><div className="checkout-id-field"><input id="payment-league-id-professional" inputMode="numeric" value={leagueId} onChange={(event) => setLeagueId(event.target.value)} /></div><div className="checkout-league-types" role="radiogroup"><button type="button" className={leagueType === 'DRAFT' ? 'selected' : ''} onClick={() => setLeagueType('DRAFT')}>Draft</button><button type="button" className={leagueType === 'CLASSIC' ? 'selected' : ''} onClick={() => setLeagueType('CLASSIC')}>Classic</button></div></div>{error && <p className="discovery-error">{error}</p>}</aside><section className="checkout-plans" aria-label="Broadcast plans"><article className="checkout-plan"><span>Standard</span><h2>€4.99</h2><p>Per league registration</p><ul><li><Check size={16} /> Live matchday broadcast</li><li><Check size={16} /> League standings and teams</li><li><Check size={16} /> Fixture and score updates</li></ul><button type="button" disabled={!leagueIsValid || !preview.checkoutReady}>Choose Standard</button></article><article className="checkout-plan featured"><span className="plan-badge"><Sparkles size={14} /> Recommended</span><h2>€14.99</h2><p>Per league registration</p><h3>AI Broadcaster</h3><ul><li><Check size={16} /> Everything in Standard</li><li><Check size={16} /> AI match commentary</li><li><Check size={16} /> Natural voice narration</li></ul><button type="button" disabled={!leagueIsValid || !preview.checkoutReady}>Choose AI Broadcaster</button></article></section></section>{preview && !preview.checkoutReady && <p className="checkout-notice">Checkout is being prepared. Add the Paddle sandbox credentials and price IDs to enable secure payment testing.</p>}<p className="checkout-security">Secure payment powered by Paddle · Your card details never reach Fantasy Broadcast</p></main>
 }
 

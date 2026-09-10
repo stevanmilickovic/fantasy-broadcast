@@ -64,9 +64,8 @@ Windows PowerShell equivalents:
 
 ```powershell
 docker compose up -d db
-cd backend
 $env:SPRING_PROFILES_ACTIVE = "db"
-.\mvnw.cmd spring-boot:run
+.\backend\mvnw.cmd -f .\backend\pom.xml spring-boot:run
 ```
 
 Stop the development command with `Ctrl+C` and rerun it after making backend changes.
@@ -164,7 +163,7 @@ Never commit API keys, FPL cookies, FPL access tokens, refresh tokens, Cloudflar
 
 ## Server configuration
 
-The backend optionally imports an external configuration file from `./data/backend/application.yaml`, relative to the process that starts it. Set `BROADCAST_CONFIG_DIRECTORY` when that file is mounted elsewhere (for example, inside a future container).
+The backend optionally imports an external configuration file from `./data/backend/application.yaml`, relative to the process that starts it. Start the local backend from the repository root to use `data/backend/application.yaml`; copy `data/backend/application.yaml.example` as a starting point. Set `BROADCAST_CONFIG_DIRECTORY` when that file is mounted elsewhere (for example, inside a future container).
 
 Keep this server-only file out of Git. Email delivery is enabled only when SMTP settings, `broadcast.email.from`, and `broadcast.email.public-base-url` are configured. Local testing defaults live in `backend/src/main/resources/application-local.yaml`; keep the app password in `SMTP_PASSWORD`.
 

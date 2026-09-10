@@ -77,6 +77,9 @@ export const registerLeague = async (tokenOrLeagueId: string, leagueIdOrType: st
 export type LeaguePaymentPreview = { displayName: string; managerCount: number; registrationEligible: boolean; validationMessage: string | null; checkoutReady: boolean }
 export const previewLeaguePayment = async (fplLeagueId: string, leagueType: FplLeagueType): Promise<LeaguePaymentPreview> =>
   (await request(`/api/customer/league-payment/preview?${new URLSearchParams({ fplLeagueId, leagueType })}`)).json()
+export type PaddleCheckout = { clientSideToken: string; priceId: string; userId: number; fplLeagueId: number; leagueType: string; plan: string; paymentSignature: string }
+export const createPaddleCheckout = async (fplLeagueId: string, leagueType: FplLeagueType, plan: 'STANDARD' | 'AI_BROADCASTER'): Promise<PaddleCheckout> =>
+  (await request('/api/customer/league-payment/checkout', { method: 'POST', body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType, plan }) })).json()
 export const loadClassicLeagueOverview = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<ClassicLeagueDiscovery> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/overview`)).json()
 export const loadDraftLeagueOverview = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<DraftLeagueDiscovery> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/draft-overview`)).json()
 export const loadFplShirts = async (_legacyToken?: string): Promise<FplClubShirt[]> => { void _legacyToken; return (await request('/api/customer/fpl/shirts')).json() }

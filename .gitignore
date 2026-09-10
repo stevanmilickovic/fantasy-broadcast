@@ -49,4 +49,10 @@ Thumbs.db
 # Generated runtime data
 audio/
 data/events/
+
+# Host-managed server configuration and secrets. Keep the directory marker so
+# the expected local layout exists in fresh clones, but never commit its files.
+data/backend/*
+!data/backend/.gitkeep
+!data/backend/application.yaml.example
 logs/

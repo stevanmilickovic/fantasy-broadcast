@@ -156,6 +156,17 @@ public class LeagueRegistrationService {
 		return resolveLeague(fplLeagueId, leagueType).scoringType();
 	}
 
+	@Transactional
+	public RegisteredLeague registerPaid(long userId, long fplLeagueId, FplLeagueType leagueType, boolean aiBroadcaster) {
+		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where id = ?", (resultSet, rowNumber) ->
+				new CurrentUser(resultSet.getLong("id"), resultSet.getString("email"), resultSet.getString("display_name"), UserRole.valueOf(resultSet.getString("role"))), userId);
+		if (users.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The purchasing user was not found.");
+		var league = register(users.getFirst(), fplLeagueId, leagueType);
+		jdbcTemplate.update("update league set service_enabled = true, ai_narration_enabled = ?, voice_narration_enabled = ? where id = ?",
+				aiBroadcaster, aiBroadcaster, league.id());
+		return findLeague(fplLeagueId, leagueType);
+	}
+
 	public LeaguePreview preview(long fplLeagueId, FplLeagueType leagueType) {
 		var source = resolveLeague(fplLeagueId, leagueType);
 		var validationMessage = source.mockLeague()
