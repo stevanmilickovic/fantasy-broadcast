@@ -1,18 +1,13 @@
 import { Bell, ChevronRight, Radio, Sparkles, Trophy, Users, Zap } from 'lucide-react'
 import type { Navigate } from '../../hooks/useBrowserNavigation'
 import { WelcomeBroadcastDemo } from './WelcomeBroadcastDemo'
+import { PublicHeader } from './PublicHeader'
 
 type Props = { onNavigate: Navigate }
 
 export function WelcomePage({ onNavigate }: Props) {
   return <main className="welcome-page">
-    <header className="welcome-nav">
-      <button className="welcome-brand brand-name" type="button" onClick={() => onNavigate('/')}>Fantasy Broadcast</button>
-      <nav aria-label="Account">
-        <button className="welcome-sign-in" type="button" onClick={() => onNavigate('/login')}>Sign in</button>
-        <button className="welcome-register" type="button" onClick={() => onNavigate('/register')}>Get started <ChevronRight size={17} /></button>
-      </nav>
-    </header>
+    <PublicHeader onNavigate={onNavigate} />
 
     <section className="welcome-hero">
       <div className="welcome-hero-copy">
@@ -44,6 +39,6 @@ export function WelcomePage({ onNavigate }: Props) {
       <div><p>Create a free account, follow your league, and be ready when the next broadcast goes live.</p><button type="button" onClick={() => onNavigate('/register')}>Create a free account <ChevronRight size={19} /></button><small>Already registered? <button type="button" onClick={() => onNavigate('/login')}>Sign in</button></small></div>
     </section>
 
-    <footer className="welcome-footer"><span><Radio size={18} /> Fantasy Broadcast</span><small>Live companion for FPL Draft and Classic leagues.</small></footer>
+    <footer className="welcome-footer"><span><Radio size={18} /> Fantasy Broadcast</span><small>Live companion for FPL Draft and Classic leagues. <button type="button" onClick={() => onNavigate('/privacy')}>Privacy</button> · <button type="button" onClick={() => onNavigate('/terms')}>Terms</button> · <button type="button" onClick={() => onNavigate('/refunds')}>Refunds</button></small></footer>
   </main>
 }

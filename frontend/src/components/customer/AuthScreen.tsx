@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { authenticate, loadAuthOptions, requestPasswordReset, requestRegistration, resetPassword, verifyRegistration } from '../../api/customerApi'
 import type { Navigate } from '../../hooks/useBrowserNavigation'
 import type { AuthResponse } from '../../types/customer'
+import { LegalFooter } from './LegalFooter'
 
 type Props = { pathname: string; search: string; onAuthenticated: (result: AuthResponse) => void; onNavigate: Navigate }
 type AuthMode = 'login' | 'register' | 'forgot'
@@ -102,7 +103,7 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
       {mode === 'forgot' && <button type="button" className="secondary-action" onClick={() => switchMode('login')}>Back to sign in</button>}
       {!verifyingRegistration && mode !== 'forgot' && googleSignInEnabled && <GoogleSignIn />}
     </div>}
-  </form></main>
+  </form><LegalFooter onNavigate={onNavigate} className="account-legal-footer" /></main>
 }
 
 function PasswordInput({ label, value, showPassword, autoComplete, onChange, onToggle }: { label: string; value: string; showPassword: boolean; autoComplete: 'current-password' | 'new-password'; onChange: (value: string) => void; onToggle: () => void }) {

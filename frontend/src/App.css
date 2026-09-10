@@ -2367,6 +2367,8 @@ blockquote {
 .administration-controls p { color: var(--pl-purple-2); font-weight: 650; }
 
 .customer-shell {
+  display: flex;
+  flex-direction: column;
   padding: 0;
   --surface: #31003a;
   --surface-strong: #1b0021;
@@ -3076,7 +3078,7 @@ blockquote {
 .welcome-brand { display: inline-flex; align-items: center; border: 0; padding: 0; background: transparent; cursor: pointer; }
 .welcome-nav nav { display: flex; align-items: center; gap: 10px; }
 .welcome-nav nav button { min-height: 42px; border: 0; padding: 0 18px; cursor: pointer; font-weight: 800; }
-.welcome-sign-in { color: #fff; background: transparent; }
+.welcome-sign-in, .welcome-pricing { color: #fff; background: transparent; }
 .welcome-register { display: inline-flex; align-items: center; gap: 6px; color: #37003c; background: #20e6ff; }
 .welcome-register:hover, .welcome-hero-actions > button:hover, .welcome-final-cta > div > button:hover { background: #5aeeff; }
 
@@ -3128,6 +3130,14 @@ blockquote {
 .welcome-footer span { display: flex; align-items: center; gap: 8px; font-weight: 850; }
 .welcome-footer svg { color: #20e6ff; }
 .welcome-footer small { color: #836d8c; }
+.welcome-footer small button, .public-footer button { border: 0; padding: 0; color: inherit; background: transparent; cursor: pointer; text-decoration: underline; }
+.public-page { min-height: 100vh; color: #fff; background: #18001d; }.public-page button:not(.welcome-brand), .public-page a { font: inherit; }.public-nav, .public-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: min(1100px, calc(100% - 48px)); min-height: 82px; margin: auto; }.public-nav button { border: 0; padding: 10px; color: #fff; background: transparent; cursor: pointer; font: inherit; font-weight: 800; }.public-nav .public-primary { display: inline-flex; align-items: center; gap: 5px; color: #37003c; background: #20e6ff; }.public-content { width: min(960px, calc(100% - 48px)); margin: 0 auto; padding: 90px 0; }.public-kicker { color: #20e6ff; font-size: .75rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }.public-content h1 { max-width: 800px; margin: 14px 0; font-size: clamp(3rem, 8vw, 6rem); line-height: .9; letter-spacing: -.07em; }.public-lead { max-width: 640px; color: #d9cbe0; font-size: 1.1rem; line-height: 1.55; }.public-plans { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 50px; }.public-plans article { display: grid; gap: 16px; min-height: 370px; padding: 30px; border: 1px solid rgba(255,255,255,.16); background: #31003a; }.public-plans .public-featured { border-color: #20e6ff; }.public-plans h2 { margin: 0; font-size: 2.6rem; }.public-plans h2 small { color: #c8c3dd; font-size: .9rem; }.public-plans p, .public-plans li { color: #d9cbe0; line-height: 1.45; }.public-plans ul { padding-left: 18px; }.public-plans button { align-self: end; min-height: 48px; border: 0; color: #37003c; background: #20e6ff; cursor: pointer; font-weight: 900; }.public-note button { border: 0; padding: 0; color: #20e6ff; background: transparent; cursor: pointer; text-decoration: underline; }.policy-content { max-width: 760px; }.policy-content h2 { margin-top: 42px; font-size: 1.35rem; }.policy-content p { color: #d9cbe0; line-height: 1.7; }.policy-content a { color: #20e6ff; }.policy-date { color: #927e9a !important; }.legal-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 58px; border-top: 1px solid rgba(255,255,255,.12); color: #927e9a; font-size: .85rem; }.legal-footer span { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 800; }.legal-footer div { display: flex; gap: 15px; }.legal-footer button { border: 0; padding: 0; color: inherit; background: transparent; cursor: pointer; text-decoration: underline; }.public-footer { width: min(1100px, calc(100% - 48px)); margin: auto; }
+.public-page { display: flex; flex-direction: column; }.public-footer { width: min(1100px, calc(100% - 48px)); margin: auto auto 0; }.customer-legal-footer { width: min(1120px, calc(100% - 48px)); margin: auto auto 0; }.account-shell { display: flex; flex-direction: column; }.account-legal-footer { width: min(420px, calc(100% - 48px)); margin: auto auto 0; }.administration-page { display: flex; flex-direction: column; min-height: 100svh; background: var(--bg); }.administration-legal-footer { width: min(1280px, calc(100% - 48px)); margin: auto auto 0; border-top-color: #d9dee7; color: #5f0a68; }.administration-legal-footer span { color: #37003c; }
+.pricing-content { padding-top: 38px; }
+.public-note { margin: 32px 0 0; }
+.policy-content { padding-top: 38px; }
+.welcome-nav nav, .public-nav nav { display: flex; align-items: center; gap: 10px; }.welcome-nav nav button, .public-nav nav button { min-height: 42px; border: 0; padding: 0 18px; cursor: pointer; font: inherit; font-weight: 800; }.welcome-brand, .public-nav .brand-name { display: inline-flex; align-items: center; border: 0; padding: 0; background: transparent; cursor: pointer; }.welcome-register, .public-nav .public-primary { display: inline-flex; align-items: center; gap: 6px; color: #37003c; background: #20e6ff; }.welcome-register:hover, .public-nav .public-primary:hover { background: #5aeeff; }
+.site-nav { position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: min(1240px, calc(100% - 64px)); min-height: 82px; margin: 0 auto; }.site-brand { display: inline-flex; align-items: center; border: 0; padding: 0; color: #fff; background: transparent; cursor: pointer; font: inherit; font-size: clamp(1.45rem, 2.2vw, 2rem); font-weight: 850; letter-spacing: -.04em; line-height: 1; }.site-nav nav { display: flex; align-items: center; gap: 10px; }.site-nav nav button { min-height: 42px; border: 0; padding: 0 18px; color: #fff; background: transparent; cursor: pointer; font: inherit; font-weight: 800; }.site-nav .site-primary { display: inline-flex; align-items: center; gap: 6px; color: #37003c; background: #20e6ff; }.site-nav .site-primary:hover { background: #5aeeff; }
 
 @media (max-width: 900px) {
   .welcome-hero { grid-template-columns: 1fr; padding-top: 80px; text-align: center; }
@@ -3143,11 +3153,14 @@ blockquote {
 }
 
 @media (max-width: 700px) {
-  .welcome-nav { width: calc(100% - 32px); min-height: 70px; }
-  .welcome-nav nav { gap: 2px; }
-  .welcome-nav nav button { min-height: 39px; padding: 0 10px; font-size: .75rem; }
-  .welcome-sign-in { display: none; }
-  .welcome-register svg { display: none; }
+  .public-plans, .checkout-plans { grid-template-columns: 1fr; }
+  .welcome-nav, .public-nav { display: grid; grid-template-columns: 1fr; row-gap: 17px; width: calc(100% - 32px); min-height: 0; padding: 20px 0 16px; }
+  .welcome-nav nav, .public-nav nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 5px; }
+  .welcome-nav nav button, .public-nav nav button { min-width: 0; min-height: 41px; padding: 0 5px; font-size: .72rem; }
+  .welcome-nav nav button:not(.welcome-register), .public-nav nav button:not(.public-primary) { border: 1px solid rgba(255,255,255,.28); color: #d9cbe0; background: rgba(255,255,255,.04); }
+  .welcome-register, .public-primary { justify-content: center; text-align: center; }
+  .welcome-register svg, .public-primary svg { display: none; }
+  .site-nav { display: grid; grid-template-columns: 1fr; row-gap: 17px; width: calc(100% - 32px); min-height: 0; padding: 20px 0 16px; }.site-brand { font-size: clamp(1.25rem, 6vw, 1.6rem); }.site-nav nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 5px; }.site-nav nav button { min-width: 0; min-height: 41px; padding: 0 5px; font-size: .72rem; }.site-nav nav button:not(.site-primary) { border: 1px solid rgba(255,255,255,.28); color: #d9cbe0; background: rgba(255,255,255,.04); }.site-nav .site-primary { justify-content: center; text-align: center; }.site-nav .site-primary svg { display: none; }
   .welcome-hero { width: calc(100% - 32px); min-height: 0; padding: 62px 0 72px; }
   .welcome-hero h1 { margin: 19px 0; font-size: clamp(3.6rem, 19vw, 5.3rem); }
   .welcome-hero-copy > p { font-size: 1rem; }
@@ -3286,3 +3299,123 @@ blockquote {
 .checkout-plan.featured h3 { display: none; }
 .plan-badge { font-size: 0 !important; }.plan-badge svg { width: 0; margin: 0; }.plan-badge::after { content: 'AI Commentator'; font-size: .72rem; }
 .plan-badge { display: block; padding: 0; color: var(--pl-cyan) !important; background: transparent; letter-spacing: .12em !important; }.plan-badge::after { color: var(--pl-cyan); font-weight: 900; }
+
+/* Checkout keeps the same full-bleed surface and card rhythm as the public
+   pricing page when space is limited. The desktop league controls deliberately
+   use fixed columns, so they must collapse before they can overflow a phone. */
+@media (max-width: 700px) {
+  .legal-footer {
+    display: grid;
+    justify-content: center;
+    gap: 10px;
+    min-height: 80px;
+    padding: 12px 0;
+    text-align: center;
+  }
+
+  .legal-footer span,
+  .legal-footer div {
+    justify-content: center;
+  }
+
+  .public-footer,
+  .customer-legal-footer,
+  .account-legal-footer,
+  .administration-legal-footer {
+    width: calc(100% - 32px);
+  }
+
+  .customer-legal-footer {
+    margin: auto auto 0;
+  }
+
+  .customer-shell {
+    min-height: 100svh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(32, 230, 255, .18), transparent 32rem),
+      #30266f;
+  }
+
+  .league-checkout-page {
+    width: 100%;
+    min-height: calc(100svh - 122px);
+    margin: 0;
+    padding: 28px 16px 48px;
+    overflow: hidden;
+  }
+
+  .checkout-back {
+    min-height: 40px;
+    padding: 0;
+  }
+
+  .checkout-heading {
+    margin: 30px 0 28px;
+    text-align: left;
+  }
+
+  .checkout-heading h1 {
+    max-width: 11ch;
+    font-size: clamp(2.3rem, 12vw, 3.3rem);
+  }
+
+  .checkout-heading p {
+    max-width: 34rem;
+    font-size: 1rem;
+  }
+
+  .checkout-layout,
+  .checkout-plans {
+    gap: 14px;
+  }
+
+  .checkout-league-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 0 0 20px;
+  }
+
+  .checkout-league-card > div:first-child {
+    min-width: 0;
+    padding-right: 58px;
+  }
+
+  .checkout-league-card strong {
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-league-controls {
+    grid-template-columns: 1fr;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .checkout-league-card label {
+    grid-column: auto;
+  }
+
+  .checkout-id-field,
+  .checkout-id-field input,
+  .checkout-league-types {
+    width: 100%;
+  }
+
+  .checkout-plan {
+    min-height: 0;
+    padding: 26px;
+  }
+
+  .checkout-plan h2 {
+    font-size: 2.6rem;
+  }
+
+  .checkout-plan ul {
+    margin-bottom: 28px;
+  }
+
+  .checkout-notice,
+  .checkout-security {
+    margin-top: 18px;
+  }
+}

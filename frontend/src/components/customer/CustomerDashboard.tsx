@@ -7,6 +7,7 @@ import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
 import { enablePointChangeSound } from '../../utils/broadcastSound'
+import { LegalFooter } from './LegalFooter'
 
 type Props = { user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
 type LeagueDisplayMode = 'standings' | 'teams' | 'matchups'
@@ -36,6 +37,7 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
     {pathname === '/leagues' && <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />}
     {pathname === '/league' && selectedLeague && activeBroadcasts.length > 0 && <aside className="customer-broadcast-access"><div><strong>Broadcast live now</strong><span>Available to all registered leagues until {new Date(activeBroadcasts[0].endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span></div><button onClick={() => void openBroadcast()} disabled={busy}>Open broadcast</button></aside>}
     {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <LeagueStandingsOverview token={token} discovery={discovery} scoringType={selectedLeague.scoringType} />}{discovery && selectedLeague.ownerUserId === user.id && <details className="league-actions-menu"><summary aria-label="League actions">...</summary><div><button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button></div></details>}</section>}
+    <LegalFooter onNavigate={onNavigate} className="customer-legal-footer" />
   </main>
 }
 

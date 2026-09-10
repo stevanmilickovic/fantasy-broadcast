@@ -6,7 +6,9 @@ import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdministrationScreen } from './components/administration/AdministrationScreen'
 import { AuthScreen } from './components/customer/AuthScreen'
 import { CustomerDashboard } from './components/customer/CustomerDashboard'
+import { LegalFooter } from './components/customer/LegalFooter'
 import { WelcomePage } from './components/customer/WelcomePage'
+import { PublicPage } from './components/customer/PublicPages'
 import { useAuthSession } from './hooks/useAuthSession'
 import { useBroadcastEventQueue } from './hooks/useBroadcastEventQueue'
 import { useBroadcastFocus } from './hooks/useBroadcastFocus'
@@ -98,7 +100,7 @@ function App() {
   useEffect(() => {
     if (isAuthLoading) return
     if (location.pathname === '/reset-password') return
-    const publicRoutes = ['/', '/login', '/register', '/reset-password']
+    const publicRoutes = ['/', '/pricing', '/privacy', '/terms', '/refunds', '/login', '/register', '/reset-password']
     if (!authUser && !publicRoutes.includes(location.pathname)) {
       navigate('/login', true)
       return
@@ -228,6 +230,10 @@ function App() {
     return <main className="account-shell"><p>Checking your session…</p></main>
   }
 
+  if (['/pricing', '/privacy', '/terms', '/refunds'].includes(location.pathname)) {
+    return <PublicPage page={location.pathname.slice(1) as 'pricing' | 'privacy' | 'terms' | 'refunds'} onNavigate={navigate} />
+  }
+
   if (!authUser && location.pathname === '/') {
     return <WelcomePage onNavigate={navigate} />
   }
@@ -324,7 +330,8 @@ function App() {
   }
 
   return (
-    <AdministrationScreen
+    <div className="administration-page">
+      <AdministrationScreen
       session={{
         user: authUser,
         onOpenLeague: (selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`),
@@ -354,7 +361,9 @@ function App() {
         onAdvanceBroadcast: () => void runAction('advance'),
         onResetBroadcast: () => void runAction('reset'),
       }}
-    />
+      />
+      <LegalFooter onNavigate={navigate} className="administration-legal-footer" />
+    </div>
   )
 }
 
