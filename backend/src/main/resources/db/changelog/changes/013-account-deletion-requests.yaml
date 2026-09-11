@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-create-account-deletion-requests
+      author: codex
+      changes:
+        - createTable:
+            tableName: account_deletion_request
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: requested_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: account_deletion_request
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_account_deletion_request_user
+            onDelete: CASCADE

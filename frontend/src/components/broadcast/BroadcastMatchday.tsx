@@ -135,7 +135,7 @@ function NarrationCaption({ id, text, status }: { id?: string; text: string; sta
 	if (waiting || !id) return null
 	return <aside key={id ?? 'waiting'} className={`narration-caption ${waiting ? 'waiting' : 'has-commentary'}`} aria-live="polite">
     <Volume2 size={16} />
-    <span>{text}</span>
+		<span><small>AI-generated commentary</small>{text}</span>
   </aside>
 }
 

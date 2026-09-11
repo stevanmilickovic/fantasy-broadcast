@@ -3,6 +3,7 @@ package com.fantasybroadcast.backend.api;
 import com.fantasybroadcast.backend.customer.AccountService;
 import com.fantasybroadcast.backend.customer.AccountService.PendingRegistration;
 import com.fantasybroadcast.backend.customer.AccountService.PasswordResetRequest;
+import com.fantasybroadcast.backend.customer.AccountService.AccountDeletionRequest;
 import com.fantasybroadcast.backend.customer.CurrentUser;
 import com.fantasybroadcast.backend.customer.SessionService;
 import jakarta.validation.Valid;
@@ -80,6 +81,11 @@ public class AuthController {
 	@GetMapping("/me")
 	public CurrentUser me(HttpServletRequest request) {
 		return sessionService.require(request);
+	}
+
+	@PostMapping("/account-deletion-request")
+	public AccountDeletionRequest requestAccountDeletion(HttpServletRequest request) {
+		return accountService.requestDeletion(sessionService.require(request));
 	}
 
 	private AuthResponse authenticated(CurrentUser user, HttpServletResponse response) {

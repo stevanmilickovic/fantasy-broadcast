@@ -64,6 +64,8 @@ export const resetPassword = async (token: string, password: string): Promise<vo
 export const loadAuthOptions = async (): Promise<AuthOptions> => (await request('/api/auth/options')).json()
 export const loadCurrentUser = async (): Promise<AuthUser> => (await request('/api/auth/me')).json()
 export const logout = async () => { await request('/api/auth/logout', { method: 'POST' }) }
+export const requestAccountDeletion = async (): Promise<{ message: string }> =>
+  (await request('/api/auth/account-deletion-request', { method: 'POST' })).json()
 export const loadRegisteredLeagues = async (_legacyToken?: string): Promise<RegisteredLeague[]> => { void _legacyToken; return (await request('/api/customer/leagues')).json() }
 export const loadLeagueRegistrationAccess = async (_legacyToken?: string): Promise<LeagueRegistrationAccess> => { void _legacyToken; return (await request('/api/customer/league-registration')).json() }
 export const searchRegisteredLeagues = async (tokenOrQuery: string, query?: string): Promise<RegisteredLeague[]> => (await request(`/api/customer/leagues/search?${new URLSearchParams({ query: query ?? tokenOrQuery })}`)).json()

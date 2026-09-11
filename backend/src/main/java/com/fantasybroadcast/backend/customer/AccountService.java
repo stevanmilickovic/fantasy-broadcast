@@ -152,6 +152,11 @@ public class AccountService {
 		return users.getFirst();
 	}
 
+	public AccountDeletionRequest requestDeletion(CurrentUser user) {
+		jdbcTemplate.update("insert ignore into account_deletion_request (user_id) values (?)", user.id());
+		return new AccountDeletionRequest("Your account-deletion request has been received. We will review it, including any active subscription, before deleting your account.");
+	}
+
 	public AdminUserPage allForAdmin(CurrentUser currentUser, int page, int size, String search) {
 		requireAdmin(currentUser);
 		var searchTerm = search == null ? "" : search.trim();
@@ -310,6 +315,9 @@ public class AccountService {
 	}
 
 	public record PendingRegistration(String email, String message) {
+	}
+
+	public record AccountDeletionRequest(String message) {
 	}
 
 	public record PasswordResetRequest(String message) {

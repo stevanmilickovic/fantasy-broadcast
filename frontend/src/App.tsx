@@ -109,7 +109,7 @@ function App() {
       navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues', true)
       return
     }
-    const customerRoutes = ['/league', '/leagues', '/leagues/new', '/leagues/checkout']
+    const customerRoutes = ['/league', '/leagues', '/leagues/new', '/leagues/checkout', '/account-deletion']
     const isKnownAdminRoute = location.pathname === '/administration' || location.pathname === '/broadcast'
     if (authUser?.role === 'ADMIN' && !isKnownAdminRoute && !customerRoutes.includes(location.pathname)) {
       navigate('/administration', true)
@@ -263,7 +263,7 @@ function App() {
     }
   }
 
-  if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new' || location.pathname === '/leagues/checkout')) {
+  if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new' || location.pathname === '/leagues/checkout' || location.pathname === '/account-deletion')) {
     return <CustomerDashboard user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
   }
 
