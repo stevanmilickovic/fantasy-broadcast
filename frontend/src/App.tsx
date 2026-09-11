@@ -37,7 +37,7 @@ function App() {
   const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
   const isBroadcastRoute = location.pathname === '/broadcast'
   const isBroadcastVisible = Boolean(authUser) && isBroadcastRoute && (
-    appView === 'broadcast' || authUser?.role !== 'ADMIN'
+    appView === 'broadcast' || streamedLeagueId !== undefined || authUser?.role !== 'ADMIN'
   )
   useScreenWakeLock(isBroadcastVisible)
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
