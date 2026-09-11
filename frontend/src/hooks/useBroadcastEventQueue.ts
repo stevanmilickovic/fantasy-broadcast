@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FantasyEventView, LiveStateResponse } from '../types/live'
 import { playNarrationAudio, playPointChangeSound } from '../utils/broadcastSound'
 
-const QUEUED_NOTIFICATION_START_GRACE_MS = 450
 const NOTIFICATION_DISPLAY_MS = 10_000
 const MAX_PENDING_BROADCAST_GROUPS = 3
 
@@ -48,12 +47,11 @@ const groupEvents = (
     .slice(0, MAX_PENDING_BROADCAST_GROUPS)
 }
 
-export function useBroadcastEventQueue(liveState: LiveStateResponse | null) {
+export function useBroadcastEventQueue(liveState: LiveStateResponse | null, deferNotificationStart = false) {
   const [queue, setQueue] = useState<EventQueue>({ active: null, pending: [] })
   const receivedEventIdsRef = useRef(new Set<string>())
   const lastSoundedEventIdRef = useRef<string | null>(null)
   const lastNarrationAudioIdRef = useRef<string | null>(null)
-  const queuedStartTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!liveState) return
@@ -71,19 +69,12 @@ export function useBroadcastEventQueue(liveState: LiveStateResponse | null) {
   }, [liveState])
 
   useEffect(() => {
-    if (queue.active || queue.pending.length === 0) return
-    queuedStartTimerRef.current = window.setTimeout(() => {
-      setQueue((current) => {
-        const [active, ...pending] = current.pending
-        return { active: active ?? null, pending }
-      })
-      queuedStartTimerRef.current = null
-    }, QUEUED_NOTIFICATION_START_GRACE_MS)
-    return () => {
-      if (queuedStartTimerRef.current) window.clearTimeout(queuedStartTimerRef.current)
-      queuedStartTimerRef.current = null
-    }
-  }, [queue.active, queue.pending.length])
+    if (deferNotificationStart || queue.active || queue.pending.length === 0) return
+    setQueue((current) => {
+      const [active, ...pending] = current.pending
+      return { active: active ?? null, pending }
+    })
+  }, [deferNotificationStart, queue.active, queue.pending.length])
 
   useEffect(() => {
     if (!queue.active) return
@@ -109,8 +100,6 @@ export function useBroadcastEventQueue(liveState: LiveStateResponse | null) {
   }, [latestNarration])
 
   const reset = useCallback(() => {
-    if (queuedStartTimerRef.current) window.clearTimeout(queuedStartTimerRef.current)
-    queuedStartTimerRef.current = null
     receivedEventIdsRef.current.clear()
     lastSoundedEventIdRef.current = null
     lastNarrationAudioIdRef.current = null

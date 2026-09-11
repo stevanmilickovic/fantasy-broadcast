@@ -177,6 +177,7 @@ type UseBroadcastPresentationOptions = {
   showingLeaderboard: boolean
   isTotalPointsBroadcast: boolean
   isBroadcastRoute: boolean
+  onTransitionStateChange: (transitioning: boolean) => void
 }
 
 export function useBroadcastPresentation({
@@ -189,12 +190,14 @@ export function useBroadcastPresentation({
   showingLeaderboard,
   isTotalPointsBroadcast,
   isBroadcastRoute,
+  onTransitionStateChange,
 }: UseBroadcastPresentationOptions) {
   const [presentation, dispatch] = useReducer(presentationReducer, initialPresentationState)
   const previousPresentationFocusRef = useRef<string | null>(null)
   const previousSelectedFocusRef = useRef<BroadcastFocus>('multi')
   const displayedLiveStateRef = useRef<LiveStateResponse | null>(null)
   const transitionTimersRef = useRef<number[]>([])
+  const transitionInProgressRef = useRef(false)
   const homeHeadingRef = useRef<HTMLHeadingElement>(null)
   const awayHeadingRef = useRef<HTMLHeadingElement>(null)
   const scoreRef = useRef<HTMLElement>(null)
@@ -212,10 +215,17 @@ export function useBroadcastPresentation({
   )
   const stateForActiveNotification = activeLiveState ?? liveState
 
+  useEffect(() => {
+    onTransitionStateChange(presentation.transitioningToMatch || presentation.revealingMatch)
+  }, [onTransitionStateChange, presentation.revealingMatch, presentation.transitioningToMatch])
+
   const clearTransitionTimers = useCallback(() => {
     transitionTimersRef.current.forEach((timer) => window.clearTimeout(timer))
     transitionTimersRef.current = []
+    transitionInProgressRef.current = false
   }, [])
+
+  useEffect(() => clearTransitionTimers, [clearTransitionTimers])
 
   useEffect(() => {
     displayedLiveStateRef.current = presentation.liveState
@@ -240,6 +250,7 @@ export function useBroadcastPresentation({
     // Keep the current score frozen until the notification queue starts the
     // corresponding focus transition. The server state arrives one render earlier.
     if (isWaitingForQueuedFocus) return
+    if (transitionInProgressRef.current) return
 
     clearTransitionTimers()
     if (!stateForActiveNotification || !presentationFocusId || !isBroadcastRoute) {
@@ -262,16 +273,19 @@ export function useBroadcastPresentation({
     }
 
     if (firstBroadcastFocus) {
+      transitionInProgressRef.current = true
       dispatch({ type: 'first-focus', snapshot })
       const revealStartTimer = window.setTimeout(() => dispatch({ type: 'start-reveal' }), 16)
       const revealTimer = window.setTimeout(() => {
         dispatch({ type: 'finish-reveal', snapshot })
+        transitionInProgressRef.current = false
       }, MATCH_REVEAL_MS)
       transitionTimersRef.current = [revealStartTimer, revealTimer]
-      return clearTransitionTimers
+      return
     }
 
     if (focusChanged) {
+      transitionInProgressRef.current = true
       dispatch({ type: 'start-transition' })
       const swapTimer = window.setTimeout(() => dispatch({ type: 'swap', snapshot }), SCENE_SWAP_MS)
       const revealStartTimer = window.setTimeout(
@@ -283,11 +297,14 @@ export function useBroadcastPresentation({
         SCENE_WIPE_MS,
       )
       const revealTimer = window.setTimeout(
-        () => dispatch({ type: 'finish-reveal', snapshot }),
+        () => {
+          dispatch({ type: 'finish-reveal', snapshot })
+          transitionInProgressRef.current = false
+        },
         SCENE_SWAP_MS + MATCH_REVEAL_MS,
       )
       transitionTimersRef.current = [swapTimer, revealStartTimer, endTimer, revealTimer]
-      return clearTransitionTimers
+      return
     }
 
     dispatch({ type: 'sync', snapshot, preserveRevealLayout: true })
@@ -301,6 +318,8 @@ export function useBroadcastPresentation({
     isWaitingForQueuedFocus,
     latestEventId,
     presentationFocusId,
+    presentation.revealingMatch,
+    presentation.transitioningToMatch,
     selectedFocus,
     showingLeaderboard,
     stateForActiveNotification,
@@ -391,6 +410,7 @@ export function useBroadcastPresentation({
     previousPresentationFocusRef.current = null
     previousSelectedFocusRef.current = 'multi'
     displayedLiveStateRef.current = null
+    transitionInProgressRef.current = false
     dispatch({ type: 'reset' })
   }, [clearTransitionTimers])
   const hideDisplayedLeaderboard = useCallback(() => dispatch({ type: 'hide-leaderboard' }), [])

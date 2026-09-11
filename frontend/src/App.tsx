@@ -35,6 +35,7 @@ function App() {
   const [isLeagueLoading, setIsLeagueLoading] = useState(false)
   const [appView, setAppView] = useState<AppView>('setup')
   const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
+  const [deferQueuedNotificationStart, setDeferQueuedNotificationStart] = useState(false)
   const isBroadcastRoute = location.pathname === '/broadcast'
   const isBroadcastVisible = Boolean(authUser) && isBroadcastRoute && (
     appView === 'broadcast' || streamedLeagueId !== undefined || authUser?.role !== 'ADMIN'
@@ -52,7 +53,7 @@ function App() {
     hasPendingNotifications,
     latestEvent: targetLatestEvent,
     reset: resetBroadcastEventQueue,
-  } = useBroadcastEventQueue(liveState)
+  } = useBroadcastEventQueue(liveState, deferQueuedNotificationStart)
   const {
     targetMatchup,
     focusedId: focusedMatchupId,
@@ -95,6 +96,7 @@ function App() {
     showingLeaderboard: showingLiveLeaderboard,
     isTotalPointsBroadcast,
     isBroadcastRoute,
+    onTransitionStateChange: setDeferQueuedNotificationStart,
   })
 
   useEffect(() => {
@@ -297,7 +299,7 @@ function App() {
       ? matchup.away.displayName
       : 'No one'
 
-  if (location.pathname === '/broadcast' && (appView === 'broadcast' || authUser.role !== 'ADMIN')) {
+  if (isBroadcastVisible) {
     return (
       <BroadcastMatchday
 		authToken=""
