@@ -3300,9 +3300,10 @@ blockquote {
 .plan-badge { font-size: 0 !important; }.plan-badge svg { width: 0; margin: 0; }.plan-badge::after { content: 'AI Commentator'; font-size: .72rem; }
 .plan-badge { display: block; padding: 0; color: var(--pl-cyan) !important; background: transparent; letter-spacing: .12em !important; }.plan-badge::after { color: var(--pl-cyan); font-weight: 900; }
 
-.checkout-consent { display: flex; align-items: flex-start; justify-content: center; gap: 8px; max-width: 700px; margin: 22px auto 0; color: #c8c3dd; font-size: .82rem; line-height: 1.45; text-align: left; }
-.checkout-consent input { flex: 0 0 auto; margin-top: 3px; }
-.checkout-consent button { padding: 0; border: 0; color: var(--pl-cyan); background: transparent; font: inherit; text-decoration: underline; cursor: pointer; }
+.checkout-consent { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 700px; margin: 22px auto 0; color: #c8c3dd; font-size: .82rem; line-height: 1.5; text-align: left; }
+.checkout-consent input { flex: 0 0 16px; width: 16px; height: 16px; margin: 0; accent-color: var(--pl-cyan); cursor: pointer; }
+.checkout-consent span { min-width: 0; }
+.checkout-consent button { display: inline; padding: 0 2px; border: 0; color: var(--pl-cyan); background: transparent; font: inherit; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .account-deletion-request { width: min(100%, 960px); margin: 36px auto 0; padding: 20px; border: 1px solid rgba(255,255,255,.16); color: #c8c3dd; }.account-deletion-request h2 { margin: 0; color: #fff; font-size: 1.05rem; }.account-deletion-request p { margin: 8px 0 15px; font-size: .86rem; line-height: 1.5; }.account-deletion-message { color: var(--pl-green); }
 .narration-caption small { display: block; margin-bottom: 3px; color: var(--pl-cyan); font-size: .65em; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 
