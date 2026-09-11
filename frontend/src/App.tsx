@@ -199,7 +199,7 @@ function App() {
       setLiveState(nextState)
       setBroadcastFocus('multi')
       setAppView('broadcast')
-      navigate(`/broadcast?leagueId=${encodeURIComponent(normalizedLeagueId)}`)
+      navigate('/broadcast')
       setError(null)
       setLeagueError(null)
     } catch (requestError) {
