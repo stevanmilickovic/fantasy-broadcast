@@ -3300,6 +3300,10 @@ blockquote {
 .plan-badge { font-size: 0 !important; }.plan-badge svg { width: 0; margin: 0; }.plan-badge::after { content: 'AI Commentator'; font-size: .72rem; }
 .plan-badge { display: block; padding: 0; color: var(--pl-cyan) !important; background: transparent; letter-spacing: .12em !important; }.plan-badge::after { color: var(--pl-cyan); font-weight: 900; }
 
+.checkout-consent { display: flex; align-items: flex-start; justify-content: center; gap: 8px; max-width: 700px; margin: 22px auto 0; color: #c8c3dd; font-size: .82rem; line-height: 1.45; text-align: left; }
+.checkout-consent input { flex: 0 0 auto; margin-top: 3px; }
+.checkout-consent button { padding: 0; border: 0; color: var(--pl-cyan); background: transparent; font: inherit; text-decoration: underline; cursor: pointer; }
+
 /* Checkout keeps the same full-bleed surface and card rhythm as the public
    pricing page when space is limited. The desktop league controls deliberately
    use fixed columns, so they must collapse before they can overflow a phone. */

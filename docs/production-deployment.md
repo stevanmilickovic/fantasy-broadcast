@@ -6,7 +6,7 @@ Deploy from the directory that contains `compose.production.yaml`. Create `data/
 
 `application.env` supplies MySQL credentials, `DB_URL`, provider keys, initial-admin credentials, the Cloudflare Tunnel token, and image variables such as `IMAGE_REGISTRY=ghcr.io/your-account` and `IMAGE_TAG=0.1.0-preproduction`. `application.yaml` holds non-secret application configuration such as the email sender and public URL.
 
-Run `docker compose --env-file data/backend/application.env -f compose.production.yaml up -d`. MySQL, the backend, and the web service are private to the Compose network. The Cloudflare Tunnel container reaches the web service at `http://web:8080`; configure that service URL when creating the tunnel's published application. No HTTP or HTTPS port is published on the VPS.
+To deploy a released image, run `bash scripts/deploy-production.sh`. The script validates the host-managed configuration files, pulls the configured image tags, starts the services, and checks backend health. MySQL, the backend, and the web service are private to the Compose network. The Cloudflare Tunnel container reaches the web service at `http://web:8080`; configure that service URL when creating the tunnel's published application. No HTTP or HTTPS port is published on the VPS.
 
 Before inviting testers:
 

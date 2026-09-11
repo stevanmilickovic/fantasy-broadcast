@@ -17,5 +17,5 @@ export const openPaddleCheckout = async (checkout: PaddleCheckout) => {
   const paddle = await loadPaddle()
   paddle.Environment.set(checkout.clientSideToken.startsWith('test_') ? 'sandbox' : 'production')
   paddle.Initialize({ token: checkout.clientSideToken })
-  paddle.Checkout.open({ items: [{ priceId: checkout.priceId, quantity: 1 }], customData: { application: 'fantasy-broadcast', user_id: checkout.userId, fpl_league_id: checkout.fplLeagueId, league_type: checkout.leagueType, plan: checkout.plan, payment_signature: checkout.paymentSignature } })
+  paddle.Checkout.open({ items: [{ priceId: checkout.priceId, quantity: 1 }], customData: { application: 'fantasy-broadcast', user_id: checkout.userId, fpl_league_id: checkout.fplLeagueId, league_type: checkout.leagueType, plan: checkout.plan, payment_signature: checkout.paymentSignature, terms_version: '2026-09-11' } })
 }
