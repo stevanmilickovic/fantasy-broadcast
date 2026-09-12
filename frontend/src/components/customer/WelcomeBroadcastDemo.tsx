@@ -4,6 +4,7 @@ import type { BroadcastFocus, RevealLayout, RevealRect } from '../../types/live'
 import { welcomeBroadcastState, welcomeDemoFrames, welcomeShirtCodes } from './welcomeDemoData'
 
 const FIXTURE_LINGER_MS = 10_000
+const INITIAL_FIXTURE_LINGER_MS = 4_000
 const SCENE_SWAP_MS = 800
 const SCENE_END_MS = 1_600
 const REVEAL_END_MS = 2_700
@@ -52,9 +53,14 @@ export function WelcomeBroadcastDemo() {
         window.setTimeout(() => setRevealing(false), REVEAL_END_MS),
       )
     }
-    const interval = window.setInterval(startTransition, CYCLE_MS)
+    let interval: number | undefined
+    const initialTransition = window.setTimeout(() => {
+      startTransition()
+      interval = window.setInterval(startTransition, CYCLE_MS)
+    }, INITIAL_FIXTURE_LINGER_MS)
     return () => {
-      window.clearInterval(interval)
+      window.clearTimeout(initialTransition)
+      if (interval !== undefined) window.clearInterval(interval)
       transitionTimers.forEach((timer) => window.clearTimeout(timer))
     }
   }, [])
