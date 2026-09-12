@@ -1,18 +1,18 @@
-# Fantasy Broadcast Service
+# Fantasy Broadcast Product Brief and Roadmap
 
 ## Purpose
 
-The product is a live companion and broadcast service for Fantasy Premier League leagues. It supports both FPL Draft and Classic leagues.
+Fantasy Broadcast is a live companion app for Fantasy Premier League leagues. It supports both FPL Draft and Classic leagues.
 
-League members register their FPL league, connect or select their fantasy team, and use a live website during Premier League matchdays. The service reads the relevant FPL or FPL Draft data, shows live fantasy matchups, detects important point swings, sends notifications, and generates broadcaster-style commentary.
+Users register or follow FPL leagues and open a live website during active Premier League matchday broadcasts. The service reads the relevant FPL or FPL Draft data, shows live fantasy matchups, detects important point swings, and can generate broadcaster-style text and voice commentary.
 
-The app should work for a specific private league, but it should not be built as if there is only one hardcoded league. The target shape is multi-league from the start.
+The released app is multi-league rather than tied to one private league. The later roadmap sections describe potential extensions, not current product behaviour.
 
 ## Product Experience
 
 On matchdays, users can open a website and watch their FPL league as a live sports broadcast dashboard.
 
-The live page should show:
+The live page shows:
 
 - current Gameweek;
 - league matchups;
@@ -21,8 +21,8 @@ The live page should show:
 - goals, assists, cards, clean-sheet swings, bonus changes, and other point events;
 - recent fantasy events;
 - generated text commentary;
-- optional browser-based text-to-speech narration;
-- notification-relevant events for followed teams or players.
+- optional generated voice narration;
+- event notifications and commentary for the displayed matchup.
 
 The intended feel is a fantasy football broadcast, not a raw stats table.
 
@@ -35,28 +35,25 @@ That one goal has completely changed the shape of this matchup.
 
 ## Service Scope
 
-The app should support many registered FPL leagues, regardless of whether they use the Draft or Classic format.
+The app supports registered FPL leagues, regardless of whether they use the Draft or Classic format.
 
 Each registered league has:
 
 - FPL league ID;
 - league source type (`DRAFT` or `CLASSIC`);
 - league display name;
-- season;
 - list of league entries/managers from the relevant FPL source;
-- app users who follow one or more league entries;
-- optional league-specific commentary context;
-- optional notification settings.
+- app users who register or follow the league;
+- service, AI narration, and voice narration settings.
 
 Each user can:
 
 - register a profile;
 - join or follow a registered league;
-- select their own fantasy team/league entry;
-- receive notifications for their team or selected players;
-- open the live broadcast page on matchdays.
+- open a live broadcast for a registered league while an administrator-scheduled broadcast is active;
+- view league, matchup, player, event, and commentary information in the broadcast.
 
-The app should avoid mutating users' real FPL accounts unless there is a strong product reason. App-specific watchlists and notification preferences should live in our database.
+The app does not mutate users' real FPL accounts.
 
 ## Core Architecture
 
@@ -70,20 +67,20 @@ Spring Boot Backend
     +--> league registry
     +--> live state engine
     +--> event detector
-    +--> notification service
+    +--> broadcast event and narration pipeline
     +--> commentary director
     +--> LLM provider adapter
-    +--> REST/SSE/WebSocket API
+    +--> REST/SSE API
     |
     v
 React Frontend
     |
     +--> live dashboard
     +--> commentary feed
-    +--> optional browser TTS
+    +--> protected generated-audio playback
 ```
 
-The backend owns factual truth. The frontend presents state and may narrate generated commentary locally.
+The backend owns factual truth. The frontend presents state and plays protected generated audio when voice narration is enabled.
 
 ## Accuracy Rule
 
@@ -255,25 +252,13 @@ For cost control, the default approach should be:
 
 ## Voice Strategy
 
-The voice layer does not need to be an AI agent.
-
-Recommended options:
-
-1. Browser/local TTS for MVP
-   - very low cost;
-   - easy to ship;
-   - quality varies by browser/device.
-
-2. Shared professional cloud TTS per league broadcast
-   - higher quality;
-   - generated once per league stream and shared by viewers;
-   - should be a paid/add-on feature because audio generation can become the main cost.
+The implemented voice layer uses optional server-side cloud TTS. Audio is generated once for a league broadcast event and is served only to users allowed to access that league.
 
 Do not generate separate paid TTS audio for every viewer unless personalization becomes a paid feature.
 
-## Notifications
+## Future Push Notifications
 
-Push notifications should be based on normalized backend events.
+The live broadcast already displays normalized event notifications. Device push notifications, watchlists, and per-player notification preferences are future capabilities.
 
 Examples:
 
@@ -284,7 +269,7 @@ Examples:
 - major bonus swing;
 - selected watchlist player returned points.
 
-Use app-level notification preferences, not the user's real FPL watchlist, unless direct FPL account mutation becomes a deliberate feature.
+If added, use app-level notification preferences, not the user's real FPL watchlist, unless direct FPL account mutation becomes a deliberate feature.
 
 Firebase Cloud Messaging or a similar push service should be sufficient for early scale.
 
@@ -314,19 +299,17 @@ The backend should be able to poll many leagues efficiently:
 
 ## Persistence
 
-Unlike the original single-league concept, the service should use a real database.
+Unlike the original single-league concept, the service uses a real database.
 
-Minimum persisted data:
+Currently persisted data includes:
 
 - app users;
 - registered leagues;
 - league membership/follows;
-- selected fantasy team per user;
-- notification preferences;
-- commentary settings;
-- optional league facts/history;
-- event history useful for replay/debugging;
-- generated commentary history if needed.
+- broadcast schedules;
+- per-league AI and voice narration settings;
+- generated narration and audio lifecycle data;
+- password-reset and account-deletion request records.
 
 Live FPL state can mostly remain in memory and be reconstructed from FPL APIs after restart.
 
@@ -334,18 +317,16 @@ Do not persist copied browser cookies, FPL passwords, refresh tokens, Cloudflare
 
 ## Frontend
 
-The frontend should be an application, not a landing page.
+The frontend combines public information, account management, league management, checkout, and the live broadcast.
 
-Core screens:
+Current screens include:
 
 - league registration/join flow;
-- team selection;
-- notification settings;
 - live broadcast dashboard;
-- matchup detail view;
-- event feed;
-- commentary feed;
-- audio/TTS controls.
+- league dashboard and follow flow;
+- checkout, pricing, privacy, terms, and refund pages;
+- administrator user, league, and broadcast-schedule management;
+- generated-audio playback when voice narration is enabled.
 
 Live updates should use Server-Sent Events or WebSockets rather than independent browser polling of many endpoints.
 
@@ -356,9 +337,8 @@ For early multi-league scale, the basic service should stay modest:
 - Spring Boot backend;
 - database;
 - frontend hosting;
-- push notifications;
 - external LLM API for commentary text;
-- optional browser TTS.
+- optional server-side TTS.
 
 The expensive part is not displaying live data to users. The expensive part is high-frequency AI generation and especially professional cloud TTS.
 
@@ -392,7 +372,9 @@ If the service is public, add:
 - secret rotation;
 - input validation for all user-supplied league/context data.
 
-## Development Phases
+## Development Phases and Roadmap
+
+The following is the implementation history and forward roadmap. Core live broadcast, account, league, payment, narration, and deployment work is implemented; push notifications, team selection, watchlists, and richer social features remain future work.
 
 1. FPL data discovery
    - verify current endpoint payloads;
@@ -403,7 +385,7 @@ If the service is public, add:
 2. Multi-league registry
    - register leagues;
    - list managers/entries;
-   - let users select teams.
+   - register and follow leagues.
 
 3. Live state engine
    - poll FPL data;
@@ -433,8 +415,7 @@ If the service is public, add:
    - generated commentary feed.
 
 8. Voice
-   - browser TTS toggle first;
-   - optional shared professional TTS later.
+   - shared professional TTS for enabled leagues.
 
 9. Rich service features
    - league history;
@@ -454,7 +435,7 @@ Verify with real current-season data:
 - postponed and abandoned fixture states;
 - practical polling limits;
 - whether any required data becomes authenticated;
-- browser TTS quality across target devices;
+- voice quality and provider cost across target devices;
 - cheapest acceptable LLM provider/model for commentary.
 
 ## Summary

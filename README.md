@@ -1,6 +1,6 @@
-# Fantasy Broadcast Service
+# Fantasy Broadcast
 
-Live companion and broadcast service for Fantasy Premier League leagues, supporting both Draft and Classic formats.
+Fantasy Broadcast is a Fantasy Premier League companion app that turns registered Draft and Classic leagues into live matchday broadcasts.
 
 The app reads the appropriate FPL or FPL Draft data source, builds live league state, detects fantasy events, displays live matchups in a web UI, sends notification-worthy updates, and can generate broadcaster-style commentary for optional text-to-speech narration.
 
@@ -30,7 +30,7 @@ Build and run the backend in one command on Linux/macOS (recommended, from the r
 
 ```bash
 ./backend/mvnw -f backend/pom.xml clean package
-java -jar backend/target/backend-0.0.1-SNAPSHOT.jar
+java -jar backend/target/backend-1.0.0-RELEASE.jar
 ```
 
 This compiles, tests, packages, and starts the backend. Stop it with `Ctrl+C`.
@@ -155,6 +155,9 @@ AI should not calculate scores or infer facts. It should only turn verified back
 - [FPL discovery notes](docs/fpl-discovery.md)
 - [FPL JSON structures](docs/fpl-json-structures.md)
 - [AI narration setup](docs/narration.md)
+- [Database setup](docs/database.md)
+- [Production deployment](docs/production-deployment.md)
+- [Changelog](CHANGELOG.md)
 - [Backend FPL API notes](backend/docs/fpl-draft-api-notes.md)
 
 ## Security
@@ -165,7 +168,7 @@ Never commit API keys, FPL cookies, FPL access tokens, refresh tokens, Cloudflar
 
 The backend optionally imports an external configuration file from `./data/backend/application.yaml`, relative to the process that starts it. Start the local backend from the repository root to use `data/backend/application.yaml`; copy `data/backend/application.yaml.example` as a starting point. Set `BROADCAST_CONFIG_DIRECTORY` when that file is mounted elsewhere (for example, inside a future container).
 
-Keep this server-only file out of Git. Email delivery is enabled only when SMTP settings, `broadcast.email.from`, and `broadcast.email.public-base-url` are configured. Local testing defaults live in `backend/src/main/resources/application-local.yaml`; keep the app password in `SMTP_PASSWORD`.
+Keep this server-only file out of Git. Email delivery is enabled only when SMTP settings, `broadcast.email.from`, and `broadcast.email.public-base-url` are configured. Local testing defaults live in `backend/src/main/resources/application-local.yml`; keep the app password in `SMTP_PASSWORD`.
 
 ```yaml
 spring:

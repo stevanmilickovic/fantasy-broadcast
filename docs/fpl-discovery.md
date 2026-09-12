@@ -38,8 +38,8 @@ The match endpoint's `results` entries contain `entry_1_entry`, `entry_2_entry`,
 event-live endpoint because the recorded matchup totals can lag behind ongoing matches.
 - `GET https://fantasy.premierleague.com/api/entry/{entryId}/event/{eventId}/picks/`
 
-Start a head-to-head recording through `POST /api/live-broadcast/start?leagueId={leagueId}&leagueType=CLASSIC`.
-It emits the same `LiveStateResponse` and player-point notifications as a Draft recording; league-specific API data is normalized before it reaches the live pipeline. Classic overall-scoring broadcasts use the same general broadcast service, with a standings-focused presentation when there are no head-to-head fixtures.
+Administrators can start a head-to-head recording through `POST /api/live-broadcast/start?leagueId={leagueId}&leagueType=CLASSIC`. In normal product use, an authenticated customer opens a registered league during an active broadcast schedule through `POST /api/customer/leagues/{leagueId}/broadcast/open`.
+Both flows emit the same `LiveStateResponse` and player-point notifications as a Draft recording; league-specific API data is normalized before it reaches the live pipeline. Classic overall-scoring broadcasts use the same general broadcast service, with a standings-focused presentation when there are no head-to-head fixtures.
 
 ## Unknowns To Validate With Our League
 
@@ -61,7 +61,7 @@ If auth is needed, use an environment variable or excluded local config for the 
 - `FplDraftClient` performs raw HTTP calls.
 - `FplDraftMapper` converts raw JSON into internal records.
 - `src/test/resources/fpl/*.sample.json` contains minimal sample responses for mapper tests.
-- `/api/fpl/discovery/*` exposes temporary read-only endpoints for manual endpoint validation.
+- `/api/fpl/discovery/*` exposes temporary read-only endpoints for manual endpoint validation. These endpoints are available only outside the `production` Spring profile and are not part of the customer-facing API.
 
 The live engine should consume mapped records, not endpoint-specific JSON.
 

@@ -4,6 +4,8 @@ This file records observed FPL/FPL Draft response shapes so future logic can be 
 
 Do not store private cookies, auth headers, passwords, or tokens here. Prefer anonymized or public examples where possible.
 
+The referenced `/api/fpl/discovery/*` endpoints are development-only tools and are disabled under the `production` Spring profile.
+
 ## Draft League Details - Mapped Structure
 
 Observed from backend discovery endpoint:

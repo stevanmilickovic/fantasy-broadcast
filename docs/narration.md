@@ -13,7 +13,7 @@ FPL poll detects fantasy events
   -> SSE sends the visual notification and matching narration together
 ```
 
-The default release delay is 5 seconds. If narration is ready inside that window, the viewer sees the notification and hears the voice together. If voice is not ready or is disabled, the notification still appears with text-only commentary when available.
+The default release delay is 1 minute. If narration is ready inside that window, the viewer sees the notification and hears the voice together. If voice is not ready or is disabled, the notification still appears with text-only commentary when available. Set `BROADCAST_NARRATION_RELEASE_DELAY` to a shorter value when testing a faster presentation.
 
 ## Global Configuration
 
