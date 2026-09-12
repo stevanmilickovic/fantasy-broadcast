@@ -997,6 +997,13 @@
 .pitch-and-benches { position: relative; top: -32px; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: 1fr; width: 62.5%; height: 55vh; margin: 0 auto; }
 .compact-player-panels { display: none; }
 
+@media (min-width: 901px) {
+  .pitch-and-benches {
+    width: 75%;
+    height: 66vh;
+  }
+}
+
 .live-pitch {
   position: relative;
   grid-column: 2 / 10;
@@ -2110,7 +2117,7 @@ blockquote {
   .pitch-panel-live { display: contents; }
 
   .pitch-panel-live .pitch-and-benches { display: none; }
-  .pitch-panel-live .compact-player-panels { display: grid; grid-column: 1 / -1; grid-row: 3; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 5vw, 32px); min-height: min(58svh, 460px); transform: translateY(-3vh); }
+  .pitch-panel-live .compact-player-panels { display: grid; grid-column: 1 / -1; grid-row: 3; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 5vw, 32px); justify-self: center; width: calc(100% / 1.2); min-height: min(58svh, 460px); transform: translateY(-3vh) scale(1.2); transform-origin: top center; }
   .compact-player-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; }
   .compact-player-panel-label { color: rgba(255, 255, 255, .62); font-size: 9px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; }
   .compact-player-panel.away .compact-player-panel-label { text-align: right; }
@@ -2128,7 +2135,10 @@ blockquote {
   .compact-player-panel .player-meta strong { max-width: 58px; min-height: 20px; padding: 0 3px; font-size: 8px; }
   .compact-player-panel .player-meta b { min-width: 20px; height: 20px; font-size: 12px; }
   .compact-player-panel .player-event-stack.has-event { --player-meta-top: 2px; --player-meta-height: 20px; width: 92px; height: 22px; }
-  .compact-player-panel .player-event-notification { width: min(var(--event-width), calc(100vw - 24px)); padding: 0 5px; font-size: 8px; }
+  .compact-player-panel .player-event-stack.has-event .player-meta { max-width: 33.333vw; }
+  .compact-player-panel .player-event-notification { width: min(var(--event-width), 33.333vw); max-width: 33.333vw; padding: 0 5px; overflow: hidden; font-size: 8px; }
+  .compact-player-panel .player-event-notification strong { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .compact-player-panel .player-event-notification > span { flex: 0 0 auto; }
   .compact-player-panel .player-event-notification strong, .compact-player-panel .player-event-notification > span { font-size: 9px; }
 
   .pitch-panel-live .match-score-strip {
