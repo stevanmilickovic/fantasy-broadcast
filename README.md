@@ -1,5 +1,7 @@
 # Fantasy Broadcast
 
+For native client development, start with the [mobile client handoff](docs/mobile-handoff.md), which maps the implemented flows, API routes, authentication, live stream, and current mobile gaps.
+
 Fantasy Broadcast is a Fantasy Premier League companion app that turns registered Draft and Classic leagues into live matchday broadcasts.
 
 The app reads the appropriate FPL or FPL Draft data source, builds live league state, detects fantasy events, displays live matchups in a web UI, sends notification-worthy updates, and can generate broadcaster-style commentary for optional text-to-speech narration.
