@@ -128,6 +128,7 @@ export type ClassicLeagueDiscovery = {
 }
 
 export type DraftLeagueDiscovery = {
+  gameweek: number
   details: FplLeagueDetailsRaw
   elementStatus: FplElementStatusRaw
   players: FplPlayer[]

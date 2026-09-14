@@ -116,6 +116,7 @@ export type FplDraftEventLive = {
 }
 
 export type LeagueDiscoveryState = {
+  gameweek?: number
   details: FplLeagueDetailsRaw
   elementStatus: FplElementStatusRaw
   players: FplPlayer[]

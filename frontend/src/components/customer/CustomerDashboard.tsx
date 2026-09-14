@@ -85,7 +85,7 @@ function LeagueCheckoutProfessional({ search, onNavigate }: { search: string; on
 function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number): LeagueDiscoveryState {
   const entries = classic.entries.map((entry) => ({ id: entry.entryId, entry_id: entry.entryId, entry_name: entry.entryName, player_first_name: entry.playerName, player_last_name: '', short_name: '' }))
   const entryEvents = Object.fromEntries(Object.entries(classic.entryEvents).map(([id, event]) => [id, { picks: event.picks.map((pick) => ({ ...pick, starter: pick.position <= 11, benched: pick.position > 11 })), automaticSubstitutions: event.automaticSubstitutions }]))
-  return { details: { league: { id: fplLeagueId, name: classic.leagueName, draft_status: '', draft_dt: '', max_entries: entries.length, min_entries: 0, scoring: classic.scoringType, start_event: 0, stop_event: 0 }, league_entries: entries, matches: classic.matches.map((match, index) => ({ id: index, event: classic.gameweek, league_entry_1: match.firstEntryId, league_entry_2: match.secondEntryId, league_entry_1_points: match.firstPoints, league_entry_2_points: match.secondPoints, finished: false })), standings: classic.entries.map((entry) => ({ league_entry: entry.entryId, rank: entry.rank, lastRank: entry.lastRank, total: entry.total, points_for: entry.pointsFor })) }, elementStatus: { element_status: classic.entries.flatMap((entry) => (classic.entryEvents[String(entry.entryId)]?.picks ?? []).map((pick) => ({ element: pick.element, owner: entry.entryId, status: 'o', in_accepted_trade: false }))) }, players: classic.players, entryEvents, livePlayers: classic.livePlayers }
+  return { gameweek: classic.gameweek, details: { league: { id: fplLeagueId, name: classic.leagueName, draft_status: '', draft_dt: '', max_entries: entries.length, min_entries: 0, scoring: classic.scoringType, start_event: 0, stop_event: 0 }, league_entries: entries, matches: classic.matches.map((match, index) => ({ id: index, event: classic.gameweek, league_entry_1: match.firstEntryId, league_entry_2: match.secondEntryId, league_entry_1_points: match.firstPoints, league_entry_2_points: match.secondPoints, finished: false })), standings: classic.entries.map((entry) => ({ league_entry: entry.entryId, rank: entry.rank, lastRank: entry.lastRank, total: entry.total, points_for: entry.pointsFor })) }, elementStatus: { element_status: classic.entries.flatMap((entry) => (classic.entryEvents[String(entry.entryId)]?.picks ?? []).map((pick) => ({ element: pick.element, owner: entry.entryId, status: 'o', in_accepted_trade: false }))) }, players: classic.players, entryEvents, livePlayers: classic.livePlayers }
 }
 
 function OwnerBadge() { return <span className="owner-badge">My league</span> }
@@ -108,6 +108,39 @@ export function LeagueStandingsOverview({ token, discovery, scoringType }: { tok
   const remainingStandings = standings.filter((standing) => !podiumEntryIds.has(standingEntryId(standing)))
   const matches = (details.matches ?? []).slice().sort((first, second) => first.event - second.event)
   const matchweeks = groupedMatches(matches)
+  const currentGameweek = discovery.gameweek ?? matchweeks.find((week) => week.matches.some((match) => !match.finished))?.event ?? matchweeks.at(-1)?.event
+  const previousMatchweeks = matchweeks.filter((week) => currentGameweek !== undefined && week.event < currentGameweek)
+  const currentMatchweek = matchweeks.find((week) => week.event === currentGameweek)
+  const futureMatchweeks = matchweeks.filter((week) => currentGameweek !== undefined && week.event > currentGameweek)
+  const renderMatchweek = (week: (typeof matchweeks)[number]) => (
+    <section className="matchweek-group" key={week.event}>
+      <header><strong>Gameweek {week.event}</strong></header>
+      <div>
+        {week.matches.map((match, index) => {
+          const firstEntryId = match.league_entry_1 ?? match.firstLeagueEntryId ?? 0
+          const secondEntryId = match.league_entry_2 ?? match.secondLeagueEntryId ?? 0
+          const firstEntry = entriesByLeagueEntryId.get(firstEntryId) ?? entriesByEntryId.get(firstEntryId)
+          const secondEntry = entriesByLeagueEntryId.get(secondEntryId) ?? entriesByEntryId.get(secondEntryId)
+          const firstPoints = match.league_entry_1_points ?? match.firstPoints ?? 0
+          const secondPoints = match.league_entry_2_points ?? match.secondPoints ?? 0
+          const played = match.finished || firstPoints > 0 || secondPoints > 0
+          const firstResultClass = !played || firstPoints === secondPoints ? '' : firstPoints > secondPoints ? 'winning-score' : 'losing-score'
+          const secondResultClass = !played || firstPoints === secondPoints ? '' : secondPoints > firstPoints ? 'winning-score' : 'losing-score'
+          return (
+            <article className={`league-matchup-row ${played ? 'played' : 'upcoming'}`} key={`${match.event}-${firstEntryId}-${secondEntryId}-${index}`}>
+              <strong className="matchup-team home-team">{firstEntry?.entry_name ?? firstEntryId}</strong>
+              <div className="matchup-scoreline" aria-label={played ? `${firstPoints} versus ${secondPoints}` : 'Upcoming matchup'}>
+                <span className={firstResultClass}>{played ? firstPoints : '-'}</span>
+                <b>vs</b>
+                <span className={secondResultClass}>{played ? secondPoints : '-'}</span>
+              </div>
+              <strong className="matchup-team away-team">{secondEntry?.entry_name ?? secondEntryId}</strong>
+            </article>
+          )
+        })}
+      </div>
+    </section>
+  )
   const filteredEntries = entries.filter((entry) => {
     const query = teamSearch.trim().toLowerCase()
     if (!query) return true
@@ -193,35 +226,11 @@ export function LeagueStandingsOverview({ token, discovery, scoringType }: { tok
 
       {mode === 'matchups' && showGamePoints && (
         <section className="league-matchups-view">
-          {matchweeks.length === 0 ? <p className="empty-text compact-empty">No matchups returned by FPL yet.</p> : matchweeks.map((week) => (
-            <section className="matchweek-group" key={week.event}>
-              <header><strong>Gameweek {week.event}</strong></header>
-              <div>
-                {week.matches.map((match, index) => {
-                  const firstEntryId = match.league_entry_1 ?? match.firstLeagueEntryId ?? 0
-                  const secondEntryId = match.league_entry_2 ?? match.secondLeagueEntryId ?? 0
-                  const firstEntry = entriesByLeagueEntryId.get(firstEntryId) ?? entriesByEntryId.get(firstEntryId)
-                  const secondEntry = entriesByLeagueEntryId.get(secondEntryId) ?? entriesByEntryId.get(secondEntryId)
-                  const firstPoints = match.league_entry_1_points ?? match.firstPoints ?? 0
-                  const secondPoints = match.league_entry_2_points ?? match.secondPoints ?? 0
-                  const played = match.finished || firstPoints > 0 || secondPoints > 0
-                  const firstResultClass = !played || firstPoints === secondPoints ? '' : firstPoints > secondPoints ? 'winning-score' : 'losing-score'
-                  const secondResultClass = !played || firstPoints === secondPoints ? '' : secondPoints > firstPoints ? 'winning-score' : 'losing-score'
-                  return (
-                    <article className={`league-matchup-row ${played ? 'played' : 'upcoming'}`} key={`${match.event}-${firstEntryId}-${secondEntryId}-${index}`}>
-                      <strong className="matchup-team home-team">{firstEntry?.entry_name ?? firstEntryId}</strong>
-                      <div className="matchup-scoreline" aria-label={played ? `${firstPoints} versus ${secondPoints}` : 'Upcoming matchup'}>
-                        <span className={firstResultClass}>{played ? firstPoints : '-'}</span>
-                        <b>vs</b>
-                        <span className={secondResultClass}>{played ? secondPoints : '-'}</span>
-                      </div>
-                      <strong className="matchup-team away-team">{secondEntry?.entry_name ?? secondEntryId}</strong>
-                    </article>
-                  )
-                })}
-              </div>
-            </section>
-          ))}
+          {matchweeks.length === 0 ? <p className="empty-text compact-empty">No matchups returned by FPL yet.</p> : <>
+            {previousMatchweeks.length > 0 && <details className="matchweek-archive"><summary>Previous matchweeks <span>{previousMatchweeks.length}</span></summary><div>{previousMatchweeks.map(renderMatchweek)}</div></details>}
+            {currentMatchweek ? renderMatchweek(currentMatchweek) : <p className="empty-text compact-empty">No matchups for gameweek {currentGameweek} yet.</p>}
+            {futureMatchweeks.length > 0 && <details className="matchweek-archive"><summary>Future matchweeks <span>{futureMatchweeks.length}</span></summary><div>{futureMatchweeks.map(renderMatchweek)}</div></details>}
+          </>}
         </section>
       )}
     </section>
@@ -434,8 +443,6 @@ function placeLabel(rank: number) {
   if (rank % 10 === 3) return `${rank}rd`
   return `${rank}th`
 }
-
-
 
 
 

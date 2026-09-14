@@ -2917,6 +2917,37 @@ blockquote {
   display: grid;
   gap: 28px;
 }
+.matchweek-archive > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  border: 0;
+  border-left: 5px solid #20e6ff;
+  background: #31003a;
+  color: #20e6ff;
+  cursor: pointer;
+  font-size: .9rem;
+  font-weight: 800;
+  list-style: none;
+}
+.matchweek-archive > summary::-webkit-details-marker { display: none; }
+.matchweek-archive > summary::after { content: '+'; margin-left: auto; font-size: 1.35rem; line-height: 1; }
+.matchweek-archive[open] > summary::after { content: '−'; }
+.matchweek-archive > summary:hover { background: #42004d; }
+.matchweek-archive > summary:focus-visible { outline: 2px solid #20e6ff; outline-offset: 3px; }
+.matchweek-archive > summary span { color: #d9cbe0; }
+.matchweek-archive > div {
+  display: grid;
+  padding: 4px 18px;
+  border: 1px solid rgba(32,230,255,.22);
+  background: #25002c;
+}
+.matchweek-archive .matchweek-group + .matchweek-group { border-top: 1px solid rgba(255,255,255,.12); }
+.matchweek-archive .matchweek-group { padding: 14px 0; }
 .matchweek-group {
   display: grid;
   gap: 0;
