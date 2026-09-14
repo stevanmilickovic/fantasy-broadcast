@@ -2052,13 +2052,9 @@ blockquote {
   100% { opacity: 1; }
 }
 
-/*
- * A phone cannot show a meaningful full pitch, eleven player tokens, and both benches
- * at once. This is a distinct compact broadcast composition, not a scaled desktop
- * layout. The score occupies the centre while each club keeps its five most relevant
- * player cards visible.
- */
+/* Compact matchups keep both full squads in reading order below the score. */
 @media (max-width: 760px), (max-width: 960px) and (max-height: 540px) and (orientation: landscape) {
+  .matchday-page { overflow-x: clip; overflow-y: visible; }
   .matchday-page .live-indicator { display: none; }
 
   .matchday-page .floating-back {
@@ -2097,8 +2093,8 @@ blockquote {
 
   .pitch-broadcast-stage {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
-    column-gap: clamp(12px, 5vw, 32px);
+    grid-template-rows: auto auto auto;
+    column-gap: clamp(8px, 3vw, 24px);
     min-height: 100svh;
     padding: calc(106px - 8vh) 0 88px;
   }
@@ -2117,26 +2113,26 @@ blockquote {
   .pitch-panel-live { display: contents; }
 
   .pitch-panel-live .pitch-and-benches { display: none; }
-  .pitch-panel-live .compact-player-panels { display: grid; grid-column: 1 / -1; grid-row: 3; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 5vw, 32px); justify-self: center; width: calc(100% / 1.2); min-height: min(58svh, 460px); transform: translateY(-3vh) scale(1.2); transform-origin: top center; }
-  .compact-player-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; }
-  .compact-player-panel-label { color: rgba(255, 255, 255, .62); font-size: 9px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; }
-  .compact-player-panel.away .compact-player-panel-label { text-align: right; }
-  .compact-player-list { display: grid; grid-template-rows: repeat(5, minmax(74px, 1fr)); align-items: center; gap: 12px; min-height: 0; padding-top: 10px; }
-  .compact-player-panel .pitch-player { position: relative; top: auto; left: auto; width: 100%; animation: compact-player-enter 320ms cubic-bezier(.22, 1, .36, 1); transform: none; }
-  .compact-player-panel.home .pitch-player { justify-self: start; }
-  .compact-player-panel.away .pitch-player { justify-self: end; }
-  .compact-player-panel .player-token, .compact-player-panel .player-core { width: min(100%, 92px); }
-  .compact-player-panel.home .player-token { margin-left: 0; }
-  .compact-player-panel.away .player-token { margin-right: 0; }
-  .compact-player-panel .player-core { grid-template-rows: 37px auto; }
-  .compact-player-panel .shirt-wrap { width: 38px; height: 38px; }
-  .compact-player-panel .shirt-wrap img { width: 45px; height: 45px; }
+  .pitch-panel-live .compact-player-panels { position: relative; display: grid; grid-column: 1 / -1; grid-row: 3; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(8px, 3vw, 24px); width: 100%; min-width: 0; }
+  .compact-player-panels::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 1px solid rgba(255,255,255,.35); pointer-events: none; }
+  .compact-player-panel { min-width: 0; }
+  .compact-player-list { display: flex; flex-direction: column; min-width: 0; }
+  .compact-bench-label { margin: 8px 0 4px; color: rgba(255,255,255,.62); font-size: 9px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; }
+  .compact-player-panel.away .compact-bench-label { text-align: right; }
+  .compact-player-panel .pitch-player { position: relative; top: auto; left: auto; align-self: flex-start; width: min(104px, 75%); height: 78px; animation: compact-player-enter 320ms cubic-bezier(.22, 1, .36, 1); transform: none; }
+  .compact-player-list .pitch-player + .pitch-player { margin-top: -20px; }
+  .compact-player-panel.home .compact-lane-inner { align-self: flex-end; }
+  .compact-player-panel.away .compact-lane-outer { align-self: flex-end; }
+  .compact-player-panel .player-token, .compact-player-panel .player-core { width: 100%; }
+  .compact-player-panel .player-core { grid-template-rows: 50px auto; }
+  .compact-player-panel .shirt-wrap { width: 52px; height: 52px; }
+  .compact-player-panel .shirt-wrap img { width: 60px; height: 60px; }
   .compact-player-panel .player-meta { margin-top: 2px; }
-  .compact-player-panel .player-meta strong { max-width: 58px; min-height: 20px; padding: 0 3px; font-size: 8px; }
-  .compact-player-panel .player-meta b { min-width: 20px; height: 20px; font-size: 12px; }
-  .compact-player-panel .player-event-stack.has-event { --player-meta-top: 2px; --player-meta-height: 20px; width: 92px; height: 22px; }
-  .compact-player-panel .player-event-stack.has-event .player-meta { max-width: 33.333vw; }
-  .compact-player-panel .player-event-notification { width: min(var(--event-width), 33.333vw); max-width: 33.333vw; padding: 0 5px; overflow: hidden; font-size: 8px; }
+  .compact-player-panel .player-meta strong { max-width: 76px; min-height: 24px; padding: 0 4px; font-size: 10px; }
+  .compact-player-panel .player-meta b { min-width: 24px; height: 24px; font-size: 14px; }
+  .compact-player-panel .player-event-stack.has-event { --player-meta-top: 2px; --player-meta-height: 24px; width: 100%; height: 26px; }
+  .compact-player-panel .player-event-stack.has-event .player-meta { max-width: 44vw; }
+  .compact-player-panel .player-event-notification { width: min(var(--event-width), 44vw); max-width: 44vw; padding: 0 5px; overflow: hidden; font-size: 8px; }
   .compact-player-panel .player-event-notification strong { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .compact-player-panel .player-event-notification > span { flex: 0 0 auto; }
   .compact-player-panel .player-event-notification strong, .compact-player-panel .player-event-notification > span { font-size: 9px; }
@@ -2153,7 +2149,7 @@ blockquote {
     padding: 0;
     background: transparent;
     box-shadow: none;
-    transform: translateY(-3vh);
+    transform: none;
   }
   .pitch-panel-live .match-score-strip span, .pitch-panel-live .match-score-strip small { font-size: 9px; }
   .pitch-panel-live .match-score-strip small { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2985,7 +2981,7 @@ blockquote {
 .player-details-row { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.12); }
 .player-details-row strong { white-space: nowrap; color: #20e6ff; }
 @media (max-width: 560px) {
-  .player-details-modal { width: 100vw; max-width: 100vw; max-height: 100dvh; margin: auto 0 0; border-left: 0; border-right: 0; }
+  .player-details-modal { width: calc(100vw - 32px); max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); margin: auto; }
   .player-details-header { grid-template-columns: 82px minmax(0,1fr) 42px; gap: 12px; min-height: 138px; padding: 56px 16px 16px; }
   .player-details-photo { width: 82px; height: 105px; }
   .player-details-shirt { width: 42px; }

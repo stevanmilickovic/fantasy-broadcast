@@ -1,6 +1,6 @@
 import { ArrowLeft, Radio, Trophy, Volume2 } from 'lucide-react'
 import type { CSSProperties, RefObject } from 'react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, RevealRect, TeamView } from '../../types/live'
 import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../../utils/broadcast'
 import { PlayerDetailsModal, type SelectedPlayer } from '../customer/PlayerDetailsModal'
@@ -38,9 +38,8 @@ type BroadcastMatchdayProps = {
 type FplClubShirt = { name: string; shortName?: string; code: number }
 type ShirtCodes = FplClubShirt[]
 const REVEAL_SCORE_CLEARANCE_PX = 42
-const COMPACT_COMPONENT_SCALE = 1.2
 const COMPACT_NOTIFICATION_SCREEN_INSET_RATIO = .05
-const COMPACT_PLAYER_TOKEN_WIDTH = 92
+const COMPACT_PLAYER_TOKEN_WIDTH = 104
 
 const notificationTopFor = (index: number) => {
   const metadataHeight = window.matchMedia('(max-width: 900px)').matches ? 20 : 26
@@ -239,20 +238,21 @@ function PitchStage({ authToken, shirtCodesOverride, gameweek, scoreline, leader
   </section>
 }
 
-/**
- * The pitch becomes unreadable before the rest of the broadcast does. In compact
- * layouts, keep the same player cards but reserve the five visible slots for the
- * scorers and temporarily promote any player involved in the current notification.
- */
 function CompactPlayerPanels({ matchup, shirtCodes, latestEvents, pendingEvents }: { matchup: MatchupView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
-  return <div className="compact-player-panels" aria-label="Leading fantasy scorers">
+  return <div className="compact-player-panels" aria-label="Matchup players">
     <CompactPlayerPanel side="home" team={matchup.home} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
     <CompactPlayerPanel side="away" team={matchup.away} shirtCodes={shirtCodes} latestEvents={latestEvents} pendingEvents={pendingEvents} />
   </div>
 }
 
 function CompactPlayerPanel({ side, team, shirtCodes, latestEvents, pendingEvents }: { side: 'home' | 'away'; team: TeamView; shirtCodes: ShirtCodes; latestEvents: FantasyEventView[]; pendingEvents: FantasyEventView[] }) {
-  const players = compactPlayersFor(team, latestEvents)
+  const players = [
+    ...team.activePlayers.filter((player) => player.position === 'FWD'),
+    ...team.activePlayers.filter((player) => player.position === 'MID'),
+    ...team.activePlayers.filter((player) => player.position === 'DEF'),
+    ...team.activePlayers.filter((player) => player.position === 'GKP'),
+    ...team.benchPlayers,
+  ]
   const panelRef = useRef<HTMLElement>(null)
   const [panelBounds, setPanelBounds] = useState<DOMRect | null>(null)
 
@@ -270,47 +270,38 @@ function CompactPlayerPanel({ side, team, shirtCodes, latestEvents, pendingEvent
     }
   }, [])
 
-  return <section ref={panelRef} className={`compact-player-panel ${side}`} aria-label={`${team.clubName} leading scorers`}>
-    <span className="compact-player-panel-label">Top scorers</span>
+  return <section ref={panelRef} className={`compact-player-panel ${side}`} aria-label={`${team.clubName} players`}>
     <div className="compact-player-list">
-      {players.map((player) => {
+      {players.map((player, index) => {
         const events = latestEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id)
         const pendingPointDelta = latestEvents.length === 0
           ? pendingEvents.filter((event) => event.managerId === team.managerId && event.playerId === player.id).reduce((total, event) => total + event.pointDelta, 0)
           : 0
-        return <PitchPlayer key={player.id} player={player} side={side} teamColor={team.color} position={{ x: 50, y: 50, yOffset: 0 }} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={compactNotificationShiftFor(events, side, panelBounds)} />
+        return <Fragment key={player.id}>
+          {team.benchPlayers.length > 0 && index === players.length - team.benchPlayers.length && <span className="compact-bench-label">Bench</span>}
+          <PitchPlayer player={player} side={side} teamColor={team.color} position={{ x: 50, y: 50, yOffset: 0 }} shirtCode={shirtCodeFor(player.premierLeagueClub, shirtCodes)} events={events} pendingPointDelta={pendingPointDelta} notificationShift={compactNotificationShiftFor(events, side, index, panelBounds)} compactLane={index % 2 === 0 ? 'outer' : 'inner'} />
+        </Fragment>
       })}
     </div>
   </section>
 }
 
-function compactPlayersFor(team: TeamView, latestEvents: FantasyEventView[]) {
-  const players = [...team.activePlayers, ...team.benchPlayers]
-  const notifiedIds = new Set(latestEvents.filter((event) => event.managerId === team.managerId).map((event) => event.playerId))
-  const byPoints = [...players].sort((first, second) => second.points - first.points || first.displayName.localeCompare(second.displayName))
-  const promoted = players.filter((player) => notifiedIds.has(player.id))
-  return [...promoted, ...byPoints.filter((player) => !notifiedIds.has(player.id))].slice(0, 5)
-}
-
-function compactNotificationShiftFor(events: FantasyEventView[], side: 'home' | 'away', panelBounds: DOMRect | null) {
+function compactNotificationShiftFor(events: FantasyEventView[], side: 'home' | 'away', index: number, panelBounds: DOMRect | null) {
   if (events.length === 0 || !panelBounds) return 0
   const screenInset = window.innerWidth * COMPACT_NOTIFICATION_SCREEN_INSET_RATIO
   const halfScreenEdge = window.innerWidth / 2
   const leftBound = side === 'home' ? screenInset : halfScreenEdge + screenInset
   const rightBound = side === 'home' ? halfScreenEdge - screenInset : window.innerWidth - screenInset
-  const notificationWidth = Math.min(
-    Math.max(...events.map(notificationWidthFor)) * COMPACT_COMPONENT_SCALE,
-    rightBound - leftBound,
-  )
-  // Compact cards are anchored to their panel's outer edge. Measure that edge instead
-  // of applying a blanket inward offset, so a card moves only when it would clip.
+  const notificationWidth = Math.min(Math.max(...events.map(notificationWidthFor)), rightBound - leftBound)
+  const tokenWidth = Math.min(COMPACT_PLAYER_TOKEN_WIDTH, panelBounds.width * .75)
+  const outerLane = index % 2 === 0
   const notificationCentre = side === 'home'
-    ? panelBounds.left + COMPACT_PLAYER_TOKEN_WIDTH * COMPACT_COMPONENT_SCALE / 2
-    : panelBounds.right - COMPACT_PLAYER_TOKEN_WIDTH * COMPACT_COMPONENT_SCALE / 2
+    ? outerLane ? panelBounds.left + tokenWidth / 2 : panelBounds.right - tokenWidth / 2
+    : outerLane ? panelBounds.right - tokenWidth / 2 : panelBounds.left + tokenWidth / 2
   const notificationLeft = notificationCentre - notificationWidth / 2
   const notificationRight = notificationCentre + notificationWidth / 2
-  if (notificationLeft < leftBound) return (leftBound - notificationLeft) / COMPACT_COMPONENT_SCALE
-  if (notificationRight > rightBound) return (rightBound - notificationRight) / COMPACT_COMPONENT_SCALE
+  if (notificationLeft < leftBound) return leftBound - notificationLeft
+  if (notificationRight > rightBound) return rightBound - notificationRight
   return 0
 }
 
@@ -426,7 +417,7 @@ function PitchTeam({ side, team, shirtCodes, latestEvents, pendingEvents, notifi
   })}</>
 }
 
-function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pendingPointDelta = 0, notificationShift }: { player: PlayerView; side: 'home' | 'away'; teamColor: string; position: { x: number; y: number; yOffset: number }; shirtCode?: number; events: FantasyEventView[]; pendingPointDelta?: number; notificationShift: number }) {
+function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pendingPointDelta = 0, notificationShift, compactLane }: { player: PlayerView; side: 'home' | 'away'; teamColor: string; position: { x: number; y: number; yOffset: number }; shirtCode?: number; events: FantasyEventView[]; pendingPointDelta?: number; notificationShift: number; compactLane?: 'outer' | 'inner' }) {
   const name = playerCardName(player).join(' ').trim()
   const shirtUrl = shirtCode ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${shirtCode}-110.png` : undefined
   const style = { '--x': `${position.x}%`, '--y': `${position.y}%`, '--y-offset': `${position.yOffset}px`, '--team-color': teamColor } as CSSProperties
@@ -488,7 +479,7 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
     }
   }, [event?.id, eventDelta, player.points])
 
-  return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''} ${player.autoSubstituted ? 'auto-substituted' : ''}`} style={style} role="button" tabIndex={0} aria-label={`View ${player.displayName} points`} data-player-id={player.id} data-player-name={player.displayName} data-shirt-url={shirtUrl} data-player-points={player.points} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click() } }}>
+  return <div className={`pitch-player ${side} ${compactLane ? `compact-lane-${compactLane}` : ''} ${activeEvent ? 'has-event' : ''} ${player.autoSubstituted ? 'auto-substituted' : ''}`} style={style} role="button" tabIndex={0} aria-label={`View ${player.displayName} points`} data-player-id={player.id} data-player-name={player.displayName} data-shirt-url={shirtUrl} data-player-points={player.points} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click() } }}>
     <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${notificationTopFor(index)}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
 }
