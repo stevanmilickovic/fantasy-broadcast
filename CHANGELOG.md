@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 - 2026-09-14
+
+- Added player details with current-gameweek point changes, photos, and previous-gameweek totals.
+- Corrected league team totals to exclude unused bench points and show zero for players who played.
+- Reorganized matchups around the current gameweek with collapsible past and future weeks.
+- Showed full squads in the phone head-to-head broadcast and refined the player modal layout.
+- Removed the welcome page's “See it in action” link.
+
 ## 1.0.0-RELEASE - 2026-09-12
 
 - Fixed Paddle checkout completion, redirects, schedule creation, and provisioning flow.
