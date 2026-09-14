@@ -3,9 +3,11 @@ import type { CSSProperties, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { BroadcastFocus, FantasyEventView, LiveStandingView, LiveStateResponse, MatchupView, PlayerView, RevealLayout, RevealRect, TeamView } from '../../types/live'
 import { formatScoreline, playerCardName, revealCopyStyle, teamShortName, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../../utils/broadcast'
+import { PlayerDetailsModal, type SelectedPlayer } from '../customer/PlayerDetailsModal'
 
 type BroadcastMatchdayProps = {
 	authToken: string
+	leagueId?: number
 	shirtCodesOverride?: ShirtCodes
 	displayLiveState: LiveStateResponse
 	matchup?: MatchupView
@@ -46,10 +48,20 @@ const notificationTopFor = (index: number) => {
 }
 
 export function BroadcastMatchday({
-	authToken, shirtCodesOverride, displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
+	authToken, leagueId, shirtCodesOverride, displayLiveState, matchup, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, leaderName, broadcastFocus, automaticFocus,
   revealingMatch, revealLayout, transitioningToMatch, visibleEventId, homeHeadingRef, awayHeadingRef, scoreRef, totalTeamNameRef, totalHeadingRef, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, holdingPendingUpdates,
   onBack, onSelectFocus,
 }: BroadcastMatchdayProps) {
+  const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayer | null>(null)
+  const selectPlayer = (event: React.MouseEvent<HTMLElement>) => {
+    const button = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-player-id]') : null
+    if (!button) return
+    const id = button.dataset.playerId
+    if (id) setSelectedPlayer({ id, name: button.dataset.playerName ?? 'Player', shirtUrl: button.dataset.shirtUrl, points: Number(button.dataset.playerPoints ?? 0) })
+  }
+  const playerModal = selectedPlayer
+    ? <PlayerDetailsModal key={selectedPlayer.id} player={selectedPlayer} leagueId={leagueId} gameweek={displayLiveState.gameweek} onClose={() => setSelectedPlayer(null)} />
+    : null
   const displayLatestEvent = displayLiveState.events?.[0]
   const displayEvents = visibleEventId === displayLatestEvent?.id ? displayLiveState.events : []
   if (!matchup && (displayLiveState.teams?.length ?? 0) > 0) {
@@ -77,11 +89,13 @@ export function BroadcastMatchday({
       scoreRef={scoreRef}
       onBack={onBack}
       onSelectFocus={onSelectFocus}
+      onPlayerClick={selectPlayer}
+      playerModal={playerModal}
     />
   }
   if (!matchup) return null
   return (
-    <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`}>
+    <main className={`broadcast-shell matchday-page ${revealingMatch ? 'revealing-match' : ''}`} onClick={selectPlayer}>
       {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
       {revealingMatch && (showingLiveLeaderboard
         ? <LeaderboardReveal layout={leaderboardRevealLayout} headingRef={leaderboardHeadingRef} />
@@ -98,6 +112,7 @@ export function BroadcastMatchday({
             <PitchStage authToken={authToken} shirtCodesOverride={shirtCodesOverride} gameweek={displayLiveState.gameweek} scoreline={matchup.scoreline} leaderName={leaderName} scoreRef={scoreRef} matchup={matchup} latestEvents={displayEvents} pendingEvents={holdingPendingUpdates ? displayLiveState.events ?? [] : []} />
             <BroadcastTeamColumn side="right" team={matchup.away} isLeader={matchup.leaderManagerId === matchup.away.managerId} headingRef={awayHeadingRef} />
           </section>}
+      {playerModal}
     </main>
   )
 }
@@ -375,7 +390,7 @@ function BenchPlayer({ player, teamColor, shirtCode, verticalPosition, events, p
     return () => { window.clearTimeout(notificationTimer); if (pointsTimer) window.clearInterval(pointsTimer) }
   }, [event?.id, eventDelta, player.points])
 
-  return <div className={`bench-player ${activeEvent ? 'has-event' : ''}`} style={style}>
+  return <div className={`bench-player ${activeEvent ? 'has-event' : ''}`} style={style} role="button" tabIndex={0} aria-label={`View ${player.displayName} points`} data-player-id={player.id} data-player-name={player.displayName} data-shirt-url={shirtUrl} data-player-points={player.points} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click() } }}>
     <div className={`player-token bench-player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${notificationTopFor(index)}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
 }
@@ -473,12 +488,12 @@ function PitchPlayer({ player, side, teamColor, position, shirtCode, events, pen
     }
   }, [event?.id, eventDelta, player.points])
 
-  return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''} ${player.autoSubstituted ? 'auto-substituted' : ''}`} style={style}>
+  return <div className={`pitch-player ${side} ${activeEvent ? 'has-event' : ''} ${player.autoSubstituted ? 'auto-substituted' : ''}`} style={style} role="button" tabIndex={0} aria-label={`View ${player.displayName} points`} data-player-id={player.id} data-player-name={player.displayName} data-shirt-url={shirtUrl} data-player-points={player.points} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click() } }}>
     <div className={`player-token ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}><div className="player-core"><div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.premierLeagueClub} shirt`} /> : <span>{name}</span>}</div><div className={`player-event-stack ${activeEvent ? 'has-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`} style={activeEvent ? eventStyle : undefined}><div className="player-meta"><strong>{name}</strong><b>{displayPlayerPoints(player, pointsToRender)}</b></div>{activeEvent && notificationEventId === activeEvent.id && activeEvents.map((candidate, index) => <span key={candidate.id} className={`player-event-notification ${notificationLeaving ? 'is-leaving' : ''}`} style={{ '--notification-top': `${notificationTopFor(index)}px`, '--notification-delay': `${index * 140}ms` } as CSSProperties}><strong>{candidate.type.replaceAll('_', ' ')}</strong><span>{candidate.pointDelta > 0 ? '+' : ''}{candidate.pointDelta} pts</span></span>)}</div></div></div>
   </div>
 }
 
-function TotalPointsBroadcast({ authToken, shirtCodesOverride, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus }: {
+function TotalPointsBroadcast({ authToken, shirtCodesOverride, displayLiveState, broadcastFocus, automaticFocus, revealingMatch, revealLayout, transitioningToMatch, latestEvent, latestEvents, pendingEvents, latestCommentaryId, latestCommentaryText, latestCommentaryStatus, standings, showingLiveLeaderboard, leaderboardRevealLayout, leaderboardHeadingRef, totalTeamNameRef, totalHeadingRef, scoreRef, onBack, onSelectFocus, onPlayerClick, playerModal }: {
 	authToken: string
   shirtCodesOverride?: ShirtCodes
   displayLiveState: LiveStateResponse
@@ -502,6 +517,8 @@ function TotalPointsBroadcast({ authToken, shirtCodesOverride, displayLiveState,
   scoreRef: RefObject<HTMLElement | null>
   onBack: () => void
   onSelectFocus: (focus: BroadcastFocus) => void
+  onPlayerClick: (event: React.MouseEvent<HTMLElement>) => void
+  playerModal: React.ReactNode
 }) {
   const automaticallyFocusedTeam = automaticFocus !== 'multi'
     ? displayLiveState.teams?.find((candidate) => candidate.managerId === automaticFocus)
@@ -544,7 +561,7 @@ function TotalPointsBroadcast({ authToken, shirtCodesOverride, displayLiveState,
       compactQuery.removeEventListener('change', fitName)
     }
   }, [scoreRef, team.clubName, totalHeadingRef, totalTeamNameRef])
-  return <main className={`broadcast-shell matchday-page total-points-broadcast ${revealingMatch ? 'revealing-match' : ''}`}>
+  return <main className={`broadcast-shell matchday-page total-points-broadcast ${revealingMatch ? 'revealing-match' : ''}`} onClick={onPlayerClick}>
     {transitioningToMatch && <div className="scene-wipe-overlay" aria-hidden="true" />}
     {revealingMatch && (showingLiveLeaderboard
       ? <LeaderboardReveal layout={leaderboardRevealLayout} headingRef={leaderboardHeadingRef} label="Live standings" />
@@ -562,6 +579,7 @@ function TotalPointsBroadcast({ authToken, shirtCodesOverride, displayLiveState,
       </section>
       <LiveStandings standings={standings} focusedTeam={team} />
     </section>}
+    {playerModal}
   </main>
 }
 

@@ -20,6 +20,10 @@ import com.fantasybroadcast.backend.fpl.FplDraftMapper;
 import com.fantasybroadcast.backend.fpl.FplLeagueScoring;
 import com.fantasybroadcast.backend.fpl.FplLeagueType;
 import com.fantasybroadcast.backend.fpl.FplPlayer;
+import com.fantasybroadcast.backend.fpl.FplLivePlayer;
+import com.fantasybroadcast.backend.fpl.FplLiveStats;
+import com.fantasybroadcast.backend.fpl.FplLiveExplanation;
+import com.fantasybroadcast.backend.fpl.FplLivePointBreakdown;
 import com.fantasybroadcast.backend.live.MockLiveStateService;
 import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import org.junit.jupiter.api.Test;
@@ -84,5 +88,39 @@ class CustomerLeagueControllerTests {
 		assertThatThrownBy(() -> controller.draftLeagueOverview(new MockHttpServletRequest(), 41))
 				.isInstanceOf(ResponseStatusException.class)
 				.hasMessageContaining("Sign in is required");
+	}
+
+	@Test
+	void returnsPlayerBreakdownAndPreviousGameweekTotals() {
+		var sessions = new SessionService();
+		var user = new CurrentUser(7, "viewer@example.com", "Viewer", UserRole.USER);
+		var request = new MockHttpServletRequest();
+		request.setCookies(new Cookie(SessionService.COOKIE_NAME, sessions.create(user)));
+		var leagues = mock(LeagueRegistrationService.class);
+		var client = mock(FplDraftClient.class);
+		var mapper = mock(FplDraftMapper.class);
+		var json = new tools.jackson.databind.ObjectMapper();
+		var bootstrap = json.readTree("{\"elements\":[{\"id\":12,\"code\":1234}]}");
+		var summary = json.readTree("{\"history\":[{\"round\":1,\"total_points\":3},{\"round\":2,\"total_points\":4},{\"round\":2,\"total_points\":2},{\"round\":3,\"total_points\":5}]}");
+		var liveRoot = json.readTree("{}");
+		var livePlayer = new FplLivePlayer(12, new FplLiveStats(90, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6),
+				java.util.List.of(new FplLiveExplanation(55, java.util.List.of(new FplLivePointBreakdown("goals_scored", 4, 1, 0)))));
+		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Test League", FplLeagueType.CLASSIC,
+				FplLeagueScoring.H2H, true, false, false, user.id()));
+		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getFantasyPlayerSummary(12)).thenReturn(summary);
+		when(client.getFantasyEventLive(3)).thenReturn(liveRoot);
+		when(mapper.mapPlayers(bootstrap)).thenReturn(java.util.List.of(new FplPlayer(12, "Player", "Test Player", "Club", 1, "MID")));
+		when(mapper.mapLivePlayers(liveRoot)).thenReturn(java.util.List.of(livePlayer));
+		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
+				client, mapper, new BroadcastSecurityProperties());
+
+		var details = controller.playerDetails(request, 41, 12, 3);
+
+		assertThat(details.photoCode()).isEqualTo(1234);
+		assertThat(details.points()).isEqualTo(6);
+		assertThat(details.changes()).containsExactly(new CustomerLeagueController.PlayerPointChange("goals_scored", 1, 4, 55));
+		assertThat(details.history()).containsExactly(new CustomerLeagueController.PlayerGameweekPoints(1, 3),
+				new CustomerLeagueController.PlayerGameweekPoints(2, 6));
 	}
 }

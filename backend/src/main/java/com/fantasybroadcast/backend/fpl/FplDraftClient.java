@@ -40,6 +40,10 @@ public class FplDraftClient {
 		return getJson(properties.getFantasyBaseUrl() + "/fixtures/");
 	}
 
+	public JsonNode getFantasyPlayerSummary(int playerId) {
+		return getCachedJson(properties.getFantasyBaseUrl() + "/element-summary/" + playerId + "/");
+	}
+
 	public JsonNode getLeagueDetails(long leagueId) {
 		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details");
 	}

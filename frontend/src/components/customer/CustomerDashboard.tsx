@@ -8,6 +8,7 @@ import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/
 import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
 import { enablePointChangeSound } from '../../utils/broadcastSound'
 import { LegalFooter } from './LegalFooter'
+import { PlayerDetailsModal, type SelectedPlayer } from './PlayerDetailsModal'
 
 type Props = { user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
 type LeagueDisplayMode = 'standings' | 'teams' | 'matchups'
@@ -38,7 +39,7 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
     {pathname === '/leagues/checkout' && <LeagueCheckoutProfessional search={search} onNavigate={onNavigate} />}
     {pathname === '/leagues' && <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />}
     {pathname === '/league' && selectedLeague && activeBroadcasts.length > 0 && <aside className="customer-broadcast-access"><div><strong>Broadcast live now</strong><span>Available to all registered leagues until {new Date(activeBroadcasts[0].endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.</span></div><button onClick={() => void openBroadcast()} disabled={busy}>Open broadcast</button></aside>}
-    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <LeagueStandingsOverview token={token} discovery={discovery} scoringType={selectedLeague.scoringType} />}{discovery && selectedLeague.ownerUserId === user.id && <details className="league-actions-menu"><summary aria-label="League actions">...</summary><div><button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button></div></details>}</section>}
+    {pathname === '/league' && selectedLeague && <section className="selected-league-page">{busy && <p className="league-loading">Loading league data…</p>}{message && <p className="discovery-error">{message}</p>}{discovery && <LeagueStandingsOverview token={token} discovery={discovery} scoringType={selectedLeague.scoringType} leagueId={selectedLeague.id} />}{discovery && selectedLeague.ownerUserId === user.id && <details className="league-actions-menu"><summary aria-label="League actions">...</summary><div><button type="button" className="delete-owned-league" onClick={() => void deleteLeague()} disabled={busy}>Delete my league</button></div></details>}</section>}
     {pathname === '/account-deletion' && <section className="account-deletion-request"><span className="kicker">Account and data</span><h1>Request account deletion</h1><p>We will delete your Fantasy Broadcast account and associated personal data unless we need to retain limited information for legal, security, fraud-prevention, or accounting purposes.</p><p>If you have an active subscription, cancel it through Paddle first. Your request will then be reviewed before deletion is completed.</p>{deletionRequestMessage && <p className="account-deletion-message">{deletionRequestMessage}</p>}<button type="button" className="secondary-action" onClick={() => void requestDeletion()} disabled={busy || Boolean(deletionRequestMessage)}>Request account deletion</button></section>}
     <LegalFooter onNavigate={onNavigate} className="customer-legal-footer" />
   </main>
@@ -89,7 +90,7 @@ function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number)
 }
 
 function OwnerBadge() { return <span className="owner-badge">My league</span> }
-export function LeagueStandingsOverview({ token, discovery, scoringType }: { token: string; discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring }) {
+export function LeagueStandingsOverview({ token, discovery, scoringType, leagueId }: { token: string; discovery: LeagueDiscoveryState; scoringType: FplLeagueScoring; leagueId?: number }) {
   const [mode, setMode] = useState<LeagueDisplayMode>('standings')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const [teamSearch, setTeamSearch] = useState('')
@@ -220,7 +221,7 @@ export function LeagueStandingsOverview({ token, discovery, scoringType }: { tok
               ))}
             </div>
           </div>
-          {selectedEntry ? <LeagueTeamVisual discovery={discovery} entryId={selectedEntry.entry_id} entryName={selectedEntry.entry_name} manager={managerName(selectedEntry.player_first_name, selectedEntry.player_last_name)} shirtCodes={shirtCodes} /> : <div className="league-team-empty-card"><strong>Select a club</strong></div>}
+          {selectedEntry ? <LeagueTeamVisual discovery={discovery} entryId={selectedEntry.entry_id} entryName={selectedEntry.entry_name} manager={managerName(selectedEntry.player_first_name, selectedEntry.player_last_name)} shirtCodes={shirtCodes} leagueId={leagueId} /> : <div className="league-team-empty-card"><strong>Select a club</strong></div>}
         </section>
       )}
 
@@ -237,8 +238,9 @@ export function LeagueStandingsOverview({ token, discovery, scoringType }: { tok
   )
 }
 
-function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes }: { discovery: LeagueDiscoveryState; entryId: number; entryName: string; manager: string; shirtCodes: FplClubShirt[] }) {
+function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes, leagueId }: { discovery: LeagueDiscoveryState; entryId: number; entryName: string; manager: string; shirtCodes: FplClubShirt[]; leagueId?: number }) {
   const stageRef = useRef<HTMLElement>(null)
+  const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayer | null>(null)
   const players = leaguePlayersForEntry(discovery, entryId)
   const starters = players.filter((player) => player.starter)
   const bench = players.filter((player) => !player.starter)
@@ -257,7 +259,8 @@ function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes }
 
   return <section ref={stageRef} className="league-team-stage" aria-label={`${entryName} players`}>
     <header><span>{manager}</span><FitClubName text={entryName} /><strong>{starters.reduce((total, player) => total + player.points, 0)} pts</strong></header>
-    <div className="league-total-player-rows">{groups.map(([key, label, groupPlayers]) => groupPlayers.length > 0 && <section className="league-total-player-row" key={key}><span>{label}</span><div>{groupPlayers.map((player, index) => <LeaguePlayerToken key={player.id} player={player} shirtCode={shirtCodeFor(player.club, shirtCodes)} position={rowPlayerPosition(index, groupPlayers.length)} />)}</div></section>)}</div>
+    <div className="league-total-player-rows">{groups.map(([key, label, groupPlayers]) => groupPlayers.length > 0 && <section className="league-total-player-row" key={key}><span>{label}</span><div>{groupPlayers.map((player, index) => <LeaguePlayerToken key={player.id} player={player} shirtCode={shirtCodeFor(player.club, shirtCodes)} position={rowPlayerPosition(index, groupPlayers.length)} onSelect={setSelectedPlayer} />)}</div></section>)}</div>
+    {selectedPlayer && leagueId && discovery.gameweek && <PlayerDetailsModal key={selectedPlayer.id} player={selectedPlayer} leagueId={leagueId} gameweek={discovery.gameweek} onClose={() => setSelectedPlayer(null)} />}
   </section>
 }
 
@@ -302,14 +305,14 @@ function FitClubName({ text }: { text: string }) {
   return <h2 ref={headingRef} title={text}>{text}</h2>
 }
 
-function LeaguePlayerToken({ player, shirtCode, position }: { player: LeaguePlayer; shirtCode?: number; position: { x: number; y: number } }) {
+function LeaguePlayerToken({ player, shirtCode, position, onSelect }: { player: LeaguePlayer; shirtCode?: number; position: { x: number; y: number }; onSelect: (player: SelectedPlayer) => void }) {
   const shirtUrl = shirtCode ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${shirtCode}-110.png` : undefined
-  return <div className="league-player-token" style={{ '--x': `${position.x}%`, '--y': `${position.y}%` } as CSSProperties}>
+  return <button type="button" className="league-player-token" style={{ '--x': `${position.x}%`, '--y': `${position.y}%` } as CSSProperties} onClick={() => onSelect({ id: player.id, name: player.fullName, shirtUrl })} aria-label={`View ${player.fullName} points`}>
     <div className="player-core">
       <div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.club} shirt`} /> : <span>{player.name}</span>}</div>
       <div className="player-meta"><strong>{player.name}</strong><b>{player.points === 0 && player.minutes === 0 ? '-' : player.points}</b></div>
     </div>
-  </div>
+  </button>
 }
 function CustomerNavigation({ leagues, selectedLeague, user, onNavigate, onSignOut }: { leagues: RegisteredLeague[]; selectedLeague: RegisteredLeague | null; user: AuthUser; onNavigate: (path: string) => void; onSignOut: () => void }) { return <nav className="customer-navigation"><button className="customer-brand brand-name" type="button" onClick={() => onNavigate('/leagues')}>Fantasy Broadcast</button><div className="customer-navigation-actions">{selectedLeague && <details className="league-switcher"><summary>{selectedLeague.displayName}{selectedLeague.ownerUserId === user.id && <OwnerBadge />}</summary><div>{leagues.map((league) => <button type="button" key={league.id} onClick={() => onNavigate(`/league?leagueId=${league.id}`)}>{league.displayName} · {scoringLabel(league.scoringType)}{league.ownerUserId === user.id && <OwnerBadge />}</button>)}<button type="button" className="switcher-add" onClick={() => onNavigate('/leagues/new')}>Add or find a league</button></div></details>}<details className="profile-menu"><summary>Profile</summary><div><strong>{user.displayName}</strong><button type="button" onClick={onSignOut}>Sign out</button></div></details></div></nav> }
 function LeagueRegistrationForm({ canRegisterLeague, leagueId, leagueType, busy, registrationMessage, searchMessage, searchResults, user, onLeagueIdChange, onLeagueTypeChange, onSubmit, onSearch, onFollow }: { canRegisterLeague: boolean; leagueId: string; leagueType: FplLeagueType; busy: boolean; registrationMessage: string | null; searchMessage: string | null; searchResults: RegisteredLeague[]; user: AuthUser; onLeagueIdChange: (value: string) => void; onLeagueTypeChange: (value: FplLeagueType) => void; onSubmit: (event: React.FormEvent) => void; onSearch: (query: string) => void; onFollow: (league: RegisteredLeague) => void }) {
@@ -443,7 +446,6 @@ function placeLabel(rank: number) {
   if (rank % 10 === 3) return `${rank}rd`
   return `${rank}th`
 }
-
 
 
 

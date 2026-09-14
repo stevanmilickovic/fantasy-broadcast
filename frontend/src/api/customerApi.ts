@@ -85,6 +85,14 @@ export const createPaddleCheckout = async (fplLeagueId: string, leagueType: FplL
 export const loadClassicLeagueOverview = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<ClassicLeagueDiscovery> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/overview`)).json()
 export const loadDraftLeagueOverview = async (tokenOrLeagueId: string | number, leagueId?: number): Promise<DraftLeagueDiscovery> => (await request(`/api/customer/leagues/${leagueId ?? tokenOrLeagueId}/draft-overview`)).json()
 export const loadFplShirts = async (_legacyToken?: string): Promise<FplClubShirt[]> => { void _legacyToken; return (await request('/api/customer/fpl/shirts')).json() }
+export type PlayerDetails = {
+  id: number; name: string; shortName: string; club: string; position: string; photoCode: number
+  gameweek: number; points: number
+  changes: Array<{ stat: string; value: number; points: number; fixture: number }>
+  history: Array<{ gameweek: number; points: number }>
+}
+export const loadPlayerDetails = async (leagueId: number, playerId: number, gameweek: number, signal?: AbortSignal): Promise<PlayerDetails> =>
+  (await request(`/api/customer/leagues/${leagueId}/players/${playerId}?${new URLSearchParams({ gameweek: String(gameweek) })}`, { signal })).json()
 export const loadAdminLeagues = async (tokenOrPage: string | number = 0, pageOrSize = 0, sizeOrSearch: number | string = 10, legacySearch = ''): Promise<AdminLeaguePage> => {
 	const legacyCall = typeof tokenOrPage === 'string'
 	const page = legacyCall ? pageOrSize : tokenOrPage

@@ -175,6 +175,50 @@ public class CustomerLeagueController {
 		return fplMapper.mapClubShirts(fplClient.getFantasyBootstrapStatic());
 	}
 
+	@GetMapping("/leagues/{leagueId}/players/{playerId}")
+	public PlayerDetails playerDetails(HttpServletRequest request, @PathVariable @Positive long leagueId,
+			@PathVariable @Positive int playerId, @RequestParam @Positive @Max(38) int gameweek) {
+		var league = leagueService.accessibleLeague(currentUser(request), leagueId);
+		var bootstrap = league.leagueType() == FplLeagueType.DRAFT
+				? fplClient.getDraftBootstrapStatic() : fplClient.getFantasyBootstrapStatic();
+		var player = fplMapper.mapPlayers(bootstrap).stream().filter(candidate -> candidate.id() == playerId).findFirst()
+				.orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Player not found."));
+		var playerCode = 0;
+		for (var element : bootstrap.path("elements")) {
+			if (element.path("id").asInt() == playerId) { playerCode = element.path("code").asInt(); break; }
+		}
+		var fantasyPlayerId = playerId;
+		if (league.leagueType() == FplLeagueType.DRAFT) {
+			fantasyPlayerId = 0;
+			for (var element : fplClient.getFantasyBootstrapStatic().path("elements")) {
+				if (playerCode > 0 && element.path("code").asInt() == playerCode) { fantasyPlayerId = element.path("id").asInt(); break; }
+			}
+		}
+		var history = new java.util.TreeMap<Integer, Integer>();
+		if (fantasyPlayerId > 0) {
+			for (var appearance : fplClient.getFantasyPlayerSummary(fantasyPlayerId).path("history")) {
+				var round = appearance.path("round").asInt();
+				if (round > 0 && round < gameweek) history.merge(round, appearance.path("total_points").asInt(), Integer::sum);
+			}
+		}
+		var live = league.leagueType() == FplLeagueType.DRAFT
+				? fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players()
+				: fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(gameweek));
+		var livePlayer = live.stream().filter(candidate -> candidate.id() == playerId).findFirst().orElse(null);
+		var changes = new java.util.ArrayList<PlayerPointChange>();
+		if (livePlayer != null) for (var explanation : livePlayer.explain()) for (var stat : explanation.stats()) {
+			if (stat.points() != 0) changes.add(new PlayerPointChange(stat.identifier(), stat.value(), stat.points(), explanation.fixture()));
+		}
+		return new PlayerDetails(player.id(), player.fullName(), player.webName(), player.premierLeagueClub(),
+				player.position(), playerCode, gameweek, livePlayer == null ? 0 : livePlayer.totalPoints(), changes,
+				history.entrySet().stream().map(entry -> new PlayerGameweekPoints(entry.getKey(), entry.getValue())).toList());
+	}
+
+	public record PlayerPointChange(String stat, int value, int points, int fixture) { }
+	public record PlayerGameweekPoints(int gameweek, int points) { }
+	public record PlayerDetails(int id, String name, String shortName, String club, String position, int photoCode,
+			int gameweek, int points, List<PlayerPointChange> changes, List<PlayerGameweekPoints> history) { }
+
 	public record LeagueRegistrationAccess(boolean canRegisterLeague) {
 	}
 

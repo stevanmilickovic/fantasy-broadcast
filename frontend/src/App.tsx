@@ -303,6 +303,7 @@ function App() {
     return (
       <BroadcastMatchday
 		authToken=""
+        leagueId={streamedLeagueId}
         displayLiveState={displayLiveState}
         matchup={matchup}
         latestCommentaryId={latestCommentary?.id}
