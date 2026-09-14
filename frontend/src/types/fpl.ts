@@ -77,6 +77,7 @@ export type FplEntryPick = {
 
 export type FplEntryEvent = {
   picks: FplEntryPick[]
+  automaticSubstitutions?: Array<{ elementIn: number; elementOut: number }>
 }
 
 export type FplLivePlayer = {

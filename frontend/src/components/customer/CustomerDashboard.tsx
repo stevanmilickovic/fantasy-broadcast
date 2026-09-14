@@ -12,7 +12,7 @@ import { LegalFooter } from './LegalFooter'
 type Props = { user: AuthUser; pathname: string; search: string; onNavigate: (path: string) => void; onSignOut: () => void }
 type LeagueDisplayMode = 'standings' | 'teams' | 'matchups'
 type FplClubShirt = { name: string; shortName?: string; code: number }
-type LeaguePlayer = { id: number; name: string; fullName: string; club: string; position: string; points: number; starter: boolean; lineupPosition: number }
+type LeaguePlayer = { id: number; name: string; fullName: string; club: string; position: string; points: number; minutes: number; starter: boolean; lineupPosition: number }
 
 export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOut }: Props) {
 	const token = ''
@@ -84,7 +84,7 @@ function LeagueCheckoutProfessional({ search, onNavigate }: { search: string; on
 
 function toLeagueDiscovery(classic: ClassicLeagueDiscovery, fplLeagueId: number): LeagueDiscoveryState {
   const entries = classic.entries.map((entry) => ({ id: entry.entryId, entry_id: entry.entryId, entry_name: entry.entryName, player_first_name: entry.playerName, player_last_name: '', short_name: '' }))
-  const entryEvents = Object.fromEntries(Object.entries(classic.entryEvents).map(([id, event]) => [id, { picks: event.picks.map((pick) => ({ ...pick, starter: pick.position <= 11, benched: pick.position > 11 })) }]))
+  const entryEvents = Object.fromEntries(Object.entries(classic.entryEvents).map(([id, event]) => [id, { picks: event.picks.map((pick) => ({ ...pick, starter: pick.position <= 11, benched: pick.position > 11 })), automaticSubstitutions: event.automaticSubstitutions }]))
   return { details: { league: { id: fplLeagueId, name: classic.leagueName, draft_status: '', draft_dt: '', max_entries: entries.length, min_entries: 0, scoring: classic.scoringType, start_event: 0, stop_event: 0 }, league_entries: entries, matches: classic.matches.map((match, index) => ({ id: index, event: classic.gameweek, league_entry_1: match.firstEntryId, league_entry_2: match.secondEntryId, league_entry_1_points: match.firstPoints, league_entry_2_points: match.secondPoints, finished: false })), standings: classic.entries.map((entry) => ({ league_entry: entry.entryId, rank: entry.rank, lastRank: entry.lastRank, total: entry.total, points_for: entry.pointsFor })) }, elementStatus: { element_status: classic.entries.flatMap((entry) => (classic.entryEvents[String(entry.entryId)]?.picks ?? []).map((pick) => ({ element: pick.element, owner: entry.entryId, status: 'o', in_accepted_trade: false }))) }, players: classic.players, entryEvents, livePlayers: classic.livePlayers }
 }
 
@@ -247,7 +247,7 @@ function LeagueTeamVisual({ discovery, entryId, entryName, manager, shirtCodes }
   }, [entryId])
 
   return <section ref={stageRef} className="league-team-stage" aria-label={`${entryName} players`}>
-    <header><span>{manager}</span><FitClubName text={entryName} /><strong>{players.reduce((total, player) => total + player.points, 0)} pts</strong></header>
+    <header><span>{manager}</span><FitClubName text={entryName} /><strong>{starters.reduce((total, player) => total + player.points, 0)} pts</strong></header>
     <div className="league-total-player-rows">{groups.map(([key, label, groupPlayers]) => groupPlayers.length > 0 && <section className="league-total-player-row" key={key}><span>{label}</span><div>{groupPlayers.map((player, index) => <LeaguePlayerToken key={player.id} player={player} shirtCode={shirtCodeFor(player.club, shirtCodes)} position={rowPlayerPosition(index, groupPlayers.length)} />)}</div></section>)}</div>
   </section>
 }
@@ -298,7 +298,7 @@ function LeaguePlayerToken({ player, shirtCode, position }: { player: LeaguePlay
   return <div className="league-player-token" style={{ '--x': `${position.x}%`, '--y': `${position.y}%` } as CSSProperties}>
     <div className="player-core">
       <div className="shirt-wrap">{shirtUrl ? <img src={shirtUrl} alt={`${player.club} shirt`} /> : <span>{player.name}</span>}</div>
-      <div className="player-meta"><strong>{player.name}</strong><b>{player.points === 0 ? '-' : player.points}</b></div>
+      <div className="player-meta"><strong>{player.name}</strong><b>{player.points === 0 && player.minutes === 0 ? '-' : player.points}</b></div>
     </div>
   </div>
 }
@@ -346,12 +346,22 @@ function managerName(firstName: string, lastName: string) { return `${firstName}
 function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number): LeaguePlayer[] {
   const playersById = new Map(discovery.players.map((player) => [player.id, player]))
   const livePlayersById = new Map((discovery.livePlayers ?? []).map((player) => [player.id, player]))
-  const picksByElement = new Map((discovery.entryEvents?.[String(entryId)]?.picks ?? []).map((pick) => [pick.element, pick]))
+  const entryEvent = discovery.entryEvents?.[String(entryId)]
+  const picksByElement = new Map((entryEvent?.picks ?? []).map((pick) => [pick.element, pick]))
+  const effectivePositions = new Map((entryEvent?.picks ?? []).map((pick) => [pick.element, pick.position]))
+  for (const substitution of entryEvent?.automaticSubstitutions ?? []) {
+    const incomingPosition = effectivePositions.get(substitution.elementIn)
+    const outgoingPosition = effectivePositions.get(substitution.elementOut)
+    if (incomingPosition === undefined || outgoingPosition === undefined) continue
+    effectivePositions.set(substitution.elementIn, outgoingPosition)
+    effectivePositions.set(substitution.elementOut, incomingPosition)
+  }
   return (discovery.elementStatus.element_status ?? [])
     .filter((status) => status.owner === entryId)
     .map((status) => {
       const player = playersById.get(status.element)
       const pick = picksByElement.get(status.element)
+      const lineupPosition = effectivePositions.get(status.element) ?? pick?.position ?? 99
       return {
         id: status.element,
         name: player?.webName ?? `Player ${status.element}`,
@@ -359,8 +369,9 @@ function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number)
         club: player?.premierLeagueClub ?? 'Unknown club',
         position: player?.position ?? 'MID',
         points: livePlayersById.get(status.element)?.stats.totalPoints ?? 0,
-        starter: pick ? pick.position <= 11 : true,
-        lineupPosition: pick?.position ?? 99,
+        minutes: livePlayersById.get(status.element)?.stats.minutes ?? 0,
+        starter: pick ? lineupPosition <= 11 : true,
+        lineupPosition,
       }
     })
     .sort((first, second) => first.lineupPosition - second.lineupPosition || first.name.localeCompare(second.name))
@@ -423,8 +434,6 @@ function placeLabel(rank: number) {
   if (rank % 10 === 3) return `${rank}rd`
   return `${rank}th`
 }
-
-
 
 
 

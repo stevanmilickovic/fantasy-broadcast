@@ -16,7 +16,6 @@ export function WelcomePage({ onNavigate }: Props) {
         <p>Turn every Premier League matchday into a live broadcast built around your FPL league.</p>
         <div className="welcome-hero-actions">
           <button type="button" onClick={() => onNavigate('/register')}>Create your account <ChevronRight size={19} /></button>
-          <a href="#experience">See it in action</a>
         </div>
         <small><span>Draft</span><i /> <span>Classic</span><i /> Live scores from FPL data</small>
       </div>
@@ -28,7 +27,7 @@ export function WelcomePage({ onNavigate }: Props) {
       <div><span><Zap size={18} /> Live point events</span><span><Trophy size={18} /> League standings</span><span><Sparkles size={18} /> Broadcast commentary</span></div>
     </section>
 
-    <section className="welcome-features" id="experience">
+    <section className="welcome-features">
       <article><Users size={24} /><h3>Bring your league</h3><p>Register a league of your own, or create a free account to follow an existing FPL league.</p></article>
       <article><Radio size={24} /><h3>Open the broadcast</h3><p>Once the broadcast is live, watch every matchup and scoring swing unfold in real time.</p></article>
       <article><Bell size={24} /><h3>Feel every turning point</h3><p>Watch goals, assists, cards, bonus changes, lead changes, and commentary arrive as the action unfolds.</p></article>

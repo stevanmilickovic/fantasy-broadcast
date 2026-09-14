@@ -122,7 +122,7 @@ export type ClassicLeagueDiscovery = {
   gameweek: number
   entries: Array<{ entryId: number; entryName: string; playerName: string; rank: number; lastRank?: number | null; total: number; pointsFor: number }>
   players: FplPlayer[]
-  entryEvents: Record<string, { picks: Array<{ element: number; position: number; multiplier: number }> }>
+  entryEvents: Record<string, { picks: Array<{ element: number; position: number; multiplier: number }>; automaticSubstitutions?: Array<{ elementIn: number; elementOut: number }> }>
   livePlayers: FplLivePlayer[]
   matches: Array<{ firstEntryId: number; secondEntryId: number; firstPoints: number; secondPoints: number }>
 }

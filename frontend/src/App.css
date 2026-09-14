@@ -3102,7 +3102,6 @@ blockquote {
 .welcome-hero-copy > p { max-width: 570px; margin: 0; color: #d9cbe0; font-size: clamp(1.05rem, 1.6vw, 1.28rem); line-height: 1.55; }
 .welcome-hero-actions { display: flex; align-items: center; gap: 24px; margin-top: 34px; }
 .welcome-hero-actions > button, .welcome-final-cta > div > button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; border: 0; padding: 0 22px; color: #37003c; background: #20e6ff; cursor: pointer; font-weight: 900; }
-.welcome-hero-actions a { color: #fff; font-size: .9rem; font-weight: 800; text-underline-offset: 5px; }
 .welcome-hero-copy > small { display: flex; align-items: center; gap: 10px; margin-top: 26px; color: #927e9a; font-size: .74rem; font-weight: 750; }
 .welcome-hero-copy > small span { color: #d9cbe0; }
 .welcome-hero-copy > small i { width: 3px; height: 3px; border-radius: 50%; background: #705b79; }
