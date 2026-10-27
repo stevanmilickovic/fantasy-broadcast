@@ -1,4 +1,9 @@
-import type { FplElementStatusRaw, FplLeagueDetailsRaw, FplPlayer, LeagueDiscoveryState } from '../types/fpl'
+import type {
+  FplElementStatusRaw,
+  FplLeagueDetailsRaw,
+  FplPlayer,
+  LeagueDiscoveryState,
+} from '../types/fpl'
 
 export const loadLeagueDiscovery = async (leagueId: string): Promise<LeagueDiscoveryState> => {
   const [detailsResponse, elementStatusResponse, playersResponse] = await Promise.all([

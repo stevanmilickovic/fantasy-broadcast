@@ -1,4 +1,12 @@
-import { Activity, Database, FlaskConical, Radio, RotateCcw, Search, SkipForward } from 'lucide-react'
+import {
+  Activity,
+  Database,
+  FlaskConical,
+  Radio,
+  RotateCcw,
+  Search,
+  SkipForward,
+} from 'lucide-react'
 import type { FplLeagueType, MockNarrationMode } from '../../api/liveApi'
 import type { AuthUser } from '../../types/customer'
 import type { LeagueDiscoveryState } from '../../types/fpl'
@@ -88,7 +96,9 @@ export function AdministrationScreen({
         </div>
         <div className="account-nav administration-account-nav">
           <span>Administrator · {user.email}</span>
-          <button className="secondary-action" onClick={onSignOut}>Sign out</button>
+          <button className="secondary-action" onClick={onSignOut}>
+            Sign out
+          </button>
         </div>
       </header>
 

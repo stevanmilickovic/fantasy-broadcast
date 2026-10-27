@@ -26,12 +26,20 @@ export function WelcomeBroadcastDemo() {
   const pendingRevealRef = useRef(false)
   const state = welcomeBroadcastState(frameIndex)
   const automaticMatchup = state.matchups[welcomeDemoFrames[frameIndex].matchupIndex]
-  const matchup = state.matchups.find((candidate) => candidate.id === selectedFocus) ?? automaticMatchup
+  const matchup =
+    state.matchups.find((candidate) => candidate.id === selectedFocus) ?? automaticMatchup
 
   useLayoutEffect(() => {
     if (!pendingRevealRef.current) return
     pendingRevealRef.current = false
-    setRevealLayout(measureRevealLayout(scaleLayerRef.current, homeHeadingRef.current, scoreRef.current, awayHeadingRef.current))
+    setRevealLayout(
+      measureRevealLayout(
+        scaleLayerRef.current,
+        homeHeadingRef.current,
+        scoreRef.current,
+        awayHeadingRef.current,
+      ),
+    )
     setRevealing(true)
   }, [frameIndex])
 
@@ -65,41 +73,54 @@ export function WelcomeBroadcastDemo() {
     }
   }, [])
 
-  return <div className="welcome-real-broadcast" aria-label="Interactive example of the live broadcast">
-    <div className="welcome-broadcast-scale" ref={scaleLayerRef}>
-      <BroadcastMatchday
-        authToken="demo"
-        shirtCodesOverride={welcomeShirtCodes}
-        displayLiveState={state}
-        matchup={matchup}
-        latestCommentaryId={state.commentary[0].id}
-        latestCommentaryText={state.commentary[0].text}
-        latestCommentaryStatus={state.commentary[0].status}
-        leaderName={matchup.leaderManagerId === matchup.home.managerId ? matchup.home.displayName : matchup.away.displayName}
-        broadcastFocus={selectedFocus}
-        automaticFocus={automaticMatchup.id}
-        revealingMatch={revealing}
-        revealLayout={revealLayout}
-        transitioningToMatch={transitioning}
-        visibleEventId={!transitioning && !revealing ? state.events[0].id : null}
-        homeHeadingRef={homeHeadingRef}
-        awayHeadingRef={awayHeadingRef}
-        scoreRef={scoreRef}
-        totalTeamNameRef={totalTeamNameRef}
-        totalHeadingRef={totalHeadingRef}
-        standings={state.standings}
-        showingLiveLeaderboard={false}
-        leaderboardRevealLayout={null}
-        leaderboardHeadingRef={leaderboardHeadingRef}
-        holdingPendingUpdates={transitioning || revealing}
-        onBack={() => undefined}
-        onSelectFocus={(focus) => { if (focus !== 'multi') setSelectedFocus(focus) }}
-      />
+  return (
+    <div className="welcome-real-broadcast" aria-label="Interactive example of the live broadcast">
+      <div className="welcome-broadcast-scale" ref={scaleLayerRef}>
+        <BroadcastMatchday
+          authToken="demo"
+          shirtCodesOverride={welcomeShirtCodes}
+          displayLiveState={state}
+          matchup={matchup}
+          latestCommentaryId={state.commentary[0].id}
+          latestCommentaryText={state.commentary[0].text}
+          latestCommentaryStatus={state.commentary[0].status}
+          leaderName={
+            matchup.leaderManagerId === matchup.home.managerId
+              ? matchup.home.displayName
+              : matchup.away.displayName
+          }
+          broadcastFocus={selectedFocus}
+          automaticFocus={automaticMatchup.id}
+          revealingMatch={revealing}
+          revealLayout={revealLayout}
+          transitioningToMatch={transitioning}
+          visibleEventId={!transitioning && !revealing ? state.events[0].id : null}
+          homeHeadingRef={homeHeadingRef}
+          awayHeadingRef={awayHeadingRef}
+          scoreRef={scoreRef}
+          totalTeamNameRef={totalTeamNameRef}
+          totalHeadingRef={totalHeadingRef}
+          standings={state.standings}
+          showingLiveLeaderboard={false}
+          leaderboardRevealLayout={null}
+          leaderboardHeadingRef={leaderboardHeadingRef}
+          holdingPendingUpdates={transitioning || revealing}
+          onBack={() => undefined}
+          onSelectFocus={(focus) => {
+            if (focus !== 'multi') setSelectedFocus(focus)
+          }}
+        />
+      </div>
     </div>
-  </div>
+  )
 }
 
-function measureRevealLayout(layer: HTMLDivElement | null, home: HTMLElement | null, score: HTMLElement | null, away: HTMLElement | null): RevealLayout | null {
+function measureRevealLayout(
+  layer: HTMLDivElement | null,
+  home: HTMLElement | null,
+  score: HTMLElement | null,
+  away: HTMLElement | null,
+): RevealLayout | null {
   if (!layer || !home || !score || !away) return null
   const canvasWidth = layer.offsetWidth
   const canvasHeight = layer.offsetHeight
@@ -107,9 +128,9 @@ function measureRevealLayout(layer: HTMLDivElement | null, home: HTMLElement | n
   const scoreRect = relativeRect(score, layer)
   const awayRect = relativeRect(away, layer)
   return {
-    home: revealRect(homeRect, canvasWidth * .27, canvasHeight),
-    score: revealRect(scoreRect, canvasWidth * .5, canvasHeight),
-    away: revealRect(awayRect, canvasWidth * .73, canvasHeight),
+    home: revealRect(homeRect, canvasWidth * 0.27, canvasHeight),
+    score: revealRect(scoreRect, canvasWidth * 0.5, canvasHeight),
+    away: revealRect(awayRect, canvasWidth * 0.73, canvasHeight),
     viewportWidth: canvasWidth,
   }
 }
@@ -132,6 +153,14 @@ function relativeRect(element: HTMLElement, ancestor: HTMLElement) {
   return { left, top, width: element.offsetWidth, height: element.offsetHeight }
 }
 
-function revealRect(rect: { left: number; top: number; width: number; height: number }, startCenterX: number, canvasHeight: number): RevealRect {
-  return { ...rect, revealX: startCenterX - (rect.left + rect.width / 2), revealY: canvasHeight / 2 - (rect.top + rect.height / 2) }
+function revealRect(
+  rect: { left: number; top: number; width: number; height: number },
+  startCenterX: number,
+  canvasHeight: number,
+): RevealRect {
+  return {
+    ...rect,
+    revealX: startCenterX - (rect.left + rect.width / 2),
+    revealY: canvasHeight / 2 - (rect.top + rect.height / 2),
+  }
 }

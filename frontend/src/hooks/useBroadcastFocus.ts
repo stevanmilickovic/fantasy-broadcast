@@ -69,11 +69,11 @@ export function useBroadcastFocus({
   const eventTargetTeam = latestEvent
     ? teams.find((team) => team.managerId === latestEvent.managerId)
     : undefined
-  const isTotalPointsBroadcast = (
-    matchups.length === 0 && teams.length > 0
-  )
+  const isTotalPointsBroadcast = matchups.length === 0 && teams.length > 0
   const isComprehensiveMock = liveState?.status.mode === 'COMPREHENSIVE MOCK'
-  const inactivityRotationMs = isComprehensiveMock ? COMPREHENSIVE_MOCK_ROTATION_MS : INACTIVITY_ROTATION_MS
+  const inactivityRotationMs = isComprehensiveMock
+    ? COMPREHENSIVE_MOCK_ROTATION_MS
+    : INACTIVITY_ROTATION_MS
   const idleTransitionsBeforeLeaderboard = isComprehensiveMock
     ? COMPREHENSIVE_MOCK_TRANSITIONS_BEFORE_LEADERBOARD
     : IDLE_TRANSITIONS_BEFORE_LEADERBOARD
@@ -85,15 +85,15 @@ export function useBroadcastFocus({
   const automaticTeam = automaticFocusId
     ? teams.find((team) => team.managerId === automaticFocusId)
     : teams[0]
-  const selectedMatchup = selectedFocus === 'multi'
-    ? undefined
-    : matchups.find((matchup) => matchup.id === selectedFocus)
-  const selectedTeam = selectedFocus === 'multi'
-    ? undefined
-    : teams.find((team) => team.managerId === selectedFocus)
+  const selectedMatchup =
+    selectedFocus === 'multi' ? undefined : matchups.find((matchup) => matchup.id === selectedFocus)
+  const selectedTeam =
+    selectedFocus === 'multi' ? undefined : teams.find((team) => team.managerId === selectedFocus)
   const targetMatchup = selectedMatchup ?? eventTargetMatchup ?? automaticMatchup ?? matchups[0]
   const targetTeam = selectedTeam ?? eventTargetTeam ?? automaticTeam ?? teams[0]
-  const focusedId = isTotalPointsBroadcast ? targetTeam?.managerId ?? null : targetMatchup?.id ?? null
+  const focusedId = isTotalPointsBroadcast
+    ? (targetTeam?.managerId ?? null)
+    : (targetMatchup?.id ?? null)
 
   useEffect(() => {
     latestLiveStateRef.current = liveState
@@ -126,8 +126,8 @@ export function useBroadcastFocus({
       if (candidates.length < 2) return
 
       if (
-        !rotation.showingLeaderboard
-        && idleTransitionCountRef.current >= idleTransitionsBeforeLeaderboard
+        !rotation.showingLeaderboard &&
+        idleTransitionCountRef.current >= idleTransitionsBeforeLeaderboard
       ) {
         idleTransitionCountRef.current = 0
         lastBackendEventAtRef.current = Date.now()
@@ -137,10 +137,11 @@ export function useBroadcastFocus({
 
       const nextFocusId = candidates
         .filter((candidate) => candidate !== focusedId)
-        .sort((left, right) => (
-          (recentlyShownFocusesRef.current.get(left) ?? 0)
-          - (recentlyShownFocusesRef.current.get(right) ?? 0)
-        ))[0]
+        .sort(
+          (left, right) =>
+            (recentlyShownFocusesRef.current.get(left) ?? 0) -
+            (recentlyShownFocusesRef.current.get(right) ?? 0),
+        )[0]
       if (!nextFocusId) return
 
       lastBackendEventAtRef.current = Date.now()

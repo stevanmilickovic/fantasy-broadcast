@@ -1,7 +1,17 @@
 import { useState } from 'react'
 import type { DiscoveryTab, LeagueDiscoveryState } from '../../types/fpl'
 
-export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPointsFor = true, leagueType = 'DRAFT' }: { discovery: LeagueDiscoveryState; showMatchups?: boolean; showPointsFor?: boolean; leagueType?: 'DRAFT' | 'CLASSIC' }) {
+export function LeagueDiscoverySummary({
+  discovery,
+  showMatchups = true,
+  showPointsFor = true,
+  leagueType = 'DRAFT',
+}: {
+  discovery: LeagueDiscoveryState
+  showMatchups?: boolean
+  showPointsFor?: boolean
+  leagueType?: 'DRAFT' | 'CLASSIC'
+}) {
   const [activeTab, setActiveTab] = useState<DiscoveryTab>('teams')
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null)
   const { details, elementStatus } = discovery
@@ -14,13 +24,19 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
   const entryNamesById = new Map(entries.map((entry) => [entry.id, entry.entry_name]))
   const entryNamesByEntryId = new Map(entries.map((entry) => [entry.entry_id, entry.entry_name]))
   const playersById = new Map(discovery.players.map((player) => [player.id, player]))
-  const livePlayersById = new Map((discovery.livePlayers ?? []).map((player) => [player.id, player]))
-  const activeFixtureCount = discovery.draftEventLive?.fixtures.filter((fixture) => fixture.started && !fixture.finished).length ?? 0
+  const livePlayersById = new Map(
+    (discovery.livePlayers ?? []).map((player) => [player.id, player]),
+  )
+  const activeFixtureCount =
+    discovery.draftEventLive?.fixtures.filter((fixture) => fixture.started && !fixture.finished)
+      .length ?? 0
   const hasCompositions = ownedPlayers.length > 0
   const hasMatchups = matches.length > 0
   const hasStandings = standings.length > 0
   const selectedEntry = entries.find((entry) => entry.entry_id === selectedEntryId) ?? null
-  const selectedEntryPicks = selectedEntry ? discovery.entryEvents?.[String(selectedEntry.entry_id)]?.picks ?? [] : []
+  const selectedEntryPicks = selectedEntry
+    ? (discovery.entryEvents?.[String(selectedEntry.entry_id)]?.picks ?? [])
+    : []
   const selectedPicksByElement = new Map(selectedEntryPicks.map((pick) => [pick.element, pick]))
   const selectedPlayers = selectedEntry
     ? ownedPlayers
@@ -46,7 +62,10 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
       <div className="discovery-title">
         <div>
           <h3>{details.league?.name ?? 'Draft League'}</h3>
-          <p className={leagueType === 'CLASSIC' ? 'classic-discovery-summary' : undefined} data-summary={`${entries.length} teams · scoring ${details.league?.scoring ?? 'unknown'}`}>
+          <p
+            className={leagueType === 'CLASSIC' ? 'classic-discovery-summary' : undefined}
+            data-summary={`${entries.length} teams · scoring ${details.league?.scoring ?? 'unknown'}`}
+          >
             Draft {details.league?.draft_status ?? 'unknown'} · {entries.length} teams · scoring{' '}
             {details.league?.scoring ?? 'unknown'}
           </p>
@@ -62,17 +81,57 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
           value={hasCompositions ? `${ownedPlayers.length} owned players` : 'Not available yet'}
           ready={hasCompositions}
         />
-        {showMatchups && <ReadinessItem label="Matchups" value={hasMatchups ? `${matches.length} scheduled` : 'Not prepared yet'} ready={hasMatchups} />}
-        <ReadinessItem label="Standings" value={hasStandings ? `${standings.length} rows` : 'Not available yet'} ready={hasStandings} />
-        <ReadinessItem label="Free agents" value={playerStatuses.length > 0 ? `${freeAgents} players` : 'Unknown'} ready={playerStatuses.length > 0} />
-        <ReadinessItem label="Live fixtures" value={activeFixtureCount > 0 ? `${activeFixtureCount} just started` : 'None active'} ready={activeFixtureCount > 0} />
+        {showMatchups && (
+          <ReadinessItem
+            label="Matchups"
+            value={hasMatchups ? `${matches.length} scheduled` : 'Not prepared yet'}
+            ready={hasMatchups}
+          />
+        )}
+        <ReadinessItem
+          label="Standings"
+          value={hasStandings ? `${standings.length} rows` : 'Not available yet'}
+          ready={hasStandings}
+        />
+        <ReadinessItem
+          label="Free agents"
+          value={playerStatuses.length > 0 ? `${freeAgents} players` : 'Unknown'}
+          ready={playerStatuses.length > 0}
+        />
+        <ReadinessItem
+          label="Live fixtures"
+          value={activeFixtureCount > 0 ? `${activeFixtureCount} just started` : 'None active'}
+          ready={activeFixtureCount > 0}
+        />
       </div>
 
       <div className="discovery-tabs" role="tablist" aria-label="League discovery sections">
-        <DiscoveryTabButton activeTab={activeTab} tab="teams" label="Teams" onSelect={setActiveTab} />
-        <DiscoveryTabButton activeTab={activeTab} tab="compositions" label="Compositions" onSelect={setActiveTab} />
-        {showMatchups && <DiscoveryTabButton activeTab={activeTab} tab="matchups" label="Matchups" onSelect={setActiveTab} />}
-        <DiscoveryTabButton activeTab={activeTab} tab="standings" label="Standings" onSelect={setActiveTab} />
+        <DiscoveryTabButton
+          activeTab={activeTab}
+          tab="teams"
+          label="Teams"
+          onSelect={setActiveTab}
+        />
+        <DiscoveryTabButton
+          activeTab={activeTab}
+          tab="compositions"
+          label="Compositions"
+          onSelect={setActiveTab}
+        />
+        {showMatchups && (
+          <DiscoveryTabButton
+            activeTab={activeTab}
+            tab="matchups"
+            label="Matchups"
+            onSelect={setActiveTab}
+          />
+        )}
+        <DiscoveryTabButton
+          activeTab={activeTab}
+          tab="standings"
+          label="Standings"
+          onSelect={setActiveTab}
+        />
       </div>
 
       <div className="discovery-panel">
@@ -92,7 +151,8 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
                 >
                   <strong>{entry.entry_name}</strong>
                   <span>
-                    {entry.player_first_name} {entry.player_last_name} · entry {entry.entry_id} · league entry {entry.id}
+                    {entry.player_first_name} {entry.player_last_name} · entry {entry.entry_id} ·
+                    league entry {entry.id}
                   </span>
                 </button>
               ))}
@@ -109,7 +169,9 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
               <div className="composition-layout">
                 <div className="team-picker">
                   {entries.map((entry) => {
-                    const squadSize = ownedPlayers.filter((status) => status.owner === entry.entry_id).length
+                    const squadSize = ownedPlayers.filter(
+                      (status) => status.owner === entry.entry_id,
+                    ).length
                     return (
                       <button
                         type="button"
@@ -135,17 +197,21 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
                           <div className="compact-row player-composition-row" key={status.element}>
                             <strong>{player?.webName ?? `Player ${status.element}`}</strong>
                             <span>
-                              {player?.fullName ?? 'Unknown player'} · {player?.premierLeagueClub ?? 'Unknown club'} ·{' '}
-                              {player?.position ?? 'Unknown position'} · {pick ? (pick.starter ? 'starter' : 'bench') : 'no pick'}{' '}
-                              {pick ? `#${pick.position}` : ''} · {livePlayer?.stats.minutes ?? 0} min ·{' '}
-                              {livePlayer?.stats.totalPoints ?? 0} pts
+                              {player?.fullName ?? 'Unknown player'} ·{' '}
+                              {player?.premierLeagueClub ?? 'Unknown club'} ·{' '}
+                              {player?.position ?? 'Unknown position'} ·{' '}
+                              {pick ? (pick.starter ? 'starter' : 'bench') : 'no pick'}{' '}
+                              {pick ? `#${pick.position}` : ''} · {livePlayer?.stats.minutes ?? 0}{' '}
+                              min · {livePlayer?.stats.totalPoints ?? 0} pts
                             </span>
                           </div>
                         ))}
                       </div>
                     </>
                   ) : (
-                    <p className="empty-text compact-empty">Select a team to inspect its players.</p>
+                    <p className="empty-text compact-empty">
+                      Select a team to inspect its players.
+                    </p>
                   )}
                 </div>
               </div>
@@ -166,13 +232,17 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
                   const firstPoints = match.league_entry_1_points ?? match.firstPoints ?? 0
                   const secondPoints = match.league_entry_2_points ?? match.secondPoints ?? 0
                   return (
-                    <div className="compact-row" key={`${match.event}-${firstEntryId}-${secondEntryId}-${index}`}>
+                    <div
+                      className="compact-row"
+                      key={`${match.event}-${firstEntryId}-${secondEntryId}-${index}`}
+                    >
                       <strong>
                         GW{match.event}: {entryNamesById.get(firstEntryId) ?? firstEntryId} vs{' '}
                         {entryNamesById.get(secondEntryId) ?? secondEntryId}
                       </strong>
                       <span>
-                        {firstPoints}-{secondPoints} · {match.finished ? 'finished' : 'not finished'}
+                        {firstPoints}-{secondPoints} ·{' '}
+                        {match.finished ? 'finished' : 'not finished'}
                       </span>
                     </div>
                   )
@@ -199,7 +269,11 @@ export function LeagueDiscoverySummary({ discovery, showMatchups = true, showPoi
                     return (
                       <div className="standings-row" key={`${entryId}-${index}`}>
                         <strong>{standing.rank || index + 1}</strong>
-                        <span>{entryNamesById.get(entryId) ?? entryNamesByEntryId.get(entryId) ?? entryId}</span>
+                        <span>
+                          {entryNamesById.get(entryId) ??
+                            entryNamesByEntryId.get(entryId) ??
+                            entryId}
+                        </span>
                         <small>{points} pts</small>
                         {showPointsFor && <small>{pointsFor} PF</small>}
                       </div>
@@ -226,7 +300,11 @@ function DiscoveryTabButton({
   onSelect: (tab: DiscoveryTab) => void
 }) {
   return (
-    <button type="button" className={activeTab === tab ? 'active-tab' : ''} onClick={() => onSelect(tab)}>
+    <button
+      type="button"
+      className={activeTab === tab ? 'active-tab' : ''}
+      onClick={() => onSelect(tab)}
+    >
       {label}
     </button>
   )

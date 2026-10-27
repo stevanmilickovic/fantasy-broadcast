@@ -2,7 +2,9 @@ let audioContext: AudioContext | undefined
 
 function getAudioContext() {
   if (audioContext) return audioContext
-  const AudioContextConstructor = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  const AudioContextConstructor =
+    window.AudioContext ??
+    (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   audioContext = new AudioContextConstructor()
   return audioContext
 }
@@ -25,7 +27,10 @@ export const playPointChangeSound = (pointDelta: number) => {
     const gain = context.createGain()
     oscillator.type = 'sine'
     oscillator.frequency.setValueAtTime(pointDelta >= 0 ? 880 : 440, context.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(pointDelta >= 0 ? 1320 : 280, context.currentTime + 0.16)
+    oscillator.frequency.exponentialRampToValueAtTime(
+      pointDelta >= 0 ? 1320 : 280,
+      context.currentTime + 0.16,
+    )
     gain.gain.setValueAtTime(0.0001, context.currentTime)
     gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.015)
     gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.2)
@@ -47,10 +52,24 @@ export const playNarrationAudio = async (audioUrl: string) => {
       if (!response.ok) return
       const audio = new Audio(URL.createObjectURL(await response.blob()))
       return new Promise<void>((resolve) => {
-      audio.preload = 'auto'
-      audio.addEventListener('ended', () => { URL.revokeObjectURL(audio.src); resolve() }, { once: true })
-      audio.addEventListener('error', () => { URL.revokeObjectURL(audio.src); resolve() }, { once: true })
-      void audio.play().catch(() => resolve())
+        audio.preload = 'auto'
+        audio.addEventListener(
+          'ended',
+          () => {
+            URL.revokeObjectURL(audio.src)
+            resolve()
+          },
+          { once: true },
+        )
+        audio.addEventListener(
+          'error',
+          () => {
+            URL.revokeObjectURL(audio.src)
+            resolve()
+          },
+          { once: true },
+        )
+        void audio.play().catch(() => resolve())
       })
     })
   return narrationChain

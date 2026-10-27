@@ -1,7 +1,14 @@
 import { Radio } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './api/fplDiscoveryApi'
-import { postMockAction, startComprehensiveMock, startRealBroadcast, startTotalPointsMock, type FplLeagueType, type MockNarrationMode } from './api/liveApi'
+import {
+  postMockAction,
+  startComprehensiveMock,
+  startRealBroadcast,
+  startTotalPointsMock,
+  type FplLeagueType,
+  type MockNarrationMode,
+} from './api/liveApi'
 import { BroadcastMatchday } from './components/broadcast/BroadcastMatchday'
 import { AdministrationScreen } from './components/administration/AdministrationScreen'
 import { AuthScreen } from './components/customer/AuthScreen'
@@ -24,7 +31,12 @@ import './App.css'
 
 function App() {
   const { location, navigate } = useBrowserNavigation()
-  const { user: authUser, isLoading: isAuthLoading, handleAuthenticated, signOut } = useAuthSession(navigate)
+  const {
+    user: authUser,
+    isLoading: isAuthLoading,
+    handleAuthenticated,
+    signOut,
+  } = useAuthSession(navigate)
   const streamedLeagueId = Number(new URLSearchParams(location.search).get('leagueId')) || undefined
   const [isBusy, setIsBusy] = useState(false)
   const [leagueId, setLeagueId] = useState('49824')
@@ -37,9 +49,10 @@ function App() {
   const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
   const [deferQueuedNotificationStart, setDeferQueuedNotificationStart] = useState(false)
   const isBroadcastRoute = location.pathname === '/broadcast'
-  const isBroadcastVisible = Boolean(authUser) && isBroadcastRoute && (
-    appView === 'broadcast' || streamedLeagueId !== undefined || authUser?.role !== 'ADMIN'
-  )
+  const isBroadcastVisible =
+    Boolean(authUser) &&
+    isBroadcastRoute &&
+    (appView === 'broadcast' || streamedLeagueId !== undefined || authUser?.role !== 'ADMIN')
   useScreenWakeLock(isBroadcastVisible)
   const isLeagueBroadcast = location.pathname === '/broadcast' && streamedLeagueId !== undefined
   const shouldLoadLiveState = Boolean(authUser) && (authUser?.role === 'ADMIN' || isLeagueBroadcast)
@@ -102,7 +115,16 @@ function App() {
   useEffect(() => {
     if (isAuthLoading) return
     if (location.pathname === '/reset-password') return
-    const publicRoutes = ['/', '/pricing', '/privacy', '/terms', '/refunds', '/login', '/register', '/reset-password']
+    const publicRoutes = [
+      '/',
+      '/pricing',
+      '/privacy',
+      '/terms',
+      '/refunds',
+      '/login',
+      '/register',
+      '/reset-password',
+    ]
     if (!authUser && !publicRoutes.includes(location.pathname)) {
       navigate('/login', true)
       return
@@ -111,9 +133,20 @@ function App() {
       navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues', true)
       return
     }
-    const customerRoutes = ['/league', '/leagues', '/leagues/new', '/leagues/checkout', '/account-deletion']
-    const isKnownAdminRoute = location.pathname === '/administration' || location.pathname === '/broadcast'
-    if (authUser?.role === 'ADMIN' && !isKnownAdminRoute && !customerRoutes.includes(location.pathname)) {
+    const customerRoutes = [
+      '/league',
+      '/leagues',
+      '/leagues/new',
+      '/leagues/checkout',
+      '/account-deletion',
+    ]
+    const isKnownAdminRoute =
+      location.pathname === '/administration' || location.pathname === '/broadcast'
+    if (
+      authUser?.role === 'ADMIN' &&
+      !isKnownAdminRoute &&
+      !customerRoutes.includes(location.pathname)
+    ) {
       navigate('/administration', true)
     }
   }, [authUser, isAuthLoading, location.pathname, navigate])
@@ -127,7 +160,7 @@ function App() {
   const runAction = async (action: 'start' | 'advance' | 'reset') => {
     setIsBusy(true)
     try {
-		if (action === 'start') resetBroadcastPlayback()
+      if (action === 'start') resetBroadcastPlayback()
       const nextState = await postMockAction(action)
       setLiveState(nextState)
       if (action === 'start') {
@@ -156,7 +189,9 @@ function App() {
 
     if (leagueType === 'CLASSIC') {
       setLeagueDiscovery(null)
-      setLeagueError('Classic league discovery is not built yet. Start the live broadcast to record its head-to-head matchups.')
+      setLeagueError(
+        'Classic league discovery is not built yet. Start the live broadcast to record its head-to-head matchups.',
+      )
       return
     }
 
@@ -166,7 +201,9 @@ function App() {
       setLeagueDiscovery(nextDiscovery)
       setLeagueError(null)
     } catch (requestError) {
-      setLeagueError(requestError instanceof Error ? requestError.message : 'Unknown league request error')
+      setLeagueError(
+        requestError instanceof Error ? requestError.message : 'Unknown league request error',
+      )
     } finally {
       setIsLeagueLoading(false)
     }
@@ -180,7 +217,9 @@ function App() {
       setLeagueError(null)
       setLeagueId(String(nextDiscovery.details.league?.id ?? leagueId))
     } catch (requestError) {
-      setLeagueError(requestError instanceof Error ? requestError.message : 'Unknown mock league request error')
+      setLeagueError(
+        requestError instanceof Error ? requestError.message : 'Unknown mock league request error',
+      )
     } finally {
       setIsLeagueLoading(false)
     }
@@ -196,7 +235,7 @@ function App() {
     enablePointChangeSound()
     setIsBusy(true)
     try {
-		resetBroadcastPlayback()
+      resetBroadcastPlayback()
       const nextState = await startRealBroadcast(normalizedLeagueId, leagueType)
       setLiveState(nextState)
       setBroadcastFocus('multi')
@@ -205,7 +244,9 @@ function App() {
       setError(null)
       setLeagueError(null)
     } catch (requestError) {
-      setLeagueError(requestError instanceof Error ? requestError.message : 'Unable to start live broadcast.')
+      setLeagueError(
+        requestError instanceof Error ? requestError.message : 'Unable to start live broadcast.',
+      )
     } finally {
       setIsBusy(false)
     }
@@ -214,7 +255,7 @@ function App() {
   const startComprehensiveMockBroadcast = async () => {
     setIsBusy(true)
     try {
-		resetBroadcastPlayback()
+      resetBroadcastPlayback()
       const nextState = await startComprehensiveMock(mockNarrationMode)
       setLiveState(nextState)
       setBroadcastFocus('multi')
@@ -222,18 +263,31 @@ function App() {
       navigate('/broadcast')
       setError(null)
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to start comprehensive mock broadcast.')
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Unable to start comprehensive mock broadcast.',
+      )
     } finally {
       setIsBusy(false)
     }
   }
 
   if (isAuthLoading) {
-    return <main className="account-shell"><p>Checking your session…</p></main>
+    return (
+      <main className="account-shell">
+        <p>Checking your session…</p>
+      </main>
+    )
   }
 
   if (['/pricing', '/privacy', '/terms', '/refunds'].includes(location.pathname)) {
-    return <PublicPage page={location.pathname.slice(1) as 'pricing' | 'privacy' | 'terms' | 'refunds'} onNavigate={navigate} />
+    return (
+      <PublicPage
+        page={location.pathname.slice(1) as 'pricing' | 'privacy' | 'terms' | 'refunds'}
+        onNavigate={navigate}
+      />
+    )
   }
 
   if (!authUser && location.pathname === '/') {
@@ -241,17 +295,32 @@ function App() {
   }
 
   if (!authUser || location.pathname === '/reset-password') {
-    return <AuthScreen pathname={location.pathname} search={location.search} onAuthenticated={handleAuthenticated} onNavigate={navigate} />
+    return (
+      <AuthScreen
+        pathname={location.pathname}
+        search={location.search}
+        onAuthenticated={handleAuthenticated}
+        onNavigate={navigate}
+      />
+    )
   }
 
   if (authUser.role !== 'ADMIN' && location.pathname !== '/broadcast') {
-    return <CustomerDashboard user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
+    return (
+      <CustomerDashboard
+        user={authUser}
+        pathname={location.pathname}
+        search={location.search}
+        onNavigate={navigate}
+        onSignOut={() => void signOut()}
+      />
+    )
   }
 
   const startTotalPointsMockBroadcast = async () => {
     setIsBusy(true)
     try {
-		resetBroadcastPlayback()
+      resetBroadcastPlayback()
       const nextState = await startTotalPointsMock(mockNarrationMode)
       setLiveState(nextState)
       setBroadcastFocus('multi')
@@ -259,17 +328,37 @@ function App() {
       navigate('/broadcast')
       setError(null)
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to start total-points mock broadcast.')
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Unable to start total-points mock broadcast.',
+      )
     } finally {
       setIsBusy(false)
     }
   }
 
-  if (authUser.role === 'ADMIN' && (location.pathname === '/league' || location.pathname === '/leagues' || location.pathname === '/leagues/new' || location.pathname === '/leagues/checkout' || location.pathname === '/account-deletion')) {
-    return <CustomerDashboard user={authUser} pathname={location.pathname} search={location.search} onNavigate={navigate} onSignOut={() => void signOut()} />
+  if (
+    authUser.role === 'ADMIN' &&
+    (location.pathname === '/league' ||
+      location.pathname === '/leagues' ||
+      location.pathname === '/leagues/new' ||
+      location.pathname === '/leagues/checkout' ||
+      location.pathname === '/account-deletion')
+  ) {
+    return (
+      <CustomerDashboard
+        user={authUser}
+        pathname={location.pathname}
+        search={location.search}
+        onNavigate={navigate}
+        onSignOut={() => void signOut()}
+      />
+    )
   }
 
-  const totalPointsBroadcast = (liveState?.matchups?.length ?? 0) === 0 && (liveState?.teams?.length ?? 0) > 0
+  const totalPointsBroadcast =
+    (liveState?.matchups?.length ?? 0) === 0 && (liveState?.teams?.length ?? 0) > 0
   if (!liveState || (!targetMatchup && !totalPointsBroadcast)) {
     return (
       <main className="broadcast-shell loading-shell">
@@ -282,27 +371,37 @@ function App() {
     )
   }
 
-  const displayLiveStateBase = isBroadcastRoute ? broadcastLiveState ?? liveState : liveState
+  const displayLiveStateBase = isBroadcastRoute ? (broadcastLiveState ?? liveState) : liveState
   const displayLiveState = isBroadcastRoute
     ? { ...displayLiveStateBase, events: activeBroadcastEvents }
     : displayLiveStateBase
-  const displayStandings = isBroadcastRoute ? broadcastStandings ?? displayLiveState.standings ?? [] : liveState.standings ?? []
+  const displayStandings = isBroadcastRoute
+    ? (broadcastStandings ?? displayLiveState.standings ?? [])
+    : (liveState.standings ?? [])
   const autoDisplayMatchup = findFocusedMatchup(displayLiveState)
-  const displayedMatchup = displayedFocusId ? displayLiveState.matchups?.find((candidate) => candidate.id === displayedFocusId) : undefined
+  const displayedMatchup = displayedFocusId
+    ? displayLiveState.matchups?.find((candidate) => candidate.id === displayedFocusId)
+    : undefined
   const selectedDisplayMatchup =
-    broadcastFocus === 'multi' ? undefined : displayLiveState.matchups?.find((candidate) => candidate.id === broadcastFocus)
-  const matchup = selectedDisplayMatchup ?? displayedMatchup ?? (displayLiveState.events?.length ? autoDisplayMatchup : targetMatchup ?? autoDisplayMatchup)
+    broadcastFocus === 'multi'
+      ? undefined
+      : displayLiveState.matchups?.find((candidate) => candidate.id === broadcastFocus)
+  const matchup =
+    selectedDisplayMatchup ??
+    displayedMatchup ??
+    (displayLiveState.events?.length ? autoDisplayMatchup : (targetMatchup ?? autoDisplayMatchup))
   const latestCommentary = displayLiveState.commentary?.[0]
-  const leaderName = matchup && matchup.leaderManagerId === matchup.home.managerId
-    ? matchup.home.displayName
-    : matchup && matchup.leaderManagerId === matchup.away.managerId
-      ? matchup.away.displayName
-      : 'No one'
+  const leaderName =
+    matchup && matchup.leaderManagerId === matchup.home.managerId
+      ? matchup.home.displayName
+      : matchup && matchup.leaderManagerId === matchup.away.managerId
+        ? matchup.away.displayName
+        : 'No one'
 
   if (isBroadcastVisible) {
     return (
       <BroadcastMatchday
-		authToken=""
+        authToken=""
         leagueId={streamedLeagueId}
         displayLiveState={displayLiveState}
         matchup={matchup}
@@ -326,8 +425,15 @@ function App() {
         leaderboardRevealLayout={leaderboardRevealLayout}
         leaderboardHeadingRef={leaderboardHeadingRef}
         holdingPendingUpdates={holdingPendingUpdates}
-        onBack={() => { setAppView('setup'); navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues') }}
-        onSelectFocus={(focus) => { dismissLiveLeaderboard(); hideDisplayedLeaderboard(); setBroadcastFocus(focus) }}
+        onBack={() => {
+          setAppView('setup')
+          navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues')
+        }}
+        onSelectFocus={(focus) => {
+          dismissLiveLeaderboard()
+          hideDisplayedLeaderboard()
+          setBroadcastFocus(focus)
+        }}
       />
     )
   }
@@ -335,35 +441,35 @@ function App() {
   return (
     <div className="administration-page">
       <AdministrationScreen
-      session={{
-        user: authUser,
-        onOpenLeague: (selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`),
-        onSignOut: () => void signOut(),
-      }}
-      leagueSetup={{
-        leagueId,
-        leagueType,
-        leagueDiscovery,
-        leagueError,
-        isLeagueLoading,
-        onLeagueIdChange: setLeagueId,
-        onLeagueTypeChange: setLeagueType,
-        onInspectLeague: () => void inspectLeague(),
-        onInspectMockLeague: () => void inspectMockLeague(),
-      }}
-      broadcastControls={{
-        liveState,
-        mockNarrationMode,
-        isBusy,
-        onMockNarrationModeChange: setMockNarrationMode,
-        onStartLiveBroadcast: () => void startLiveBroadcast(),
-        onStartMockBroadcast: () => void runAction('start'),
-        onStartComprehensiveMockBroadcast: () => void startComprehensiveMockBroadcast(),
-        onStartTotalPointsMockBroadcast: () => void startTotalPointsMockBroadcast(),
-        onShowLiveBroadcast: () => setAppView('broadcast'),
-        onAdvanceBroadcast: () => void runAction('advance'),
-        onResetBroadcast: () => void runAction('reset'),
-      }}
+        session={{
+          user: authUser,
+          onOpenLeague: (selectedLeagueId) => navigate(`/league?leagueId=${selectedLeagueId}`),
+          onSignOut: () => void signOut(),
+        }}
+        leagueSetup={{
+          leagueId,
+          leagueType,
+          leagueDiscovery,
+          leagueError,
+          isLeagueLoading,
+          onLeagueIdChange: setLeagueId,
+          onLeagueTypeChange: setLeagueType,
+          onInspectLeague: () => void inspectLeague(),
+          onInspectMockLeague: () => void inspectMockLeague(),
+        }}
+        broadcastControls={{
+          liveState,
+          mockNarrationMode,
+          isBusy,
+          onMockNarrationModeChange: setMockNarrationMode,
+          onStartLiveBroadcast: () => void startLiveBroadcast(),
+          onStartMockBroadcast: () => void runAction('start'),
+          onStartComprehensiveMockBroadcast: () => void startComprehensiveMockBroadcast(),
+          onStartTotalPointsMockBroadcast: () => void startTotalPointsMockBroadcast(),
+          onShowLiveBroadcast: () => setAppView('broadcast'),
+          onAdvanceBroadcast: () => void runAction('advance'),
+          onResetBroadcast: () => void runAction('reset'),
+        }}
       />
       <LegalFooter onNavigate={navigate} className="administration-legal-footer" />
     </div>

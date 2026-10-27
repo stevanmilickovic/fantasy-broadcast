@@ -1,5 +1,13 @@
 import type { CSSProperties } from 'react'
-import type { FantasyEventView, LiveStateResponse, MatchupView, PlayerGroup, PlayerView, RevealRect, TeamView } from '../types/live'
+import type {
+  FantasyEventView,
+  LiveStateResponse,
+  MatchupView,
+  PlayerGroup,
+  PlayerView,
+  RevealRect,
+  TeamView,
+} from '../types/live'
 
 export const TOTAL_POINTS_REVEAL_TEAM_SCALE = 4
 
@@ -15,17 +23,36 @@ export const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView
   )
 }
 
-export const matchupHasEvent = (matchup: MatchupView, event: FantasyEventView | undefined): boolean => {
+export const matchupHasEvent = (
+  matchup: MatchupView,
+  event: FantasyEventView | undefined,
+): boolean => {
   return event ? [matchup.home.managerId, matchup.away.managerId].includes(event.managerId) : false
 }
 
 export const playerGroupsForTeam = (team: TeamView): PlayerGroup[] => {
   const activePlayers = team.activePlayers
   return [
-    { key: 'FWD', label: 'FWD', players: activePlayers.filter((player) => player.position === 'FWD') },
-    { key: 'MID', label: 'MID', players: activePlayers.filter((player) => player.position === 'MID') },
-    { key: 'DEF', label: 'DEF', players: activePlayers.filter((player) => player.position === 'DEF') },
-    { key: 'GKP', label: 'GKP', players: activePlayers.filter((player) => player.position === 'GKP') },
+    {
+      key: 'FWD',
+      label: 'FWD',
+      players: activePlayers.filter((player) => player.position === 'FWD'),
+    },
+    {
+      key: 'MID',
+      label: 'MID',
+      players: activePlayers.filter((player) => player.position === 'MID'),
+    },
+    {
+      key: 'DEF',
+      label: 'DEF',
+      players: activePlayers.filter((player) => player.position === 'DEF'),
+    },
+    {
+      key: 'GKP',
+      label: 'GKP',
+      players: activePlayers.filter((player) => player.position === 'GKP'),
+    },
     { key: 'BENCH', label: 'Bench', players: team.benchPlayers },
   ].filter((group) => group.players.length > 0)
 }
@@ -44,11 +71,12 @@ export const playerCardName = (player: PlayerView): [string, string] => {
 
 export const generatedTeamShortName = (teamName: string): string => {
   const fillerWords = new Set(['OF', 'THE'])
-  const words = teamName
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase()
-    .match(/[A-Z0-9]+/g) ?? []
+  const words =
+    teamName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .match(/[A-Z0-9]+/g) ?? []
   const meaningfulWords = words.filter((word) => !fillerWords.has(word))
 
   if (meaningfulWords.length === 0) {
@@ -63,7 +91,10 @@ export const generatedTeamShortName = (teamName: string): string => {
     return `${meaningfulWords[0][0]}${meaningfulWords[1].slice(0, 2)}`.slice(0, 3)
   }
 
-  return meaningfulWords.slice(0, 3).map((word) => word[0]).join('')
+  return meaningfulWords
+    .slice(0, 3)
+    .map((word) => word[0])
+    .join('')
 }
 
 export const teamShortName = (team: TeamView): string => generatedTeamShortName(team.clubName)
@@ -76,7 +107,9 @@ export const formatScoreline = (scoreline: string): string => {
 
   const firstScore = Number(scoreMatch[1])
   const secondScore = Number(scoreMatch[2])
-  return firstScore < 0 || secondScore < 0 ? `${firstScore} to ${secondScore}` : `${firstScore}-${secondScore}`
+  return firstScore < 0 || secondScore < 0
+    ? `${firstScore} to ${secondScore}`
+    : `${firstScore}-${secondScore}`
 }
 
 export const toRevealRect = (rect: DOMRect, startCenterX: number): RevealRect => ({
@@ -97,7 +130,10 @@ export const toScoreRevealRect = (rect: DOMRect): RevealRect => ({
   revealY: window.innerHeight / 2 - (rect.top + rect.height / 2),
 })
 
-export const revealCopyStyle = (rect: RevealRect, scale: number): CSSProperties & Record<string, string | number> => ({
+export const revealCopyStyle = (
+  rect: RevealRect,
+  scale: number,
+): CSSProperties & Record<string, string | number> => ({
   left: rect.left,
   top: rect.top,
   width: rect.width,

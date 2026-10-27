@@ -31,11 +31,15 @@ export function useAuthSession(navigate: Navigate) {
     }
   }, [])
 
-  const handleAuthenticated = useCallback(async (result: AuthResponse) => {
-    setUser(result.user)
-    const landingPath = result.user.role === 'ADMIN' ? '/administration' : await customerLandingPath()
-    navigate(landingPath, true)
-  }, [navigate])
+  const handleAuthenticated = useCallback(
+    async (result: AuthResponse) => {
+      setUser(result.user)
+      const landingPath =
+        result.user.role === 'ADMIN' ? '/administration' : await customerLandingPath()
+      navigate(landingPath, true)
+    },
+    [navigate],
+  )
 
   const signOut = useCallback(async () => {
     await logout().catch(() => undefined)

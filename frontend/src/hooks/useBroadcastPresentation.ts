@@ -22,30 +22,36 @@ const stageTotalPointsState = (
 ) => {
   if (!incomingState || !displayedState || !focusedId || !displayedFocusId) return incomingState
   const displayedEventIds = new Set((displayedState.events ?? []).map((event) => event.id))
-  const hasIncomingEvent = (incomingState.events ?? []).some((event) => !displayedEventIds.has(event.id))
+  const hasIncomingEvent = (incomingState.events ?? []).some(
+    (event) => !displayedEventIds.has(event.id),
+  )
   if (!isNotificationActive && !hasIncomingEvent) return incomingState
-  const displayedTeam = (displayedState.teams ?? []).find((team) => team.managerId === displayedFocusId)
+  const displayedTeam = (displayedState.teams ?? []).find(
+    (team) => team.managerId === displayedFocusId,
+  )
   if (!displayedTeam) return incomingState
 
-  const focusedEvents = (incomingState.events ?? []).filter((event) => event.managerId === focusedId)
+  const focusedEvents = (incomingState.events ?? []).filter(
+    (event) => event.managerId === focusedId,
+  )
   const stagedEvents = [
     ...focusedEvents,
-    ...(displayedState.events ?? []).filter((event) => (
-      !focusedEvents.some((focusedEvent) => focusedEvent.id === event.id)
-    )),
+    ...(displayedState.events ?? []).filter(
+      (event) => !focusedEvents.some((focusedEvent) => focusedEvent.id === event.id),
+    ),
   ]
   const stagedStandings = displayedState.standings ?? []
 
   return {
     ...incomingState,
-    teams: (incomingState.teams ?? []).map((team) => (
-      team.managerId === displayedFocusId ? displayedTeam : team
-    )),
-    standings: (incomingState.standings ?? []).map((standing) => (
+    teams: (incomingState.teams ?? []).map((team) =>
+      team.managerId === displayedFocusId ? displayedTeam : team,
+    ),
+    standings: (incomingState.standings ?? []).map((standing) =>
       standing.teamId === displayedFocusId
-        ? stagedStandings.find((candidate) => candidate.teamId === displayedFocusId) ?? standing
-        : standing
-    )),
+        ? (stagedStandings.find((candidate) => candidate.teamId === displayedFocusId) ?? standing)
+        : standing,
+    ),
     events: stagedEvents,
   }
 }
@@ -105,7 +111,10 @@ const synchronizedState = (snapshot: PresentationSnapshot): PresentationState =>
   displayingLeaderboard: snapshot.showingLeaderboard,
 })
 
-function presentationReducer(state: PresentationState, action: PresentationAction): PresentationState {
+function presentationReducer(
+  state: PresentationState,
+  action: PresentationAction,
+): PresentationState {
   switch (action.type) {
     case 'sync':
       return {
@@ -204,15 +213,12 @@ export function useBroadcastPresentation({
   const totalTeamNameRef = useRef<HTMLSpanElement>(null)
   const totalHeadingRef = useRef<HTMLHeadingElement>(null)
   const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
-  const presentationFocusId = showingLeaderboard
-    ? 'live-leaderboard'
-    : focusedId
-  const isWaitingForQueuedFocus = (
-    selectedFocus === 'multi'
-    && presentation.liveState !== null
-    && hasPendingNotifications
-    && activeLiveState === null
-  )
+  const presentationFocusId = showingLeaderboard ? 'live-leaderboard' : focusedId
+  const isWaitingForQueuedFocus =
+    selectedFocus === 'multi' &&
+    presentation.liveState !== null &&
+    hasPendingNotifications &&
+    activeLiveState === null
   const stateForActiveNotification = activeLiveState ?? liveState
 
   useEffect(() => {
@@ -234,12 +240,12 @@ export function useBroadcastPresentation({
   useEffect(() => {
     const snapshotLiveState = isTotalPointsBroadcast
       ? stageTotalPointsState(
-        stateForActiveNotification,
-        displayedLiveStateRef.current,
-        focusedId,
-        presentation.displayedFocusId,
-        activeLiveState !== null,
-      )
+          stateForActiveNotification,
+          displayedLiveStateRef.current,
+          focusedId,
+          presentation.displayedFocusId,
+          activeLiveState !== null,
+        )
       : stateForActiveNotification
     const snapshot: PresentationSnapshot = {
       liveState: snapshotLiveState,
@@ -262,7 +268,8 @@ export function useBroadcastPresentation({
 
     const previousPresentationFocus = previousPresentationFocusRef.current
     const firstBroadcastFocus = previousPresentationFocus === null
-    const focusChanged = previousPresentationFocus !== null && previousPresentationFocus !== presentationFocusId
+    const focusChanged =
+      previousPresentationFocus !== null && previousPresentationFocus !== presentationFocusId
     const userChangedFocus = previousSelectedFocusRef.current !== selectedFocus
     previousPresentationFocusRef.current = presentationFocusId
     previousSelectedFocusRef.current = selectedFocus
@@ -296,13 +303,10 @@ export function useBroadcastPresentation({
         () => dispatch({ type: 'finish-transition' }),
         SCENE_WIPE_MS,
       )
-      const revealTimer = window.setTimeout(
-        () => {
-          dispatch({ type: 'finish-reveal', snapshot })
-          transitionInProgressRef.current = false
-        },
-        SCENE_SWAP_MS + MATCH_REVEAL_MS,
-      )
+      const revealTimer = window.setTimeout(() => {
+        dispatch({ type: 'finish-reveal', snapshot })
+        transitionInProgressRef.current = false
+      }, SCENE_SWAP_MS + MATCH_REVEAL_MS)
       transitionTimersRef.current = [swapTimer, revealStartTimer, endTimer, revealTimer]
       return
     }
@@ -332,7 +336,10 @@ export function useBroadcastPresentation({
       if (!leaderboardHeadingRef.current) return
       dispatch({
         type: 'set-leaderboard-layout',
-        layout: toRevealRect(leaderboardHeadingRef.current.getBoundingClientRect(), window.innerWidth / 2),
+        layout: toRevealRect(
+          leaderboardHeadingRef.current.getBoundingClientRect(),
+          window.innerWidth / 2,
+        ),
       })
       return
     }
@@ -348,14 +355,15 @@ export function useBroadcastPresentation({
       const teamNameMeasure = document.createElement('canvas').getContext('2d')
       if (!teamNameMeasure) return
       teamNameMeasure.font = `${teamNameStyle.fontWeight} ${teamNameStyle.fontSize} ${teamNameStyle.fontFamily}`
-      const textWidth = teamNameMeasure.measureText(totalTeamNameRef.current.textContent ?? '').width
+      const textWidth = teamNameMeasure.measureText(
+        totalTeamNameRef.current.textContent ?? '',
+      ).width
       const monitorTeamStartCentre = window.innerWidth / 2 - (scoreRect.width + revealGap) / 2
-      const availableWidth = (
-        window.innerWidth / 2
-        - (scoreRect.width * 1.08) / 2
-        - 42
-        - (monitorTeamStartCentre - teamNameRect.width / 2)
-      )
+      const availableWidth =
+        window.innerWidth / 2 -
+        (scoreRect.width * 1.08) / 2 -
+        42 -
+        (monitorTeamStartCentre - teamNameRect.width / 2)
       const fittedScale = Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth)))
       const horizontalMargin = window.innerWidth * 0.05
       const transitionWidth = window.innerWidth - horizontalMargin * 2
@@ -366,11 +374,11 @@ export function useBroadcastPresentation({
         : monitorTeamStartCentre
       const scoreStartCentre = compactTransition
         ? horizontalMargin + teamBoxWidth + scoreBoxWidth / 2
-        : monitorTeamStartCentre + textWidth * fittedScale * TOTAL_POINTS_REVEAL_TEAM_SCALE / 2 + revealGap + scoreRect.width / 2
-      const scoreReveal = toRevealRect(
-        scoreRect,
-        scoreStartCentre,
-      )
+        : monitorTeamStartCentre +
+          (textWidth * fittedScale * TOTAL_POINTS_REVEAL_TEAM_SCALE) / 2 +
+          revealGap +
+          scoreRect.width / 2
+      const scoreReveal = toRevealRect(scoreRect, scoreStartCentre)
       dispatch({
         type: 'set-reveal-layout',
         layout: {
@@ -390,9 +398,15 @@ export function useBroadcastPresentation({
     dispatch({
       type: 'set-reveal-layout',
       layout: {
-        home: toRevealRect(homeHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.27),
+        home: toRevealRect(
+          homeHeadingRef.current.getBoundingClientRect(),
+          window.innerWidth * 0.27,
+        ),
         score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
-        away: toRevealRect(awayHeadingRef.current.getBoundingClientRect(), window.innerWidth * 0.73),
+        away: toRevealRect(
+          awayHeadingRef.current.getBoundingClientRect(),
+          window.innerWidth * 0.73,
+        ),
         viewportWidth: window.innerWidth,
       },
     })

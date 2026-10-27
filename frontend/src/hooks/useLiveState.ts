@@ -12,7 +12,8 @@ type UseLiveStateOptions = {
   leagueId?: number
 }
 
-const sourceKeyFor = (leagueId: number | undefined) => leagueId === undefined ? 'global' : `league-${leagueId}`
+const sourceKeyFor = (leagueId: number | undefined) =>
+  leagueId === undefined ? 'global' : `league-${leagueId}`
 
 const normalizeLiveState = (state: LiveStateResponse): LiveStateResponse => ({
   ...state,
@@ -29,9 +30,12 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
   const [error, setError] = useState<string | null>(null)
   const liveState = enabled && snapshot?.sourceKey === sourceKey ? snapshot.state : null
 
-  const updateLiveState = useCallback((state: LiveStateResponse) => {
-    setSnapshot({ sourceKey, state: normalizeLiveState(state) })
-  }, [sourceKey])
+  const updateLiveState = useCallback(
+    (state: LiveStateResponse) => {
+      setSnapshot({ sourceKey, state: normalizeLiveState(state) })
+    },
+    [sourceKey],
+  )
 
   useEffect(() => {
     if (!enabled) return
@@ -58,7 +62,10 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
     const events = new EventSource(`/api/live-state/stream${query}`)
 
     events.addEventListener('live-state', (event) => {
-      setSnapshot({ sourceKey, state: normalizeLiveState(JSON.parse(event.data) as LiveStateResponse) })
+      setSnapshot({
+        sourceKey,
+        state: normalizeLiveState(JSON.parse(event.data) as LiveStateResponse),
+      })
       setError(null)
     })
 

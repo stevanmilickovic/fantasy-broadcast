@@ -18,9 +18,9 @@ type EventQueue = {
 }
 
 const eventGroupId = (state: LiveStateResponse, event: FantasyEventView) =>
-  state.matchups.find((matchup) => (
-    [matchup.home.managerId, matchup.away.managerId].includes(event.managerId)
-  ))?.id ?? event.managerId
+  state.matchups.find((matchup) =>
+    [matchup.home.managerId, matchup.away.managerId].includes(event.managerId),
+  )?.id ?? event.managerId
 
 const groupEvents = (
   state: LiveStateResponse,
@@ -33,21 +33,28 @@ const groupEvents = (
     const group = groups.get(id) ?? { id, events: [], totalChange: 0, liveState: state }
     groups.set(id, {
       ...group,
-      events: [...group.events, event].sort((left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta)),
+      events: [...group.events, event].sort(
+        (left, right) => Math.abs(right.pointDelta) - Math.abs(left.pointDelta),
+      ),
       totalChange: group.totalChange + Math.abs(event.pointDelta),
       liveState: state,
     })
   }
 
   const visibleGroups = state.voiceNarrationEnabled
-    ? [...groups.values()].filter((group) => group.events.some((event) => event.type !== 'AUTO_SUB'))
+    ? [...groups.values()].filter((group) =>
+        group.events.some((event) => event.type !== 'AUTO_SUB'),
+      )
     : [...groups.values()]
   return visibleGroups
     .sort((left, right) => right.totalChange - left.totalChange)
     .slice(0, MAX_PENDING_BROADCAST_GROUPS)
 }
 
-export function useBroadcastEventQueue(liveState: LiveStateResponse | null, deferNotificationStart = false) {
+export function useBroadcastEventQueue(
+  liveState: LiveStateResponse | null,
+  deferNotificationStart = false,
+) {
   const [queue, setQueue] = useState<EventQueue>({ active: null, pending: [] })
   const receivedEventIdsRef = useRef(new Set<string>())
   const lastSoundedEventIdRef = useRef<string | null>(null)
