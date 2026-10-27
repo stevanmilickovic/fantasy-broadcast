@@ -19,9 +19,13 @@ export const loadAdminLeagues = async (
     )
   ).json()
 
-export const updateAdminLeague = async (league: AdminLeague): Promise<AdminLeague> =>
+export const updateAdminLeague = async (
+  league: AdminLeague,
+  signal?: AbortSignal,
+): Promise<AdminLeague> =>
   (
     await request(`/api/customer/admin/leagues/${league.id}`, {
+      signal,
       method: 'PATCH',
       body: JSON.stringify({
         serviceEnabled: league.serviceEnabled,
@@ -44,11 +48,11 @@ export const loadAdminUsers = async (
     )
   ).json()
 
-export const promoteAdminUser = async (userId: number): Promise<AdminUser> =>
-  (await request(`/api/customer/admin/users/${userId}/admin`, { method: 'PATCH' })).json()
+export const promoteAdminUser = async (userId: number, signal?: AbortSignal): Promise<AdminUser> =>
+  (await request(`/api/customer/admin/users/${userId}/admin`, { signal, method: 'PATCH' })).json()
 
-export const deleteAdminUser = async (userId: number) => {
-  await request(`/api/customer/admin/users/${userId}`, { method: 'DELETE' })
+export const deleteAdminUser = async (userId: number, signal?: AbortSignal) => {
+  await request(`/api/customer/admin/users/${userId}`, { signal, method: 'DELETE' })
 }
 
 export const loadBroadcastSchedules = async (signal?: AbortSignal): Promise<BroadcastSchedule[]> =>
@@ -58,6 +62,7 @@ export const saveBroadcastSchedule = async (
   startsAt: string,
   endsAt: string,
   id?: number,
+  signal?: AbortSignal,
 ): Promise<BroadcastSchedule> =>
   (
     await request(
@@ -65,6 +70,7 @@ export const saveBroadcastSchedule = async (
         ? `/api/customer/admin/broadcast-schedules/${id}`
         : '/api/customer/admin/broadcast-schedules',
       {
+        signal,
         method: id ? 'PUT' : 'POST',
         body: JSON.stringify({
           startsAt: new Date(startsAt).toISOString(),
@@ -74,11 +80,19 @@ export const saveBroadcastSchedule = async (
     )
   ).json()
 
-export const generateTodayBroadcastSchedules = async (): Promise<BroadcastSchedule[]> =>
+export const generateTodayBroadcastSchedules = async (
+  signal?: AbortSignal,
+): Promise<BroadcastSchedule[]> =>
   (
-    await request('/api/customer/admin/broadcast-schedules/generate-today', { method: 'POST' })
+    await request('/api/customer/admin/broadcast-schedules/generate-today', {
+      signal,
+      method: 'POST',
+    })
   ).json()
 
-export const deleteBroadcastSchedule = async (scheduleId: number) => {
-  await request(`/api/customer/admin/broadcast-schedules/${scheduleId}`, { method: 'DELETE' })
+export const deleteBroadcastSchedule = async (scheduleId: number, signal?: AbortSignal) => {
+  await request(`/api/customer/admin/broadcast-schedules/${scheduleId}`, {
+    signal,
+    method: 'DELETE',
+  })
 }

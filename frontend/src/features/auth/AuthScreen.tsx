@@ -1,16 +1,8 @@
 import { Eye, EyeOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
-import {
-  authenticate,
-  loadAuthOptions,
-  requestPasswordReset,
-  requestRegistration,
-  resetPassword,
-  verifyRegistration,
-} from './api'
 import type { AuthResponse } from './types'
+import { useAuthForm } from './useAuthForm'
 
 type Props = {
   pathname: string
@@ -23,132 +15,28 @@ type AuthMode = 'login' | 'register' | 'forgot'
 const PASSWORD_MIN_LENGTH = 12
 
 export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Props) {
-  const [mode, setMode] = useState<AuthMode>(pathname === '/register' ? 'register' : 'login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [verificationCode, setVerificationCode] = useState('')
-  const [pendingEmail, setPendingEmail] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
-  const [showPassword, setShowPassword] = useState(false)
-  const [googleSignInEnabled, setGoogleSignInEnabled] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const resettingPassword = pathname === '/reset-password'
-  const resetToken = new URLSearchParams(search).get('token') ?? ''
-  const verifyingRegistration = Boolean(pendingEmail)
-
-  useEffect(() => {
-    let isMounted = true
-    loadAuthOptions()
-      .then((options) => {
-        if (isMounted) setGoogleSignInEnabled(options.googleSignInEnabled)
-      })
-      .catch(() => {
-        if (isMounted) setGoogleSignInEnabled(false)
-      })
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  const clearPasswords = () => {
-    setPassword('')
-    setConfirmPassword('')
-    setShowPassword(false)
-  }
-  const validNewPassword = () => {
-    if (password.length < PASSWORD_MIN_LENGTH) {
-      setError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`)
-      return false
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return false
-    }
-    return true
-  }
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setError(null)
-    setMessage(null)
-    if (resettingPassword) {
-      if (!resetToken) {
-        setError('This password reset link is invalid. Request a new one.')
-        return
-      }
-      if (!validNewPassword()) return
-      setBusy(true)
-      try {
-        await resetPassword(resetToken, password)
-        clearPasswords()
-        setMessage('Your password has been changed. You can now sign in.')
-      } catch (requestError) {
-        setError(errorMessage(requestError, 'Unable to reset your password.'))
-      } finally {
-        setBusy(false)
-      }
-      return
-    }
-    if (verifyingRegistration) {
-      if (!verificationCode.trim()) {
-        setError('Enter the verification code from your email.')
-        return
-      }
-      setBusy(true)
-      try {
-        onAuthenticated(await verifyRegistration(pendingEmail, verificationCode))
-      } catch (requestError) {
-        setError(errorMessage(requestError, 'Unable to verify registration.'))
-      } finally {
-        setBusy(false)
-      }
-      return
-    }
-    if (!email.trim()) {
-      setError(mode === 'login' ? 'Enter your email or username.' : 'Enter your email address.')
-      return
-    }
-    if (mode === 'forgot') {
-      setBusy(true)
-      try {
-        setMessage((await requestPasswordReset(email)).message)
-      } catch (requestError) {
-        setError(errorMessage(requestError, 'Unable to request password reset email.'))
-      } finally {
-        setBusy(false)
-      }
-      return
-    }
-    if (!password) {
-      setError('Enter your password.')
-      return
-    }
-    if (mode === 'register' && !validNewPassword()) return
-    setBusy(true)
-    try {
-      if (mode === 'register') {
-        const pending = await requestRegistration(email, password)
-        setPendingEmail(pending.email)
-        setMessage(pending.message)
-        clearPasswords()
-      } else onAuthenticated(await authenticate(email, password))
-    } catch (requestError) {
-      setError(errorMessage(requestError, 'Unable to continue.'))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const switchMode = (nextMode: AuthMode) => {
-    setMode(nextMode)
-    setError(null)
-    setMessage(null)
-    setVerificationCode('')
-    setPendingEmail('')
-    clearPasswords()
-  }
+  const {
+    mode,
+    resettingPassword,
+    verifyingRegistration,
+    pendingEmail,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    verificationCode,
+    setVerificationCode,
+    message,
+    error,
+    showPassword,
+    setShowPassword,
+    busy,
+    googleSignInEnabled,
+    submit,
+    switchMode,
+  } = useAuthForm(pathname, search, onAuthenticated)
   const title = resettingPassword
     ? 'Choose a new password'
     : verifyingRegistration
@@ -244,7 +132,6 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
             className="secondary-action"
             onClick={() => {
               onNavigate('/login')
-              window.location.reload()
             }}
           >
             Back to sign in
@@ -362,8 +249,4 @@ function submitLabel(
   if (verifyingRegistration) return 'Verify email'
   if (mode === 'forgot') return 'Send reset link'
   return mode === 'login' ? 'Sign in' : 'Register'
-}
-
-function errorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback
 }

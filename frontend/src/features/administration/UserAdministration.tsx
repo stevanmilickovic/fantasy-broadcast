@@ -1,63 +1,35 @@
-import { useEffect, useState } from 'react'
-import { deleteAdminUser, loadAdminUsers, promoteAdminUser } from './api'
-import type { AdminUser } from './types'
+import { useUserAdministration } from './useUserAdministration'
 
 type Props = { currentUserId: number }
 
 export function UserAdministration({ currentUserId }: Props) {
-  const [users, setUsers] = useState<AdminUser[]>([])
-  const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(10)
-  const [totalItems, setTotalItems] = useState(0)
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  const refresh = async (requestedPage = page) => {
-    const result = await loadAdminUsers(requestedPage, pageSize, search)
-    setUsers(result.items)
-    setPage(result.page)
-    setTotalItems(result.totalItems)
-  }
-
-  useEffect(() => {
-    void refresh(page).catch((error: Error) => setMessage(error.message))
-  }, [page, pageSize, search])
-
-  const promote = async (user: AdminUser) => {
-    setBusy(true)
-    try {
-      await promoteAdminUser(user.id)
-      await refresh()
-      setMessage(`${user.email} is now an administrator.`)
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to update user.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const remove = async (user: AdminUser) => {
-    if (!window.confirm(`Delete ${user.email} and any leagues they created?`)) return
-    setBusy(true)
-    try {
-      await deleteAdminUser(user.id)
-      const nextPage = users.length === 1 && page > 0 ? page - 1 : page
-      await refresh(nextPage)
-      setMessage(`${user.email} was deleted.`)
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to delete user.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
-  const successMessage = message?.includes('administrator') || message?.includes('deleted')
-
+  const {
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    searchInput,
+    setSearchInput,
+    search,
+    setSearch,
+    message,
+    busy,
+    query,
+    users,
+    totalItems,
+    promote,
+    remove,
+    totalPages,
+    successMessage,
+  } = useUserAdministration()
   return (
     <section className="league-discovery user-administration">
+      {query.status === 'loading' && <p>Loading…</p>}
+      {query.error && (
+        <p className="discovery-error" role="alert">
+          {query.error}
+        </p>
+      )}
       <div className="discovery-form">
         <div>
           <span className="kicker">Administration</span>
@@ -135,7 +107,9 @@ export function UserAdministration({ currentUserId }: Props) {
           </div>
         ))}
       </div>
-      {totalItems === 0 && <p className="empty-text">No users match this search.</p>}
+      {query.status === 'success' && totalItems === 0 && (
+        <p className="empty-text">No users match this search.</p>
+      )}
       {totalItems > 0 && (
         <nav className="admin-pagination" aria-label="User administration pages">
           <label>

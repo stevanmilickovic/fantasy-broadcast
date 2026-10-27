@@ -1,70 +1,40 @@
-import { useEffect, useState } from 'react'
 import type { FplLeagueScoring, FplLeagueType } from '../../shared/fpl/types'
-import { registerLeague } from '../leagues/api'
-import { loadAdminLeagues, updateAdminLeague } from './api'
-import type { AdminLeague } from './types'
+import { useAdminLeagueRegistry } from './useAdminLeagueRegistry'
 
 type Props = { onOpenLeague: (leagueId: number) => void }
 
 export function AdminLeagueRegistry({ onOpenLeague }: Props) {
-  const [leagues, setLeagues] = useState<AdminLeague[]>([])
-  const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(10)
-  const [totalItems, setTotalItems] = useState(0)
-  const [leagueId, setLeagueId] = useState('')
-  const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const refresh = async (requestedPage = page) => {
-    const result = await loadAdminLeagues(requestedPage, pageSize, search)
-    setLeagues(result.items)
-    setPage(result.page)
-    setTotalItems(result.totalItems)
-  }
-  useEffect(() => {
-    void refresh(page).catch((error: Error) => setMessage(error.message))
-  }, [page, pageSize, search])
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setBusy(true)
-    try {
-      await registerLeague(leagueId, leagueType)
-      setPage(0)
-      await refresh(0)
-      setLeagueId('')
-      setMessage('League registered.')
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to register league.')
-    } finally {
-      setBusy(false)
-    }
-  }
-  const save = async (league: AdminLeague) => {
-    setBusy(true)
-    try {
-      await updateAdminLeague(league)
-      await refresh()
-      setMessage(`Saved settings for ${league.displayName}.`)
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to save league settings.')
-    } finally {
-      setBusy(false)
-    }
-  }
-  const updateLeagueFlag = (
-    leagueId: number,
-    changes: Partial<
-      Pick<AdminLeague, 'serviceEnabled' | 'aiNarrationEnabled' | 'voiceNarrationEnabled'>
-    >,
-  ) =>
-    setLeagues((current) =>
-      current.map((item) => (item.id === leagueId ? { ...item, ...changes } : item)),
-    )
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+  const {
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    leagueId,
+    setLeagueId,
+    leagueType,
+    setLeagueType,
+    searchInput,
+    setSearchInput,
+    search,
+    setSearch,
+    message,
+    busy,
+    query,
+    leagues,
+    totalItems,
+    submit,
+    save,
+    updateLeagueFlag,
+    totalPages,
+  } = useAdminLeagueRegistry()
   return (
     <section className="league-discovery admin-registry">
+      {query.status === 'loading' && <p>Loading…</p>}
+      {query.error && (
+        <p className="discovery-error" role="alert">
+          {query.error}
+        </p>
+      )}
       <div className="discovery-form">
         <div>
           <span className="kicker">Administrator</span>
@@ -191,7 +161,9 @@ export function AdminLeagueRegistry({ onOpenLeague }: Props) {
           </div>
         ))}
       </div>
-      {totalItems === 0 && <p className="empty-text">No leagues match this search.</p>}
+      {query.status === 'success' && totalItems === 0 && (
+        <p className="empty-text">No leagues match this search.</p>
+      )}
       {totalItems > 0 && (
         <nav className="admin-pagination" aria-label="League settings pages">
           <label>

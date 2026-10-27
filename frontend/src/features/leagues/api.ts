@@ -23,19 +23,24 @@ export const searchRegisteredLeagues = async (
     await request(`/api/customer/leagues/search?${new URLSearchParams({ query })}`, { signal })
   ).json()
 
-export const followLeague = async (leagueId: number): Promise<RegisteredLeague> =>
-  (await request(`/api/customer/leagues/${leagueId}/follow`, { method: 'POST' })).json()
+export const followLeague = async (
+  leagueId: number,
+  signal?: AbortSignal,
+): Promise<RegisteredLeague> =>
+  (await request(`/api/customer/leagues/${leagueId}/follow`, { signal, method: 'POST' })).json()
 
-export const deleteOwnedLeague = async (leagueId: number) => {
-  await request(`/api/customer/leagues/${leagueId}`, { method: 'DELETE' })
+export const deleteOwnedLeague = async (leagueId: number, signal?: AbortSignal) => {
+  await request(`/api/customer/leagues/${leagueId}`, { signal, method: 'DELETE' })
 }
 
 export const registerLeague = async (
   fplLeagueId: string,
   leagueType: FplLeagueType,
+  signal?: AbortSignal,
 ): Promise<RegisteredLeague> =>
   (
     await request('/api/customer/leagues', {
+      signal,
       method: 'POST',
       body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType }),
     })
@@ -58,5 +63,10 @@ export const loadActiveBroadcastSchedules = async (
 ): Promise<BroadcastSchedule[]> =>
   (await request('/api/customer/broadcast-schedules/active', { signal })).json()
 
-export const openLeagueBroadcast = async (leagueId: number): Promise<LiveStateResponse> =>
-  (await request(`/api/customer/leagues/${leagueId}/broadcast/open`, { method: 'POST' })).json()
+export const openLeagueBroadcast = async (
+  leagueId: number,
+  signal?: AbortSignal,
+): Promise<LiveStateResponse> =>
+  (
+    await request(`/api/customer/leagues/${leagueId}/broadcast/open`, { signal, method: 'POST' })
+  ).json()

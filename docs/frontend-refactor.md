@@ -56,3 +56,14 @@ loading and club matching. Live state now ignores late initial responses after S
 updates, reports interrupted connections, and cleans up both transports. Eleven
 tests and production build pass. New shared modules are lint clean; the original
 feature lint findings remain for steps 4 and 5.
+
+## Step 4
+
+CustomerDashboard now composes dedicated registration, detail, checkout and account
+pages. League transformations and team/standings views have separate owners.
+Authentication uses explicit login/register/verify/recovery/reset states. Checkout
+uses explicit plan handlers and abortable previews; removed its unused alternative.
+Administration forms use focused hooks with independent queries and mutations.
+Mutations reject duplicate submissions and cancel on unmount. Fixed league-list
+redirects that displaced checkout/account deep links. Sixteen tests and production
+build pass. Remaining lint findings are confined to broadcast code (step 5).

@@ -6,11 +6,14 @@ import type {
   LeagueDiscoveryState,
 } from '../../shared/fpl/types'
 
-export const loadLeagueDiscovery = async (leagueId: string): Promise<LeagueDiscoveryState> => {
+export const loadLeagueDiscovery = async (
+  leagueId: string,
+  signal?: AbortSignal,
+): Promise<LeagueDiscoveryState> => {
   const [detailsResponse, elementStatusResponse, playersResponse] = await Promise.all([
-    request(`/api/fpl/discovery/league/${leagueId}/raw`),
-    request(`/api/fpl/discovery/league/${leagueId}/element-status/raw`),
-    request('/api/fpl/discovery/players?limit=1000'),
+    request(`/api/fpl/discovery/league/${leagueId}/raw`, { signal }),
+    request(`/api/fpl/discovery/league/${leagueId}/element-status/raw`, { signal }),
+    request('/api/fpl/discovery/players?limit=1000', { signal }),
   ])
 
   return {
@@ -20,7 +23,9 @@ export const loadLeagueDiscovery = async (leagueId: string): Promise<LeagueDisco
   }
 }
 
-export const loadMockLeagueDiscovery = async (): Promise<LeagueDiscoveryState> => {
-  const response = await request('/api/fpl/mock/start')
+export const loadMockLeagueDiscovery = async (
+  signal?: AbortSignal,
+): Promise<LeagueDiscoveryState> => {
+  const response = await request('/api/fpl/mock/start', { signal })
   return response.json()
 }

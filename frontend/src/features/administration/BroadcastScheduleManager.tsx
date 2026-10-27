@@ -1,83 +1,29 @@
-import { useEffect, useState } from 'react'
-import {
-  deleteBroadcastSchedule,
-  generateTodayBroadcastSchedules,
-  loadBroadcastSchedules,
-  saveBroadcastSchedule,
-} from './api'
-import type { BroadcastSchedule } from './types'
-
-const localValue = (iso: string) => {
-  const date = new Date(iso)
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
+import { useBroadcastScheduleManager } from './useBroadcastScheduleManager'
 
 export function BroadcastScheduleManager() {
-  const [schedules, setSchedules] = useState<BroadcastSchedule[]>([])
-  const [startsAt, setStartsAt] = useState('')
-  const [endsAt, setEndsAt] = useState('')
-  const [editingId, setEditingId] = useState<number | undefined>()
-  const [message, setMessage] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const refresh = async () => setSchedules(await loadBroadcastSchedules())
-  useEffect(() => {
-    void refresh().catch((error: Error) => setMessage(error.message))
-  }, [])
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setBusy(true)
-    try {
-      await saveBroadcastSchedule(startsAt, endsAt, editingId)
-      await refresh()
-      setStartsAt('')
-      setEndsAt('')
-      setEditingId(undefined)
-      setMessage('Broadcast schedule saved.')
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to save broadcast schedule.')
-    } finally {
-      setBusy(false)
-    }
-  }
-  const generateToday = async () => {
-    if (!window.confirm('Replace all of today’s broadcast times with FPL fixture windows?')) return
-    setBusy(true)
-    try {
-      const generated = await generateTodayBroadcastSchedules()
-      setSchedules(await loadBroadcastSchedules())
-      setMessage(
-        generated.length === 0
-          ? 'No unfinished FPL fixtures were found for today.'
-          : `Generated ${generated.length} broadcast time${generated.length === 1 ? '' : 's'} for today.`,
-      )
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to generate today’s broadcasts.')
-    } finally {
-      setBusy(false)
-    }
-  }
-  const remove = async (schedule: BroadcastSchedule) => {
-    if (!window.confirm('Delete this broadcast time?')) return
-    setBusy(true)
-    try {
-      await deleteBroadcastSchedule(schedule.id)
-      await refresh()
-      setMessage('Broadcast time deleted.')
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to delete broadcast time.')
-    } finally {
-      setBusy(false)
-    }
-  }
-  const edit = (schedule: BroadcastSchedule) => {
-    setEditingId(schedule.id)
-    setStartsAt(localValue(schedule.startsAt))
-    setEndsAt(localValue(schedule.endsAt))
-    setMessage(null)
-  }
+  const {
+    query,
+    schedules,
+    startsAt,
+    setStartsAt,
+    endsAt,
+    setEndsAt,
+    editingId,
+    message,
+    busy,
+    submit,
+    generateToday,
+    remove,
+    edit,
+  } = useBroadcastScheduleManager()
   return (
     <section className="league-discovery broadcast-schedule-manager">
+      {query.status === 'loading' && <p>Loading…</p>}
+      {query.error && (
+        <p className="discovery-error" role="alert">
+          {query.error}
+        </p>
+      )}
       <div className="discovery-form">
         <div>
           <span className="kicker">Broadcast administration</span>
