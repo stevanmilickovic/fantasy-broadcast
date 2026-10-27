@@ -126,3 +126,44 @@ export type LeagueDiscoveryState = {
 }
 
 export type DiscoveryTab = 'teams' | 'compositions' | 'matchups' | 'standings'
+
+export type FplLeagueType = 'DRAFT' | 'CLASSIC'
+export type FplLeagueScoring = 'H2H' | 'TOTAL_POINTS'
+export type ClassicLeagueDiscovery = {
+  leagueName: string
+  scoringType: 'H2H' | 'TOTAL_POINTS'
+  gameweek: number
+  entries: Array<{
+    entryId: number
+    entryName: string
+    playerName: string
+    rank: number
+    lastRank?: number | null
+    total: number
+    pointsFor: number
+  }>
+  players: FplPlayer[]
+  entryEvents: Record<
+    string,
+    {
+      picks: Array<{ element: number; position: number; multiplier: number }>
+      automaticSubstitutions?: Array<{ elementIn: number; elementOut: number }>
+    }
+  >
+  livePlayers: FplLivePlayer[]
+  matches: Array<{
+    firstEntryId: number
+    secondEntryId: number
+    firstPoints: number
+    secondPoints: number
+  }>
+}
+
+export type DraftLeagueDiscovery = {
+  gameweek: number
+  details: FplLeagueDetailsRaw
+  elementStatus: FplElementStatusRaw
+  players: FplPlayer[]
+}
+
+export type FplClubShirt = { name: string; shortName?: string; code: number }

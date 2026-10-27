@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import type { BroadcastFocus, FantasyEventView, LiveStateResponse } from '../../types/live'
 import { findFocusedMatchup } from './broadcast'
+import type { BroadcastFocus, FantasyEventView, LiveStateResponse } from './types'
 
 const INACTIVITY_ROTATION_MS = 60_000
 const IDLE_TRANSITIONS_BEFORE_LEADERBOARD = 4

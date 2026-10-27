@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react'
+import { toRevealRect, toScoreRevealRect, TOTAL_POINTS_REVEAL_TEAM_SCALE } from './broadcast'
 import type {
   BroadcastFocus,
   LiveStandingView,
   LiveStateResponse,
   RevealLayout,
   RevealRect,
-} from '../../types/live'
-import { toRevealRect, toScoreRevealRect, TOTAL_POINTS_REVEAL_TEAM_SCALE } from './broadcast'
+} from './types'
 
 const SCENE_WIPE_MS = 1600
 const SCENE_SWAP_MS = SCENE_WIPE_MS / 2

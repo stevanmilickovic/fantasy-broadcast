@@ -1,12 +1,4 @@
-export type PaddleCheckout = {
-  clientSideToken: string
-  priceId: string
-  userId: number
-  fplLeagueId: number
-  leagueType: string
-  plan: string
-  paymentSignature: string
-}
+import type { PaddleCheckout } from './types'
 type PaddleApi = {
   Environment: { set: (environment: 'sandbox' | 'production') => void }
   Initialize: (options: {

@@ -7,14 +7,14 @@ import {
   Search,
   SkipForward,
 } from 'lucide-react'
-import type { FplLeagueType, MockNarrationMode } from '../../api/liveApi'
-import type { AuthUser } from '../../types/customer'
-import type { LeagueDiscoveryState } from '../../types/fpl'
-import type { LiveStateResponse } from '../../types/live'
+import type { FplLeagueType, LeagueDiscoveryState } from '../../shared/fpl/types'
+import type { AuthUser } from '../auth/types'
+import type { MockNarrationMode } from '../broadcast/api'
+import type { LiveStateResponse } from '../broadcast/types'
 import { AdminLeagueRegistry } from './AdminLeagueRegistry'
 import { BroadcastScheduleManager } from './BroadcastScheduleManager'
-import { UserAdministration } from './UserAdministration'
 import { LeagueDiscoverySummary } from './LeagueDiscoverySummary'
+import { UserAdministration } from './UserAdministration'
 
 type AdministrationSession = {
   user: AuthUser

@@ -4,8 +4,8 @@ import {
   generateTodayBroadcastSchedules,
   loadBroadcastSchedules,
   saveBroadcastSchedule,
-} from '../../api/customerApi'
-import type { BroadcastSchedule } from '../../types/customer'
+} from './api'
+import type { BroadcastSchedule } from './types'
 
 const localValue = (iso: string) => {
   const date = new Date(iso)
@@ -14,7 +14,6 @@ const localValue = (iso: string) => {
 }
 
 export function BroadcastScheduleManager() {
-  const token = ''
   const [schedules, setSchedules] = useState<BroadcastSchedule[]>([])
   const [startsAt, setStartsAt] = useState('')
   const [endsAt, setEndsAt] = useState('')
@@ -45,8 +44,8 @@ export function BroadcastScheduleManager() {
     if (!window.confirm('Replace all of today’s broadcast times with FPL fixture windows?')) return
     setBusy(true)
     try {
-      const generated = await generateTodayBroadcastSchedules(token)
-      setSchedules(await loadBroadcastSchedules(token))
+      const generated = await generateTodayBroadcastSchedules()
+      setSchedules(await loadBroadcastSchedules())
       setMessage(
         generated.length === 0
           ? 'No unfinished FPL fixtures were found for today.'
@@ -62,7 +61,7 @@ export function BroadcastScheduleManager() {
     if (!window.confirm('Delete this broadcast time?')) return
     setBusy(true)
     try {
-      await deleteBroadcastSchedule(token, schedule.id)
+      await deleteBroadcastSchedule(schedule.id)
       await refresh()
       setMessage('Broadcast time deleted.')
     } catch (error) {

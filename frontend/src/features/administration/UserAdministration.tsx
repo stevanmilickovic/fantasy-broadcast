@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { deleteAdminUser, loadAdminUsers, promoteAdminUser } from '../../api/customerApi'
-import type { AdminUser } from '../../types/customer'
+import { deleteAdminUser, loadAdminUsers, promoteAdminUser } from './api'
+import type { AdminUser } from './types'
 
 type Props = { currentUserId: number }
 

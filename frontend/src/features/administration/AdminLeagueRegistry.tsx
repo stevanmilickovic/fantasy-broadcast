@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { loadAdminLeagues, registerLeague, updateAdminLeague } from '../../api/customerApi'
-import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
-import type { AdminLeague } from '../../types/customer'
+import type { FplLeagueScoring, FplLeagueType } from '../../shared/fpl/types'
+import { registerLeague } from '../leagues/api'
+import { loadAdminLeagues, updateAdminLeague } from './api'
+import type { AdminLeague } from './types'
 
 type Props = { onOpenLeague: (leagueId: number) => void }
 

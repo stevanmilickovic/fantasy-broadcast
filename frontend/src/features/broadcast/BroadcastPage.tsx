@@ -1,15 +1,15 @@
 import { Radio } from 'lucide-react'
 import { useState } from 'react'
+import type { Navigate } from '../../app/useBrowserNavigation'
+import type { AuthUser } from '../auth/types'
+import { findFocusedMatchup } from './broadcast'
 import { BroadcastMatchday } from './BroadcastMatchday'
+import type { BroadcastFocus } from './types'
 import { useBroadcastEventQueue } from './useBroadcastEventQueue'
 import { useBroadcastFocus } from './useBroadcastFocus'
 import { useBroadcastPresentation } from './useBroadcastPresentation'
 import { useLiveState } from './useLiveState'
 import { useScreenWakeLock } from './useScreenWakeLock'
-import { findFocusedMatchup } from './broadcast'
-import type { BroadcastFocus } from '../../types/live'
-import type { AuthUser } from '../../types/customer'
-import type { Navigate } from '../../app/useBrowserNavigation'
 
 export function BroadcastPage({
   user: authUser,
@@ -117,7 +117,6 @@ export function BroadcastPage({
 
   return (
     <BroadcastMatchday
-      authToken=""
       displayLiveState={displayLiveState}
       matchup={matchup}
       latestCommentaryId={latestCommentary?.id}

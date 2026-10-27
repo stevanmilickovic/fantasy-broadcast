@@ -1,20 +1,20 @@
 import { useState } from 'react'
-import { loadLeagueDiscovery, loadMockLeagueDiscovery } from '../../api/fplDiscoveryApi'
+import type { Navigate } from '../../app/useBrowserNavigation'
+import type { LeagueDiscoveryState } from '../../shared/fpl/types'
+import { type FplLeagueType } from '../../shared/fpl/types'
+import { LegalFooter } from '../../shared/ui/LegalFooter'
+import type { AuthUser } from '../auth/types'
 import {
   postMockAction,
   startComprehensiveMock,
   startRealBroadcast,
   startTotalPointsMock,
-  type FplLeagueType,
   type MockNarrationMode,
-} from '../../api/liveApi'
-import { AdministrationScreen } from './AdministrationScreen'
-import { LegalFooter } from '../../shared/ui/LegalFooter'
-import { useLiveState } from '../broadcast/useLiveState'
+} from '../broadcast/api'
 import { enablePointChangeSound } from '../broadcast/broadcastSound'
-import type { LeagueDiscoveryState } from '../../types/fpl'
-import type { AuthUser } from '../../types/customer'
-import type { Navigate } from '../../app/useBrowserNavigation'
+import { useLiveState } from '../broadcast/useLiveState'
+import { AdministrationScreen } from './AdministrationScreen'
+import { loadLeagueDiscovery, loadMockLeagueDiscovery } from './discoveryApi'
 
 export function AdministrationPage({
   user: authUser,

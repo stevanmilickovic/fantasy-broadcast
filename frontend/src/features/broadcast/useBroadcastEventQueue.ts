@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { FantasyEventView, LiveStateResponse } from '../../types/live'
 import { playNarrationAudio, playPointChangeSound } from './broadcastSound'
+import type { FantasyEventView, LiveStateResponse } from './types'
 
 const NOTIFICATION_DISPLAY_MS = 10_000
 const MAX_PENDING_BROADCAST_GROUPS = 3

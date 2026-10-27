@@ -1,30 +1,37 @@
+import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
+import { ArrowDown, ArrowLeft, ArrowUp, Check, CircleCheck, Minus, Sparkles } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { ArrowDown, ArrowLeft, ArrowUp, Check, CircleCheck, Minus, Sparkles } from 'lucide-react'
+import { shirtCodeFor } from '../../shared/fpl/shirts'
+import type {
+  FplClubShirt,
+  FplLeagueScoring,
+  FplLeagueType,
+  FplStanding,
+  LeagueDiscoveryState,
+} from '../../shared/fpl/types'
+import { type ClassicLeagueDiscovery } from '../../shared/fpl/types'
+import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
+import { LegalFooter } from '../../shared/ui/LegalFooter'
+import type { BroadcastSchedule } from '../administration/types'
+import { requestAccountDeletion } from '../auth/api'
+import type { AuthUser } from '../auth/types'
+import { createPaddleCheckout, previewLeaguePayment } from '../billing/api'
+import { openPaddleCheckout } from '../billing/paddleCheckout'
+import { type LeaguePaymentPreview } from '../billing/types'
+import { enablePointChangeSound } from '../broadcast/broadcastSound'
 import {
-  createPaddleCheckout,
   deleteOwnedLeague,
   followLeague,
   loadActiveBroadcastSchedules,
   loadClassicLeagueOverview,
   loadDraftLeagueOverview,
-  loadFplShirts,
   loadLeagueRegistrationAccess,
   loadRegisteredLeagues,
   openLeagueBroadcast,
-  previewLeaguePayment,
-  requestAccountDeletion,
   searchRegisteredLeagues,
-  type ClassicLeagueDiscovery,
-  type LeaguePaymentPreview,
-} from '../../api/customerApi'
-import { openPaddleCheckout } from '../billing/paddleCheckout'
-import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
-import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
-import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
-import { enablePointChangeSound } from '../broadcast/broadcastSound'
-import { LegalFooter } from '../../shared/ui/LegalFooter'
-import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
+} from './api'
+import type { RegisteredLeague } from './types'
 
 type Props = {
   user: AuthUser
@@ -34,7 +41,7 @@ type Props = {
   onSignOut: () => void
 }
 type LeagueDisplayMode = 'standings' | 'teams' | 'matchups'
-type FplClubShirt = { name: string; shortName?: string; code: number }
+
 type LeaguePlayer = {
   id: number
   name: string
@@ -48,7 +55,6 @@ type LeaguePlayer = {
 }
 
 export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOut }: Props) {
-  const token = ''
   const [leagues, setLeagues] = useState<RegisteredLeague[]>([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -87,17 +93,17 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
     setBusy(true)
     if (selectedLeague.leagueType === 'CLASSIC') {
       setDiscovery(null)
-      loadClassicLeagueOverview(token, selectedLeague.id)
+      loadClassicLeagueOverview(selectedLeague.id)
         .then((classic) => setDiscovery(toLeagueDiscovery(classic, selectedLeague.fplLeagueId)))
         .catch((error: Error) => setMessage(error.message))
         .finally(() => setBusy(false))
       return
     }
-    loadDraftLeagueOverview(token, selectedLeague.id)
+    loadDraftLeagueOverview(selectedLeague.id)
       .then(setDiscovery)
       .catch((error: Error) => setMessage(error.message))
       .finally(() => setBusy(false))
-  }, [selectedLeague?.id, pathname, token])
+  }, [selectedLeague?.id, pathname])
   useEffect(() => {
     void loadActiveBroadcastSchedules()
       .then(setActiveBroadcasts)
@@ -116,7 +122,7 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
     setSearchMessage(null)
     setBusy(true)
     try {
-      setSearchResults(await searchRegisteredLeagues(token, query))
+      setSearchResults(await searchRegisteredLeagues(query))
     } catch {
       setSearchResults([])
     } finally {
@@ -127,8 +133,8 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
     setSearchMessage(null)
     setBusy(true)
     try {
-      await followLeague(token, league.id)
-      setLeagues(await loadRegisteredLeagues(token))
+      await followLeague(league.id)
+      setLeagues(await loadRegisteredLeagues())
       onNavigate(`/league?leagueId=${league.id}`)
     } catch (error) {
       setSearchMessage(error instanceof Error ? error.message : 'Unable to follow the league.')
@@ -141,7 +147,7 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
     enablePointChangeSound()
     setBusy(true)
     try {
-      await openLeagueBroadcast(token, selectedLeague.id)
+      await openLeagueBroadcast(selectedLeague.id)
       onNavigate(`/broadcast?leagueId=${selectedLeague.id}`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to open the broadcast.')
@@ -159,8 +165,8 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
       return
     setBusy(true)
     try {
-      await deleteOwnedLeague(token, selectedLeague.id)
-      const next = await loadRegisteredLeagues(token)
+      await deleteOwnedLeague(selectedLeague.id)
+      const next = await loadRegisteredLeagues()
       setLeagues(next)
       onNavigate(
         next.length === 0
@@ -249,7 +255,6 @@ export function CustomerDashboard({ user, pathname, search, onNavigate, onSignOu
           {message && <p className="discovery-error">{message}</p>}
           {discovery && (
             <LeagueStandingsOverview
-              token={token}
               discovery={discovery}
               scoringType={selectedLeague.scoringType}
               leagueId={selectedLeague.id}
@@ -661,12 +666,10 @@ function OwnerBadge() {
   return <span className="owner-badge">My league</span>
 }
 export function LeagueStandingsOverview({
-  token,
   discovery,
   scoringType,
   leagueId,
 }: {
-  token: string
   discovery: LeagueDiscoveryState
   scoringType: FplLeagueScoring
   leagueId?: number
@@ -676,7 +679,7 @@ export function LeagueStandingsOverview({
   const [teamSearch, setTeamSearch] = useState('')
   const [hasManagerOverflow, setHasManagerOverflow] = useState(false)
   const managerListRef = useRef<HTMLDivElement>(null)
-  const shirtCodes = useShirtCodes(token)
+  const shirtCodes = useShirtCodes()
   const { details } = discovery
   const showGamePoints = scoringType === 'H2H'
   const entries = details.league_entries ?? []
@@ -1510,57 +1513,13 @@ function leaguePlayersForEntry(discovery: LeagueDiscoveryState, entryId: number)
         first.lineupPosition - second.lineupPosition || first.name.localeCompare(second.name),
     )
 }
-function useShirtCodes(token: string) {
-  const [codes, setCodes] = useState<FplClubShirt[]>([])
-  useEffect(() => {
-    if (token === 'demo') return
-    let alive = true
-    loadFplShirts(token)
-      .then((teams: FplClubShirt[]) => {
-        if (alive) setCodes(teams)
-      })
-      .catch(() => undefined)
-    return () => {
-      alive = false
-    }
-  }, [token])
-  return codes
-}
+
 function rowPlayerPosition(index: number, count: number) {
   if (count === 5 && window.matchMedia('(max-width: 700px)').matches)
     return { x: 10 + index * 20, y: 50 }
   return { x: ((index + 1) / (count + 1)) * 100, y: 50 }
 }
-function shirtCodeFor(clubName: string, shirtCodes: FplClubShirt[]) {
-  const requestedName = normalizeClubName(clubName)
-  const exactMatch = shirtCodes.find((team) =>
-    [team.name, team.shortName].some((name) => normalizeClubName(name) === requestedName),
-  )
-  if (exactMatch) return exactMatch.code
-  return shirtCodes
-    .map((team) => ({
-      team,
-      score: Math.max(
-        clubNameSimilarity(requestedName, normalizeClubName(team.name)),
-        clubNameSimilarity(requestedName, normalizeClubName(team.shortName)),
-      ),
-    }))
-    .filter((candidate) => candidate.score >= 50)
-    .sort((left, right) => right.score - left.score)[0]?.team.code
-}
-function normalizeClubName(name: string | undefined) {
-  return (name ?? '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-}
-function clubNameSimilarity(firstName: string, secondName: string) {
-  if (!firstName || !secondName) return 0
-  if (firstName.includes(secondName) || secondName.includes(firstName)) return 100
-  const firstWords = firstName.split(' ')
-  const secondWords = secondName.split(' ')
-  return firstWords.filter((word) => secondWords.includes(word)).length * 35
-}
+
 function groupedStandings(standings: FplStanding[]) {
   return standings.reduce<Array<{ rank: number; standings: FplStanding[] }>>((groups, standing) => {
     const rank = standing.rank || groups.length + 1

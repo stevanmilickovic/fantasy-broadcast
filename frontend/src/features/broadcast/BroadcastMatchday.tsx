@@ -1,6 +1,17 @@
+import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
 import { ArrowLeft, Radio, Trophy, Volume2 } from 'lucide-react'
 import type { CSSProperties, RefObject } from 'react'
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { shirtCodeFor } from '../../shared/fpl/shirts'
+import type { FplClubShirt } from '../../shared/fpl/types'
+import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
+import {
+  formatScoreline,
+  playerCardName,
+  revealCopyStyle,
+  teamShortName,
+  TOTAL_POINTS_REVEAL_TEAM_SCALE,
+} from './broadcast'
 import type {
   BroadcastFocus,
   FantasyEventView,
@@ -11,18 +22,9 @@ import type {
   RevealLayout,
   RevealRect,
   TeamView,
-} from '../../types/live'
-import {
-  formatScoreline,
-  playerCardName,
-  revealCopyStyle,
-  teamShortName,
-  TOTAL_POINTS_REVEAL_TEAM_SCALE,
-} from './broadcast'
-import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
+} from './types'
 
 type BroadcastMatchdayProps = {
-  authToken: string
   leagueId?: number
   shirtCodesOverride?: ShirtCodes
   displayLiveState: LiveStateResponse
@@ -51,7 +53,6 @@ type BroadcastMatchdayProps = {
   onSelectFocus: (focus: BroadcastFocus) => void
 }
 
-type FplClubShirt = { name: string; shortName?: string; code: number }
 type ShirtCodes = FplClubShirt[]
 const REVEAL_SCORE_CLEARANCE_PX = 42
 const COMPACT_NOTIFICATION_SCREEN_INSET_RATIO = 0.05
@@ -63,7 +64,6 @@ const notificationTopFor = (index: number) => {
 }
 
 export function BroadcastMatchday({
-  authToken,
   leagueId,
   shirtCodesOverride,
   displayLiveState,
@@ -119,7 +119,6 @@ export function BroadcastMatchday({
   if (!matchup && (displayLiveState.teams?.length ?? 0) > 0) {
     return (
       <TotalPointsBroadcast
-        authToken={authToken}
         shirtCodesOverride={shirtCodesOverride}
         displayLiveState={displayLiveState}
         broadcastFocus={broadcastFocus}
@@ -200,7 +199,6 @@ export function BroadcastMatchday({
             headingRef={homeHeadingRef}
           />
           <PitchStage
-            authToken={authToken}
             shirtCodesOverride={shirtCodesOverride}
             gameweek={displayLiveState.gameweek}
             scoreline={matchup.scoreline}
@@ -482,7 +480,6 @@ function BroadcastTeamColumn({
 }
 
 function PitchStage({
-  authToken,
   shirtCodesOverride,
   gameweek,
   scoreline,
@@ -492,7 +489,6 @@ function PitchStage({
   latestEvents,
   pendingEvents,
 }: {
-  authToken: string
   shirtCodesOverride?: ShirtCodes
   gameweek: number
   scoreline: string
@@ -502,7 +498,7 @@ function PitchStage({
   latestEvents: FantasyEventView[]
   pendingEvents: FantasyEventView[]
 }) {
-  const shirtCodes = useShirtCodes(authToken, shirtCodesOverride)
+  const shirtCodes = useShirtCodes(shirtCodesOverride)
   return (
     <section className="pitch-panel pitch-panel-live">
       <div className="match-score-strip">
@@ -956,33 +952,6 @@ function BenchPlayer({
   )
 }
 
-function useShirtCodes(token: string, shirtCodesOverride?: ShirtCodes): ShirtCodes {
-  const [codes, setCodes] = useState<ShirtCodes>([])
-  useEffect(() => {
-    if (shirtCodesOverride) return
-    let alive = true
-    fetch('/api/customer/fpl/shirts')
-      .then((response) =>
-        response.ok ? response.json() : Promise.reject(new Error('Unable to load shirts')),
-      )
-      .then((teams: FplClubShirt[]) => {
-        if (!alive) return
-        setCodes(teams)
-        teams.forEach((team) => {
-          ;[66, 110].forEach((size) => {
-            const shirt = new Image()
-            shirt.src = `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${team.code}-${size}.png`
-          })
-        })
-      })
-      .catch(() => undefined)
-    return () => {
-      alive = false
-    }
-  }, [shirtCodesOverride, token])
-  return shirtCodesOverride ?? codes
-}
-
 function PitchTeam({
   side,
   team,
@@ -1200,7 +1169,6 @@ function PitchPlayer({
 }
 
 function TotalPointsBroadcast({
-  authToken,
   shirtCodesOverride,
   displayLiveState,
   broadcastFocus,
@@ -1226,7 +1194,6 @@ function TotalPointsBroadcast({
   onPlayerClick,
   playerModal,
 }: {
-  authToken: string
   shirtCodesOverride?: ShirtCodes
   displayLiveState: LiveStateResponse
   broadcastFocus: BroadcastFocus
@@ -1264,7 +1231,7 @@ function TotalPointsBroadcast({
       : displayLiveState.teams?.find((candidate) => candidate.managerId === broadcastFocus)
   const team = selectedTeam ?? automaticallyFocusedTeam ?? displayLiveState.teams?.[0]
   if (!team) return null
-  const shirtCodes = useShirtCodes(authToken, shirtCodesOverride)
+  const shirtCodes = useShirtCodes(shirtCodesOverride)
   useLayoutEffect(() => {
     const heading = totalHeadingRef.current
     const teamName = totalTeamNameRef.current
@@ -2192,58 +2159,6 @@ function playerVerticalPosition(index: number, count: number) {
     y: Number.isFinite(y) ? y : 50,
     yOffset: Number.isFinite(yOffset) ? yOffset : index * 30,
   }
-}
-function shirtCodeFor(clubName: string, shirtCodes: ShirtCodes) {
-  const requestedName = normalizeClubName(clubName)
-  const exactMatch = shirtCodes.find((team) =>
-    [team.name, team.shortName].some((name) => normalizeClubName(name) === requestedName),
-  )
-  if (exactMatch) return exactMatch.code
-
-  const match = shirtCodes
-    .map((team) => ({
-      team,
-      score: Math.max(
-        clubNameSimilarity(requestedName, normalizeClubName(team.name)),
-        clubShortNameSimilarity(requestedName, normalizeClubName(team.shortName)),
-      ),
-    }))
-    .filter((candidate) => candidate.score >= 50)
-    .sort((left, right) => right.score - left.score)[0]
-  return match?.team.code
-}
-function normalizeClubName(name: string | undefined) {
-  return (name ?? '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-}
-function clubNameSimilarity(firstName: string, secondName: string) {
-  if (!firstName || !secondName) return 0
-  if (firstName.includes(secondName) || secondName.includes(firstName)) return 100
-  const firstWords = firstName.split(' ')
-  const secondWords = secondName.split(' ')
-  const sharedWords = firstWords.filter((word) => secondWords.includes(word)).length
-  const firstWordMatches = abbreviatedWordMatches(firstWords[0], secondWords[0])
-  const lastWordMatches = abbreviatedWordMatches(firstWords.at(-1), secondWords.at(-1))
-  return sharedWords * 30 + (firstWordMatches ? 25 : 0) + (lastWordMatches ? 25 : 0)
-}
-function clubShortNameSimilarity(clubName: string, shortName: string) {
-  if (!clubName || !shortName) return 0
-  return clubName
-    .split(' ')
-    .some((word) => word.startsWith(shortName) || shortName.startsWith(word))
-    ? 70
-    : 0
-}
-function abbreviatedWordMatches(firstWord: string | undefined, secondWord: string | undefined) {
-  if (!firstWord || !secondWord) return false
-  return (
-    firstWord.startsWith(secondWord) ||
-    secondWord.startsWith(firstWord) ||
-    firstWord.slice(0, 3) === secondWord.slice(0, 3) ||
-    (firstWord[0] === secondWord[0] && firstWord.at(-1) === secondWord.at(-1))
-  )
 }
 
 function MatchReveal({

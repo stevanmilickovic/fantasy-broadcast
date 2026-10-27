@@ -7,7 +7,7 @@ import type {
   PlayerView,
   RevealRect,
   TeamView,
-} from '../../types/live'
+} from './types'
 
 export const TOTAL_POINTS_REVEAL_TEAM_SCALE = 4
 

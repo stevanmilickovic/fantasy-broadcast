@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { loadCurrentUser, logout } from '../../api/customerApi'
-import type { AuthResponse, AuthUser } from '../../types/customer'
 import type { Navigate } from '../../app/useBrowserNavigation'
+import { loadCurrentUser, logout } from './api'
+import type { AuthResponse, AuthUser } from './types'
 
 export function useAuthSession(navigate: Navigate) {
   const [user, setUser] = useState<AuthUser | null>(null)

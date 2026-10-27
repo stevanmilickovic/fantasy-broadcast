@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import type { Navigate } from '../../app/useBrowserNavigation'
+import { LegalFooter } from '../../shared/ui/LegalFooter'
 import {
   authenticate,
   loadAuthOptions,
@@ -7,10 +9,8 @@ import {
   requestRegistration,
   resetPassword,
   verifyRegistration,
-} from '../../api/customerApi'
-import type { Navigate } from '../../app/useBrowserNavigation'
-import type { AuthResponse } from '../../types/customer'
-import { LegalFooter } from '../../shared/ui/LegalFooter'
+} from './api'
+import type { AuthResponse } from './types'
 
 type Props = {
   pathname: string
@@ -133,7 +133,7 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
         setPendingEmail(pending.email)
         setMessage(pending.message)
         clearPasswords()
-      } else onAuthenticated(await authenticate('login', email, password))
+      } else onAuthenticated(await authenticate(email, password))
     } catch (requestError) {
       setError(errorMessage(requestError, 'Unable to continue.'))
     } finally {

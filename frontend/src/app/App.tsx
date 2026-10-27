@@ -1,14 +1,14 @@
 ﻿import { useEffect } from 'react'
-import { useBrowserNavigation, type Navigate } from './useBrowserNavigation'
-import { resolveRoute } from './routes'
-import { useAuthSession } from '../features/auth/useAuthSession'
-import { AuthScreen } from '../features/auth/AuthScreen'
-import { WelcomePage } from '../features/public/WelcomePage'
-import { PublicPage } from '../features/public/PublicPages'
-import { CustomerDashboard } from '../features/leagues/CustomerDashboard'
-import { AdministrationPage } from '../features/administration/AdministrationPage'
-import { BroadcastPage } from '../features/broadcast/BroadcastPage'
 import '../App.css'
+import { AdministrationPage } from '../features/administration/AdministrationPage'
+import { AuthScreen } from '../features/auth/AuthScreen'
+import { useAuthSession } from '../features/auth/useAuthSession'
+import { BroadcastPage } from '../features/broadcast/BroadcastPage'
+import { CustomerDashboard } from '../features/leagues/CustomerDashboard'
+import { PublicPage } from '../features/public/PublicPages'
+import { WelcomePage } from '../features/public/WelcomePage'
+import { resolveRoute } from './routes'
+import { useBrowserNavigation, type Navigate } from './useBrowserNavigation'
 
 function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
   useEffect(() => navigate(to, true), [to, navigate])

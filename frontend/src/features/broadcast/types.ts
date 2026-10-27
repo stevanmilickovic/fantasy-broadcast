@@ -87,7 +87,6 @@ export type LiveStateResponse = {
   voiceNarrationEnabled?: boolean
 }
 
-export type AppView = 'setup' | 'broadcast'
 export type BroadcastFocus = 'multi' | string
 
 export type RevealRect = {

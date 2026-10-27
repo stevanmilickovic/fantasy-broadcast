@@ -1,4 +1,4 @@
-import type { LeagueDiscoveryState } from '../../types/fpl'
+import type { LeagueDiscoveryState } from '../../shared/fpl/types'
 import type {
   FantasyEventView,
   LiveStandingView,
@@ -6,7 +6,7 @@ import type {
   MatchupView,
   PlayerView,
   TeamView,
-} from '../../types/live'
+} from '../broadcast/types'
 
 type DemoClub = { id: string; manager: string; club: string; shortName: string; color: string }
 type DemoFrame = {

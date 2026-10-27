@@ -1,4 +1,4 @@
-import type { AuthUser } from '../types/customer'
+import type { AuthUser } from '../features/auth/types'
 
 export type PublicPageName = 'pricing' | 'privacy' | 'terms' | 'refunds'
 export type Route =

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BroadcastMatchday } from '../broadcast/BroadcastMatchday'
-import type { BroadcastFocus, RevealLayout, RevealRect } from '../../types/live'
+import type { BroadcastFocus, RevealLayout, RevealRect } from '../broadcast/types'
 import { welcomeBroadcastState, welcomeDemoFrames, welcomeShirtCodes } from './welcomeDemoData'
 
 const FIXTURE_LINGER_MS = 10_000
@@ -77,7 +77,6 @@ export function WelcomeBroadcastDemo() {
     <div className="welcome-real-broadcast" aria-label="Interactive example of the live broadcast">
       <div className="welcome-broadcast-scale" ref={scaleLayerRef}>
         <BroadcastMatchday
-          authToken="demo"
           shirtCodesOverride={welcomeShirtCodes}
           displayLiveState={state}
           matchup={matchup}

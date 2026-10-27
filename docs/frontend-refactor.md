@@ -47,3 +47,12 @@ without live data. Fixed the admin Live button, global broadcast reloads, public
 pages for signed-in admins, and invalid broadcast IDs. Login redirects no longer
 race a second league fetch. Six tests and production build pass; original lint debt
 remains in the feature implementations scheduled below.
+
+## Step 3
+
+Split API functions and types by feature, introduced shared HTTP errors and an
+abortable query hook, and removed legacy token signatures/props. Consolidated shirt
+loading and club matching. Live state now ignores late initial responses after SSE
+updates, reports interrupted connections, and cleans up both transports. Eleven
+tests and production build pass. New shared modules are lint clean; the original
+feature lint findings remain for steps 4 and 5.

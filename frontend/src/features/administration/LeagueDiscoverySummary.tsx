@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { DiscoveryTab, LeagueDiscoveryState } from '../../types/fpl'
+import type { DiscoveryTab, LeagueDiscoveryState } from '../../shared/fpl/types'
 
 export function LeagueDiscoverySummary({
   discovery,

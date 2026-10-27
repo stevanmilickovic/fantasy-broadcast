@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { AuthUser } from '../features/auth/types'
 import { positiveId, resolveRoute } from './routes'
-import type { AuthUser } from '../types/customer'
 
 const user: AuthUser = { id: 1, email: 'user@example.test', displayName: 'User', role: 'USER' }
 const admin: AuthUser = { ...user, role: 'ADMIN' }

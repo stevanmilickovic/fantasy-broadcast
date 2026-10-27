@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { loadLiveState } from '../../api/liveApi'
-import type { LiveStateResponse } from '../../types/live'
+import { loadLiveState } from './api'
+import type { LiveStateResponse } from './types'
 
 type LiveStateSnapshot = {
   sourceKey: string
@@ -41,20 +41,16 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
     if (!enabled) return
 
     const controller = new AbortController()
+    let receivedStreamState = false
     loadLiveState(leagueId, controller.signal)
       .then((state) => {
+        if (controller.signal.aborted || receivedStreamState) return
         setSnapshot({ sourceKey, state: normalizeLiveState(state) })
         setError(null)
       })
       .catch((requestError: Error) => {
-        if (requestError.name !== 'AbortError') setError(requestError.message)
+        if (!controller.signal.aborted && !receivedStreamState) setError(requestError.message)
       })
-
-    return () => controller.abort()
-  }, [enabled, leagueId, sourceKey])
-
-  useEffect(() => {
-    if (!enabled) return
 
     const parameters = new URLSearchParams()
     if (leagueId !== undefined) parameters.set('leagueId', String(leagueId))
@@ -62,14 +58,24 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
     const events = new EventSource(`/api/live-state/stream${query}`)
 
     events.addEventListener('live-state', (event) => {
-      setSnapshot({
-        sourceKey,
-        state: normalizeLiveState(JSON.parse(event.data) as LiveStateResponse),
-      })
-      setError(null)
+      if (controller.signal.aborted) return
+      try {
+        const state: LiveStateResponse = JSON.parse(event.data)
+        if (!state || !state.status || !state.sequence) throw new Error('Invalid broadcast update')
+        receivedStreamState = true
+        setSnapshot({ sourceKey, state: normalizeLiveState(state) })
+        setError(null)
+      } catch {
+        setError('Unable to read the broadcast update. Waiting for the next update.')
+      }
     })
-
-    return () => events.close()
+    events.addEventListener('error', () => {
+      if (!controller.signal.aborted) setError('Broadcast connection interrupted. Reconnecting…')
+    })
+    return () => {
+      controller.abort()
+      events.close()
+    }
   }, [enabled, leagueId, sourceKey])
 
   return {
