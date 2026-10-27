@@ -1,5 +1,5 @@
 import { Radio } from 'lucide-react'
-import type { Navigate } from '../../hooks/useBrowserNavigation'
+import type { Navigate } from '../../app/useBrowserNavigation'
 
 export function LegalFooter({
   onNavigate,

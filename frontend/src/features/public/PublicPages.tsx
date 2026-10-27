@@ -1,6 +1,6 @@
-import type { Navigate } from '../../hooks/useBrowserNavigation'
-import { LegalFooter } from './LegalFooter'
-import { PublicHeader } from './PublicHeader'
+import type { Navigate } from '../../app/useBrowserNavigation'
+import { LegalFooter } from '../../shared/ui/LegalFooter'
+import { PublicHeader } from '../../shared/ui/PublicHeader'
 
 type Props = { page: 'pricing' | 'privacy' | 'terms' | 'refunds'; onNavigate: Navigate }
 

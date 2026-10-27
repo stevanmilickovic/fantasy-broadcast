@@ -5,8 +5,8 @@ import type {
   LiveStateResponse,
   RevealLayout,
   RevealRect,
-} from '../types/live'
-import { toRevealRect, toScoreRevealRect, TOTAL_POINTS_REVEAL_TEAM_SCALE } from '../utils/broadcast'
+} from '../../types/live'
+import { toRevealRect, toScoreRevealRect, TOTAL_POINTS_REVEAL_TEAM_SCALE } from './broadcast'
 
 const SCENE_WIPE_MS = 1600
 const SCENE_SWAP_MS = SCENE_WIPE_MS / 2

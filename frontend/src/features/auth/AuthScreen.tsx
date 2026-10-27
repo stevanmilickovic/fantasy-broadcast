@@ -8,9 +8,9 @@ import {
   resetPassword,
   verifyRegistration,
 } from '../../api/customerApi'
-import type { Navigate } from '../../hooks/useBrowserNavigation'
+import type { Navigate } from '../../app/useBrowserNavigation'
 import type { AuthResponse } from '../../types/customer'
-import { LegalFooter } from './LegalFooter'
+import { LegalFooter } from '../../shared/ui/LegalFooter'
 
 type Props = {
   pathname: string

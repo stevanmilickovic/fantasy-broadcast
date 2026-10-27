@@ -18,13 +18,13 @@ import {
   type ClassicLeagueDiscovery,
   type LeaguePaymentPreview,
 } from '../../api/customerApi'
-import { openPaddleCheckout } from '../../utils/paddleCheckout'
+import { openPaddleCheckout } from '../billing/paddleCheckout'
 import type { FplLeagueScoring, FplLeagueType } from '../../api/liveApi'
 import type { AuthUser, BroadcastSchedule, RegisteredLeague } from '../../types/customer'
 import type { FplStanding, LeagueDiscoveryState } from '../../types/fpl'
-import { enablePointChangeSound } from '../../utils/broadcastSound'
-import { LegalFooter } from './LegalFooter'
-import { PlayerDetailsModal, type SelectedPlayer } from './PlayerDetailsModal'
+import { enablePointChangeSound } from '../broadcast/broadcastSound'
+import { LegalFooter } from '../../shared/ui/LegalFooter'
+import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
 
 type Props = {
   user: AuthUser

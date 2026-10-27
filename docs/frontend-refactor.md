@@ -37,3 +37,13 @@ Added formatting and unit/browser test tooling. Reformatted existing sources wit
 intentional behavior changes. Three regression tests pass for navigation, event
 deduplication, transition deferral and score snapshots. Production build passes;
 the existing 11 lint errors and 8 warnings remain assigned to later feature steps.
+
+## Step 2
+
+Moved screens and hooks into feature folders. App now resolves routes and mounts
+independent administration/broadcast controllers. The URL owns page selection;
+broadcast sessions remount when the user or league changes. Administration renders
+without live data. Fixed the admin Live button, global broadcast reloads, public
+pages for signed-in admins, and invalid broadcast IDs. Login redirects no longer
+race a second league fetch. Six tests and production build pass; original lint debt
+remains in the feature implementations scheduled below.

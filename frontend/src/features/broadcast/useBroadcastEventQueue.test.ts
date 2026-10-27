@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { welcomeBroadcastState } from '../components/customer/welcomeDemoData'
+import { welcomeBroadcastState } from '../public/welcomeDemoData'
 import { useBroadcastEventQueue } from './useBroadcastEventQueue'
 
 vi.mock('../utils/broadcastSound', () => ({

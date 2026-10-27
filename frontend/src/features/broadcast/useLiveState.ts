@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { loadLiveState } from '../api/liveApi'
-import type { LiveStateResponse } from '../types/live'
+import { loadLiveState } from '../../api/liveApi'
+import type { LiveStateResponse } from '../../types/live'
 
 type LiveStateSnapshot = {
   sourceKey: string

@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { loadCurrentUser, loadRegisteredLeagues, logout } from '../api/customerApi'
-import type { AuthResponse, AuthUser } from '../types/customer'
-import type { Navigate } from './useBrowserNavigation'
-
-const customerLandingPath = async () => {
-  const leagues = await loadRegisteredLeagues()
-  if (leagues.length === 0) return '/leagues/new'
-  if (leagues.length === 1) return `/league?leagueId=${leagues[0].id}`
-  return '/leagues'
-}
+import { loadCurrentUser, logout } from '../../api/customerApi'
+import type { AuthResponse, AuthUser } from '../../types/customer'
+import type { Navigate } from '../../app/useBrowserNavigation'
 
 export function useAuthSession(navigate: Navigate) {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -34,8 +27,7 @@ export function useAuthSession(navigate: Navigate) {
   const handleAuthenticated = useCallback(
     async (result: AuthResponse) => {
       setUser(result.user)
-      const landingPath =
-        result.user.role === 'ADMIN' ? '/administration' : await customerLandingPath()
+      const landingPath = result.user.role === 'ADMIN' ? '/administration' : '/leagues'
       navigate(landingPath, true)
     },
     [navigate],

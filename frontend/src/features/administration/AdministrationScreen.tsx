@@ -11,10 +11,10 @@ import type { FplLeagueType, MockNarrationMode } from '../../api/liveApi'
 import type { AuthUser } from '../../types/customer'
 import type { LeagueDiscoveryState } from '../../types/fpl'
 import type { LiveStateResponse } from '../../types/live'
-import { AdminLeagueRegistry } from '../customer/AdminLeagueRegistry'
-import { BroadcastScheduleManager } from '../customer/BroadcastScheduleManager'
-import { UserAdministration } from '../customer/UserAdministration'
-import { LeagueDiscoverySummary } from '../discovery/LeagueDiscoverySummary'
+import { AdminLeagueRegistry } from './AdminLeagueRegistry'
+import { BroadcastScheduleManager } from './BroadcastScheduleManager'
+import { UserAdministration } from './UserAdministration'
+import { LeagueDiscoverySummary } from './LeagueDiscoverySummary'
 
 type AdministrationSession = {
   user: AuthUser
@@ -35,7 +35,7 @@ type LeagueSetup = {
 }
 
 type BroadcastControls = {
-  liveState: LiveStateResponse
+  liveState: LiveStateResponse | null
   mockNarrationMode: MockNarrationMode
   isBusy: boolean
   onMockNarrationModeChange: (mode: MockNarrationMode) => void
@@ -90,7 +90,7 @@ export function AdministrationScreen({
         <div>
           <span className="kicker">
             <Radio size={16} />
-            Gameweek {liveState.gameweek}
+            Gameweek {liveState?.gameweek ?? '—'}
           </span>
           <h1>Fantasy Broadcast Administration</h1>
         </div>
@@ -199,7 +199,7 @@ export function AdministrationScreen({
           <FlaskConical size={18} />
           Start total-points test
         </button>
-        {liveState.sequence.started && !liveState.sequence.complete && (
+        {liveState?.sequence.started && !liveState?.sequence.complete && (
           <button type="button" onClick={onShowLiveBroadcast} disabled={isBusy}>
             <Radio size={18} />
             Live
@@ -208,7 +208,7 @@ export function AdministrationScreen({
         <button
           type="button"
           onClick={onAdvanceBroadcast}
-          disabled={isBusy || liveState.sequence.complete}
+          disabled={isBusy || !liveState || liveState.sequence.complete}
         >
           <SkipForward size={18} />
           Advance

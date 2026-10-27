@@ -1,7 +1,7 @@
 import { Bell, ChevronRight, Radio, Sparkles, Trophy, Users, Zap } from 'lucide-react'
-import type { Navigate } from '../../hooks/useBrowserNavigation'
+import type { Navigate } from '../../app/useBrowserNavigation'
 import { WelcomeBroadcastDemo } from './WelcomeBroadcastDemo'
-import { PublicHeader } from './PublicHeader'
+import { PublicHeader } from '../../shared/ui/PublicHeader'
 
 type Props = { onNavigate: Navigate }
 

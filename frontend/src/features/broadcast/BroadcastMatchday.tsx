@@ -18,8 +18,8 @@ import {
   revealCopyStyle,
   teamShortName,
   TOTAL_POINTS_REVEAL_TEAM_SCALE,
-} from '../../utils/broadcast'
-import { PlayerDetailsModal, type SelectedPlayer } from '../customer/PlayerDetailsModal'
+} from './broadcast'
+import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
 
 type BroadcastMatchdayProps = {
   authToken: string
