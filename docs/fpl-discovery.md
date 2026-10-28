@@ -65,6 +65,38 @@ If auth is needed, use an environment variable or excluded local config for the 
 
 The live engine should consume mapped records, not endpoint-specific JSON.
 
+## Shared caching and broadcast polling
+
+All successful FPL responses are cached by URL for one hour by default
+(`FPL_CACHE_TTL_SECONDS=3600`). This includes league standings and matchups, ownership,
+entry lineups, bootstrap data, fixtures, live player points used outside broadcasts,
+and individual player histories. Reading a league or opening another player dialog
+reuses those responses until they expire; cache expiry itself does not start a request.
+Concurrent readers of the same URL share one upstream request and receive independent
+JSON copies. Failed requests share a ten-second retry window so concurrent callers
+cannot overwhelm FPL or leave a temporary failure cached for an hour.
+
+Active customer broadcasts use one shared polling task. Each cycle maps one player
+snapshot per league source and gameweek and applies it to every eligible league of
+that type, regardless of H2H or total-points scoring. The broadcast-specific Draft and
+Classic live reads permit refreshes every ten seconds in the same HTTP cache used by
+ordinary pages. Pages can therefore reuse broadcast-fresh values without triggering
+another request. The admin broadcast path also uses this shared cache. Polling waits
+ten seconds between completed cycles and stops when the customer sessions are stopped;
+new viewers join existing sessions rather than creating new upstream pollers.
+
+League composition is refreshed hourly during a long-running broadcast. A change of
+gameweek resets the point-change baseline, preventing the new week's totals from being
+interpreted as negative corrections to the old week. Narration retains its independent
+per-league publication gate.
+
+Draft live responses include fixture status. Classic fixture responses follow the
+hourly cache rule, so fixture-dependent automatic substitutions can lag even while
+player points refresh every ten seconds. Initial loading still requires each league's
+own metadata and lineups; only the recurring player feeds are shared across leagues.
+
+Caches and broadcast sessions belong to the running backend process and reset on restart.
+
 ## Manual Checks
 
 With the backend running:
