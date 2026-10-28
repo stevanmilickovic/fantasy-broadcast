@@ -1,3 +1,5 @@
+import { ArrowRight, Plus } from 'lucide-react'
+import { useState } from 'react'
 import type { AuthUser } from '../auth/types'
 import { scoringLabel } from './leagueData'
 import { OwnerBadge } from './OwnerBadge'
@@ -11,21 +13,31 @@ export function LeaguePicker({
   user: AuthUser
   onNavigate: (path: string) => void
 }) {
+  const [search, setSearch] = useState('')
+  const filtered = leagues.filter((league) =>
+    league.displayName.toLowerCase().includes(search.toLowerCase()),
+  )
   return (
     <section className="league-picker">
       <header>
-        <span className="kicker">Welcome back, {user.displayName}</span>
-        <h1>Choose a league</h1>
-        <p>Select the league you want to open.</p>
+        <div>
+          <span className="kicker">Welcome back, {user.displayName}</span>
+          <h1>Your leagues</h1>
+          <p>Explore your standings, teams and matchups.</p>
+        </div>
+        <button className="add-league-card" onClick={() => onNavigate('/leagues/new')}>
+          <Plus size={18} /> Add or find a league
+        </button>
       </header>
+      {leagues.length > 6 && (
+        <label className="league-filter">
+          Search leagues
+          <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} />
+        </label>
+      )}
       <div className="league-cards">
-        {leagues.map((league) => (
-          <button
-            type="button"
-            className="league-card"
-            key={league.id}
-            onClick={() => onNavigate(`/league?leagueId=${league.id}`)}
-          >
+        {filtered.map((league) => (
+          <a className="league-card" key={league.id} href={`/league?leagueId=${league.id}`}>
             <span>
               {league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} ·{' '}
               {scoringLabel(league.scoringType)}
@@ -33,16 +45,13 @@ export function LeaguePicker({
             </span>
             <strong>{league.displayName}</strong>
             <small>FPL league #{league.fplLeagueId}</small>
-          </button>
+            <span className="league-card-open">
+              Open league <ArrowRight size={19} />
+            </span>
+          </a>
         ))}
       </div>
-      <button
-        type="button"
-        className="secondary-action add-league-card"
-        onClick={() => onNavigate('/leagues/new')}
-      >
-        Add or find a league
-      </button>
+      {!filtered.length && <p className="league-empty">No leagues match your search.</p>}
     </section>
   )
 }

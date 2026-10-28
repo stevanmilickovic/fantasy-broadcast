@@ -1648,44 +1648,6 @@ blockquote {
   }
 }
 
-.selected-league-page {
-  width: min(1120px, 100%);
-  margin: 0 auto;
-  padding: 64px 0;
-}
-.selected-league-heading h1 {
-  margin: 0;
-}
-.selected-league-heading p {
-  margin: 0;
-}
-.delete-owned-league {
-  border: 0;
-  border-radius: 0;
-  padding: 10px 14px;
-  color: #37003c;
-  background: #20e6ff;
-  cursor: pointer;
-  font-weight: 800;
-}
-.delete-owned-league:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-.selected-league-standings {
-  display: grid;
-  gap: 30px;
-}
-.selected-league-heading h1 {
-  color: #fff;
-  font-size: clamp(2.2rem, 5vw, 4.6rem);
-  line-height: 0.92;
-  letter-spacing: 0;
-}
-.selected-league-heading {
-  display: grid;
-  gap: 18px;
-}
 .pitch-player:focus-visible {
   outline: 3px solid #20e6ff;
   outline-offset: 4px;
@@ -1701,22 +1663,6 @@ blockquote {
   cursor: pointer;
 }
 
-@media (max-width: 700px) {
-  .selected-league-page {
-    width: min(1120px, calc(100% - 32px));
-    padding: 34px 0;
-  }
-  .selected-league-standings {
-    gap: 22px;
-  }
-  .selected-league-heading {
-    gap: 14px;
-  }
-  .selected-league-heading h1 {
-    font-size: clamp(2rem, 11vw, 3.2rem);
-    overflow-wrap: anywhere;
-  }
-}
 .narration-caption small {
   display: block;
   margin-bottom: 3px;
