@@ -1,5 +1,7 @@
 # Frontend Agent Guidelines
 
+Apply the shared [project guidelines and Ponytail skills](../AGENTS.md).
+
 Write clean, readable, and simple frontend code. Optimize first for the next person who
 must understand and safely change it; optimize for performance only when measurements or
 clear product requirements justify the additional complexity.
