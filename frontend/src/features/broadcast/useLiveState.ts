@@ -59,6 +59,13 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
     const query = parameters.size > 0 ? `?${parameters}` : ''
     const events = new EventSource(`/api/live-state/stream${query}`)
 
+    events.addEventListener('broadcast-full', (event) => {
+      if (controller.signal.aborted) return
+      controller.abort()
+      events.close()
+      setSnapshot(null)
+      setError(event.data || 'This broadcast is full. Please try again later.')
+    })
     events.addEventListener('live-state', (event) => {
       if (controller.signal.aborted) return
       try {

@@ -1,6 +1,29 @@
 import { expect, test } from '@playwright/test'
 import { mockBroadcast } from './broadcastFixtures'
 
+test('a full broadcast shows the viewer limit and retries only when requested', async ({
+  page,
+}) => {
+  const { errors } = await mockBroadcast(page)
+  await page.goto('/broadcast?leagueId=1')
+  await expect(page.locator('.broadcast-scene')).toHaveAttribute('data-phase', 'idle')
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new CustomEvent('broadcast-test-full', {
+        detail:
+          'This broadcast has reached its limit of 50 simultaneous viewers. Try again when a space opens.',
+      }),
+    ),
+  )
+  await expect(page.getByText(/limit of 50 simultaneous viewers/)).toBeVisible()
+  await expect(page.locator('.broadcast-scene')).toHaveCount(0)
+  await expect(page.locator('html')).toHaveAttribute('data-broadcast-stream', 'closed')
+  await page.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(page.locator('.broadcast-scene')).toHaveAttribute('data-phase', 'idle')
+  await expect(page.locator('html')).toHaveAttribute('data-broadcast-stream', 'open')
+  expect(errors).toEqual([])
+})
+
 for (const totalPoints of [false, true]) {
   test(`${totalPoints ? 'club' : 'matchup'} selector buttons align with Back and Multi above their scrollbar`, async ({
     page,

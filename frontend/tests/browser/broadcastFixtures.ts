@@ -48,13 +48,19 @@ export async function mockBroadcast(
               new MessageEvent('live-state', { data: JSON.stringify(event.detail) }),
             )
         }
+        full = (event: Event) => {
+          if (event instanceof CustomEvent)
+            this.dispatchEvent(new MessageEvent('broadcast-full', { data: event.detail }))
+        }
         constructor() {
           super()
           window.addEventListener('broadcast-test-update', this.receive)
+          window.addEventListener('broadcast-test-full', this.full)
           document.documentElement.dataset.broadcastStream = 'open'
         }
         close() {
           window.removeEventListener('broadcast-test-update', this.receive)
+          window.removeEventListener('broadcast-test-full', this.full)
           document.documentElement.dataset.broadcastStream = 'closed'
         }
       },

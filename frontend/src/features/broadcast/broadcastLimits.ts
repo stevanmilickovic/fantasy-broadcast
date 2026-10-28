@@ -1,0 +1,1 @@
+export const MAX_BROADCAST_VIEWERS = 50

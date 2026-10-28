@@ -10,6 +10,13 @@ There are three different IDs: `RegisteredLeague.id` is our internal league ID a
 
 ## Authentication and transport
 
+- Broadcast streams allow 50 simultaneous viewers per registered league on either plan.
+  Each open tab/device uses one slot; the administrator's global stream has its own
+  50-slot pool. Admission is atomic, and completion, timeout and network errors release
+  slots. When full, the SSE endpoint sends a terminal `broadcast-full` event whose data
+  is a plain-text message, then closes without sending `live-state`. Clients should
+  close EventSource, discard the initial snapshot and offer an explicit retry. Slots
+  are held per backend process; a shared registry is required before horizontal scaling.
 - Customer, live, and audio routes require our app session unless marked public below. Admin routes also require `ADMIN`. A followed/owned league is required for league-scoped reads; this is checked in the controller/service, not by Spring's global URL matcher.
 - Email/password login and registration verification set an HTTP-only `fantasy_broadcast_session` cookie. It has `Path=/api`, `SameSite=Strict`, a seven-day maximum age, and `Secure` in production. Send the cookie on subsequent REST, SSE, and audio requests. The token is not returned in JSON. Sessions are stored in backend memory, so app restart or backend restart can invalidate them. `GET /api/auth/me` is the session check; `401` means sign-in is required. See [AuthController](../backend/src/main/java/com/fantasybroadcast/backend/api/AuthController.java), [SessionService](../backend/src/main/java/com/fantasybroadcast/backend/customer/SessionService.java), and [WebSecurityConfig](../backend/src/main/java/com/fantasybroadcast/backend/security/WebSecurityConfig.java).
 - Google sign-in, when configured, uses the backend OAuth browser redirect flow and then sets the same cookie. `GET /api/auth/options` reports whether it is available. A native deep-link/auth flow has **not** been designed; do not assume a native Google token can be exchanged with this API.
