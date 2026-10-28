@@ -54,6 +54,7 @@ public class MockLiveStateService {
 
 	private static final long STREAM_TIMEOUT = Long.MAX_VALUE;
 	private static final long STEP_INTERVAL_SECONDS = 10L;
+	private static final long LEAGUE_REFRESH_SECONDS = 3600L;
 	private static final String[] TEAM_COLORS = { "#2684ff", "#f04770", "#ffb000", "#24c47e", "#9b59ff", "#ff7a45" };
 
 	private final List<LiveStateResponse> snapshots;
@@ -71,6 +72,7 @@ public class MockLiveStateService {
 	private int currentIndex;
 	private boolean started;
 	private ScheduledFuture<?> sequenceTask;
+	private ScheduledFuture<?> leaguePollTask;
 	private volatile MockNarrationMode mockNarrationMode = MockNarrationMode.NONE;
 	private volatile long mockNarrationRunId;
 	private volatile boolean mockNarrationPending;
@@ -83,7 +85,6 @@ public class MockLiveStateService {
 	private Map<Integer, FplLivePlayer> fetchedRealLivePlayers = Map.of();
 	private Map<Integer, FplFixture> fetchedFixtures = Map.of();
 	private int fetchedFixtureGameweek;
-	private Instant fixturesLoadedAt = Instant.EPOCH;
 	private final Map<String, LivePlayerCache> livePlayerCaches = new HashMap<>();
 	private int realPollCount;
 	private final Map<Long, RealSession> leagueSessions = new ConcurrentHashMap<>();
@@ -135,13 +136,17 @@ public class MockLiveStateService {
 		}
 		log.info("Starting broadcast session: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType);
 		var session = new RealSession();
+		session.leagueId = fplLeagueId;
 		session.aiNarrationEnabled = aiNarrationEnabled;
 		session.voiceNarrationEnabled = voiceNarrationEnabled;
 		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType).withVoiceNarrationEnabled(voiceNarrationEnabled);
 		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
 		leagueSessions.put(leagueKey, session);
 		publishLeagueState(leagueKey, session, session.state);
-		session.task = sequenceExecutor.scheduleAtFixedRate(() -> pollLeagueSession(leagueKey, fplLeagueId, leagueType, scoringType), STEP_INTERVAL_SECONDS, STEP_INTERVAL_SECONDS, TimeUnit.SECONDS);
+		if (leaguePollTask == null || leaguePollTask.isDone()) {
+			leaguePollTask = sequenceExecutor.scheduleWithFixedDelay(this::pollLeagueSessions,
+					STEP_INTERVAL_SECONDS, STEP_INTERVAL_SECONDS, TimeUnit.SECONDS);
+		}
 		return session.state;
 	}
 
@@ -158,11 +163,19 @@ public class MockLiveStateService {
 
 	public synchronized void stopLeagueSessions() {
 		if (!leagueSessions.isEmpty()) log.info("Stopping {} league broadcast session(s): no broadcast schedule is active.", leagueSessions.size());
-		leagueSessions.values().forEach(session -> {
-			if (session.task != null) session.task.cancel(false);
-			cancelNarrationWait(session);
-		});
+		if (leaguePollTask != null) leaguePollTask.cancel(false);
+		leaguePollTask = null;
+		leagueSessions.values().forEach(this::cancelNarrationWait);
 		leagueSessions.clear();
+		livePlayerCaches.clear();
+	}
+
+	private synchronized void pollLeagueSessions() {
+		livePlayerCaches.clear();
+		for (var entry : leagueSessions.entrySet()) {
+			var session = entry.getValue();
+			pollLeagueSession(entry.getKey(), session.leagueId, session.snapshot.leagueType(), session.snapshot.scoringType());
+		}
 	}
 
 	private void pollLeagueSession(long leagueKey, long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
@@ -189,7 +202,16 @@ public class MockLiveStateService {
 	private LiveStateResponse fetchSessionState(RealSession session, long leagueId, FplLeagueType leagueType,
 			FplLeagueScoring scoringType) {
 		realPollCount = session.pollCount++;
-		if (session.snapshot == null) session.snapshot = loadLeagueSnapshot(leagueId, leagueType, scoringType);
+		if (session.snapshot == null || !session.snapshotLoadedAt.plusSeconds(LEAGUE_REFRESH_SECONDS).isAfter(Instant.now())) {
+			var snapshot = loadLeagueSnapshot(leagueId, leagueType, scoringType);
+			if (session.snapshot != null && snapshot.gameweek() != session.snapshot.gameweek()) {
+				session.previousPoints = Map.of();
+				session.previousLivePlayers = Map.of();
+				session.automaticSubstitutions = java.util.Set.of();
+			}
+			session.snapshot = snapshot;
+			session.snapshotLoadedAt = Instant.now();
+		}
 		var liveById = loadLivePlayers(session.snapshot);
 		fetchedRealLivePlayers = liveById;
 		var state = buildSnapshotState(session.snapshot, liveById, session.previousPoints, session.previousLivePlayers);
@@ -212,7 +234,7 @@ public class MockLiveStateService {
 		return state;
 	}
 
-	/** Loads the league composition once; live polls only replace player totals in this snapshot. */
+	/** League composition is hourly; each polling cycle shares live player data across its leagues. */
 	private LeagueSnapshot loadLeagueSnapshot(long leagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
 		if (leagueType == FplLeagueType.DRAFT) {
 			var league = fplMapper.mapLeagueDetails(fplClient.getLeagueDetails(leagueId));
@@ -248,16 +270,13 @@ public class MockLiveStateService {
 		}
 		Map<Integer, FplLivePlayer> players;
 		if (snapshot.leagueType() == FplLeagueType.DRAFT) {
-			var live = fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(snapshot.gameweek()));
+			var live = fplMapper.mapDraftEventLive(fplClient.getBroadcastDraftEventLive(snapshot.gameweek()));
 			players = indexLivePlayers(live.players());
 			fetchedFixtures = indexFixtures(live.fixtures());
 		}
 		else {
-			players = indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(snapshot.gameweek())));
-			if (Instant.now().minusSeconds(60).isAfter(fixturesLoadedAt)) {
-				fetchedFixtures = indexFixtures(fplMapper.mapFixtures(fplClient.getFantasyFixtures()));
-				fixturesLoadedAt = Instant.now();
-			}
+			players = indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getBroadcastFantasyEventLive(snapshot.gameweek())));
+			fetchedFixtures = indexFixtures(fplMapper.mapFixtures(fplClient.getFantasyFixtures()));
 		}
 		livePlayerCaches.put(cacheKey, new LivePlayerCache(Instant.now(), players, fetchedFixtures));
 		return players;
@@ -377,7 +396,23 @@ public class MockLiveStateService {
 		session.nextPollAt = Instant.now().plusSeconds(STEP_INTERVAL_SECONDS);
 	}
 
-	private static class RealSession { LiveStateResponse state; LiveStateResponse publishedState; LeagueSnapshot snapshot; Map<String, Integer> previousPoints = Map.of(); Map<Integer, FplLivePlayer> previousLivePlayers = Map.of(); java.util.Set<String> automaticSubstitutions = java.util.Set.of(); int pollCount; ScheduledFuture<?> task; ScheduledFuture<?> narrationTask; boolean narrationPending; Instant narrationDeadline = Instant.EPOCH; Instant nextPollAt = Instant.EPOCH; boolean aiNarrationEnabled; boolean voiceNarrationEnabled; }
+	private static class RealSession {
+		long leagueId;
+		LiveStateResponse state;
+		LiveStateResponse publishedState;
+		LeagueSnapshot snapshot;
+		Instant snapshotLoadedAt = Instant.EPOCH;
+		Map<String, Integer> previousPoints = Map.of();
+		Map<Integer, FplLivePlayer> previousLivePlayers = Map.of();
+		java.util.Set<String> automaticSubstitutions = java.util.Set.of();
+		int pollCount;
+		ScheduledFuture<?> narrationTask;
+		boolean narrationPending;
+		Instant narrationDeadline = Instant.EPOCH;
+		Instant nextPollAt = Instant.EPOCH;
+		boolean aiNarrationEnabled;
+		boolean voiceNarrationEnabled;
+	}
 
 	private record LeagueSnapshot(FplLeagueType leagueType, FplLeagueScoring scoringType, int gameweek,
 			Map<Integer, FplPlayer> playersById, FplDraftLeague draftLeague,
@@ -975,6 +1010,7 @@ public class MockLiveStateService {
 	@PreDestroy
 	public void shutdown() {
 		cancelSequenceTask();
+		stopLeagueSessions();
 		cancelMockNarrationWait();
 		sequenceExecutor.shutdownNow();
 	}
