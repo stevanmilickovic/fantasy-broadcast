@@ -25,6 +25,8 @@ const normalizeLiveState = (state: LiveStateResponse): LiveStateResponse => ({
 })
 
 export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
+  const [revision, setRevision] = useState(0)
+  const retry = useCallback(() => setRevision((value) => value + 1), [])
   const sourceKey = sourceKeyFor(leagueId)
   const [snapshot, setSnapshot] = useState<LiveStateSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -76,11 +78,12 @@ export function useLiveState({ enabled, leagueId }: UseLiveStateOptions) {
       controller.abort()
       events.close()
     }
-  }, [enabled, leagueId, sourceKey])
+  }, [enabled, leagueId, sourceKey, revision])
 
   return {
     liveState,
     error,
+    retry,
     setLiveState: updateLiveState,
     setError,
   }

@@ -1,149 +1,94 @@
-import { useLayoutEffect, useRef, useState, useEffect, type RefObject } from 'react'
-import type { LiveStandingView, TeamView } from './types'
-
-export function HeadToHeadLeaderboard({
-  standings,
-  headingRef,
-}: {
-  standings: LiveStandingView[]
-  headingRef: RefObject<HTMLHeadingElement | null>
-}) {
-  return (
-    <section className="live-leaderboard-page" aria-label="Live leaderboard">
-      <LiveStandings
-        standings={standings}
-        headingRef={headingRef}
-        label="Live Leaderboard"
-        showUnsignedLivePoints
-      />
-    </section>
-  )
-}
-
-export function TotalPointsLeaderboard({
-  standings,
-  headingRef,
-}: {
-  standings: LiveStandingView[]
-  headingRef: RefObject<HTMLHeadingElement | null>
-}) {
-  return (
-    <section className="live-leaderboard-page" aria-label="Live standings">
-      <LiveStandings standings={standings} headingRef={headingRef} label="Live standings" />
-    </section>
-  )
-}
+import { useLayoutEffect, useRef } from 'react'
+import { useReducedMotion } from './useReducedMotion'
+import type { LiveStandingView } from './types'
 
 export function LiveStandings({
   standings,
-  focusedTeam,
-  headingRef,
-  label = 'Live standings',
-  showUnsignedLivePoints = false,
+  focusedId,
+  scoring,
+  reveal = false,
 }: {
   standings: LiveStandingView[]
-  focusedTeam?: TeamView
-  headingRef?: RefObject<HTMLHeadingElement | null>
-  label?: string
-  showUnsignedLivePoints?: boolean
+  focusedId?: string
+  scoring: 'h2h' | 'points'
+  reveal?: boolean
 }) {
-  const rowElements = useRef(new Map<string, HTMLLIElement>())
-  const previousRowTops = useRef(new Map<string, number>())
+  const rows = useRef(new Map<string, HTMLTableRowElement>())
+  const positions = useRef(new Map<string, number>())
+  const reduced = useReducedMotion()
+  const scroller = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
-    const nextRowTops = new Map<string, number>()
-    rowElements.current.forEach((element, teamId) => {
-      const top = element.getBoundingClientRect().top
-      const previousTop = previousRowTops.current.get(teamId)
-      if (previousTop !== undefined && previousTop !== top) {
-        element.animate(
-          [{ transform: `translateY(${previousTop - top}px)` }, { transform: 'translateY(0)' }],
-          { duration: 560, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    const effects: Animation[] = []
+    const next = new Map<string, number>()
+    rows.current.forEach((row, id) => {
+      const top = row.offsetTop
+      const previous = positions.current.get(id)
+      if (!reduced && previous !== undefined && previous !== top && row.animate)
+        effects.push(
+          row.animate(
+            [{ transform: `translateY(${previous - top}px)` }, { transform: 'translateY(0)' }],
+            { duration: 380, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+          ),
         )
-      }
-      nextRowTops.set(teamId, top)
+      next.set(id, top)
     })
-    previousRowTops.current = nextRowTops
-  }, [standings])
+    positions.current = next
+    return () => effects.forEach((effect) => effect.cancel())
+  }, [standings, reduced])
+  useLayoutEffect(() => {
+    const row = focusedId ? rows.current.get(focusedId) : undefined
+    const container = scroller.current
+    if (row && container)
+      container.scrollTop = Math.max(0, row.offsetTop - container.clientHeight / 2)
+  }, [focusedId])
   return (
-    <aside
-      className={`live-standings ${showUnsignedLivePoints ? 'h2h-live-standings' : ''}`}
-      aria-label={label}
+    <section
+      className="broadcast-standings"
+      aria-label={scoring === 'h2h' ? 'Live leaderboard' : 'Live standings'}
     >
-      <header>
-        <strong ref={headingRef}>{label}</strong>
+      <header data-reveal-cell>
+        <h2 {...(reveal ? { 'data-reveal-role': 'heading' } : {})}>
+          {scoring === 'h2h' ? 'Live leaderboard' : 'Live standings'}
+        </h2>
+        <p>{scoring === 'h2h' ? 'Projected league points' : 'Season rankings'}</p>
       </header>
-      <ol>
-        {standings.slice(0, 12).map((standing) => (
-          <li
-            ref={(element) => {
-              if (element) rowElements.current.set(standing.teamId, element)
-              else rowElements.current.delete(standing.teamId)
-            }}
-            key={standing.teamId}
-            className={standing.teamId === focusedTeam?.managerId ? 'focused-standing' : ''}
-          >
-            <b>{standing.position}</b>
-            <div>
-              <strong>{standing.teamName}</strong>
-              <span>{standing.managerName}</span>
-            </div>
-            {!showUnsignedLivePoints && (
-              <StandingValue
-                className="standing-gameweek-points"
-                value={standing.gameweekPoints}
-                signed
-              />
-            )}
-            <StandingValue className="standing-total-points" value={standing.total} />
-          </li>
-        ))}
-      </ol>
-    </aside>
-  )
-}
-
-function StandingValue({
-  value,
-  signed = false,
-  className,
-}: {
-  value: number
-  signed?: boolean
-  className: string
-}) {
-  const [displayValue, setDisplayValue] = useState(value)
-  const previousValue = useRef(value)
-  useEffect(() => {
-    if (previousValue.current === value) return
-    const startValue = previousValue.current
-    previousValue.current = value
-    setDisplayValue(startValue)
-    let interval: number | undefined
-    const delay = window.setTimeout(() => {
-      const difference = value - startValue
-      const direction = difference > 0 ? 1 : -1
-      interval = window.setInterval(
-        () =>
-          setDisplayValue((current) => {
-            const next = current + direction
-            if ((direction > 0 && next >= value) || (direction < 0 && next <= value)) {
-              if (interval) window.clearInterval(interval)
-              return value
-            }
-            return next
-          }),
-        Math.max(70, Math.round(360 / Math.max(1, Math.abs(difference)))),
-      )
-    }, 240)
-    return () => {
-      window.clearTimeout(delay)
-      if (interval) window.clearInterval(interval)
-    }
-  }, [value])
-  const text = `${signed && displayValue >= 0 ? '+' : ''}${displayValue}`
-  return className === 'standing-total-points' ? (
-    <em className={className}>{text}</em>
-  ) : (
-    <small className={className}>{text}</small>
+      <div
+        className="broadcast-table-scroll"
+        ref={scroller}
+        tabIndex={0}
+        aria-label="All club standings"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Rank</th>
+              <th scope="col">Club / manager</th>
+              <th scope="col">GW pts</th>
+              <th scope="col">{scoring === 'h2h' ? 'League pts' : 'Total pts'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {standings.map((standing) => (
+              <tr
+                key={standing.teamId}
+                ref={(row) => {
+                  if (row) rows.current.set(standing.teamId, row)
+                  else rows.current.delete(standing.teamId)
+                }}
+                className={standing.teamId === focusedId ? 'focused-standing' : ''}
+              >
+                <td>{standing.position}</td>
+                <th scope="row">
+                  <strong>{standing.teamName}</strong>
+                  <span>{standing.managerName}</span>
+                </th>
+                <td>{standing.gameweekPoints}</td>
+                <td>{standing.total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   )
 }

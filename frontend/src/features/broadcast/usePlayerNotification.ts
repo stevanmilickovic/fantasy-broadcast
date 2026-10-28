@@ -1,10 +1,12 @@
 import { useEffect, useReducer } from 'react'
+import { useReducedMotion } from './useReducedMotion'
 import type { FantasyEventView } from './types'
 
 const NOTIFICATION_DELAY_MS = 240
 const NOTIFICATION_EXIT_MS = 200
 const POINT_COUNT_MS = 360
 const MIN_POINT_STEP_MS = 70
+const MAX_COUNT_STEPS = 5
 
 type NotificationState = {
   eventKey: string
@@ -43,11 +45,16 @@ function notificationReducer(
       return receiveNotification(action, state.events)
     case 'show':
       return { ...state, phase: 'counting' }
-    case 'tick':
+    case 'tick': {
+      const difference = state.points - state.displayedPoints
+      const delta = state.events.reduce((sum, event) => sum + event.pointDelta, 0)
+      const step = Math.max(1, Math.ceil(Math.abs(delta) / MAX_COUNT_STEPS))
       return {
         ...state,
-        displayedPoints: state.displayedPoints + Math.sign(state.points - state.displayedPoints),
+        displayedPoints:
+          state.displayedPoints + Math.sign(difference) * Math.min(Math.abs(difference), step),
       }
+    }
     case 'remove':
       return { ...state, phase: 'idle', events: [], displayedPoints: state.points }
   }
@@ -58,6 +65,7 @@ export function usePlayerNotification(
   events: FantasyEventView[],
   pendingPointDelta: number,
 ) {
+  const reducedMotion = useReducedMotion()
   const eventKey = events.map((event) => `${event.id}:${event.pointDelta}`).join('|')
   const [state, dispatch] = useReducer(
     notificationReducer,
@@ -71,7 +79,7 @@ export function usePlayerNotification(
   }
   const delta = state.events.reduce((total, event) => total + event.pointDelta, 0)
   useEffect(() => {
-    if (state.phase === 'idle') return
+    if (reducedMotion || state.phase === 'idle') return
     if (state.phase === 'counting' && state.displayedPoints === state.points) return
     const delay =
       state.phase === 'waiting'
@@ -82,19 +90,22 @@ export function usePlayerNotification(
     const type = state.phase === 'waiting' ? 'show' : state.phase === 'leaving' ? 'remove' : 'tick'
     const timer = window.setTimeout(() => dispatch({ type }), delay)
     return () => window.clearTimeout(timer)
-  }, [delta, state.phase, state.eventKey, state.displayedPoints, state.points])
+  }, [reducedMotion, delta, state.phase, state.eventKey, state.displayedPoints, state.points])
 
   return {
-    activeEvents: state.events,
-    activeEvent: state.events[0],
-    notificationEventId:
-      state.phase === 'counting' || state.phase === 'leaving'
+    activeEvents: reducedMotion ? events : state.events,
+    activeEvent: reducedMotion ? events[0] : state.events[0],
+    notificationEventId: reducedMotion
+      ? (events[0]?.id ?? null)
+      : state.phase === 'counting' || state.phase === 'leaving'
         ? (state.events[0]?.id ?? null)
         : null,
-    notificationLeaving: state.phase === 'leaving',
+    notificationLeaving: !reducedMotion && state.phase === 'leaving',
     pointsToRender:
       events.length === 0 && pendingPointDelta !== 0
         ? points - pendingPointDelta
-        : state.displayedPoints,
+        : reducedMotion
+          ? points
+          : state.displayedPoints,
   }
 }

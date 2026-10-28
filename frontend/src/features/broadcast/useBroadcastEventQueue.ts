@@ -1,5 +1,4 @@
 import { useEffect, useRef, useReducer } from 'react'
-import { playNarrationAudio, playPointChangeSound } from './broadcastSound'
 import type { FantasyEventView, LiveStateResponse } from './types'
 
 const NOTIFICATION_DISPLAY_MS = 10_000
@@ -76,16 +75,6 @@ export function useBroadcastEventQueue(
 ) {
   const [queue, dispatch] = useReducer(queueReducer, { active: null, pending: [] })
   const receivedEventIdsRef = useRef(new Set<string>())
-  const lastSoundedEventIdRef = useRef<string | null>(null)
-  const narrationControllerRef = useRef<AbortController | null>(null)
-  const lastNarrationAudioIdRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    narrationControllerRef.current = controller
-    return () => controller.abort()
-  }, [])
-
   useEffect(() => {
     if (!liveState) return
     const events = liveState.events ?? []
@@ -111,19 +100,6 @@ export function useBroadcastEventQueue(
 
   const activeEvents = queue.active?.events ?? []
   const latestEvent = activeEvents[0]
-  useEffect(() => {
-    if (!latestEvent || latestEvent.id === lastSoundedEventIdRef.current) return
-    lastSoundedEventIdRef.current = latestEvent.id
-    playPointChangeSound(latestEvent.pointDelta)
-  }, [latestEvent])
-
-  const latestNarration = liveState?.commentary?.[0]
-  useEffect(() => {
-    if (!latestNarration?.audioUrl || latestNarration.id === lastNarrationAudioIdRef.current) return
-    lastNarrationAudioIdRef.current = latestNarration.id
-    void playNarrationAudio(latestNarration.audioUrl, narrationControllerRef.current?.signal)
-  }, [latestNarration])
-
   return {
     activeEvents,
     activeLiveState: queue.active?.liveState ?? null,

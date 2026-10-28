@@ -1,180 +1,148 @@
-import { Radio } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { teamShortName } from './broadcast'
-import type { BroadcastFocus, MatchupView, FantasyEventView, TeamView } from './types'
+import { Check, ChevronDown, Radio, X } from 'lucide-react'
+import { useId } from 'react'
+import { formatScoreline } from './broadcast'
+import { useDialogMotion } from '../../shared/ui/useDialogMotion'
+import type { BroadcastFocus, FantasyEventView, MatchupView, TeamView } from './types'
 
-export function MatchSelector({
+type Choice = { id: string; label: string; score: string }
+export function BroadcastSelectors({
   matchups,
-  latestEvent,
+  teams,
+  pendingEvents,
   selectedFocus,
+  automaticFocus,
   onSelect,
 }: {
   matchups: MatchupView[]
-  latestEvent?: FantasyEventView
-  selectedFocus: BroadcastFocus
-  onSelect: (focus: BroadcastFocus) => void
-}) {
-  return (
-    <nav className="match-selector" aria-label="Ongoing match selector">
-      <button
-        className={`match-selector-chip multiview-chip ${selectedFocus === 'multi' ? 'selected-match-chip' : ''}`}
-        type="button"
-        onClick={() => onSelect('multi')}
-      >
-        <Radio size={14} />
-        <span>Multi</span>
-      </button>
-      <div className="match-chip-track">
-        {matchups.map((matchup) => (
-          <MatchSelectorChip
-            key={matchup.id}
-            latestEvent={latestEvent}
-            matchup={matchup}
-            selected={selectedFocus === matchup.id}
-            onSelect={() => onSelect(matchup.id)}
-          />
-        ))}
-      </div>
-    </nav>
-  )
-}
-
-function MatchSelectorChip({
-  matchup,
-  latestEvent,
-  selected,
-  onSelect,
-}: {
-  matchup: MatchupView
-  latestEvent?: FantasyEventView
-  selected: boolean
-  onSelect: () => void
-}) {
-  const homeChanged = latestEvent?.managerId === matchup.home.managerId
-  const awayChanged = latestEvent?.managerId === matchup.away.managerId
-  return (
-    <button
-      className={`match-selector-chip ${selected ? 'selected-match-chip' : ''} ${homeChanged || awayChanged ? 'match-chip-event' : ''}`}
-      type="button"
-      onClick={onSelect}
-    >
-      <span className="match-chip-team">{teamShortName(matchup.home)}</span>
-      <MatchChipScore
-        changed={homeChanged}
-        delta={homeChanged && latestEvent ? latestEvent.pointDelta : 0}
-        eventId={homeChanged ? latestEvent?.id : undefined}
-        score={matchup.home.score}
-        side="left"
-      />
-      <span className="match-chip-separator">-</span>
-      <MatchChipScore
-        changed={awayChanged}
-        delta={awayChanged && latestEvent ? latestEvent.pointDelta : 0}
-        eventId={awayChanged ? latestEvent?.id : undefined}
-        score={matchup.away.score}
-        side="right"
-      />
-      <span className="match-chip-team">{teamShortName(matchup.away)}</span>
-    </button>
-  )
-}
-
-function MatchChipScore({
-  score,
-  changed,
-  delta,
-  eventId,
-  side,
-}: {
-  score: number
-  changed: boolean
-  delta: number
-  eventId?: string
-  side: 'left' | 'right'
-}) {
-  const previousScore = changed ? score - delta : score
-  const [displayScore, setDisplayScore] = useState(changed ? previousScore : score)
-  useEffect(() => {
-    if (!changed || !eventId || delta === 0) {
-      const resetTimer = window.setTimeout(() => setDisplayScore(score), 0)
-      return () => window.clearTimeout(resetTimer)
-    }
-    const step = delta > 0 ? 1 : -1
-    let timer: number | undefined
-    const startTimer = window.setTimeout(() => {
-      setDisplayScore(previousScore)
-      timer = window.setInterval(
-        () => setDisplayScore((value) => (value === score ? value : value + step)),
-        120,
-      )
-    }, 0)
-    return () => {
-      window.clearTimeout(startTimer)
-      if (timer) window.clearInterval(timer)
-    }
-  }, [changed, delta, eventId, previousScore, score])
-  return (
-    <div className={`match-chip-score ${changed ? 'changed-score' : ''}`}>
-      {side === 'left' && changed && delta !== 0 && (
-        <span className="match-chip-delta">
-          {delta > 0 ? '+' : ''}
-          {delta}
-        </span>
-      )}
-      <span className="match-chip-total">{displayScore}</span>
-      {side === 'right' && changed && delta !== 0 && (
-        <span className="match-chip-delta">
-          {delta > 0 ? '+' : ''}
-          {delta}
-        </span>
-      )}
-    </div>
-  )
-}
-
-export function ClubSelector({
-  teams,
-  latestEvent,
-  selectedFocus,
-  onSelect,
-}: {
   teams: TeamView[]
-  latestEvent?: FantasyEventView
+  pendingEvents: FantasyEventView[]
   selectedFocus: BroadcastFocus
+  automaticFocus: BroadcastFocus
   onSelect: (focus: BroadcastFocus) => void
 }) {
+  const points = (team: TeamView) =>
+    team.score -
+    pendingEvents
+      .filter((event) => event.managerId === team.managerId)
+      .reduce((sum, event) => sum + event.pointDelta, 0)
+  const choices: Choice[] = matchups.length
+    ? matchups.map((match) => ({
+        id: match.id,
+        label: `${match.home.clubName} · ${match.away.clubName}`,
+        score: formatScoreline(`${points(match.home)}-${points(match.away)}`),
+      }))
+    : teams.map((team) => ({
+        id: team.managerId,
+        label: team.clubName,
+        score: `${points(team)} pts`,
+      }))
+  const current = choices.find(
+    (choice) => choice.id === (selectedFocus === 'multi' ? automaticFocus : selectedFocus),
+  )
+  const { dialog, show, open, closing, close, onClose } = useDialogMotion()
+  const titleId = useId()
   return (
-    <nav className="match-selector club-selector" aria-label="Ongoing club selector">
+    <nav
+      className="broadcast-selectors"
+      aria-label={`Ongoing ${matchups.length ? 'match' : 'club'} selector`}
+    >
       <button
-        className={`match-selector-chip multiview-chip ${selectedFocus === 'multi' ? 'selected-match-chip' : ''}`}
         type="button"
+        className="broadcast-auto"
+        aria-pressed={selectedFocus === 'multi'}
         onClick={() => onSelect('multi')}
       >
         <Radio size={14} />
-        <span>Multi</span>
+        Multi
       </button>
-      <div className="match-chip-track">
-        {teams.map((team) => {
-          const changed = latestEvent?.managerId === team.managerId
-          return (
+      <div className="broadcast-chip-viewport">
+        <div className="match-chip-track">
+          {choices.map((choice) => (
             <button
-              key={team.managerId}
-              className={`match-selector-chip club-selector-chip ${selectedFocus === team.managerId ? 'selected-match-chip' : ''} ${changed ? 'match-chip-event' : ''}`}
               type="button"
-              onClick={() => onSelect(team.managerId)}
+              key={choice.id}
+              aria-pressed={selectedFocus === choice.id}
+              data-current={automaticFocus === choice.id}
+              onClick={() => onSelect(choice.id)}
             >
-              <span className="match-chip-team">{teamShortName(team)}</span>
-              <MatchChipScore
-                changed={Boolean(changed)}
-                delta={changed ? (latestEvent?.pointDelta ?? 0) : 0}
-                eventId={changed ? latestEvent?.id : undefined}
-                score={team.score}
-                side="right"
-              />
+              <span>{choice.label}</span>
+              <b>{choice.score}</b>
             </button>
-          )
-        })}
+          ))}
+        </div>
       </div>
+      <button
+        type="button"
+        className="broadcast-picker-trigger"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={`Choose ${matchups.length ? 'match' : 'club'}`}
+        onClick={() => {
+          show()
+          dialog.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus()
+        }}
+      >
+        <span>{current?.label ?? 'Choose focus'}</span>
+        <ChevronDown size={16} />
+      </button>
+      <dialog
+        ref={dialog}
+        className="broadcast-picker dialog-motion"
+        data-closing={closing}
+        aria-labelledby={titleId}
+        onClose={onClose}
+        onCancel={(event) => {
+          event.preventDefault()
+          close()
+        }}
+        onClick={(event) => {
+          if (event.target === dialog.current) close()
+        }}
+      >
+        <header>
+          <h2 id={titleId}>Broadcast focus</h2>
+          <button type="button" aria-label="Close broadcast focus" onClick={() => close()}>
+            <X size={20} />
+          </button>
+        </header>
+        <div className="broadcast-picker-options">
+          {[{ id: 'multi', label: 'Multi · follow the broadcast', score: '' }, ...choices].map(
+            (choice, index) => (
+              <button
+                type="button"
+                key={choice.id}
+                aria-pressed={selectedFocus === choice.id}
+                onClick={() => close(() => onSelect(choice.id))}
+                onKeyDown={(event) => {
+                  const buttons =
+                    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')
+                  if (!buttons) return
+                  const next =
+                    event.key === 'ArrowDown'
+                      ? (index + 1) % buttons.length
+                      : event.key === 'ArrowUp'
+                        ? (index + buttons.length - 1) % buttons.length
+                        : event.key === 'Home'
+                          ? 0
+                          : event.key === 'End'
+                            ? buttons.length - 1
+                            : undefined
+                  if (next !== undefined) {
+                    event.preventDefault()
+                    buttons[next]?.focus()
+                  }
+                }}
+              >
+                <span>
+                  {choice.label}
+                  <small>{choice.score}</small>
+                </span>
+                {selectedFocus === choice.id && <Check size={18} />}
+              </button>
+            ),
+          )}
+        </div>
+      </dialog>
     </nav>
   )
 }

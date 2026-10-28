@@ -56,3 +56,33 @@ it('cancels an old count when another notification arrives and cleans up on unmo
   unmount()
   expect(vi.getTimerCount()).toBe(0)
 })
+
+it('bounds the duration of a large correction and lands exactly on the supplied total', () => {
+  const event = { ...welcomeBroadcastState(0).events[0], pointDelta: -1000 }
+  const { result, unmount } = renderHook(() => usePlayerNotification(-950, [event], 0))
+  expect(result.current.pointsToRender).toBe(50)
+  advance(240)
+  for (let step = 0; step < 5; step++) advance(70)
+  expect(result.current.pointsToRender).toBe(-950)
+  unmount()
+})
+
+it('reduced motion shows final values and removes expired event labels immediately', () => {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: true,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }))
+  const event = welcomeBroadcastState(0).events[0]
+  const { result, rerender, unmount } = renderHook(
+    ({ events }) => usePlayerNotification(8, events, 0),
+    { initialProps: { events: [event] } },
+  )
+  expect(result.current.pointsToRender).toBe(8)
+  expect(result.current.notificationEventId).toBe(event.id)
+  rerender({ events: [] })
+  expect(result.current.notificationEventId).toBeNull()
+  expect(result.current.activeEvents).toEqual([])
+  unmount()
+  vi.unstubAllGlobals()
+})
