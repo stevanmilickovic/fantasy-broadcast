@@ -1,75 +1,66 @@
-# React + TypeScript + Vite
+# Fantasy Broadcast frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, TypeScript and Vite. Use Node 22 (minimum 22.12) and the committed npm lockfile.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+nvm use
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The development server proxies `/api`, `/oauth2` and `/login/oauth2` to the backend
+at `http://localhost:8080`. Production uses same-origin paths through Nginx.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Validation
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run check
+npx playwright install chromium
+npm run test:browser
 ```
+
+`check` runs formatting, ESLint with zero allowed warnings, Vitest, TypeScript and
+the production build. It includes browser tests and Vite, Vitest and Playwright
+configuration files in type checking. Formatting covers source, tests, configuration,
+this README, frontend architecture/refactor documentation and workflow YAML.
+
+Browser tests start a production preview on port 4173, so run `npm run check` or
+`npm run build` first. They use deterministic API fixtures and Chromium; no backend,
+mail service or payment credentials are required. API interceptors match paths
+starting with `/api/` so they cannot intercept source modules. Screenshots and failure
+traces are written to `test-results/` and uploaded by CI.
+
+To use an already installed Chrome instead of downloading Chromium:
+
+```bash
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome npm run test:browser
+```
+
+The suite checks phone portrait/landscape, tablet, laptop, desktop and TV. Desktop
+administration is intentionally skipped on phone/tablet projects. Browser smoke tests
+complement unit tests for queues, timers, focus changes and stale responses. They do
+not validate real payments, mail delivery, audio output or OS wake lock permissions.
+
+## Code ownership
+
+- `src/app`: route resolution, browser navigation and top-level screen composition.
+- `src/features`: authentication, leagues, billing, administration, broadcast, players
+  and public pages. A feature owns its API functions, contracts, hooks, UI and CSS.
+- `src/shared/api`: HTTP errors and abortable query/mutation state.
+- `src/shared/fpl`: FPL contracts, shirt data and club matching.
+- `src/shared/ui`: public header/footer and shared visual primitives.
+- `src/index.css`: reset and design tokens. `src/app/styles.css`: explicit style import
+  order; feature breakpoints stay with their feature.
+
+Read [the architecture guide](../docs/frontend-architecture.md) for session lifetimes,
+playback rules, feature dependencies and where to make changes. The completed
+[refactor record](../docs/frontend-refactor.md) documents behavior fixes and validation.
+Follow [AGENTS.md](AGENTS.md) when changing frontend code.
+
+## Continuous integration
+
+`Frontend checks` runs on pull requests and can be started manually. Container
+publishing calls the same reusable workflow and waits for its formatting, lint,
+unit, type/build and browser checks before building or publishing images. Repository
+branch protection can require the `frontend` job from `Frontend checks`; that hosting
+setting is managed outside this repository.

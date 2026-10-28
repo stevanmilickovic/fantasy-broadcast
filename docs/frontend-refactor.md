@@ -1,5 +1,7 @@
 # Frontend refactor
 
+Status: all seven steps completed and independently validated.
+
 Implement in seven independently validated commits. Preserve existing appearance,
 backend contracts and supported workflows. Document intentional bug fixes.
 
@@ -110,3 +112,30 @@ Reviewed broadcast, checkout and league-team screenshots. CSS output decreased f
 105.66 kB to 91.31 kB. Browser coverage includes public navigation, login/recovery,
 league selection/standings/matchups/teams, player dialogs, checkout consent and desktop
 administration, with mocked APIs.
+
+## Step 7
+
+Added `npm run check` for formatting, zero-warning lint, unit tests, type checking and
+production build. Formatting now includes browser tests, frontend documentation and
+workflow YAML; type checking includes browser tests and Vite/Vitest/Playwright configs.
+Recorded the Node 22 runtime in `.nvmrc` and the package engine requirement without
+changing dependency versions.
+
+Added a reusable frontend CI workflow for pull requests and manual runs. Container
+publication calls it and waits for all checks, including Chromium smoke tests, before
+building or publishing images. Browser checks now exercise the production preview
+bundle with bounded CI workers, failure traces/screenshots and artifact upload. Added
+registration/verification/reset, sign-out, loading/error/empty-state and streamed-score
+queue/scene/unmount coverage across all six client viewport projects.
+
+Replaced the frontend template README with development/validation instructions, added
+`frontend-architecture.md`, and repaired moved source links in the mobile handoff guide.
+The architecture documents feature ownership, query/mutation lifetimes, session
+boundaries, playback timing, snapshot rules, style ordering and integration limits.
+
+Validation: a clean lockfile install and `npm run check` pass with Node 22. All 30 unit
+tests and 51 production-preview browser checks pass; three administration checks are
+intentionally skipped on phone/tablet. The final browser run used CI worker/retry
+settings with the installed Chrome. Workflow YAML and local documentation links were
+validated. Hosted GitHub Actions execution and backend/payment/mail/audio/wake-lock
+integrations were not exercised locally; these limits are documented in the guide.

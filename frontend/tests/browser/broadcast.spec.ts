@@ -1,3 +1,4 @@
+import { mockApp, viewer } from './fixtures'
 import { expect, test, type Page } from '@playwright/test'
 import { welcomeBroadcastState, welcomeShirtCodes } from '../../src/features/public/welcomeDemoData'
 
@@ -10,8 +11,7 @@ async function mockBroadcast(page: Page, totalPoints: boolean) {
     (url) => url.pathname.startsWith('/api/'),
     async (route) => {
       const path = new URL(route.request().url()).pathname
-      if (path === '/api/auth/me')
-        return route.fulfill({ json: { id: 1, email: 'viewer@example.com', role: 'CUSTOMER' } })
+      if (path === '/api/auth/me') return route.fulfill({ json: viewer })
       if (path === '/api/live-state') return route.fulfill({ json: state })
       if (path === '/api/customer/fpl/shirts') return route.fulfill({ json: welcomeShirtCodes })
       if (path === '/api/live-state/stream')
@@ -56,3 +56,51 @@ for (const totalPoints of [false, true]) {
     await page.screenshot({ path: test.info().outputPath('broadcast.png'), fullPage: true })
   })
 }
+
+test('streamed updates keep queued scores frozen until the scene swap and close on exit', async ({
+  page,
+}) => {
+  await mockApp(page)
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'EventSource', {
+      value: class extends EventTarget {
+        receive = (event: Event) => {
+          if (event instanceof CustomEvent)
+            this.dispatchEvent(
+              new MessageEvent('live-state', { data: JSON.stringify(event.detail) }),
+            )
+        }
+        constructor() {
+          super()
+          window.addEventListener('broadcast-test-update', this.receive)
+          document.documentElement.dataset.broadcastStream = 'open'
+        }
+        close() {
+          window.removeEventListener('broadcast-test-update', this.receive)
+          document.documentElement.dataset.broadcastStream = 'closed'
+        }
+      },
+    })
+  })
+  await page.clock.install()
+  await page.goto('/broadcast?leagueId=1')
+  await expect(page.locator('.matchday-page')).toBeVisible()
+  await page.clock.runFor(2000)
+  const score = page.locator('.match-score-strip > strong')
+  await expect(score).toHaveText('53-49')
+  await page.evaluate(
+    (state) => window.dispatchEvent(new CustomEvent('broadcast-test-update', { detail: state })),
+    welcomeBroadcastState(1),
+  )
+  await expect(score).toHaveText('53-49')
+  await page.clock.fastForward(8500)
+  await expect(page.locator('.scene-wipe-overlay')).toBeVisible()
+  await expect(score).toHaveText('53-49')
+  await page.clock.runFor(800)
+  await expect(score).toHaveText('48-45')
+  await page.clock.runFor(1900)
+  await expect(page.locator('.matchday-page')).not.toHaveClass(/revealing-match/)
+  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await expect(page).toHaveURL('/leagues')
+  await expect(page.locator('html')).toHaveAttribute('data-broadcast-stream', 'closed')
+})

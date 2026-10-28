@@ -40,6 +40,9 @@ test('public navigation, login and password recovery remain usable', async ({ pa
   await page.getByLabel('Password', { exact: true }).fill('test-password-123')
   await page.locator('.account-card').getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Choose a league' })).toBeVisible()
+  await page.locator('.profile-menu summary').click()
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await expect(page.getByRole('navigation', { name: 'Public navigation' })).toBeVisible()
   expect(errors).toEqual([])
   expect(unexpectedRequests).toEqual([])
 })
@@ -119,4 +122,66 @@ test('administration loads its independent registries and controls on desktop', 
   await screenshot(page, 'administration')
   expect(errors).toEqual([])
   expect(unexpectedRequests).toEqual([])
+})
+
+test('league queries show loading, errors and empty onboarding', async ({ page }) => {
+  const { errors } = await mockApp(page)
+  let release: () => void = () => undefined
+  const pending = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route('**/api/customer/leagues', async (route) => {
+    await pending
+    await route.fulfill({ status: 503, json: { detail: 'League service unavailable.' } })
+  })
+  await page.goto('/leagues')
+  await expect(page.getByText('Loading leagues…', { exact: true })).toBeVisible()
+  release()
+  await expect(page.getByRole('alert')).toHaveText('League service unavailable.')
+  await checkViewport(page)
+  await page.route('**/api/customer/leagues', (route) => route.fulfill({ json: [] }))
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Register a league', exact: true })).toBeVisible()
+  await expect(page).toHaveURL('/leagues/new')
+  expect(errors).toEqual([])
+})
+
+test('registration verifies email and password reset confirms completion', async ({ page }) => {
+  const { errors } = await mockApp(page, null)
+  await page.route('**/api/auth/register', (route) =>
+    route.fulfill({
+      json: {
+        email: viewer.email,
+        message: 'Check your email.',
+      },
+    }),
+  )
+  let attempts = 0
+  await page.route('**/api/auth/register/verify', (route) => {
+    attempts += 1
+    return attempts === 1
+      ? route.fulfill({ status: 400, json: { detail: 'Invalid code.' } })
+      : route.fulfill({ json: { user: viewer } })
+  })
+  await page.goto('/register')
+  await page.getByLabel('Email', { exact: true }).fill(viewer.email)
+  await page.getByLabel('New password', { exact: true }).fill('test-password-123')
+  await page.getByLabel('Confirm password', { exact: true }).fill('test-password-123')
+  await page.getByRole('button', { name: 'Register', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Check your email', exact: true })).toBeVisible()
+  await page.getByLabel('Verification code').fill('000000')
+  await page.getByRole('button', { name: 'Verify email', exact: true }).click()
+  await expect(page.getByText('Invalid code.', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('Verification code')).toBeVisible()
+  await page.getByLabel('Verification code').fill('123456')
+  await page.getByRole('button', { name: 'Verify email', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Choose a league' })).toBeVisible()
+  await page.route('**/api/auth/password/reset', (route) => route.fulfill({ status: 204 }))
+  await page.goto('/reset-password?token=test-reset-token')
+  await page.getByLabel('New password', { exact: true }).fill('another-password-123')
+  await page.getByLabel('Confirm password', { exact: true }).fill('another-password-123')
+  await page.getByRole('button', { name: 'Set new password', exact: true }).click()
+  await expect(page.getByText('Your password has been changed. You can now sign in.')).toBeVisible()
+  await checkViewport(page)
+  expect(errors).toEqual([])
 })

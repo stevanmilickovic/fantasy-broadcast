@@ -23,7 +23,7 @@ Fantasy Broadcast Service.md
 ## Requirements
 
 - Java 21
-- Node.js and npm
+- Node.js 22 (minimum 22.12) and npm
 - Maven wrapper is included in `backend/`
 
 ## Backend
@@ -119,7 +119,8 @@ Install dependencies:
 
 ```bash
 cd frontend
-npm install
+nvm use
+npm ci
 ```
 
 Run locally:
@@ -133,6 +134,8 @@ Build:
 ```bash
 npm run build
 ```
+
+See the [frontend guide](frontend/README.md) for architecture, tests and CI checks.
 
 ## Current Direction
 

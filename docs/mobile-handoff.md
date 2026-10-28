@@ -1,6 +1,6 @@
 # Mobile client handoff (current implementation)
 
-This is the starting point for a native mobile client. It describes the **implemented** service as of v1.0.1. The source of truth is the backend controllers in `backend/src/main/java/com/fantasybroadcast/backend/api/`; the web client's request and response types are in `frontend/src/api/` and `frontend/src/types/`. Update this guide when changing those contracts. The product architecture and FPL ingestion are described in [Fantasy Broadcast Service](../Fantasy%20Broadcast%20Service.md), [FPL discovery](fpl-discovery.md), and [narration](narration.md).
+This is the starting point for a native mobile client. It describes the **implemented** service as of v1.0.1. The source of truth is the backend controllers in `backend/src/main/java/com/fantasybroadcast/backend/api/`; the web client's request and response types are in `frontend/src/features/*/api.ts`, feature `types.ts` files and `frontend/src/shared/fpl/types.ts`. Update this guide when changing those contracts. The product architecture and FPL ingestion are described in [Fantasy Broadcast Service](../Fantasy%20Broadcast%20Service.md), [FPL discovery](fpl-discovery.md), and [narration](narration.md).
 
 ## What runs where
 
@@ -27,7 +27,7 @@ There are three different IDs: `RegisteredLeague.id` is our internal league ID a
 
 ## Production API map
 
-`Public` means no app session. `User` means a signed-in customer; league-scoped routes additionally check access. `Admin` means the app administrator. Paths and return types below come from the controllers and the matching [web client API](../frontend/src/api/customerApi.ts).
+`Public` means no app session. `User` means a signed-in customer; league-scoped routes additionally check access. `Admin` means the app administrator. Paths and return types below come from the controllers and the matching [web client API](../frontend/src/features/leagues/api.ts).
 
 ### Account
 
@@ -62,9 +62,9 @@ The password minimum for a new registration/reset is 12 characters. Existing acc
 | `GET /api/customer/fpl/shirts` | User | `FplClubShirt[]` |
 | `GET /api/customer/leagues/{leagueId}/players/{playerId}?gameweek=` | League user | Player identity, `photoCode`, current-week points/point changes, and previous-week history; `gameweek` is required, 1–38 |
 
-`RegisteredLeague` fields: `id`, `fplLeagueId`, `displayName`, `leagueType`, `scoringType`, `serviceEnabled`, `aiNarrationEnabled`, `voiceNarrationEnabled`, `ownerUserId`. Do not infer ownership from an FPL manager name. Classic overview is only for Classic; Draft overview is only for Draft. See [customer response types](../frontend/src/types/customer.ts), [FPL response types](../frontend/src/types/fpl.ts), and [CustomerLeagueController](../backend/src/main/java/com/fantasybroadcast/backend/api/CustomerLeagueController.java). The Draft overview deliberately includes upstream-shaped JSON, so use the backend response as the contract rather than assuming the Classic shape.
+`RegisteredLeague` fields: `id`, `fplLeagueId`, `displayName`, `leagueType`, `scoringType`, `serviceEnabled`, `aiNarrationEnabled`, `voiceNarrationEnabled`, `ownerUserId`. Do not infer ownership from an FPL manager name. Classic overview is only for Classic; Draft overview is only for Draft. See [customer response types](../frontend/src/features/leagues/types.ts), [FPL response types](../frontend/src/shared/fpl/types.ts), and [CustomerLeagueController](../backend/src/main/java/com/fantasybroadcast/backend/api/CustomerLeagueController.java). The Draft overview deliberately includes upstream-shaped JSON, so use the backend response as the contract rather than assuming the Classic shape.
 
-The player-details response is `{ id, name, shortName, club, position, photoCode, gameweek, points, changes, history }`; each `changes` item is `{ stat, value, points, fixture }` and each `history` item is `{ gameweek, points }`. `photoCode` is an image identifier, not image bytes or a backend image URL. The web display code is in [PlayerDetailsModal](../frontend/src/components/customer/PlayerDetailsModal.tsx).
+The player-details response is `{ id, name, shortName, club, position, photoCode, gameweek, points, changes, history }`; each `changes` item is `{ stat, value, points, fixture }` and each `history` item is `{ gameweek, points }`. `photoCode` is an image identifier, not image bytes or a backend image URL. The web display code is in [PlayerDetailsModal](../frontend/src/features/players/PlayerDetailsModal.tsx).
 
 ### Broadcast and audio
 
@@ -76,7 +76,7 @@ The player-details response is `{ id, name, shortName, club, position, photoCode
 | `GET /api/live-state/stream?leagueId={leagueId}` | League user | SSE `live-state` events containing complete `LiveStateResponse` JSON |
 | `GET /api/broadcast-narrations/{id}/audio` | League user | Temporary `audio/mpeg` file, when available |
 
-Omitting `leagueId` on the live-state routes accesses the global/admin broadcast, **not** the user's selected league; it requires administrator access. Live state fields are `status`, `sequence`, `gameweek`, `matchups`, `teams`, `standings`, `events`, `commentary`, and `voiceNarrationEnabled`. `matchups` contains H2H pairs; `teams` and `standings` also support total-points presentation. `events` and `commentary` are arrays in the current snapshot. Full nested field definitions are in [live response types](../frontend/src/types/live.ts) and [backend live records](../backend/src/main/java/com/fantasybroadcast/backend/live/LiveStateResponse.java). Render backend scores and event facts as supplied; do not recalculate league scoring in a client.
+Omitting `leagueId` on the live-state routes accesses the global/admin broadcast, **not** the user's selected league; it requires administrator access. Live state fields are `status`, `sequence`, `gameweek`, `matchups`, `teams`, `standings`, `events`, `commentary`, and `voiceNarrationEnabled`. `matchups` contains H2H pairs; `teams` and `standings` also support total-points presentation. `events` and `commentary` are arrays in the current snapshot. Full nested field definitions are in [live response types](../frontend/src/features/broadcast/types.ts) and [backend live records](../backend/src/main/java/com/fantasybroadcast/backend/live/LiveStateResponse.java). Render backend scores and event facts as supplied; do not recalculate league scoring in a client.
 
 The backend polls FPL while a league session is open, detects changes, stages selected events for narration, then publishes the state by SSE. A persisted `broadcast_notification` row records a published event once per league/gameweek/source event. **This is not a device push queue or user inbox.** See [MockLiveStateService](../backend/src/main/java/com/fantasybroadcast/backend/live/MockLiveStateService.java), [BroadcastNotificationRepository](../backend/src/main/java/com/fantasybroadcast/backend/live/BroadcastNotificationRepository.java), and [narration](narration.md).
 
