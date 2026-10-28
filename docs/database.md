@@ -48,7 +48,7 @@ The database stores service/customer data, not live FPL state. Its schema includ
 - `league`
 - `league_context`
 - `subscription` and payment-related registration data
-- `broadcast_schedule`
+- `broadcast_schedule` (completed rows are automatically deleted by the 30-second expiry job)
 - `broadcast_narration`
 - password-reset and account-deletion request records
 

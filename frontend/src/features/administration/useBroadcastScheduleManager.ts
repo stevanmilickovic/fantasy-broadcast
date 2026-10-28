@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
 import {
@@ -8,6 +8,8 @@ import {
   saveBroadcastSchedule,
 } from './api'
 import type { BroadcastSchedule } from './types'
+const SCHEDULE_REFRESH_INTERVAL_MS = 30_000
+
 const localValue = (iso: string) => {
   const date = new Date(iso)
   const pad = (value: number) => String(value).padStart(2, '0')
@@ -15,7 +17,12 @@ const localValue = (iso: string) => {
 }
 export function useBroadcastScheduleManager() {
   const query = useQuery('broadcast-schedules', loadBroadcastSchedules)
-  const schedules = query.data ?? []
+  const [now, setNow] = useState(Date.now)
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), SCHEDULE_REFRESH_INTERVAL_MS)
+    return () => window.clearInterval(timer)
+  }, [])
+  const schedules = (query.data ?? []).filter((schedule) => Date.parse(schedule.endsAt) >= now)
   const [startsAt, setStartsAt] = useState('')
   const [endsAt, setEndsAt] = useState('')
   const [editingId, setEditingId] = useState<number | undefined>()

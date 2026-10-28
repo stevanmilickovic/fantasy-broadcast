@@ -1,5 +1,7 @@
 package com.fantasybroadcast.backend.live;
 
+import java.time.Instant;
+
 import com.fantasybroadcast.backend.customer.BroadcastScheduleService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,6 +15,7 @@ public class BroadcastScheduleExpiry {
 	public BroadcastScheduleExpiry(BroadcastScheduleService schedules, MockLiveStateService liveStates) { this.schedules = schedules; this.liveStates = liveStates; }
 	@Scheduled(fixedDelay = 30000)
 	public void stopExpiredLeagueBroadcasts() {
+		schedules.deleteExpired(Instant.now());
 		if (!schedules.hasActiveSchedule()) liveStates.stopLeagueSessions();
 	}
 }
