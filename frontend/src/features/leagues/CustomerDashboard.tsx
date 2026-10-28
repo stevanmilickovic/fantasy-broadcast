@@ -66,6 +66,7 @@ export function CustomerDashboard({
         <LeagueDetailPage
           key={selectedLeague.id}
           league={selectedLeague}
+          search={search}
           user={user}
           navigate={onNavigate}
           onDeleted={query.refresh}

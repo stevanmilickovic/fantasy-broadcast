@@ -153,16 +153,6 @@ export function leaguePlayersForEntry(
     )
 }
 
-export function groupedStandings(standings: FplStanding[]) {
-  return standings.reduce<Array<{ rank: number; standings: FplStanding[] }>>((groups, standing) => {
-    const rank = standing.rank || groups.length + 1
-    const existing = groups.find((group) => group.rank === rank)
-    if (existing) existing.standings.push(standing)
-    else groups.push({ rank, standings: [standing] })
-    return groups
-  }, [])
-}
-
 export function groupedMatches(matches: LeagueDiscoveryState['details']['matches']) {
   return matches.reduce<Array<{ event: number; matches: typeof matches }>>((groups, match) => {
     const existing = groups.find((group) => group.event === match.event)
@@ -170,13 +160,4 @@ export function groupedMatches(matches: LeagueDiscoveryState['details']['matches
     else groups.push({ event: match.event, matches: [match] })
     return groups
   }, [])
-}
-
-export function placeLabel(rank: number) {
-  const tens = rank % 100
-  if (tens >= 11 && tens <= 13) return `${rank}th`
-  if (rank % 10 === 1) return `${rank}st`
-  if (rank % 10 === 2) return `${rank}nd`
-  if (rank % 10 === 3) return `${rank}rd`
-  return `${rank}th`
 }

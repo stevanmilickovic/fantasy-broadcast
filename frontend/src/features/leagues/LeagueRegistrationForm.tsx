@@ -129,6 +129,7 @@ function LeagueSearchCard({
         <div>
           <input
             id="registered-league-search"
+            aria-label="League name or ID"
             value={query}
             onChange={(event) => {
               setHasSearched(false)

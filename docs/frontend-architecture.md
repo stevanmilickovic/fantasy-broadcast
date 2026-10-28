@@ -130,3 +130,32 @@ cannot verify backend authorization, mail delivery, a Paddle transaction, actual
 output or OS wake lock permission. Exercise those integrations against a configured
 backend when changing their contracts or releasing them. No backend API or npm dependency
 versions were changed by this refactor.
+
+## League workspace design
+
+The customer workspace uses the public site's plum palette with league-scoped styles.
+`LeagueDetailPage` owns identity, broadcast availability and owner actions. Availability
+request failures stay local so that league data remains usable. The existing broadcast
+opening mutation still gates navigation and initializes sound from the user gesture.
+
+`LeagueStandingsOverview` owns accessible tab composition and derives selection from the
+URL. Optional `view`, `entryId` and `week` query parameters preserve copied links, refresh
+and browser history; unsupported values fall back to a valid view/club/gameweek. League
+changes remount the detail page and clear local filters. Club links in standings and
+matchups use the existing app navigation for ordinary clicks, preserving the loaded league
+data. Their anchor URLs still support copying links and opening another tab. `LeagueStandingsTable`,
+`LeagueTeamsView` and `LeagueMatchupsView` own their presentation independently.
+
+Standings keep all supplied ranks in one table, with separate H2H league/fantasy totals.
+Teams select the first ranked valid club by default, without implying ownership; narrow
+screens use a club picker and player roster instead of compressed shirt grids.
+League/club/gameweek pickers share `LeagueSelect`, a native dialog with viewport-bounded height,
+internal scrolling and keyboard navigation. Opening and closing animate together with the
+backdrop; selection waits for the exit to finish, and reduced-motion mode closes immediately. `shared/ui/useDialogMotion` and
+`dialog-motion.css` provide the same behavior for player details in league and broadcast
+views, including cancellation when a modal unmounts. This keeps selection panels inside the page
+in browser mobile emulation as well as narrow and short screens.
+Missing live player data shows unavailable points rather than a confirmed zero. Matchups
+navigate only returned gameweeks; final status requires the supplied finished flag.
+The Classic adapter does not establish final status. Player dialogs remain shared with
+broadcasts; league-specific visual changes are scoped beneath the customer shell.

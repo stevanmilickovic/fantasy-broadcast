@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useDialogMotion } from '../../shared/ui/useDialogMotion'
+import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { loadPlayerDetails } from './api'
 import type { PlayerDetails } from './types'
@@ -21,16 +22,15 @@ export function PlayerDetailsModal({
   gameweek: number
   onClose: () => void
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  const { dialog: dialogRef, closing, close, show, onClose: handleNativeClose } = useDialogMotion()
   const [details, setDetails] = useState<PlayerDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<'current' | 'history'>('current')
 
   useEffect(() => {
-    const dialog = dialogRef.current
-    dialog?.showModal()
-    return () => dialog?.close()
-  }, [])
+    show()
+  }, [show])
+  const dismiss = () => close(onClose)
 
   useEffect(() => {
     if (!leagueId) return
@@ -52,20 +52,22 @@ export function PlayerDetailsModal({
   return (
     <dialog
       ref={dialogRef}
-      className="player-details-modal"
+      className="player-details-modal dialog-motion"
+      data-closing={closing}
+      onClose={handleNativeClose}
       onCancel={(event) => {
         event.preventDefault()
-        onClose()
+        dismiss()
       }}
       onClick={(event) => {
-        if (event.target === dialogRef.current) onClose()
+        if (event.target === dialogRef.current) dismiss()
       }}
     >
       <div className="player-details-content">
         <button
           className="player-details-close"
           type="button"
-          onClick={onClose}
+          onClick={dismiss}
           aria-label="Close player details"
         >
           <X size={22} />
