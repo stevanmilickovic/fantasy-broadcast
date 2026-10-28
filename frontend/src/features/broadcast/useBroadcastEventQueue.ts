@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useReducer } from 'react'
 import { playNarrationAudio, playPointChangeSound } from './broadcastSound'
 import type { FantasyEventView, LiveStateResponse } from './types'
 
@@ -51,14 +51,43 @@ const groupEvents = (
     .slice(0, MAX_PENDING_BROADCAST_GROUPS)
 }
 
+type QueueAction =
+  | { type: 'receive'; liveState: LiveStateResponse; events: FantasyEventView[] }
+  | { type: 'start' }
+  | { type: 'finish' }
+  | { type: 'reset' }
+
+function queueReducer(queue: EventQueue, action: QueueAction): EventQueue {
+  switch (action.type) {
+    case 'receive':
+      return { ...queue, pending: groupEvents(action.liveState, action.events, queue.pending) }
+    case 'start': {
+      if (queue.active) return queue
+      const [active, ...pending] = queue.pending
+      return { active: active ?? null, pending }
+    }
+    case 'finish':
+      return { ...queue, active: null }
+    case 'reset':
+      return { active: null, pending: [] }
+  }
+}
+
 export function useBroadcastEventQueue(
   liveState: LiveStateResponse | null,
   deferNotificationStart = false,
 ) {
-  const [queue, setQueue] = useState<EventQueue>({ active: null, pending: [] })
+  const [queue, dispatch] = useReducer(queueReducer, { active: null, pending: [] })
   const receivedEventIdsRef = useRef(new Set<string>())
   const lastSoundedEventIdRef = useRef<string | null>(null)
+  const narrationControllerRef = useRef<AbortController | null>(null)
   const lastNarrationAudioIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    narrationControllerRef.current = controller
+    return () => controller.abort()
+  }, [])
 
   useEffect(() => {
     if (!liveState) return
@@ -67,26 +96,18 @@ export function useBroadcastEventQueue(
     incomingEvents.forEach((event) => receivedEventIdsRef.current.add(event.id))
     if (incomingEvents.length === 0) return
 
-    setQueue((current) => {
-      return {
-        ...current,
-        pending: groupEvents(liveState, incomingEvents, current.pending),
-      }
-    })
+    dispatch({ type: 'receive', liveState, events: incomingEvents })
   }, [liveState])
 
   useEffect(() => {
     if (deferNotificationStart || queue.active || queue.pending.length === 0) return
-    setQueue((current) => {
-      const [active, ...pending] = current.pending
-      return { active: active ?? null, pending }
-    })
+    dispatch({ type: 'start' })
   }, [deferNotificationStart, queue.active, queue.pending.length])
 
   useEffect(() => {
     if (!queue.active) return
     const timer = window.setTimeout(() => {
-      setQueue((current) => ({ ...current, active: null }))
+      dispatch({ type: 'finish' })
     }, NOTIFICATION_DISPLAY_MS)
     return () => window.clearTimeout(timer)
   }, [queue.active])
@@ -103,14 +124,14 @@ export function useBroadcastEventQueue(
   useEffect(() => {
     if (!latestNarration?.audioUrl || latestNarration.id === lastNarrationAudioIdRef.current) return
     lastNarrationAudioIdRef.current = latestNarration.id
-    void playNarrationAudio(latestNarration.audioUrl)
+    void playNarrationAudio(latestNarration.audioUrl, narrationControllerRef.current?.signal)
   }, [latestNarration])
 
   const reset = useCallback(() => {
     receivedEventIdsRef.current.clear()
     lastSoundedEventIdRef.current = null
     lastNarrationAudioIdRef.current = null
-    setQueue({ active: null, pending: [] })
+    dispatch({ type: 'reset' })
   }, [])
 
   return {

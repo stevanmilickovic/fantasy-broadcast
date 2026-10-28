@@ -44,33 +44,33 @@ export const playPointChangeSound = (pointDelta: number) => {
 
 let narrationChain = Promise.resolve()
 
-export const playNarrationAudio = async (audioUrl: string) => {
+export const playNarrationAudio = (audioUrl: string, signal?: AbortSignal) => {
   narrationChain = narrationChain
     .catch(() => undefined)
     .then(async () => {
-      const response = await fetch(audioUrl)
+      if (signal?.aborted) return
+      const response = await fetch(audioUrl, { signal })
       if (!response.ok) return
-      const audio = new Audio(URL.createObjectURL(await response.blob()))
+      const blob = await response.blob()
+      if (signal?.aborted) return
+      const objectUrl = URL.createObjectURL(blob)
+      const audio = new Audio(objectUrl)
       return new Promise<void>((resolve) => {
+        const finish = () => {
+          audio.pause()
+          audio.removeEventListener('ended', finish)
+          audio.removeEventListener('error', finish)
+          signal?.removeEventListener('abort', finish)
+          URL.revokeObjectURL(objectUrl)
+          resolve()
+        }
         audio.preload = 'auto'
-        audio.addEventListener(
-          'ended',
-          () => {
-            URL.revokeObjectURL(audio.src)
-            resolve()
-          },
-          { once: true },
-        )
-        audio.addEventListener(
-          'error',
-          () => {
-            URL.revokeObjectURL(audio.src)
-            resolve()
-          },
-          { once: true },
-        )
-        void audio.play().catch(() => resolve())
+        audio.addEventListener('ended', finish, { once: true })
+        audio.addEventListener('error', finish, { once: true })
+        signal?.addEventListener('abort', finish, { once: true })
+        void audio.play().catch(finish)
       })
     })
+    .catch(() => undefined)
   return narrationChain
 }

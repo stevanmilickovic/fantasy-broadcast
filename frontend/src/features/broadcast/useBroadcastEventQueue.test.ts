@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { welcomeBroadcastState } from '../public/welcomeDemoData'
 import { useBroadcastEventQueue } from './useBroadcastEventQueue'
 
-vi.mock('../utils/broadcastSound', () => ({
+vi.mock('./broadcastSound', () => ({
   playPointChangeSound: vi.fn(),
   playNarrationAudio: vi.fn(),
 }))

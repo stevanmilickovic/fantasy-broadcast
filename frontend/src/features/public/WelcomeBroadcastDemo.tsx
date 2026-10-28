@@ -90,20 +90,22 @@ export function WelcomeBroadcastDemo() {
           }
           broadcastFocus={selectedFocus}
           automaticFocus={automaticMatchup.id}
-          revealingMatch={revealing}
-          revealLayout={revealLayout}
-          transitioningToMatch={transitioning}
-          visibleEventId={!transitioning && !revealing ? state.events[0].id : null}
-          homeHeadingRef={homeHeadingRef}
-          awayHeadingRef={awayHeadingRef}
-          scoreRef={scoreRef}
-          totalTeamNameRef={totalTeamNameRef}
-          totalHeadingRef={totalHeadingRef}
+          presentation={{
+            revealingMatch: revealing,
+            revealLayout: revealLayout,
+            transitioningToMatch: transitioning,
+            visibleEventId: !transitioning && !revealing ? state.events[0].id : null,
+            homeHeadingRef: homeHeadingRef,
+            awayHeadingRef: awayHeadingRef,
+            scoreRef: scoreRef,
+            totalTeamNameRef: totalTeamNameRef,
+            totalHeadingRef: totalHeadingRef,
+            showingLiveLeaderboard: false,
+            leaderboardRevealLayout: null,
+            leaderboardHeadingRef: leaderboardHeadingRef,
+            holdingPendingUpdates: transitioning || revealing,
+          }}
           standings={state.standings}
-          showingLiveLeaderboard={false}
-          leaderboardRevealLayout={null}
-          leaderboardHeadingRef={leaderboardHeadingRef}
-          holdingPendingUpdates={transitioning || revealing}
           onBack={() => undefined}
           onSelectFocus={(focus) => {
             if (focus !== 'multi') setSelectedFocus(focus)

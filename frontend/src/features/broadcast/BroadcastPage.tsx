@@ -125,20 +125,22 @@ export function BroadcastPage({
       leaderName={leaderName}
       broadcastFocus={broadcastFocus}
       automaticFocus={displayedFocusId ?? focusedMatchupId ?? 'multi'}
-      revealingMatch={revealingMatch}
-      revealLayout={revealLayout}
-      transitioningToMatch={transitioningToMatch}
-      visibleEventId={visibleEventId}
-      homeHeadingRef={homeHeadingRef}
-      awayHeadingRef={awayHeadingRef}
-      scoreRef={scoreRef}
-      totalTeamNameRef={totalTeamNameRef}
-      totalHeadingRef={totalHeadingRef}
+      presentation={{
+        revealingMatch: revealingMatch,
+        revealLayout: revealLayout,
+        transitioningToMatch: transitioningToMatch,
+        visibleEventId: visibleEventId,
+        homeHeadingRef: homeHeadingRef,
+        awayHeadingRef: awayHeadingRef,
+        scoreRef: scoreRef,
+        totalTeamNameRef: totalTeamNameRef,
+        totalHeadingRef: totalHeadingRef,
+        showingLiveLeaderboard: displayingLiveLeaderboard,
+        leaderboardRevealLayout: leaderboardRevealLayout,
+        leaderboardHeadingRef: leaderboardHeadingRef,
+        holdingPendingUpdates: holdingPendingUpdates,
+      }}
       standings={displayStandings}
-      showingLiveLeaderboard={displayingLiveLeaderboard}
-      leaderboardRevealLayout={leaderboardRevealLayout}
-      leaderboardHeadingRef={leaderboardHeadingRef}
-      holdingPendingUpdates={holdingPendingUpdates}
       onBack={() => {
         navigate(authUser.role === 'ADMIN' ? '/administration' : '/leagues')
       }}

@@ -67,3 +67,24 @@ Administration forms use focused hooks with independent queries and mutations.
 Mutations reject duplicate submissions and cancel on unmount. Fixed league-list
 redirects that displaced checkout/account deep links. Sixteen tests and production
 build pass. Remaining lint findings are confined to broadcast code (step 5).
+
+## Step 5
+
+Separated head-to-head and total-points scenes, selectors, standings, player rendering
+and reveal overlays. Playback transitions and frozen snapshots now have a pure reducer;
+DOM reveal measurement has its own hook with resize observation and cleanup. Grouped
+scene animation props and shared the pitch/bench notification state machine. Resolved
+all remaining lint findings without disabling rules. Narration cancels active/queued
+audio and releases object URLs when the broadcast unmounts.
+
+Intentional fixes: grouped player events count their combined delta (including opposing
+signs), exiting notifications retain every label, and total-points notifications update
+the club already on screen instead of holding its old score until notification expiry.
+Reveal geometry follows viewport resizing. Corrected the event-queue test's stale audio
+mock path so it actually isolates sound.
+
+Validation: formatting, lint (zero errors/warnings), type checking, 30 unit tests and
+production build pass with Node 22. Twelve Chromium smoke checks pass for both broadcast
+modes and manual focus at 390×844, 844×390, 820×1180, 1366×768, 1920×1080 and 3840×2160;
+screenshots reviewed. Browser checks use deterministic API/shirt fixtures; they do not
+exercise the live backend, actual narration playback or OS wake lock permission.

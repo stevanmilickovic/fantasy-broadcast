@@ -1,180 +1,16 @@
-import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react'
-import { toRevealRect, toScoreRevealRect, TOTAL_POINTS_REVEAL_TEAM_SCALE } from './broadcast'
-import type {
-  BroadcastFocus,
-  LiveStandingView,
-  LiveStateResponse,
-  RevealLayout,
-  RevealRect,
-} from './types'
+import { useCallback, useEffect, useReducer, useRef } from 'react'
+import {
+  initialPresentationState,
+  presentationReducer,
+  stageTotalPointsState,
+  type PresentationSnapshot,
+} from './broadcastPlayback'
+import { useBroadcastMeasurement } from './useBroadcastMeasurement'
+import type { BroadcastFocus, LiveStateResponse } from './types'
 
 const SCENE_WIPE_MS = 1600
 const SCENE_SWAP_MS = SCENE_WIPE_MS / 2
 const MATCH_REVEAL_MS = 1900
-const TOTAL_SCORE_REVEAL_Y_CORRECTION = 1
-
-const stageTotalPointsState = (
-  incomingState: LiveStateResponse | null,
-  displayedState: LiveStateResponse | null,
-  focusedId: string | null,
-  displayedFocusId: string | null,
-  isNotificationActive: boolean,
-) => {
-  if (!incomingState || !displayedState || !focusedId || !displayedFocusId) return incomingState
-  const displayedEventIds = new Set((displayedState.events ?? []).map((event) => event.id))
-  const hasIncomingEvent = (incomingState.events ?? []).some(
-    (event) => !displayedEventIds.has(event.id),
-  )
-  if (!isNotificationActive && !hasIncomingEvent) return incomingState
-  const displayedTeam = (displayedState.teams ?? []).find(
-    (team) => team.managerId === displayedFocusId,
-  )
-  if (!displayedTeam) return incomingState
-
-  const focusedEvents = (incomingState.events ?? []).filter(
-    (event) => event.managerId === focusedId,
-  )
-  const stagedEvents = [
-    ...focusedEvents,
-    ...(displayedState.events ?? []).filter(
-      (event) => !focusedEvents.some((focusedEvent) => focusedEvent.id === event.id),
-    ),
-  ]
-  const stagedStandings = displayedState.standings ?? []
-
-  return {
-    ...incomingState,
-    teams: (incomingState.teams ?? []).map((team) =>
-      team.managerId === displayedFocusId ? displayedTeam : team,
-    ),
-    standings: (incomingState.standings ?? []).map((standing) =>
-      standing.teamId === displayedFocusId
-        ? (stagedStandings.find((candidate) => candidate.teamId === displayedFocusId) ?? standing)
-        : standing,
-    ),
-    events: stagedEvents,
-  }
-}
-
-type PresentationState = {
-  liveState: LiveStateResponse | null
-  standings: LiveStandingView[] | null
-  displayedFocusId: string | null
-  transitioningToMatch: boolean
-  revealingMatch: boolean
-  revealLayout: RevealLayout | null
-  visibleEventId: string | null
-  holdingPendingUpdates: boolean
-  displayingLeaderboard: boolean
-  leaderboardRevealLayout: RevealRect | null
-}
-
-type PresentationSnapshot = {
-  liveState: LiveStateResponse | null
-  focusedId: string | null
-  eventId: string | null
-  showingLeaderboard: boolean
-}
-
-type PresentationAction =
-  | { type: 'sync'; snapshot: PresentationSnapshot; preserveRevealLayout?: boolean }
-  | { type: 'first-focus'; snapshot: PresentationSnapshot }
-  | { type: 'start-transition' }
-  | { type: 'swap'; snapshot: PresentationSnapshot }
-  | { type: 'start-reveal' }
-  | { type: 'finish-reveal'; snapshot: PresentationSnapshot }
-  | { type: 'finish-transition' }
-  | { type: 'set-reveal-layout'; layout: RevealLayout | null }
-  | { type: 'set-leaderboard-layout'; layout: RevealRect | null }
-  | { type: 'hide-leaderboard' }
-  | { type: 'reset' }
-
-const initialPresentationState: PresentationState = {
-  liveState: null,
-  standings: null,
-  displayedFocusId: null,
-  transitioningToMatch: false,
-  revealingMatch: false,
-  revealLayout: null,
-  visibleEventId: null,
-  holdingPendingUpdates: false,
-  displayingLeaderboard: false,
-  leaderboardRevealLayout: null,
-}
-
-const synchronizedState = (snapshot: PresentationSnapshot): PresentationState => ({
-  ...initialPresentationState,
-  liveState: snapshot.liveState,
-  standings: snapshot.liveState?.standings ?? null,
-  displayedFocusId: snapshot.focusedId,
-  visibleEventId: snapshot.eventId,
-  displayingLeaderboard: snapshot.showingLeaderboard,
-})
-
-function presentationReducer(
-  state: PresentationState,
-  action: PresentationAction,
-): PresentationState {
-  switch (action.type) {
-    case 'sync':
-      return {
-        ...state,
-        liveState: action.snapshot.liveState,
-        standings: action.snapshot.liveState?.standings ?? null,
-        displayedFocusId: action.snapshot.focusedId,
-        transitioningToMatch: false,
-        revealingMatch: false,
-        revealLayout: action.preserveRevealLayout ? state.revealLayout : null,
-        visibleEventId: action.snapshot.eventId,
-        holdingPendingUpdates: false,
-        displayingLeaderboard: action.snapshot.showingLeaderboard,
-      }
-    case 'first-focus':
-      return {
-        ...synchronizedState(action.snapshot),
-        visibleEventId: null,
-        holdingPendingUpdates: true,
-      }
-    case 'start-transition':
-      return {
-        ...state,
-        visibleEventId: null,
-        holdingPendingUpdates: false,
-        transitioningToMatch: true,
-        revealingMatch: false,
-      }
-    case 'swap':
-      return {
-        ...state,
-        liveState: action.snapshot.liveState,
-        standings: action.snapshot.liveState?.standings ?? null,
-        displayedFocusId: action.snapshot.focusedId,
-        displayingLeaderboard: action.snapshot.showingLeaderboard,
-        revealLayout: null,
-        holdingPendingUpdates: true,
-      }
-    case 'start-reveal':
-      return { ...state, revealingMatch: true }
-    case 'finish-reveal':
-      return {
-        ...state,
-        revealingMatch: false,
-        visibleEventId: action.snapshot.eventId,
-        holdingPendingUpdates: false,
-        standings: action.snapshot.liveState?.standings ?? null,
-      }
-    case 'finish-transition':
-      return { ...state, transitioningToMatch: false }
-    case 'set-reveal-layout':
-      return { ...state, revealLayout: action.layout }
-    case 'set-leaderboard-layout':
-      return { ...state, leaderboardRevealLayout: action.layout }
-    case 'hide-leaderboard':
-      return { ...state, displayingLeaderboard: false }
-    case 'reset':
-      return initialPresentationState
-  }
-}
 
 type UseBroadcastPresentationOptions = {
   liveState: LiveStateResponse | null
@@ -207,12 +43,6 @@ export function useBroadcastPresentation({
   const displayedLiveStateRef = useRef<LiveStateResponse | null>(null)
   const transitionTimersRef = useRef<number[]>([])
   const transitionInProgressRef = useRef(false)
-  const homeHeadingRef = useRef<HTMLHeadingElement>(null)
-  const awayHeadingRef = useRef<HTMLHeadingElement>(null)
-  const scoreRef = useRef<HTMLElement>(null)
-  const totalTeamNameRef = useRef<HTMLSpanElement>(null)
-  const totalHeadingRef = useRef<HTMLHeadingElement>(null)
-  const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
   const presentationFocusId = showingLeaderboard ? 'live-leaderboard' : focusedId
   const isWaitingForQueuedFocus =
     selectedFocus === 'multi' &&
@@ -311,7 +141,7 @@ export function useBroadcastPresentation({
       return
     }
 
-    dispatch({ type: 'sync', snapshot, preserveRevealLayout: true })
+    dispatch({ type: 'sync', snapshot })
     return clearTransitionTimers
   }, [
     activeLiveState,
@@ -322,101 +152,12 @@ export function useBroadcastPresentation({
     isWaitingForQueuedFocus,
     latestEventId,
     presentationFocusId,
+    presentation.displayedFocusId,
     presentation.revealingMatch,
     presentation.transitioningToMatch,
     selectedFocus,
     showingLeaderboard,
     stateForActiveNotification,
-  ])
-
-  useLayoutEffect(() => {
-    if (!isBroadcastRoute) return
-
-    if (presentation.displayingLeaderboard) {
-      if (!leaderboardHeadingRef.current) return
-      dispatch({
-        type: 'set-leaderboard-layout',
-        layout: toRevealRect(
-          leaderboardHeadingRef.current.getBoundingClientRect(),
-          window.innerWidth / 2,
-        ),
-      })
-      return
-    }
-
-    if (!scoreRef.current) return
-    if (isTotalPointsBroadcast) {
-      if (!totalTeamNameRef.current) return
-      const teamNameRect = totalTeamNameRef.current.getBoundingClientRect()
-      const scoreRect = scoreRef.current.getBoundingClientRect()
-      const compactTransition = window.matchMedia('(max-width: 900px)').matches
-      const revealGap = 24
-      const teamNameStyle = window.getComputedStyle(totalTeamNameRef.current)
-      const teamNameMeasure = document.createElement('canvas').getContext('2d')
-      if (!teamNameMeasure) return
-      teamNameMeasure.font = `${teamNameStyle.fontWeight} ${teamNameStyle.fontSize} ${teamNameStyle.fontFamily}`
-      const textWidth = teamNameMeasure.measureText(
-        totalTeamNameRef.current.textContent ?? '',
-      ).width
-      const monitorTeamStartCentre = window.innerWidth / 2 - (scoreRect.width + revealGap) / 2
-      const availableWidth =
-        window.innerWidth / 2 -
-        (scoreRect.width * 1.08) / 2 -
-        42 -
-        (monitorTeamStartCentre - teamNameRect.width / 2)
-      const fittedScale = Math.min(1, Math.max(0.24, availableWidth / Math.max(1, textWidth)))
-      const horizontalMargin = window.innerWidth * 0.05
-      const transitionWidth = window.innerWidth - horizontalMargin * 2
-      const teamBoxWidth = transitionWidth * 0.75
-      const scoreBoxWidth = transitionWidth * 0.25
-      const teamStartCentre = compactTransition
-        ? horizontalMargin + teamBoxWidth / 2
-        : monitorTeamStartCentre
-      const scoreStartCentre = compactTransition
-        ? horizontalMargin + teamBoxWidth + scoreBoxWidth / 2
-        : monitorTeamStartCentre +
-          (textWidth * fittedScale * TOTAL_POINTS_REVEAL_TEAM_SCALE) / 2 +
-          revealGap +
-          scoreRect.width / 2
-      const scoreReveal = toRevealRect(scoreRect, scoreStartCentre)
-      dispatch({
-        type: 'set-reveal-layout',
-        layout: {
-          home: toRevealRect(teamNameRect, teamStartCentre),
-          score: {
-            ...scoreReveal,
-            top: scoreReveal.top + TOTAL_SCORE_REVEAL_Y_CORRECTION,
-            revealY: scoreReveal.revealY - TOTAL_SCORE_REVEAL_Y_CORRECTION,
-          },
-          away: toRevealRect(teamNameRect, window.innerWidth / 2),
-        },
-      })
-      return
-    }
-
-    if (!homeHeadingRef.current || !awayHeadingRef.current) return
-    dispatch({
-      type: 'set-reveal-layout',
-      layout: {
-        home: toRevealRect(
-          homeHeadingRef.current.getBoundingClientRect(),
-          window.innerWidth * 0.27,
-        ),
-        score: toScoreRevealRect(scoreRef.current.getBoundingClientRect()),
-        away: toRevealRect(
-          awayHeadingRef.current.getBoundingClientRect(),
-          window.innerWidth * 0.73,
-        ),
-        viewportWidth: window.innerWidth,
-      },
-    })
-  }, [
-    focusedId,
-    isBroadcastRoute,
-    isTotalPointsBroadcast,
-    presentation.displayedFocusId,
-    presentation.displayingLeaderboard,
-    presentation.liveState,
   ])
 
   const reset = useCallback(() => {
@@ -429,14 +170,17 @@ export function useBroadcastPresentation({
   }, [clearTransitionTimers])
   const hideDisplayedLeaderboard = useCallback(() => dispatch({ type: 'hide-leaderboard' }), [])
 
+  const measurement = useBroadcastMeasurement({
+    liveState: presentation.liveState,
+    displayedFocusId: presentation.displayedFocusId,
+    displayingLeaderboard: presentation.displayingLeaderboard,
+    isTotalPointsBroadcast,
+    isBroadcastRoute,
+  })
+
   return {
     ...presentation,
-    homeHeadingRef,
-    awayHeadingRef,
-    scoreRef,
-    totalTeamNameRef,
-    totalHeadingRef,
-    leaderboardHeadingRef,
+    ...measurement,
     reset,
     hideDisplayedLeaderboard,
   }
