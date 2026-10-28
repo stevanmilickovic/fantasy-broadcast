@@ -4,6 +4,9 @@ Write clean, readable, and simple frontend code. Optimize first for the next per
 must understand and safely change it; optimize for performance only when measurements or
 clear product requirements justify the additional complexity.
 
+Use [the architecture guide](../docs/frontend-architecture.md) to find the existing owner
+of a workflow before changing it.
+
 ## Core principles
 
 - Prefer straightforward code over clever abstractions, compressed expressions, or
@@ -18,6 +21,8 @@ clear product requirements justify the additional complexity.
 
 ## Components and responsibilities
 
+- Keep feature APIs, types, hooks and styles with their feature. Reuse shared helpers
+  instead of creating another request, data-mapping or styling path.
 - Give each component, hook, and helper one clear responsibility.
 - Split a component when it combines unrelated concerns, becomes difficult to scan, or
   contains a substantial self-contained section with a meaningful name.
@@ -30,9 +35,15 @@ clear product requirements justify the additional complexity.
 - Do not create abstractions solely to reduce line count. Extract code only when the new
   boundary represents a real concept or removes meaningful duplication.
 - Avoid duplicating business rules. Give shared rules one well-named implementation.
+- Keep live data, queued snapshots and displayed broadcast state separate. Keep playback
+  transitions separate from DOM measurement and scene rendering.
 
 ## React and TypeScript
 
+- Let the URL own page selection. Reset session-specific state when the user or league
+  changes, and preserve direct links to individual workflows.
+- Reuse the shared query and mutation helpers. Ignore stale responses and prevent
+  duplicate submissions.
 - Follow the Rules of Hooks and keep effect dependency arrays correct.
 - Use effects only to synchronize with external systems. Derive values during rendering
   or handle state changes in event handlers when possible.
@@ -45,6 +56,7 @@ clear product requirements justify the additional complexity.
 
 ## Markup, accessibility, and styling
 
+- Keep visible product text in JSX; do not hide it and substitute CSS-generated text.
 - Format JSX as readable nested markup. Do not compress complex UI trees onto one line.
 - Use semantic HTML and native controls before recreating behavior with generic elements.
 - Ensure interactive controls are keyboard accessible and have an accessible name.
@@ -111,7 +123,8 @@ says otherwise.
 
 - Add or update tests for non-trivial behavior, especially state transitions, data
   transformations, error handling, and regressions.
-- Before finishing, run the relevant formatter, linter, type checker, tests, and build.
+- Use the Node version in `.nvmrc` and run `npm run check`. For workflow, timing or layout
+  changes, also run `npm run test:browser` against a fresh build.
 - Do not ignore failing checks. Fix failures caused by the change and clearly report any
   pre-existing or environment-related failures that remain.
 - Review the final diff for accidental behavior changes, duplication, inconsistent UI,
