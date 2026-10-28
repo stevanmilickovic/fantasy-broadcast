@@ -36,6 +36,7 @@ public class BroadcastScheduleService {
 
 	public List<BroadcastSchedule> allForAdmin(CurrentUser user) {
 		requireAdmin(user);
+		deleteExpired(Instant.now());
 		return jdbcTemplate.query("select id, starts_at, ends_at from broadcast_schedule order by starts_at desc, id desc", this::mapSchedule);
 	}
 
@@ -64,6 +65,10 @@ public class BroadcastScheduleService {
 	public List<BroadcastSchedule> activeFor(CurrentUser user) {
 		var now = Timestamp.from(Instant.now());
 		return jdbcTemplate.query("select id, starts_at, ends_at from broadcast_schedule where starts_at <= ? and ends_at >= ? order by starts_at", this::mapSchedule, now, now);
+	}
+
+	public void deleteExpired(Instant now) {
+		jdbcTemplate.update("delete from broadcast_schedule where ends_at < ?", Timestamp.from(now));
 	}
 
 	public boolean hasActiveSchedule() {
