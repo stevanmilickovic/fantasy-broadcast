@@ -57,6 +57,40 @@ class FplDraftMapperTests {
 				.extracting(FplPlayer::id, FplPlayer::webName, FplPlayer::fullName, FplPlayer::premierLeagueClub,
 						FplPlayer::position)
 				.containsExactly(328, "Salah", "Mohamed Salah", "Liverpool", "MID");
+		assertThat(players.getFirst().season()).isNull();
+	}
+
+	@Test
+	void mapsSeasonStatsAndMatchesDraftPlayersByCodeRatherThanId() {
+		var draft = objectMapper.readTree("""
+				{"elements":[{"id":1,"code":99},{"id":2,"code":88},{"id":3,"code":0}]}
+				""");
+		var fantasy = objectMapper.readTree("""
+				{"elements":[
+				  {"id":2,"code":99,"total_points":105,"goals_scored":8,"assists":4,"clean_sheets":3},
+				  {"id":1,"code":88},
+				  {"id":3,"code":0,"total_points":50,"goals_scored":1,"assists":2,"clean_sheets":0}
+				]}
+				""");
+		assertThat(mapper.mapPlayers(fantasy).getFirst().season()).isEqualTo(new FplPlayer.SeasonStats(105, 8, 4, 3));
+		var players = mapper.mapDraftPlayers(draft, fantasy);
+		assertThat(players.getFirst().season()).isEqualTo(new FplPlayer.SeasonStats(105, 8, 4, 3));
+		assertThat(players.get(1).season()).isNull();
+		assertThat(players.get(2).season()).isNull();
+	}
+
+	@Test
+	void derivesDraftStatsFromEveryFixtureExplanationWhenStatsAreAbsent() {
+		var root = objectMapper.readTree("""
+				{"elements":{"1":{"explain":[
+				  [[{"stat":"goals_scored","value":1,"points":5},{"stat":"minutes","value":90,"points":2}],11],
+				  [[{"stat":"goals_scored","value":2,"points":10},{"stat":"assists","value":1,"points":3}],12]
+				]}}}
+				""");
+		var player = mapper.mapDraftEventLive(root).players().getFirst();
+		assertThat(player.totalPoints()).isEqualTo(20);
+		assertThat(player.stats()).extracting(FplLiveStats::goalsScored, FplLiveStats::assists, FplLiveStats::minutes)
+				.containsExactly(3, 1, 90);
 	}
 
 	@Test

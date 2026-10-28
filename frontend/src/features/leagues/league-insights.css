@@ -1,0 +1,342 @@
+.league-insights {
+  display: grid;
+  gap: 24px;
+}
+.league-insights-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.league-insights-intro h2 {
+  margin: 10px 0;
+}
+.league-insights-intro p {
+  max-width: 600px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.league-insights-week {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 13px;
+}
+.league-insight-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.league-insight-highlight {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent-soft), transparent 65%), var(--surface);
+}
+.league-insight-highlight > span,
+.league-insight-highlight small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.league-insight-highlight > strong {
+  display: block;
+  margin: 18px 0 10px;
+  color: var(--accent);
+  font-size: clamp(28px, 3vw, 36px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.league-insight-highlight h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.league-insights-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 24px;
+}
+.league-insights-grid[data-h2h='false'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.league-insight-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.league-insight-panel .league-panel-heading p {
+  line-height: 1.6;
+}
+.league-insight-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.league-insight-period {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #18001d;
+}
+.league-insight-period button {
+  flex: 1;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 2px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.league-insight-period button[aria-pressed='true'] {
+  background: var(--surface-strong);
+  color: var(--accent);
+}
+.league-insight-player-list,
+.league-insight-performance {
+  max-height: 560px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #60456d #25002c;
+}
+.league-insight-player-list {
+  margin: 0;
+  padding: 0 24px;
+  list-style: none;
+}
+.league-insight-player-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.league-insight-player-list li:last-child {
+  border-bottom: 0;
+}
+.league-insight-rank {
+  min-width: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.league-insight-player {
+  min-width: 0;
+  flex: 1;
+}
+.league-insight-player button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.league-insight-player button:hover {
+  color: var(--accent);
+}
+.league-insight-player small,
+.league-insight-club small,
+.league-insight-squad-table small,
+.league-insight-owners {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.league-insight-owners {
+  color: #b6a4bd;
+}
+.league-insight-stat {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 25px;
+  font-variant-numeric: tabular-nums;
+}
+.league-insight-stat small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.league-insight-expand {
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+}
+.league-insight-expand:hover {
+  background: var(--accent-soft);
+}
+.league-insight-note {
+  margin: auto 0 0;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  color: #b6a4bd;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.league-insight-performance-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.league-insight-performance-row:last-child {
+  border-bottom: 0;
+}
+.league-insight-club a,
+.league-insight-squad-table a {
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.league-insight-club a:hover,
+.league-insight-squad-table a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.league-insight-gap {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.league-insight-gap[data-direction='above'] {
+  color: #61e8c0;
+}
+.league-insight-gap[data-direction='below'] {
+  color: #eebc88;
+}
+.league-insight-rank-compare {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 24px;
+  color: #b6a4bd;
+  font-size: 12px;
+}
+.league-insight-rank-compare b {
+  margin-left: 6px;
+  color: var(--text);
+  font-weight: 500;
+}
+.league-insight-squads {
+  grid-column: 1 / -1;
+}
+.league-insight-squad-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+.league-insight-squad-table :is(th, td) {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.league-insight-squad-table th:first-child {
+  width: 46%;
+  text-align: left;
+}
+.league-insight-squad-table thead th {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.league-insight-squad-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.league-insight-source {
+  color: #b6a4bd;
+  text-align: center;
+  font-size: 12px;
+}
+@media (min-width: 901px) {
+  .league-insight-performance {
+    /* Fill the shared row without making its height depend on the club count. */
+    flex: 1;
+    contain: size;
+    max-height: none;
+  }
+}
+@media (max-width: 900px) {
+  .league-insight-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .league-insights-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .league-insights-intro {
+    flex-direction: column;
+    align-items: start;
+    gap: 12px;
+  }
+  .league-insight-highlights {
+    gap: 12px;
+  }
+  .league-insight-highlight {
+    padding: 18px 16px;
+  }
+  .league-insight-filters {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+  .league-insight-player-list {
+    padding: 0 16px;
+  }
+  .league-insight-note,
+  .league-insight-performance-row {
+    padding: 16px;
+  }
+  .league-insight-squad-table :is(th, td) {
+    padding: 16px 10px;
+  }
+  .league-insight-squad-table th:first-child {
+    width: 40%;
+  }
+}
+@media (max-width: 420px) {
+  .league-view-toggle {
+    gap: 4px;
+  }
+  .league-view-toggle button {
+    padding-inline: 0;
+    font-size: 13px;
+  }
+}

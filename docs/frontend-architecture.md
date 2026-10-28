@@ -177,6 +177,17 @@ matchups use the existing app navigation for ordinary clicks, preserving the loa
 data. Their anchor URLs still support copying links and opening another tab. `LeagueStandingsTable`,
 `LeagueTeamsView` and `LeagueMatchupsView` own their presentation independently.
 
+`LeagueInsightsView` adds the URL-addressable Insights tab. `leagueInsights.ts` derives
+unique owned-player leaderboards, raw squad output after recorded substitutions and
+H2H league-rank versus cumulative-fantasy-rank comparisons. Ties share scoring ranks;
+missing stats stay unavailable. Squad output deliberately excludes captain multipliers,
+chips and transfer costs and is labelled accordingly. Season player stats come from
+FPL bootstrap totals; Draft players are matched to Classic stats by shared player code,
+never by their different game IDs. Current ownership does not imply historical ownership.
+Draft ownership matches `league_entries[].entry_id`; standings reference the separate
+`league_entries[].id`. Both Insights and Teams use the entry ID to resolve squads.
+There are no predicted win probabilities or claims of expected league points.
+
 Standings keep all supplied ranks in one table, with separate H2H league/fantasy totals.
 Teams select the first ranked valid club by default, without implying ownership; narrow
 screens use a club picker and player roster instead of compressed shirt grids.

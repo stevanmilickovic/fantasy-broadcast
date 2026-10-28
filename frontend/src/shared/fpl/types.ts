@@ -53,6 +53,7 @@ export type FplLeagueDetailsRaw = {
 export type FplElementStatusRaw = {
   element_status: Array<{
     element: number
+    // Draft ownership uses entry_id; standings use the separate league-entry id.
     owner: number | null
     status: string
     in_accepted_trade: boolean
@@ -65,6 +66,12 @@ export type FplPlayer = {
   fullName: string
   premierLeagueClub: string
   position: string
+  season?: {
+    totalPoints: number
+    goalsScored: number
+    assists: number
+    cleanSheets: number
+  } | null
 }
 
 export type FplEntryPick = {
@@ -164,6 +171,8 @@ export type DraftLeagueDiscovery = {
   details: FplLeagueDetailsRaw
   elementStatus: FplElementStatusRaw
   players: FplPlayer[]
+  entryEvents?: Record<string, FplEntryEvent>
+  livePlayers?: FplLivePlayer[]
 }
 
 export type FplClubShirt = { name: string; shortName?: string; code: number }

@@ -2,10 +2,10 @@ import { Check, ChevronDown, X } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { useDialogMotion } from '../../shared/ui/useDialogMotion'
 
-type Option = { value: number; label: string; description?: string; badge?: string }
+type Option<T> = { value: T; label: string; description?: string; badge?: string }
 
 // Native dialogs keep the picker inside the viewport, including browser device emulation.
-export function LeagueSelect({
+export function LeagueSelect<T extends string | number>({
   label,
   value,
   options,
@@ -15,9 +15,9 @@ export function LeagueSelect({
   showDescription = true,
 }: {
   label: string
-  value: number
-  options: Option[]
-  onChange: (value: number) => void
+  value: T
+  options: Option<T>[]
+  onChange: (value: T) => void
   icon?: ReactNode
   showDescription?: boolean
   action?: { label: string; onClick: () => void }

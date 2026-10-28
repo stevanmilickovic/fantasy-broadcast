@@ -7,6 +7,7 @@
 @import '../features/administration/administration.css';
 @import '../features/auth/auth.css';
 @import '../features/leagues/leagues.css';
+@import '../features/leagues/league-insights.css';
 @import '../shared/ui/branding.css';
 @import '../features/billing/billing.css';
 @import '../features/players/players.css';
