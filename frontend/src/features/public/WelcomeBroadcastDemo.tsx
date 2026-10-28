@@ -92,17 +92,17 @@ export function WelcomeBroadcastDemo() {
           automaticFocus={automaticMatchup.id}
           presentation={{
             revealingMatch: revealing,
-            revealLayout: revealLayout,
+            revealLayout,
             transitioningToMatch: transitioning,
             visibleEventId: !transitioning && !revealing ? state.events[0].id : null,
-            homeHeadingRef: homeHeadingRef,
-            awayHeadingRef: awayHeadingRef,
-            scoreRef: scoreRef,
-            totalTeamNameRef: totalTeamNameRef,
-            totalHeadingRef: totalHeadingRef,
+            homeHeadingRef,
+            awayHeadingRef,
+            scoreRef,
+            totalTeamNameRef,
+            totalHeadingRef,
             showingLiveLeaderboard: false,
             leaderboardRevealLayout: null,
-            leaderboardHeadingRef: leaderboardHeadingRef,
+            leaderboardHeadingRef,
             holdingPendingUpdates: transitioning || revealing,
           }}
           standings={state.standings}

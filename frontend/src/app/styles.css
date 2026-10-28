@@ -1,0 +1,14 @@
+/* Shared primitives load first; feature rules override them. Branding and footer
+   breakpoints follow page rules to retain the established responsive cascade. */
+@import '../shared/ui/layout.css';
+@import '../shared/ui/players.css';
+@import '../features/broadcast/broadcast.css';
+@import '../features/administration/administration.css';
+@import '../features/auth/auth.css';
+@import '../features/leagues/leagues.css';
+@import '../shared/ui/branding.css';
+@import '../features/billing/billing.css';
+@import '../features/players/players.css';
+@import '../features/public/public.css';
+@import '../shared/ui/branding-responsive.css';
+@import '../shared/ui/LegalFooter.css';

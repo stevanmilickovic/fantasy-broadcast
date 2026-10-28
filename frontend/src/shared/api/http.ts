@@ -34,7 +34,3 @@ export async function request(path: string, options: RequestInit = {}): Promise<
 export async function requestJson<T>(path: string, options?: RequestInit): Promise<T> {
   return (await request(path, options)).json()
 }
-
-export function jsonBody(value: unknown): Pick<RequestInit, 'body'> {
-  return { body: JSON.stringify(value) }
-}

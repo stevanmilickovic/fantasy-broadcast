@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, CircleCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft, Check, CircleCheck } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
@@ -106,9 +106,6 @@ export function LeagueCheckoutPage({
               <li>
                 <Check size={16} /> League standings and teams
               </li>
-              <li>
-                <Check size={16} /> Fixture and score updates
-              </li>
             </ul>
             <button
               type="button"
@@ -121,21 +118,18 @@ export function LeagueCheckoutPage({
             </button>
           </article>
           <article className="checkout-plan featured">
-            <span className="plan-badge">
-              <Sparkles size={14} /> Recommended
-            </span>
+            <span className="plan-badge">AI Commentator</span>
             <h2>€14.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
-            <h3>AI Broadcaster</h3>
             <ul>
               <li>
-                <Check size={16} /> Everything in Standard
+                <Check size={16} /> Live matchday broadcast
               </li>
               <li>
-                <Check size={16} /> AI match commentary
+                <Check size={16} /> League standings and teams
               </li>
               <li>
-                <Check size={16} /> Natural voice narration
+                <Check size={16} /> AI voice commentary
               </li>
             </ul>
             <button

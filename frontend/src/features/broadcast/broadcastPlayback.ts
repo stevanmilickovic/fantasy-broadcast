@@ -71,7 +71,6 @@ type PresentationAction =
   | { type: 'finish-reveal'; snapshot: PresentationSnapshot }
   | { type: 'finish-transition' }
   | { type: 'hide-leaderboard' }
-  | { type: 'reset' }
 
 export const initialPresentationState: PresentationState = {
   liveState: null,
@@ -147,7 +146,5 @@ export function presentationReducer(
       return { ...state, transitioningToMatch: false }
     case 'hide-leaderboard':
       return { ...state, displayingLeaderboard: false }
-    case 'reset':
-      return initialPresentationState
   }
 }

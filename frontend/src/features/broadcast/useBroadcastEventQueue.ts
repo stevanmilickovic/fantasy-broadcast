@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useReducer } from 'react'
+import { useEffect, useRef, useReducer } from 'react'
 import { playNarrationAudio, playPointChangeSound } from './broadcastSound'
 import type { FantasyEventView, LiveStateResponse } from './types'
 
@@ -55,7 +55,6 @@ type QueueAction =
   | { type: 'receive'; liveState: LiveStateResponse; events: FantasyEventView[] }
   | { type: 'start' }
   | { type: 'finish' }
-  | { type: 'reset' }
 
 function queueReducer(queue: EventQueue, action: QueueAction): EventQueue {
   switch (action.type) {
@@ -68,8 +67,6 @@ function queueReducer(queue: EventQueue, action: QueueAction): EventQueue {
     }
     case 'finish':
       return { ...queue, active: null }
-    case 'reset':
-      return { active: null, pending: [] }
   }
 }
 
@@ -127,19 +124,10 @@ export function useBroadcastEventQueue(
     void playNarrationAudio(latestNarration.audioUrl, narrationControllerRef.current?.signal)
   }, [latestNarration])
 
-  const reset = useCallback(() => {
-    receivedEventIdsRef.current.clear()
-    lastSoundedEventIdRef.current = null
-    lastNarrationAudioIdRef.current = null
-    dispatch({ type: 'reset' })
-  }, [])
-
   return {
     activeEvents,
-    activeFocusId: queue.active?.id,
     activeLiveState: queue.active?.liveState ?? null,
     hasPendingNotifications: queue.pending.length > 0,
     latestEvent,
-    reset,
   }
 }

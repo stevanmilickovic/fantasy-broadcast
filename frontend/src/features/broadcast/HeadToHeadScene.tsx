@@ -6,7 +6,7 @@ import { NarrationCaption } from './BroadcastChrome'
 import { MatchSelector } from './BroadcastSelectors'
 import { HeadToHeadLeaderboard } from './BroadcastStandings'
 import { PitchStage } from './BroadcastPitch'
-import type { BroadcastMatchdayProps } from './BroadcastMatchday'
+import type { BroadcastMatchdayProps } from './sceneTypes'
 import type { FantasyEventView, MatchupView, TeamView } from './types'
 
 export function HeadToHeadScene({

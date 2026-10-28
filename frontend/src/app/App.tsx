@@ -1,5 +1,5 @@
 ﻿import { useEffect } from 'react'
-import '../App.css'
+import './styles.css'
 import { AdministrationPage } from '../features/administration/AdministrationPage'
 import { AuthScreen } from '../features/auth/AuthScreen'
 import { useAuthSession } from '../features/auth/useAuthSession'

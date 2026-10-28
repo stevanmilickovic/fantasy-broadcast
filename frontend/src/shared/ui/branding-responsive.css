@@ -1,0 +1,7 @@
+@media (max-width: 700px) {
+  .brand-name {
+    min-width: 0;
+    font-size: clamp(1.25rem, 6vw, 1.6rem);
+    white-space: nowrap;
+  }
+}

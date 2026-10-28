@@ -21,7 +21,6 @@ type UseBroadcastPresentationOptions = {
   latestEventId?: string
   showingLeaderboard: boolean
   isTotalPointsBroadcast: boolean
-  isBroadcastRoute: boolean
   onTransitionStateChange: (transitioning: boolean) => void
 }
 
@@ -34,7 +33,6 @@ export function useBroadcastPresentation({
   latestEventId,
   showingLeaderboard,
   isTotalPointsBroadcast,
-  isBroadcastRoute,
   onTransitionStateChange,
 }: UseBroadcastPresentationOptions) {
   const [presentation, dispatch] = useReducer(presentationReducer, initialPresentationState)
@@ -89,7 +87,7 @@ export function useBroadcastPresentation({
     if (transitionInProgressRef.current) return
 
     clearTransitionTimers()
-    if (!stateForActiveNotification || !presentationFocusId || !isBroadcastRoute) {
+    if (!stateForActiveNotification || !presentationFocusId) {
       previousPresentationFocusRef.current = null
       previousSelectedFocusRef.current = selectedFocus
       dispatch({ type: 'sync', snapshot })
@@ -147,7 +145,6 @@ export function useBroadcastPresentation({
     activeLiveState,
     clearTransitionTimers,
     focusedId,
-    isBroadcastRoute,
     isTotalPointsBroadcast,
     isWaitingForQueuedFocus,
     latestEventId,
@@ -160,14 +157,6 @@ export function useBroadcastPresentation({
     stateForActiveNotification,
   ])
 
-  const reset = useCallback(() => {
-    clearTransitionTimers()
-    previousPresentationFocusRef.current = null
-    previousSelectedFocusRef.current = 'multi'
-    displayedLiveStateRef.current = null
-    transitionInProgressRef.current = false
-    dispatch({ type: 'reset' })
-  }, [clearTransitionTimers])
   const hideDisplayedLeaderboard = useCallback(() => dispatch({ type: 'hide-leaderboard' }), [])
 
   const measurement = useBroadcastMeasurement({
@@ -175,13 +164,11 @@ export function useBroadcastPresentation({
     displayedFocusId: presentation.displayedFocusId,
     displayingLeaderboard: presentation.displayingLeaderboard,
     isTotalPointsBroadcast,
-    isBroadcastRoute,
   })
 
   return {
     ...presentation,
     ...measurement,
-    reset,
     hideDisplayedLeaderboard,
   }
 }

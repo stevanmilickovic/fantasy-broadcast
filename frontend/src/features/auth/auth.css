@@ -1,0 +1,202 @@
+.account-shell {
+  min-height: 100vh;
+  padding: 48px max(24px, calc((100vw - 1120px) / 2));
+  background: #25002c;
+  color: #fff;
+}
+
+.account-card {
+  display: grid;
+  gap: 14px;
+  width: min(420px, 100%);
+  margin: 10vh auto;
+  padding: 32px;
+  border: 0;
+  border-radius: 0;
+  background: #31003a;
+}
+
+.account-card input {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: #1b0021;
+  color: inherit;
+}
+
+.password-field {
+  display: grid;
+  grid-template-columns: 1fr 46px;
+  min-height: 42px;
+  background: #1b0021;
+}
+
+.password-field input {
+  min-width: 0;
+  background: transparent;
+}
+
+.password-field button {
+  min-height: 42px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  background: transparent;
+}
+
+.password-field button:hover {
+  background: #30266f;
+}
+
+.account-card .kicker {
+  color: #20e6ff;
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  text-transform: none;
+}
+.account-card h1 {
+  color: #fff;
+  font-size: 2rem;
+  letter-spacing: -0.035em;
+}
+.account-card button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  transition:
+    background 0.16s ease,
+    filter 0.16s ease;
+}
+.account-card > button:not(.secondary-action) {
+  margin-top: 8px;
+  color: #37003c;
+  background: #20e6ff;
+  text-transform: uppercase;
+}
+.account-card > button:not(.secondary-action):hover {
+  background: #38ebff;
+  filter: brightness(1.04);
+}
+.account-card .google-auth-link {
+  display: grid;
+  grid-template-columns: 22px 1fr 22px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  background: #fff;
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-decoration: none;
+}
+.account-card .google-auth-link:hover {
+  background: #f8fafd;
+  border-color: #d2e3fc;
+}
+.google-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+.auth-secondary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.auth-secondary-actions button {
+  min-width: 0;
+}
+.auth-secondary-actions a {
+  min-width: 0;
+}
+.account-card button.secondary-action {
+  color: #fff;
+  background: #30266f;
+}
+.account-card button.secondary-action:hover {
+  background: #443783;
+}
+.account-card button.forgot-password-link {
+  justify-self: start;
+  min-height: 0;
+  margin-top: -7px;
+  padding: 0;
+  color: #c8f9ff;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+.account-card button.forgot-password-link:hover {
+  color: #20e6ff;
+  background: transparent;
+  text-decoration: underline;
+}
+.account-card button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.auth-success {
+  margin: 0;
+  color: #20e6ff;
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+.account-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 700px) {
+  .account-shell {
+    display: grid;
+    min-height: 100svh;
+    padding: 24px 16px;
+  }
+  .account-card {
+    width: 100%;
+    margin: auto;
+    padding: clamp(22px, 7vw, 32px);
+  }
+  .account-card h1 {
+    font-size: clamp(1.65rem, 8vw, 2rem);
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-secondary-actions {
+    grid-template-columns: 1fr;
+  }
+}
+.account-deletion-request {
+  width: min(100%, 960px);
+  margin: 36px auto 0;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #c8c3dd;
+}
+.account-deletion-request h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.05rem;
+}
+.account-deletion-request p {
+  margin: 8px 0 15px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.account-deletion-message {
+  color: var(--pl-green);
+}

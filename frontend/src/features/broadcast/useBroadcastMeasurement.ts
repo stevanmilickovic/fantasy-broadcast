@@ -9,13 +9,11 @@ export function useBroadcastMeasurement({
   displayedFocusId,
   displayingLeaderboard,
   isTotalPointsBroadcast,
-  isBroadcastRoute,
 }: {
   liveState: LiveStateResponse | null
   displayedFocusId: string | null
   displayingLeaderboard: boolean
   isTotalPointsBroadcast: boolean
-  isBroadcastRoute: boolean
 }) {
   const [revealLayout, setRevealLayout] = useState<RevealLayout | null>(null)
   const [leaderboardRevealLayout, setLeaderboardRevealLayout] = useState<RevealRect | null>(null)
@@ -26,7 +24,6 @@ export function useBroadcastMeasurement({
   const totalHeadingRef = useRef<HTMLHeadingElement>(null)
   const leaderboardHeadingRef = useRef<HTMLHeadingElement>(null)
   useLayoutEffect(() => {
-    if (!isBroadcastRoute) return
     const measure = () => {
       if (displayingLeaderboard) {
         if (!leaderboardHeadingRef.current) return
@@ -117,7 +114,7 @@ export function useBroadcastMeasurement({
       observer.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [isBroadcastRoute, isTotalPointsBroadcast, displayedFocusId, displayingLeaderboard, liveState])
+  }, [isTotalPointsBroadcast, displayedFocusId, displayingLeaderboard, liveState])
 
   return {
     revealLayout,

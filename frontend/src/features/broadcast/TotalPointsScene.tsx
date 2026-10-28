@@ -7,7 +7,7 @@ import { ClubSelector } from './BroadcastSelectors'
 import { LiveStandings, TotalPointsLeaderboard } from './BroadcastStandings'
 import { TotalPointsPlayerRows } from './BroadcastPitch'
 import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
-import type { BroadcastMatchdayProps } from './BroadcastMatchday'
+import type { BroadcastMatchdayProps } from './sceneTypes'
 import type { FantasyEventView } from './types'
 
 export function TotalPointsBroadcast({

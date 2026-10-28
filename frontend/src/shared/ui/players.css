@@ -1,0 +1,128 @@
+.player-token {
+  position: relative;
+  width: 110px;
+  margin: 0 auto;
+  color: white;
+}
+.player-core {
+  position: relative;
+  display: grid;
+  grid-template-rows: 57px auto;
+  justify-items: center;
+  align-items: center;
+  width: 110px;
+}
+.shirt-wrap {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  overflow: visible;
+}
+.shirt-wrap img {
+  width: 66px;
+  height: 66px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.58));
+  transform: translateX(-5%);
+}
+.shirt-wrap span {
+  max-width: 56px;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-meta {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  width: fit-content;
+  margin-top: 4px;
+}
+.player-meta strong {
+  display: grid;
+  place-items: center;
+  max-width: 82px;
+  min-height: 26px;
+  padding: 0 6px;
+  overflow: hidden;
+  color: white;
+  background: var(--pl-purple);
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.95),
+    0 0 8px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+.player-meta b {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  color: var(--pl-purple);
+  background: var(--event-green);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1;
+}
+.player-token.has-event {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.player-token.has-event .shirt-wrap img {
+  filter: drop-shadow(0 0 9px rgba(0, 255, 133, 0.88));
+}
+.player-token.has-event.is-leaving .shirt-wrap img {
+  animation: player-shirt-glow-fade 200ms ease-in both;
+}
+
+@media (max-width: 900px) {
+  .player-token {
+    width: 70px;
+    height: auto;
+  }
+  .player-core {
+    grid-template-rows: 40px auto;
+    width: 70px;
+  }
+  .shirt-wrap {
+    width: 42px;
+    height: 42px;
+  }
+  .shirt-wrap img {
+    width: 49px;
+    height: 49px;
+  }
+  .player-meta {
+    gap: 0;
+    margin-top: 3px;
+  }
+  .player-meta strong {
+    max-width: 48px;
+    min-height: 20px;
+    padding: 0 3px;
+    font-size: 8px;
+  }
+  .player-meta b {
+    min-width: 20px;
+    height: 20px;
+    margin-left: -1px;
+    font-size: 13px;
+  }
+  .player-token.has-event {
+    width: 70px;
+  }
+  .player-token.has-event .player-core {
+    width: 70px;
+  }
+}

@@ -10,7 +10,7 @@ it('rotates idle scenes through the leaderboard, suspends rotation for manual fo
   const liveState = welcomeBroadcastState(0)
   liveState.status.mode = 'COMPREHENSIVE MOCK'
   const { result, rerender, unmount } = renderHook(
-    ({ selectedFocus }) => useBroadcastFocus({ liveState, selectedFocus, isBroadcastRoute: true }),
+    ({ selectedFocus }) => useBroadcastFocus({ liveState, selectedFocus }),
     { initialProps: { selectedFocus: 'multi' } },
   )
   expect(result.current.focusedId).toBe(liveState.matchups[0].id)

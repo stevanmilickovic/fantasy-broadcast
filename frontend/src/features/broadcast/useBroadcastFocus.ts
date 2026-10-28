@@ -17,7 +17,6 @@ type RotationAction =
   | { type: 'show-leaderboard' }
   | { type: 'show-focus'; focusId: string }
   | { type: 'dismiss-leaderboard' }
-  | { type: 'reset' }
 
 const initialRotationState: RotationState = {
   rotatedFocusId: null,
@@ -37,8 +36,6 @@ function rotationReducer(state: RotationState, action: RotationAction): Rotation
       return { ...state, showingLeaderboard: true }
     case 'show-focus':
       return { rotatedFocusId: action.focusId, showingLeaderboard: false }
-    case 'reset':
-      return initialRotationState
   }
 }
 
@@ -46,14 +43,12 @@ type UseBroadcastFocusOptions = {
   liveState: LiveStateResponse | null
   latestEvent?: FantasyEventView
   selectedFocus: BroadcastFocus
-  isBroadcastRoute: boolean
 }
 
 export function useBroadcastFocus({
   liveState,
   latestEvent,
   selectedFocus,
-  isBroadcastRoute,
 }: UseBroadcastFocusOptions) {
   const [rotation, dispatch] = useReducer(rotationReducer, initialRotationState)
   const lastBackendEventAtRef = useRef<number | null>(null)
@@ -112,7 +107,7 @@ export function useBroadcastFocus({
   }, [eventFocusId, latestEvent])
 
   useEffect(() => {
-    if (!isBroadcastRoute || selectedFocus !== 'multi' || !focusedId) return
+    if (selectedFocus !== 'multi' || !focusedId) return
     const lastActivityAt = lastBackendEventAtRef.current ?? Date.now()
     lastBackendEventAtRef.current = lastActivityAt
     const delay = Math.max(0, inactivityRotationMs - (Date.now() - lastActivityAt))
@@ -153,7 +148,6 @@ export function useBroadcastFocus({
     return () => window.clearTimeout(timer)
   }, [
     focusedId,
-    isBroadcastRoute,
     isTotalPointsBroadcast,
     latestEvent?.id,
     inactivityRotationMs,
@@ -163,12 +157,6 @@ export function useBroadcastFocus({
   ])
 
   const dismissLeaderboard = useCallback(() => dispatch({ type: 'dismiss-leaderboard' }), [])
-  const reset = useCallback(() => {
-    lastBackendEventAtRef.current = null
-    idleTransitionCountRef.current = 0
-    recentlyShownFocusesRef.current.clear()
-    dispatch({ type: 'reset' })
-  }, [])
 
   return {
     targetMatchup,
@@ -177,6 +165,5 @@ export function useBroadcastFocus({
     isTotalPointsBroadcast,
     showingLeaderboard: rotation.showingLeaderboard,
     dismissLeaderboard,
-    reset,
   }
 }

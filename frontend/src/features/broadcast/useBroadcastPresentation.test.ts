@@ -29,7 +29,6 @@ function options(frame = 0): Parameters<typeof useBroadcastPresentation>[0] {
     latestEventId: liveState.events[0].id,
     showingLeaderboard: false,
     isTotalPointsBroadcast: false,
-    isBroadcastRoute: true,
     onTransitionStateChange: vi.fn(),
   }
 }

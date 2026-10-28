@@ -22,7 +22,6 @@ export function BroadcastPage({
 }) {
   const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
   const [deferQueuedNotificationStart, setDeferQueuedNotificationStart] = useState(false)
-  const isBroadcastRoute = true
   useScreenWakeLock(true)
   const { liveState, error } = useLiveState({ enabled: true, leagueId })
   const {
@@ -41,7 +40,6 @@ export function BroadcastPage({
     liveState,
     latestEvent: targetLatestEvent,
     selectedFocus: broadcastFocus,
-    isBroadcastRoute,
   })
   const {
     liveState: broadcastLiveState,
@@ -70,13 +68,10 @@ export function BroadcastPage({
     latestEventId: targetLatestEvent?.id,
     showingLeaderboard: showingLiveLeaderboard,
     isTotalPointsBroadcast,
-    isBroadcastRoute,
     onTransitionStateChange: setDeferQueuedNotificationStart,
   })
 
-  const totalPointsBroadcast =
-    (liveState?.matchups?.length ?? 0) === 0 && (liveState?.teams?.length ?? 0) > 0
-  if (!liveState || (!targetMatchup && !totalPointsBroadcast)) {
+  if (!liveState || (!targetMatchup && !isTotalPointsBroadcast)) {
     return (
       <main className="broadcast-shell loading-shell">
         <div>
@@ -88,13 +83,8 @@ export function BroadcastPage({
     )
   }
 
-  const displayLiveStateBase = isBroadcastRoute ? (broadcastLiveState ?? liveState) : liveState
-  const displayLiveState = isBroadcastRoute
-    ? { ...displayLiveStateBase, events: activeBroadcastEvents }
-    : displayLiveStateBase
-  const displayStandings = isBroadcastRoute
-    ? (broadcastStandings ?? displayLiveState.standings ?? [])
-    : (liveState.standings ?? [])
+  const displayLiveState = { ...(broadcastLiveState ?? liveState), events: activeBroadcastEvents }
+  const displayStandings = broadcastStandings ?? displayLiveState.standings ?? []
   const autoDisplayMatchup = findFocusedMatchup(displayLiveState)
   const displayedMatchup = displayedFocusId
     ? displayLiveState.matchups?.find((candidate) => candidate.id === displayedFocusId)
@@ -126,19 +116,19 @@ export function BroadcastPage({
       broadcastFocus={broadcastFocus}
       automaticFocus={displayedFocusId ?? focusedMatchupId ?? 'multi'}
       presentation={{
-        revealingMatch: revealingMatch,
-        revealLayout: revealLayout,
-        transitioningToMatch: transitioningToMatch,
-        visibleEventId: visibleEventId,
-        homeHeadingRef: homeHeadingRef,
-        awayHeadingRef: awayHeadingRef,
-        scoreRef: scoreRef,
-        totalTeamNameRef: totalTeamNameRef,
-        totalHeadingRef: totalHeadingRef,
+        revealingMatch,
+        revealLayout,
+        transitioningToMatch,
+        visibleEventId,
+        homeHeadingRef,
+        awayHeadingRef,
+        scoreRef,
+        totalTeamNameRef,
+        totalHeadingRef,
         showingLiveLeaderboard: displayingLiveLeaderboard,
-        leaderboardRevealLayout: leaderboardRevealLayout,
-        leaderboardHeadingRef: leaderboardHeadingRef,
-        holdingPendingUpdates: holdingPendingUpdates,
+        leaderboardRevealLayout,
+        leaderboardHeadingRef,
+        holdingPendingUpdates,
       }}
       standings={displayStandings}
       onBack={() => {

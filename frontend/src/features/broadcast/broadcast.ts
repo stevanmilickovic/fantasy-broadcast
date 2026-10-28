@@ -1,13 +1,5 @@
 import type { CSSProperties } from 'react'
-import type {
-  FantasyEventView,
-  LiveStateResponse,
-  MatchupView,
-  PlayerGroup,
-  PlayerView,
-  RevealRect,
-  TeamView,
-} from './types'
+import type { LiveStateResponse, MatchupView, PlayerView, RevealRect, TeamView } from './types'
 
 export const TOTAL_POINTS_REVEAL_TEAM_SCALE = 4
 
@@ -21,40 +13,6 @@ export const findFocusedMatchup = (state: LiveStateResponse | null): MatchupView
   return state.matchups?.find((candidate) =>
     [candidate.home.managerId, candidate.away.managerId].includes(latestEvent.managerId),
   )
-}
-
-export const matchupHasEvent = (
-  matchup: MatchupView,
-  event: FantasyEventView | undefined,
-): boolean => {
-  return event ? [matchup.home.managerId, matchup.away.managerId].includes(event.managerId) : false
-}
-
-export const playerGroupsForTeam = (team: TeamView): PlayerGroup[] => {
-  const activePlayers = team.activePlayers
-  return [
-    {
-      key: 'FWD',
-      label: 'FWD',
-      players: activePlayers.filter((player) => player.position === 'FWD'),
-    },
-    {
-      key: 'MID',
-      label: 'MID',
-      players: activePlayers.filter((player) => player.position === 'MID'),
-    },
-    {
-      key: 'DEF',
-      label: 'DEF',
-      players: activePlayers.filter((player) => player.position === 'DEF'),
-    },
-    {
-      key: 'GKP',
-      label: 'GKP',
-      players: activePlayers.filter((player) => player.position === 'GKP'),
-    },
-    { key: 'BENCH', label: 'Bench', players: team.benchPlayers },
-  ].filter((group) => group.players.length > 0)
 }
 
 export const splitPlayerName = (displayName: string): [string, string] => {

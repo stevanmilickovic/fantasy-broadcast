@@ -88,3 +88,25 @@ production build pass with Node 22. Twelve Chromium smoke checks pass for both b
 modes and manual focus at 390×844, 844×390, 820×1180, 1366×768, 1920×1080 and 3840×2160;
 screenshots reviewed. Browser checks use deterministic API/shirt fixtures; they do not
 exercise the live backend, actual narration playback or OS wake lock permission.
+
+## Step 6
+
+Replaced App.css with feature-owned styles and shared layout, branding, footer and
+player primitives. App's stylesheet entry records the cascade order; responsive rules
+remain beside their features. Removed 166 obsolete selectors, unused animations,
+template icons, unused helpers/types and obsolete broadcast route/reset branches.
+Scene contracts have a dedicated module. Removed all stylesheet `!important` overrides.
+Checkout now renders its existing visible plan copy directly in JSX instead of hiding
+different text and replacing it with CSS-generated content; appearance and plan IDs
+remain unchanged.
+
+Validation: 69 temporary browser comparisons against the original stylesheet passed
+before the checkout markup cleanup; 63 unchanged-markup comparisons passed afterward.
+The comparison checked layout, typography, colors, spacing and control styles across
+routes and six viewports. Formatting, lint, type checking, all 30 unit tests and the
+production build pass. Thirty-three browser workflow checks pass; three mobile/tablet
+administration cases are intentionally skipped because administration targets desktop.
+Reviewed broadcast, checkout and league-team screenshots. CSS output decreased from
+105.66 kB to 91.31 kB. Browser coverage includes public navigation, login/recovery,
+league selection/standings/matchups/teams, player dialogs, checkout consent and desktop
+administration, with mocked APIs.

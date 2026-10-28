@@ -104,9 +104,3 @@ export type RevealLayout = {
   score: RevealRect
   viewportWidth?: number
 }
-
-export type PlayerGroup = {
-  key: string
-  label: string
-  players: PlayerView[]
-}

@@ -1,0 +1,8 @@
+.brand-name {
+  margin-right: auto;
+  color: #fff;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
