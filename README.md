@@ -26,6 +26,44 @@ Fantasy Broadcast Service.md
 - Node.js 22 (minimum 22.12) and npm
 - Maven wrapper is included in `backend/`
 
+## One-command local testing
+
+Run from the repository root (Docker with Compose and OpenSSL are required; Java, Node
+and Maven run inside the image builds):
+
+```bash
+./scripts/test-stack.sh
+```
+
+This compiles and tests the backend, builds the frontend, creates both Docker images,
+and starts MySQL, the API and the web server. Run the same command after editing code
+to rebuild and recreate the containers. The database persists in a dedicated
+`fantasy-broadcast-test` Compose volume, separate from development/production data.
+Build failures stop before the running containers are replaced.
+
+Open **http://localhost:5173**. The API is at **http://localhost:8080**. Ports bind to
+localhost only; MySQL is accessible inside the Compose network. Change `TEST_WEB_PORT`
+and `TEST_BACKEND_PORT` in `.env.testing` if those ports are occupied.
+
+Sign in as **skelolegenda@gmail.com** using `TEST_ADMIN_PASSWORD` from the generated
+`.env.testing` file. This ignored file is created with private permissions on the first
+run; retain it to keep database credentials consistent. The test stack makes this account
+the only administrator on every backend startup, resets its password to the configured
+local password, and rejects promotion of other accounts. Other user and league data is
+preserved. This policy is opt-in; other environments retain their existing admin behavior.
+
+Email delivery and AI narration are disabled in this isolated test setup, so email
+verification/reset flows need separately configured mail delivery. FPL access uses the
+real upstream API. Local development endpoints and league registration are enabled.
+The stack does not import the host's private application configuration.
+
+View logs or stop the stack without removing its database:
+
+```bash
+docker compose --env-file .env.testing -f compose.testing.yaml logs -f backend web
+docker compose --env-file .env.testing -f compose.testing.yaml down
+```
+
 ## Backend
 
 Build and run the backend in one command on Linux/macOS (recommended, from the repository root):

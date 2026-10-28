@@ -7,3 +7,9 @@
 frontend/dist
 data
 *.log
+
+**/application-local.yml
+**/application-local.yaml
+**/application-local.properties
+.env
+.env.*

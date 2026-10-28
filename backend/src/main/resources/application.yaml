@@ -39,6 +39,7 @@ broadcast:
     public-base-url: ${BROADCAST_PUBLIC_BASE_URL:}
     league-registration-enabled: ${BROADCAST_LEAGUE_REGISTRATION_ENABLED:true}
     development-endpoints-enabled: ${BROADCAST_DEVELOPMENT_ENDPOINTS_ENABLED:true}
+    exclusive-initial-admin: ${BROADCAST_EXCLUSIVE_INITIAL_ADMIN:false}
     initial-admin-email: ${BROADCAST_INITIAL_ADMIN_EMAIL:}
     initial-admin-password: ${BROADCAST_INITIAL_ADMIN_PASSWORD:}
   narration:

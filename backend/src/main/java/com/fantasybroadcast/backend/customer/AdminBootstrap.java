@@ -13,7 +13,10 @@ public class AdminBootstrap {
 	@Bean
 	CommandLineRunner createInitialAdmin(AccountService accountService, BroadcastSecurityProperties securityProperties) {
 		return arguments -> {
-			if (securityProperties.getInitialAdminEmail().isBlank() || securityProperties.getInitialAdminPassword().isBlank()) return;
+			if (securityProperties.getInitialAdminEmail().isBlank() || securityProperties.getInitialAdminPassword().isBlank()) {
+				if (securityProperties.isExclusiveInitialAdmin()) throw new IllegalStateException("Exclusive admin mode requires an initial admin email and password.");
+				return;
+			}
 			accountService.ensureInitialAdmin(securityProperties.getInitialAdminEmail(), securityProperties.getInitialAdminPassword());
 		};
 	}

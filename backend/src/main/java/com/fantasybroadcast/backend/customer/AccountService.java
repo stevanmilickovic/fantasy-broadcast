@@ -12,6 +12,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import com.fantasybroadcast.backend.email.BroadcastEmailProperties;
 import com.fantasybroadcast.backend.email.BroadcastEmailService;
 import org.springframework.context.annotation.Profile;
@@ -32,15 +33,17 @@ public class AccountService {
 	private final BroadcastEmailService emailService;
 	private final BroadcastEmailProperties emailProperties;
 	private final SessionService sessionService;
+	private final BroadcastSecurityProperties securityProperties;
 	private final SecureRandom secureRandom = new SecureRandom();
 
 	public AccountService(JdbcTemplate jdbcTemplate, PasswordHasher passwordHasher, BroadcastEmailService emailService,
-			BroadcastEmailProperties emailProperties, SessionService sessionService) {
+			BroadcastEmailProperties emailProperties, SessionService sessionService, BroadcastSecurityProperties securityProperties) {
 		this.jdbcTemplate = jdbcTemplate;
 		this.passwordHasher = passwordHasher;
 		this.emailService = emailService;
 		this.emailProperties = emailProperties;
 		this.sessionService = sessionService;
+		this.securityProperties = securityProperties;
 	}
 
 	public PasswordResetRequest requestPasswordReset(String email) {
@@ -183,6 +186,12 @@ public class AccountService {
 
 	public AdminUser promoteToAdmin(CurrentUser currentUser, long userId) {
 		requireAdmin(currentUser);
+		if (securityProperties.isExclusiveInitialAdmin()) {
+			var target = adminUser(userId);
+			if (!target.email().equalsIgnoreCase(securityProperties.getInitialAdminEmail().trim())) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This environment permits only its configured administrator.");
+			}
+		}
 		var updated = jdbcTemplate.update("update app_user set role = 'ADMIN', updated_at = current_timestamp where id = ?", userId);
 		if (updated == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found.");
 		return adminUser(userId);
@@ -203,10 +212,14 @@ public class AccountService {
 		jdbcTemplate.update("delete from app_user where id = ?", userId);
 	}
 
+	@Transactional
 	public void ensureInitialAdmin(String email, String password) {
 		var existingAdminCount = jdbcTemplate.queryForObject("select count(*) from app_user where role = 'ADMIN'", Long.class);
-		if (existingAdminCount != null && existingAdminCount > 0) return;
+		if (!securityProperties.isExclusiveInitialAdmin() && existingAdminCount != null && existingAdminCount > 0) return;
 		var normalizedEmail = normalizeEmail(email);
+		if (securityProperties.isExclusiveInitialAdmin()) {
+			jdbcTemplate.update("update app_user set role = 'USER', updated_at = current_timestamp where role = 'ADMIN' and email <> ?", normalizedEmail);
+		}
 		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where email = ?", this::mapUser, normalizedEmail);
 		if (users.isEmpty()) {
 			jdbcTemplate.update("insert into app_user (email, display_name, password_hash, role) values (?, ?, ?, 'ADMIN')",
@@ -250,6 +263,7 @@ public class AccountService {
 	}
 
 	private UserRole defaultRegistrationRole() {
+		if (securityProperties.isExclusiveInitialAdmin()) return UserRole.USER;
 		var existingUserCount = jdbcTemplate.queryForObject("select count(*) from app_user", Long.class);
 		return existingUserCount != null && existingUserCount == 0 ? UserRole.ADMIN : UserRole.USER;
 	}

@@ -1,0 +1,78 @@
+name: fantasy-broadcast-test
+
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: fantasy_broadcast
+      MYSQL_USER: fantasy_broadcast
+      MYSQL_PASSWORD: ${TEST_DB_PASSWORD:?Run scripts/test-stack.sh first}
+      MYSQL_ROOT_PASSWORD: ${TEST_DB_ROOT_PASSWORD:?Run scripts/test-stack.sh first}
+    volumes:
+      - test-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u $$MYSQL_USER -D $$MYSQL_DATABASE -e 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    image: fantasy-broadcast-backend:testing
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        APP_VERSION: testing
+    environment:
+      SPRING_PROFILES_ACTIVE: production,db
+      DB_URL: jdbc:mysql://db:3306/fantasy_broadcast
+      DB_USERNAME: fantasy_broadcast
+      DB_PASSWORD: ${TEST_DB_PASSWORD:?Run scripts/test-stack.sh first}
+      BROADCAST_INITIAL_ADMIN_EMAIL: skelolegenda@gmail.com
+      BROADCAST_INITIAL_ADMIN_PASSWORD: ${TEST_ADMIN_PASSWORD:?Run scripts/test-stack.sh first}
+      BROADCAST_EXCLUSIVE_INITIAL_ADMIN: "true"
+      BROADCAST_SECURE_COOKIES: "false"
+      BROADCAST_PUBLIC_BASE_URL: http://localhost:${TEST_WEB_PORT:-5173}
+      BROADCAST_ALLOWED_ORIGIN: http://localhost:${TEST_WEB_PORT:-5173}
+      BROADCAST_LEAGUE_REGISTRATION_ENABLED: "true"
+      BROADCAST_DEVELOPMENT_ENDPOINTS_ENABLED: "true"
+      BROADCAST_EMAIL_ENABLED: "false"
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
+      BROADCAST_NARRATION_ENABLED: "false"
+    ports:
+      - "127.0.0.1:${TEST_BACKEND_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
+    restart: unless-stopped
+
+  web:
+    image: fantasy-broadcast-web:testing
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        APP_VERSION: testing
+    environment:
+      BACKEND_HOST: backend
+    ports:
+      - "127.0.0.1:${TEST_WEB_PORT:-5173}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  test-mysql-data:
