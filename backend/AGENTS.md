@@ -1,5 +1,7 @@
 # Agent Notes
 
+Apply the shared [project guidelines and Ponytail skills](../AGENTS.md).
+
 Prioritize clean, readable, simple code.
 
 - Prefer clarity and maintainability over cleverness or micro-optimizations.
