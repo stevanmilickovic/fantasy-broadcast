@@ -3,6 +3,7 @@ import type { FplLeagueScoring, LeagueDiscoveryState } from '../../shared/fpl/ty
 import { LeagueStandingsTable } from './LeagueStandingsTable'
 import { LeagueTeamsView } from './LeagueTeamsView'
 import { LeagueMatchupsView } from './LeagueMatchupsView'
+import { LeagueInsightsView } from './LeagueInsightsView'
 
 export function LeagueStandingsOverview({
   discovery,
@@ -18,7 +19,10 @@ export function LeagueStandingsOverview({
   navigate: Navigate
 }) {
   const params = new URLSearchParams(search)
-  const tabs = scoringType === 'H2H' ? ['standings', 'teams', 'matchups'] : ['standings', 'teams']
+  const tabs =
+    scoringType === 'H2H'
+      ? ['standings', 'teams', 'matchups', 'insights']
+      : ['standings', 'teams', 'insights']
   const requested = params.get('view') ?? 'standings'
   const mode = tabs.includes(requested) ? requested : 'standings'
   const link = (view: string, entryId?: number, week?: number) =>
@@ -64,6 +68,15 @@ export function LeagueStandingsOverview({
         id={`league-panel-${mode}`}
         aria-labelledby={`league-tab-${mode}`}
       >
+        {mode === 'insights' && (
+          <LeagueInsightsView
+            discovery={discovery}
+            scoringType={scoringType}
+            leagueId={leagueId}
+            teamLink={(id) => link('teams', id)}
+            navigate={navigate}
+          />
+        )}
         {mode === 'standings' && (
           <LeagueStandingsTable
             discovery={discovery}

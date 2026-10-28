@@ -50,7 +50,7 @@ class CustomerLeagueControllerTests {
 		var currentEvent = mock(JsonNode.class);
 		var current = mock(JsonNode.class);
 		var gameweekId = mock(JsonNode.class);
-		var players = java.util.List.of(new FplPlayer(1, "Player", "Test Player", "Club", 1, "MID"));
+		var players = java.util.List.of(new FplPlayer(1, "Player", "Test Player", "Club", 1, "MID", null));
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Test League", FplLeagueType.DRAFT,
 				FplLeagueScoring.H2H, true, false, false, user.id()));
 		when(client.getLeagueDetails(12345)).thenReturn(details);
@@ -67,7 +67,7 @@ class CustomerLeagueControllerTests {
 				java.util.List.of(new FplDraftLeagueEntry(101, 9001, "Test League", "Viewer")), java.util.List.of(), java.util.List.of()));
 		when(mapper.mapEntryEvent(client.getEntryEvent(9001, 2))).thenReturn(mock(com.fantasybroadcast.backend.fpl.FplEntryEvent.class));
 		when(mapper.mapDraftEventLive(client.getDraftEventLive(2))).thenReturn(new FplDraftEventLive(java.util.List.of(), java.util.List.of()));
-		when(mapper.mapPlayers(org.mockito.ArgumentMatchers.any(JsonNode.class))).thenReturn(players);
+		when(mapper.mapDraftPlayers(org.mockito.ArgumentMatchers.any(JsonNode.class), org.mockito.ArgumentMatchers.eq(bootstrap))).thenReturn(players);
 		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
 				client, mapper, new BroadcastSecurityProperties());
 
@@ -110,7 +110,7 @@ class CustomerLeagueControllerTests {
 		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getFantasyPlayerSummary(12)).thenReturn(summary);
 		when(client.getFantasyEventLive(3)).thenReturn(liveRoot);
-		when(mapper.mapPlayers(bootstrap)).thenReturn(java.util.List.of(new FplPlayer(12, "Player", "Test Player", "Club", 1, "MID")));
+		when(mapper.mapPlayers(bootstrap)).thenReturn(java.util.List.of(new FplPlayer(12, "Player", "Test Player", "Club", 1, "MID", null)));
 		when(mapper.mapLivePlayers(liveRoot)).thenReturn(java.util.List.of(livePlayer));
 		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
 				client, mapper, new BroadcastSecurityProperties());

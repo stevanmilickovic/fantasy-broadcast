@@ -6,6 +6,8 @@ public record FplPlayer(
 		String fullName,
 		String premierLeagueClub,
 		int premierLeagueClubId,
-		String position
+		String position,
+		SeasonStats season
 ) {
+	public record SeasonStats(int totalPoints, int goalsScored, int assists, int cleanSheets) { }
 }

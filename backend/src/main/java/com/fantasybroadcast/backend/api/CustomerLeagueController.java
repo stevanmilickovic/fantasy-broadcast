@@ -159,14 +159,15 @@ public class CustomerLeagueController {
 					"This overview is only available for Draft leagues.");
 		}
 		var details = fplClient.getLeagueDetails(league.fplLeagueId());
-		var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic());
+		var bootstrap = fplClient.getFantasyBootstrapStatic();
+		var gameweek = currentGameweek(bootstrap);
 		var entryEvents = new java.util.LinkedHashMap<Long, FplEntryEvent>();
 		for (var entry : fplMapper.mapLeagueDetails(details).entries()) {
 			entryEvents.put((long) entry.entryId(), fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek)));
 		}
 		var livePlayers = fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players();
 		return new DraftLeagueDiscovery(gameweek, details, fplClient.getLeagueElementStatus(league.fplLeagueId()),
-				fplMapper.mapPlayers(fplClient.getDraftBootstrapStatic()), entryEvents, livePlayers);
+				fplMapper.mapDraftPlayers(fplClient.getDraftBootstrapStatic(), bootstrap), entryEvents, livePlayers);
 	}
 
 	@GetMapping("/fpl/shirts")

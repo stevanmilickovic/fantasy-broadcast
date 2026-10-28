@@ -31,10 +31,31 @@ public class FplDraftMapper {
 					(firstName + " " + secondName).trim(),
 					teams.getOrDefault(intValue(element, "team"), ""),
 					intValue(element, "team"),
-					positions.getOrDefault(intValue(element, "element_type"), "")));
+					positions.getOrDefault(intValue(element, "element_type"), ""), seasonStats(element)));
 		}
 
 		return players;
+	}
+
+	public List<FplPlayer> mapDraftPlayers(JsonNode draft, JsonNode fantasy) {
+		var seasonByCode = new HashMap<Integer, FplPlayer.SeasonStats>();
+		for (var element : fantasy.path("elements")) {
+			var season = seasonStats(element);
+			if (intValue(element, "code") > 0 && season != null) seasonByCode.put(intValue(element, "code"), season);
+		}
+		var codeById = new HashMap<Integer, Integer>();
+		for (var element : draft.path("elements")) codeById.put(intValue(element, "id"), intValue(element, "code"));
+		return mapPlayers(draft).stream().map(player -> new FplPlayer(player.id(), player.webName(), player.fullName(),
+				player.premierLeagueClub(), player.premierLeagueClubId(), player.position(),
+				seasonByCode.getOrDefault(codeById.get(player.id()), player.season()))).toList();
+	}
+
+	private FplPlayer.SeasonStats seasonStats(JsonNode element) {
+		for (var field : List.of("total_points", "goals_scored", "assists", "clean_sheets")) {
+			if (!element.path(field).isNumber()) return null;
+		}
+		return new FplPlayer.SeasonStats(intValue(element, "total_points"), intValue(element, "goals_scored"),
+				intValue(element, "assists"), intValue(element, "clean_sheets"));
 	}
 
 	public FplClassicLeague mapClassicLeague(JsonNode standingsRoot, JsonNode matchesRoot) {
@@ -146,11 +167,22 @@ public class FplDraftMapper {
 	private FplLivePlayer mapDraftLivePlayer(JsonNode element, Integer fallbackId) {
 		var id = intValue(element, "id");
 		var totalPoints = sumDraftExplanationPoints(element.path("explain"));
+		var explanations = mapDraftLiveExplanations(element.path("explain"));
 		var stats = element.path("stats").has("total_points")
 				? mapLiveStats(element.path("stats"))
-				: new FplLiveStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, totalPoints);
+				: new FplLiveStats(draftStat(explanations, "minutes"), draftStat(explanations, "goals_scored"),
+						draftStat(explanations, "assists"), draftStat(explanations, "clean_sheets"),
+						draftStat(explanations, "goals_conceded"), draftStat(explanations, "own_goals"),
+						draftStat(explanations, "penalties_saved"), draftStat(explanations, "penalties_missed"),
+						draftStat(explanations, "yellow_cards"), draftStat(explanations, "red_cards"),
+						draftStat(explanations, "saves"), draftStat(explanations, "bonus"), draftStat(explanations, "bps"), totalPoints);
 		return new FplLivePlayer(id == 0 && fallbackId != null ? fallbackId : id,
-				stats, mapDraftLiveExplanations(element.path("explain")));
+				stats, explanations);
+	}
+
+	private int draftStat(List<FplLiveExplanation> explanations, String identifier) {
+		return explanations.stream().flatMap(explanation -> explanation.stats().stream())
+				.filter(stat -> identifier.equals(stat.identifier())).mapToInt(FplLivePointBreakdown::value).sum();
 	}
 
 	private List<FplLiveExplanation> mapDraftLiveExplanations(JsonNode explanations) {
