@@ -5,6 +5,7 @@ import { useQuery } from '../../shared/api/useQuery'
 import type { FplLeagueType } from '../../shared/fpl/types'
 import { createPaddleCheckout, previewLeaguePayment } from '../billing/api'
 import { openPaddleCheckout } from '../billing/paddleCheckout'
+import { MAX_BROADCAST_VIEWERS } from '../broadcast/broadcastLimits'
 export function LeagueCheckoutPage({
   search,
   onNavigate,
@@ -45,8 +46,9 @@ export function LeagueCheckoutPage({
         <span className="kicker">Fantasy Broadcast</span>
         <h1>Bring your league to the broadcast.</h1>
         <p>
-          Choose a monthly plan for this league. Once registered, everyone who follows it in Fantasy
-          Broadcast can watch its live matchday broadcast.
+          Choose a monthly plan for this league. Both plans include up to {MAX_BROADCAST_VIEWERS}{' '}
+          simultaneous broadcast viewers per league. Each open broadcast tab or device counts as one
+          viewer.
         </p>
       </header>
       <section className="checkout-layout">
@@ -104,6 +106,9 @@ export function LeagueCheckoutPage({
                 <Check size={16} /> Live matchday broadcast
               </li>
               <li>
+                <Check size={16} /> Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers
+              </li>
+              <li>
                 <Check size={16} /> League standings and teams
               </li>
             </ul>
@@ -124,6 +129,9 @@ export function LeagueCheckoutPage({
             <ul>
               <li>
                 <Check size={16} /> Live matchday broadcast
+              </li>
+              <li>
+                <Check size={16} /> Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers
               </li>
               <li>
                 <Check size={16} /> League standings and teams

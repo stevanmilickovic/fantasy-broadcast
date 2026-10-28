@@ -23,6 +23,9 @@ test('public navigation, login and password recovery remain usable', async ({ pa
   await screenshot(page, 'welcome')
   await page.getByRole('button', { name: 'Pricing', exact: true }).click()
   await expect(page).toHaveURL('/pricing')
+  await expect(
+    page.locator('.public-plans li').filter({ hasText: '50 simultaneous viewers per league' }),
+  ).toHaveCount(2)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await checkViewport(page)
   await screenshot(page, 'pricing')
@@ -100,6 +103,12 @@ test('registration opens checkout and both plans require policy consent', async 
   ).toBeVisible()
   const standard = page.getByRole('button', { name: 'Choose Standard' })
   const ai = page.getByRole('button', { name: 'Choose AI Broadcaster' })
+  await expect(
+    page.locator('.checkout-plan li').filter({ hasText: '50 simultaneous viewers' }),
+  ).toHaveCount(2)
+  await expect(page.locator('.checkout-heading')).toContainText(
+    'Each open broadcast tab or device counts as one viewer.',
+  )
   await expect(standard).toBeDisabled()
   await expect(ai).toBeDisabled()
   await page.getByRole('checkbox').check()

@@ -55,6 +55,8 @@ public class MockLiveStateService {
 	private static final long STREAM_TIMEOUT = Long.MAX_VALUE;
 	private static final long STEP_INTERVAL_SECONDS = 10L;
 	private static final long LEAGUE_REFRESH_SECONDS = 3600L;
+	// shortcut: slots are process-local; use a shared registry before running multiple backend instances.
+	private static final int MAX_BROADCAST_VIEWERS = 50;
 	private static final String[] TEAM_COLORS = { "#2684ff", "#f04770", "#ffb000", "#24c47e", "#9b59ff", "#ff7a45" };
 
 	private final List<LiveStateResponse> snapshots;
@@ -150,15 +152,10 @@ public class MockLiveStateService {
 		return session.state;
 	}
 
-	public SseEmitter connectStream(long leagueKey) {
-		var emitter = new SseEmitter(STREAM_TIMEOUT);
+	public synchronized SseEmitter connectStream(long leagueKey) {
+		var state = currentState(leagueKey);
 		var listeners = leagueEmitters.computeIfAbsent(leagueKey, unused -> new CopyOnWriteArrayList<>());
-		listeners.add(emitter);
-		emitter.onCompletion(() -> listeners.remove(emitter));
-		emitter.onTimeout(() -> listeners.remove(emitter));
-		emitter.onError(error -> listeners.remove(emitter));
-		send(emitter, currentState(leagueKey));
-		return emitter;
+		return connectStream(listeners, state);
 	}
 
 	public synchronized void stopLeagueSessions() {
@@ -168,6 +165,8 @@ public class MockLiveStateService {
 		leagueSessions.values().forEach(this::cancelNarrationWait);
 		leagueSessions.clear();
 		livePlayerCaches.clear();
+		leagueEmitters.values().forEach(listeners -> listeners.forEach(SseEmitter::complete));
+		leagueEmitters.clear();
 	}
 
 	private synchronized void pollLeagueSessions() {
@@ -423,13 +422,28 @@ public class MockLiveStateService {
 	private record LivePlayerCache(Instant loadedAt, Map<Integer, FplLivePlayer> players, Map<Integer, FplFixture> fixtures) {
 	}
 
-	public SseEmitter connectStream() {
+	public synchronized SseEmitter connectStream() {
+		return connectStream(emitters, currentState());
+	}
+
+	private SseEmitter connectStream(List<SseEmitter> listeners, LiveStateResponse state) {
 		var emitter = new SseEmitter(STREAM_TIMEOUT);
-		emitters.add(emitter);
-		emitter.onCompletion(() -> emitters.remove(emitter));
-		emitter.onTimeout(() -> emitters.remove(emitter));
-		emitter.onError((error) -> emitters.remove(emitter));
-		send(emitter, currentState());
+		emitter.onCompletion(() -> listeners.remove(emitter));
+		emitter.onTimeout(() -> listeners.remove(emitter));
+		emitter.onError(error -> listeners.remove(emitter));
+		if (listeners.size() >= MAX_BROADCAST_VIEWERS) {
+			try {
+				emitter.send(SseEmitter.event().name("broadcast-full").data(
+						"This broadcast has reached its limit of " + MAX_BROADCAST_VIEWERS + " simultaneous viewers. Try again when a space opens."));
+				emitter.complete();
+			}
+			catch (IOException | RuntimeException exception) {
+				emitter.completeWithError(exception);
+			}
+			return emitter;
+		}
+		listeners.add(emitter);
+		send(emitter, state);
 		return emitter;
 	}
 

@@ -1,6 +1,7 @@
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import { PublicHeader } from '../../shared/ui/PublicHeader'
+import { MAX_BROADCAST_VIEWERS } from '../broadcast/broadcastLimits'
 
 type Props = { page: 'pricing' | 'privacy' | 'terms' | 'refunds'; onNavigate: Navigate }
 
@@ -8,7 +9,7 @@ const Seller = () => (
   <p>
     <strong>Seller:</strong> Stevan Milickovic, sole trader
     <br />
-    Podgorica, Donji Kokoti BB, Montenegro
+    Dalmatinska 14, Podgorica, Montenegro
     <br />
     <a href="mailto:fantasybroadcastapp@gmail.com">fantasybroadcastapp@gmail.com</a>
   </p>
@@ -31,8 +32,8 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
       <h1>Choose your matchday broadcast.</h1>
       <p className="public-lead">
         Each subscription registers one FPL league and renews monthly during the Premier League
-        season. Everyone who follows that registered league in Fantasy Broadcast can watch its live
-        broadcast.
+        season. Followers can watch its live broadcast, with up to {MAX_BROADCAST_VIEWERS}{' '}
+        simultaneous viewers per league. Each open broadcast tab or device counts as one viewer.
       </p>
       <div className="public-plans">
         <article>
@@ -43,6 +44,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
           <p>Everything your league needs for a live matchday.</p>
           <ul>
             <li>Live matchday broadcast</li>
+            <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers per league</li>
             <li>League standings and teams</li>
             <li>Fixture and score updates</li>
           </ul>
@@ -56,6 +58,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
           <p>For leagues that want the full commentary experience.</p>
           <ul>
             <li>Everything in Standard</li>
+            <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers per league</li>
             <li>AI match commentary</li>
             <li>Natural voice narration</li>
           </ul>
@@ -77,7 +80,9 @@ function Policy({ page }: { page: 'privacy' | 'terms' | 'refunds' }) {
   return (
     <article className="public-content policy-content">
       <h1>{title}</h1>
-      <p className="policy-date">Effective date: 11 September 2026</p>
+      <p className="policy-date">
+        Effective date: {page === 'terms' ? '29 October 2026' : '11 September 2026'}
+      </p>
       <Seller />
       {page === 'privacy' && <PrivacyPolicy />}
       {page === 'terms' && <TermsOfService />}
@@ -189,9 +194,10 @@ function TermsOfService() {
       <p>
         Each paid subscription is attached to one registered FPL league, not to an individual
         viewer. A registered league’s authorised Fantasy Broadcast followers can access its live
-        broadcast while that subscription is active. The applicable monthly price per league,
-        billing currency, and any taxes are displayed on the Pricing page and confirmed in Paddle
-        checkout before purchase.
+        broadcast while that subscription is active, with a maximum of {MAX_BROADCAST_VIEWERS}{' '}
+        simultaneous viewers per league on either plan. Each open broadcast tab or device counts as
+        one viewer. The applicable monthly price per league, billing currency, and any taxes are
+        displayed on the Pricing page and confirmed in Paddle checkout before purchase.
       </p>
       <p>
         Subscriptions renew monthly during the Premier League season unless cancelled. Paddle is the

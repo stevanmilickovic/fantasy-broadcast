@@ -147,7 +147,7 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
                 {verifyingRegistration
                   ? 'Use a different email'
                   : mode === 'register'
-                    ? 'I already have an account'
+                    ? 'Sign in'
                     : 'Create an account'}
               </button>
             )}
