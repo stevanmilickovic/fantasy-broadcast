@@ -76,24 +76,48 @@ The live pipeline has separate owners:
    inactivity rotates least-recently-shown scenes and periodically shows the leaderboard.
    Normal rotation waits 60 seconds and four idle transitions; comprehensive mocks use
    four seconds and one transition. Manual selection suspends automatic rotation.
-4. `broadcastPlayback.ts` owns pure presentation transitions and total-points snapshot
-   staging. `useBroadcastPresentation` schedules the wipe/reveal and freezes updates
-   until the corresponding notification can be shown. A scene swaps at the 800 ms
-   midpoint of a 1600 ms wipe; its reveal finishes 1900 ms after the swap. The initial
-   scene reveals without a wipe. Manual H2H focus changes synchronize immediately.
-5. `useBroadcastMeasurement` owns DOM refs and reveal geometry for the displayed scene.
-   It measures headings/scores and observes viewport/element resizing. It does not choose
-   scenes, queue events or schedule playback. Reveal-copy components own their typography
-   and text bounds; those measurements stay separate from the playback reducer.
-6. `BroadcastMatchday` selects `HeadToHeadScene` or `TotalPointsScene` and owns player-dialog
-   selection. Scenes compose selectors, pitch/squad views, standings, commentary and
-   reveal overlays using contracts from `sceneTypes.ts`. The welcome demo reuses the
-   scene renderer with its own deterministic playback and scaled reveal measurement.
+4. `broadcastPlayback.ts` owns an atomic displayed snapshot, pending target and guarded
+   transition ID. `useBroadcastPresentation` receives queue/focus requests and keeps
+   newer state behind the event gate. Automatic changes enter `covering`, commit at
+   `covered(id)`, then enter `preparing`; `settled(id)` opens the gate. Manual requests
+   invalidate the previous ID and synchronize immediately. Initial entry prepares under
+   a cover. Old completion callbacks cannot replace a newer manually selected scene.
+5. `useSceneTransition` owns local DOM refs, measurement and the actual WAAPI lifecycle.
+   Empty CSS intro slots establish source rectangles; `broadcastRevealGeometry` calculates
+   uniform inverse transforms from the real text elements' final boxes. Those same nodes
+   hold centrally, then fly to identity transforms without copies or a typography handoff.
+   The fullscreen frame owns the wipe and backdrop, including over its controls and
+   commentary; the embedded demo confines them to its own frame. Cover/uncover use
+   a 480 ms core plus three pieces moving at different paces (up to 648 ms). The
+   wipe title holds for 360 ms, the central names/scores hold for 360 ms and their
+   text flight takes 780 ms. A reducer reveal counter alternates product/league
+   titles independently of manual selections; the live page reads league identity
+   through the existing registered-leagues query. Stacked
+   portrait introductions shrink/spread before rising in separate final lanes. Completion
+   follows animations, not parallel timer guesses. Introducing/landing are driver attributes;
+   the data reducer stays in preparing until settlement. Resize, font changes, visibility,
+   reduced motion and unmount cancel effects and settle or dispose the transaction.
+6. `BroadcastMatchday` selects H2H/total-points presentation and owns the shared player
+   dialog, including league context and focus recovery. Both scenes use `BroadcastFrame`,
+   `BroadcastSquad`, `BroadcastEventRail` and the labeled `LiveStandings` table. Each
+   manager/player instance mounts once across responsive modes. The public demo uses the
+   same presentation/transition code inside an unscaled responsive container, with its own
+   deterministic frame source. Its explicit desktop layout bypasses compact container
+   rules, and public-scoped sizing fits the full pitch into the 16:9 preview. The
+   decorative tilt is temporarily neutralized for synchronous geometry reads and
+   restored before paint, so animation vectors remain in local CSS coordinates.
+   Public layout remains owned by the public feature.
 
 `usePlayerNotification` supplies the same notification/counting state machine to pitch
 and bench players. Pending deltas keep player points frozen until reveal; active events
-count their combined delta, then retain labels for the exit animation. Shared sound
-helpers serialize narration and release audio/object URLs on completion or cancellation.
+count their combined delta, then retain labels for the exit animation. Named point
+changes expand beneath the real player name/points metadata; compact rows reserve
+space for that box so squad height remains stable. Event glow belongs to the metadata
+and jersey shape, not the whole player button. A squad ResizeObserver fits desktop
+jersey height to the available formation rows; compact CSS keeps its existing sizes. Idle snapshots omit historical
+events, preventing their deltas from being subtracted again during idle rotation. `useBroadcastAudio` sounds each event once when its presentation gate opens and the
+event belongs to the displayed focus. Shared sound helpers serialize narration and release
+audio/object URLs on completion or cancellation.
 The broadcast session owns narration cancellation. Wake lock is optional and reacquired
 when the tab becomes visible; it is released when the session unmounts.
 
@@ -107,12 +131,19 @@ queued notification's frozen score.
 feature styles, then shared branding breakpoints/footer rules in an explicit cascade.
 This order is intentional: moving an import can change shared-class overrides.
 Feature CSS uses the existing scoped class names and includes its own breakpoints.
-Shared player metadata/shirt styles serve both league squads and broadcast scenes.
+Shared player metadata/shirt styles serve league squads; broadcast player styles are
+scoped to the broadcast feature. Compact broadcast rules no longer live in administration CSS.
 Checkout copy lives in JSX; CSS controls presentation rather than replacing product text.
 
 Client experiences are checked at phone portrait, short phone landscape, tablet, laptop,
 desktop and TV sizes. Compact H2H broadcasts keep both full squads below the score.
-The welcome demo is hidden on narrow portrait layouts where it cannot remain legible.
+Portrait live broadcasts use two aligned 15-player columns, short landscape uses three
+columns of five rows per club, and wide stages use opposing formations with bench rails.
+Container queries also adapt the embedded demo. Full-fit checks cover 360×640, 375×667,
+390×844, 430×932 and short landscape; smaller/zoomed/oversized-squad cases allow a readable
+scrolling fallback. Commentary occupies a reserved rail with full text/events in a bounded
+dialog; all standings rows are available in their own table scroller. The welcome demo is
+hidden on narrow layouts where it cannot remain legible.
 Administration targets desktop operators. Preserve reduced-motion treatment and keep
 essential controls, current scores and commentary readable at every supported size.
 

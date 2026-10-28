@@ -1,6 +1,7 @@
 # Broadcast redesign: implementation handoff
 
-Status: planned, not implemented. Prepared on 2026-10-28 against `bfbc47c`
+Status: implemented on `broadcast-redesign`; validation notes below. Originally prepared
+on 2026-10-28 against `bfbc47c`
 on `design-upgrades`, after the league workspace redesign. This document is the
 implementation brief for the next coding session. Read `frontend/AGENTS.md` and
 `docs/frontend-architecture.md` first. Follow any newer repository instructions.
@@ -615,7 +616,7 @@ assume browser autoplay permission. Hidden layout copies must never own sound.
 
 Work in this order. Each stage must be reviewable and leave the app usable. The
 following are suggested commit messages matching the repository's imperative
-style; the current request authorizes the plan, not implementation or commits.
+style; implementation was subsequently authorized. No commits were made during implementation.
 
 ### Stage 1 — Establish reliable broadcast fixtures and baselines
 
@@ -827,3 +828,59 @@ implementation stages above are project-specific design decisions.
 > Complete both scoring modes, standings and the shared homepage demo. Validate
 > each stage, document results/deviations, and do not substitute clipping or tiny
 > text for the responsive requirements.
+
+## Implementation results
+
+Broadcast selector chips align with Back and Multi, with their scrollbar below the
+control row. AI commentary uses speaker and sparkle icons without a repeated text
+label; absent commentary has no speaker or placeholder row. Scoring updates and their
+details remain available independently, and an empty update rail is omitted.
+
+The homepage preview now explicitly uses the desktop pitch composition and restores
+its decorative tilt. Preview-specific proportions fit that composition into its 16:9
+frame. Measurement temporarily removes the tilt only for synchronous DOM reads,
+restoring it before paint; live responsive layouts keep their existing behavior.
+
+Latest polish: event light is confined to player metadata and jersey shapes; the
+outer player button remains transparent. Desktop jersey height uses measured formation
+row space, with a modest increase to metadata size and unchanged compact rules. The
+first wipe stage alternates the product title and the registered league name, holding
+the title briefly before unveiling the score introduction.
+
+Follow-up design preferences supersede the original scene-only wipe and rail-only
+event treatment: the wipe/backdrop now span the entire live frame, with three
+decorative pieces moving at different paces. Named player point changes expand below
+the player metadata, within space reserved in compact rows. Idle snapshots discard
+historical events so an idle switch introduces the current score immediately.
+
+Omit colored side rules beside club names and the
+"Fantasy points" caption beneath the H2H score. Completed transition covers must
+be hidden before animation effects are canceled, so their base CSS cannot flash.
+
+All seven stages have been applied. The queue still owns immutable active groups,
+priority, deduplication and its existing ten-second lifetime; the renderer now commits
+whole scene snapshots and lets the actual animation lifecycle open the event gate.
+The old clone/reveal measurement system, collision offsets and duplicate responsive
+player trees have been removed. No dependencies or backend contracts were changed.
+
+The data reducer uses three transaction phases (`idle`, `covering`, `preparing`);
+introducing and landing are local driver attributes. This keeps purely visual phase
+changes from restarting the committed-scene effect. Explicit manual selection settles
+immediately. Text flight is preserved on initial entry and automatic scene changes.
+Standing values render the authoritative displayed snapshot; row reordering animates
+actual rows without a second number-counting state machine. The event rail uses a
+bounded excerpt and a full-update dialog rather than another timed event carousel.
+
+Validation includes unit checks for stale completion rejection, queue freezing,
+large corrections, reduced motion, sound gating and Strict Mode narration cleanup.
+Browser checks sample the actual text flights, node identity, source/landing boxes,
+non-overlap and effect cleanup across all six viewport projects. Both full H2H squads
+fit without scrolling at 360×640, 375×667, 390×844, 430×932 and 844×390; the 667×375
+stress case also fits. Additional cases cover long names, shared Classic player IDs,
+25 standings rows, player-dialog league context and manual interruption. The existing
+league/public/admin browser workflows pass. Exact final check totals are recorded in
+the completion report rather than maintained as another source of truth here.
+
+Real iOS/browser safe-area behavior, actual audio output and physical TV reading
+distance remain unverified in this environment. Browser integration tests use controlled
+fixtures; they do not prove production FPL data or narration-provider delivery.

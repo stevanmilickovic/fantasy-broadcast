@@ -1,15 +1,10 @@
 import type { FplClubShirt } from '../../shared/fpl/types'
-import type { RefObject } from 'react'
-import type {
-  BroadcastFocus,
-  LiveStandingView,
-  LiveStateResponse,
-  MatchupView,
-  RevealLayout,
-  RevealRect,
-} from './types'
+import type { ScenePhase } from './broadcastPlayback'
+import type { BroadcastFocus, LiveStandingView, LiveStateResponse, MatchupView } from './types'
 
 export type BroadcastMatchdayProps = {
+  layout?: 'desktop'
+  leagueName?: string
   leagueId?: number
   shirtCodesOverride?: FplClubShirt[]
   displayLiveState: LiveStateResponse
@@ -22,22 +17,18 @@ export type BroadcastMatchdayProps = {
   automaticFocus: BroadcastFocus
   standings: LiveStandingView[]
   presentation: BroadcastScenePresentation
+  connectionError?: string | null
   onBack: () => void
   onSelectFocus: (focus: BroadcastFocus) => void
+  onToggleStandings: () => void
 }
-
 export type BroadcastScenePresentation = {
-  revealingMatch: boolean
-  revealLayout: RevealLayout | null
-  transitioningToMatch: boolean
+  phase: ScenePhase
+  transitionId: number
+  revealIndex: number
+  covered: (id: number) => void
+  settled: (id: number) => void
   visibleEventId: string | null
-  homeHeadingRef: RefObject<HTMLHeadingElement | null>
-  awayHeadingRef: RefObject<HTMLHeadingElement | null>
-  scoreRef: RefObject<HTMLElement | null>
-  totalTeamNameRef: RefObject<HTMLSpanElement | null>
-  totalHeadingRef: RefObject<HTMLHeadingElement | null>
   showingLiveLeaderboard: boolean
-  leaderboardRevealLayout: RevealRect | null
-  leaderboardHeadingRef: RefObject<HTMLHeadingElement | null>
   holdingPendingUpdates: boolean
 }

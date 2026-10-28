@@ -105,7 +105,7 @@ export function welcomeBroadcastState(frameIndex: number): LiveStateResponse {
     matchup('match-two', teams[2], teams[3]),
   ]
   return {
-    status: { mode: 'LIVE', updatedAt: new Date().toISOString(), message: 'Live demo' },
+    status: { mode: 'DEMO', updatedAt: new Date().toISOString(), message: 'Live demo' },
     sequence: {
       currentStep: frameIndex + 1,
       totalSteps: welcomeDemoFrames.length,

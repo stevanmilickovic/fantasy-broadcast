@@ -33,7 +33,7 @@ export function PlayerDetailsModal({
   const dismiss = () => close(onClose)
 
   useEffect(() => {
-    if (!leagueId) return
+    if (!leagueId || !Number.isSafeInteger(Number(player.id)) || Number(player.id) <= 0) return
     const controller = new AbortController()
     void loadPlayerDetails(leagueId, Number(player.id), gameweek, controller.signal)
       .then((result) => {

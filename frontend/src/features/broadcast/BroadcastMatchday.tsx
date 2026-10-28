@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
 import { HeadToHeadScene } from './HeadToHeadScene'
 import { TotalPointsBroadcast } from './TotalPointsScene'
@@ -7,11 +7,13 @@ import type { BroadcastMatchdayProps } from './sceneTypes'
 export function BroadcastMatchday(props: BroadcastMatchdayProps) {
   const { leagueId, displayLiveState, matchup, presentation } = props
   const { visibleEventId, holdingPendingUpdates } = presentation
+  const playerTrigger = useRef<HTMLElement | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayer | null>(null)
   const selectPlayer = (event: React.MouseEvent<HTMLElement>) => {
     const button =
       event.target instanceof Element ? event.target.closest<HTMLElement>('[data-player-id]') : null
     if (!button) return
+    playerTrigger.current = button
     const id = button.dataset.playerId
     if (id)
       setSelectedPlayer({
@@ -27,7 +29,14 @@ export function BroadcastMatchday(props: BroadcastMatchdayProps) {
       player={selectedPlayer}
       leagueId={leagueId}
       gameweek={displayLiveState.gameweek}
-      onClose={() => setSelectedPlayer(null)}
+      onClose={() => {
+        setSelectedPlayer(null)
+        if (playerTrigger.current?.isConnected) playerTrigger.current.focus()
+        else
+          document
+            .querySelector<HTMLButtonElement>('.broadcast-picker-trigger, .broadcast-auto')
+            ?.focus()
+      }}
     />
   ) : null
   const displayLatestEvent = displayLiveState.events?.[0]

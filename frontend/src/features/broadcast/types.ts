@@ -88,19 +88,3 @@ export type LiveStateResponse = {
 }
 
 export type BroadcastFocus = 'multi' | string
-
-export type RevealRect = {
-  left: number
-  top: number
-  width: number
-  height: number
-  revealX: number
-  revealY: number
-}
-
-export type RevealLayout = {
-  home: RevealRect
-  away: RevealRect
-  score: RevealRect
-  viewportWidth?: number
-}

@@ -151,21 +151,133 @@
   transform: translateX(-5%) rotate(1.35deg);
 }
 .welcome-broadcast-scale {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  transform: scale(0.5);
-  transform-origin: top left;
+  width: 100%;
+  height: 100%;
 }
-.welcome-broadcast-scale > .matchday-page {
+.welcome-broadcast-scale > .broadcast-view {
+  --broadcast-control-height: 26px;
+  --broadcast-scrollbar-space: 6px;
   width: 100%;
   height: 100%;
   min-height: 0;
+  padding: 12px;
+  gap: 8px;
+  grid-template-rows: 28px minmax(0, 1fr) 44px;
 }
-.welcome-broadcast-scale .floating-back {
+.welcome-broadcast-scale .broadcast-back {
   pointer-events: none;
+}
+
+/* A miniature desktop broadcast keeps its pitch composition at the hero's 16:9 size. */
+.welcome-broadcast-scale .broadcast-scene {
+  grid-template-rows: 76px minmax(0, 1fr);
+  --intro-stacked: 0;
+  --intro-name-size: 36;
+  --intro-score-size: 64;
+}
+.welcome-broadcast-scale .broadcast-scene-standings {
+  grid-template-rows: minmax(0, 1fr);
+}
+.welcome-broadcast-scale .broadcast-controls {
+  gap: 6px;
+}
+.welcome-broadcast-scale .broadcast-controls button {
+  min-height: 26px;
+  padding: 0 7px;
+  font-size: 9px;
+  gap: 4px;
+}
+.welcome-broadcast-scale .broadcast-controls svg {
+  width: 11px;
+  height: 11px;
+}
+.welcome-broadcast-scale .broadcast-connection {
+  font-size: 9px;
+}
+.welcome-broadcast-scale .match-chip-track {
+  gap: 4px;
+}
+.welcome-broadcast-scale .match-chip-track button {
+  max-width: 190px;
+}
+.welcome-broadcast-scale .broadcast-scoreboard {
+  gap: 12px;
+  padding: 0 4px 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.6fr) minmax(0, 1fr);
+}
+.welcome-broadcast-scale .broadcast-identity {
+  padding: 0;
+}
+.welcome-broadcast-scale .broadcast-identity h2 {
+  font-size: clamp(14px, 2cqw, 24px);
+}
+.welcome-broadcast-scale .broadcast-identity p {
+  font-size: 10px;
+  margin-top: 2px;
+}
+.welcome-broadcast-scale .broadcast-leading {
+  font-size: 9px;
+  height: 13px;
+}
+.welcome-broadcast-scale .broadcast-score {
+  font-size: clamp(30px, 5cqw, 60px);
+}
+.welcome-broadcast-scale .broadcast-score-cell > span {
+  font-size: 9px;
+}
+.welcome-broadcast-scale .broadcast-h2h-squads {
+  gap: 8px;
+  margin: 0;
+}
+.welcome-broadcast-scale .broadcast-squad {
+  grid-template-columns: minmax(56px, 0.75fr) minmax(0, 4fr);
+  gap: 6px;
+}
+.welcome-broadcast-scale .broadcast-squad[data-side='away'] {
+  grid-template-columns: minmax(0, 4fr) minmax(56px, 0.75fr);
+}
+.welcome-broadcast-scale button.broadcast-player {
+  width: min(calc(25% - 4px), 110px);
+  padding: 2px;
+  font-size: 10px;
+}
+.welcome-broadcast-scale .broadcast-bench .broadcast-player {
+  width: min(95%, 110px);
+}
+.welcome-broadcast-scale .broadcast-player-name {
+  padding: 3px;
+}
+.welcome-broadcast-scale .broadcast-player-points {
+  padding: 3px;
+  min-width: 18px;
+}
+.welcome-broadcast-scale .broadcast-player-main {
+  padding-bottom: 16px;
+}
+.welcome-broadcast-scale .broadcast-player-event {
+  height: 14px;
+  font-size: 8px;
+  padding: 2px;
+}
+.welcome-broadcast-scale .broadcast-bench-label {
+  font-size: 8px;
+}
+.welcome-broadcast-scale .broadcast-event-rail {
+  padding: 4px 8px;
+  grid-template-rows: 12px minmax(0, 1fr);
+  gap: 2px;
+}
+.welcome-broadcast-scale .broadcast-event-line {
+  font-size: 9px;
+}
+.welcome-broadcast-scale .broadcast-caption {
+  font-size: 10px;
+  gap: 4px;
+}
+.welcome-broadcast-scale .broadcast-event-line button,
+.welcome-broadcast-scale .broadcast-caption button {
+  font-size: 9px;
+  padding: 2px;
 }
 
 .welcome-proof {
