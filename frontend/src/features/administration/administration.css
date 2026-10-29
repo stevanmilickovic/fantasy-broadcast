@@ -1036,6 +1036,8 @@
   gap: 10px;
 }
 .administration-page {
+  /* The operator workspace retains its intentionally light controls and surfaces. */
+  color-scheme: only light;
   display: flex;
   flex-direction: column;
   min-height: 100svh;
