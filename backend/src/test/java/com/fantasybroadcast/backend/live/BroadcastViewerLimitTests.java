@@ -54,7 +54,8 @@ class BroadcastViewerLimitTests {
 		doReturn(service.currentState()).when(service).currentState(anyLong());
 		var sessions = new SessionService();
 		session = new Cookie(SessionService.COOKIE_NAME, sessions.create(new CurrentUser(1, "test@example.com", "Viewer", UserRole.ADMIN)));
-		var controller = new LiveStateController(service, sessions, mock(LeagueRegistrationService.class), new BroadcastSecurityProperties());
+		var controller = new LiveStateController(service, sessions, mock(LeagueRegistrationService.class), new BroadcastSecurityProperties(),
+				mock(com.fantasybroadcast.backend.payment.SubscriptionService.class));
 		mvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new ApiExceptionHandler()).build();
 	}
 

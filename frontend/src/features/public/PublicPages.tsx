@@ -261,6 +261,15 @@ function RefundPolicy() {
         Renewal payments are not ordinarily refunded once the new billing period has started, except
         where required by law or where the service was not supplied in conformity with the contract.
       </p>
+      <h2>Plan changes and upgrade payments</h2>
+      <p>
+        Upgrades take effect after successful payment of the prorated price difference for the
+        remaining billing period. Downgrades take effect at the end of the current paid period. Your
+        renewal date stays the same. An upgrade does not restart our voluntary 14-day
+        initial-purchase refund window. Contact us about an upgrade charge if the service was not
+        supplied as agreed or you have another applicable refund right. Your statutory rights and
+        Paddle’s applicable terms are unaffected.
+      </p>
       <h2>Service problems</h2>
       <p>
         If a material paid feature is unavailable or does not substantially conform to these terms,

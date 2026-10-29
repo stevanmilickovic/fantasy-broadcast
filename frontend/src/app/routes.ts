@@ -3,6 +3,7 @@ import type { AuthUser } from '../features/auth/types'
 export type PublicPageName = 'pricing' | 'privacy' | 'terms' | 'refunds'
 export type Route =
   | { page: 'welcome' }
+  | { page: 'payment-link' }
   | { page: 'public'; name: PublicPageName }
   | { page: 'auth'; pathname: string }
   | { page: 'leagues'; pathname: string }
@@ -17,6 +18,7 @@ export function positiveId(value: string | null): number | undefined {
 }
 
 export function resolveRoute(pathname: string, search: string, user: AuthUser | null): Route {
+  if (pathname === '/pay') return { page: 'payment-link' }
   if (pathname === '/reset-password') return { page: 'auth', pathname }
   switch (pathname) {
     case '/pricing':
@@ -39,9 +41,14 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
   }
   if (pathname === '/administration' && user.role === 'ADMIN') return { page: 'administration' }
   if (
-    ['/league', '/leagues', '/leagues/new', '/leagues/checkout', '/account-deletion'].includes(
-      pathname,
-    )
+    [
+      '/league',
+      '/league/subscription',
+      '/leagues',
+      '/leagues/new',
+      '/leagues/checkout',
+      '/account-deletion',
+    ].includes(pathname)
   ) {
     return { page: 'leagues', pathname }
   }

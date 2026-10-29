@@ -1,6 +1,11 @@
 spring:
   application:
     name: backend
+  task:
+    scheduling:
+      pool:
+        # Billing reconciliation may wait on Paddle; access expiry must keep running.
+        size: 2
   config:
     # Maven runs Spring Boot with backend/ as the working directory, while the
     # packaged app is normally launched from the repository root. Support both

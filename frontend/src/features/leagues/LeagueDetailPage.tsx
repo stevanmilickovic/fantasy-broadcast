@@ -7,11 +7,11 @@ import { useQuery } from '../../shared/api/useQuery'
 import type { AuthUser } from '../auth/types'
 import { enablePointChangeSound } from '../broadcast/broadcastSound'
 import {
-  deleteOwnedLeague,
   loadActiveBroadcastSchedules,
   loadClassicLeagueOverview,
   loadDraftLeagueOverview,
   openLeagueBroadcast,
+  unfollowLeague,
 } from './api'
 import { scoringLabel, toLeagueDiscovery } from './leagueData'
 import { LeagueStandingsOverview } from './LeagueStandingsOverview'
@@ -22,13 +22,13 @@ export function LeagueDetailPage({
   search,
   user,
   navigate,
-  onDeleted,
+  onChanged,
 }: {
   league: RegisteredLeague
   search: string
   user: AuthUser
   navigate: Navigate
-  onDeleted: () => void
+  onChanged: () => void
 }) {
   const menuRef = useDismissibleMenus()
   const load = useCallback(
@@ -41,19 +41,17 @@ export function LeagueDetailPage({
   const discovery = useQuery(String(league.id), load)
   const schedules = useQuery('active-broadcasts', loadActiveBroadcastSchedules)
   const opening = useMutation()
-  const deleting = useMutation()
+  const unfollowing = useMutation()
+  const unfollow = async () => {
+    if (await unfollowing.run((signal) => unfollowLeague(league.id, signal))) {
+      onChanged()
+      navigate('/leagues')
+    }
+  }
   const open = async () => {
     enablePointChangeSound()
     if (await opening.run((signal) => openLeagueBroadcast(league.id, signal)))
       navigate(`/broadcast?leagueId=${league.id}`)
-  }
-  const remove = async () => {
-    if (!window.confirm(`Delete ${league.displayName}? This removes it for everyone following it.`))
-      return
-    if (await deleting.run((signal) => deleteOwnedLeague(league.id, signal))) {
-      onDeleted()
-      navigate('/leagues')
-    }
   }
   const active = schedules.data?.[0]
   return (
@@ -78,22 +76,23 @@ export function LeagueDetailPage({
               {opening.busy ? 'Opening broadcast…' : 'Open broadcast'}
             </button>
           )}
-          {league.ownerUserId === user.id && (
-            <details className="league-actions-menu">
-              <summary aria-label="League actions">
-                <Ellipsis size={20} />
-              </summary>
-              <div>
-                <button
-                  className="delete-owned-league"
-                  onClick={() => void remove()}
-                  disabled={deleting.busy}
-                >
-                  Delete my league
-                </button>
-              </div>
-            </details>
-          )}
+          <details className="league-actions-menu">
+            <summary aria-label="League actions">
+              <Ellipsis size={20} />
+            </summary>
+            <div>
+              <button
+                disabled={unfollowing.busy}
+                onClick={() =>
+                  league.ownerUserId === user.id
+                    ? navigate(`/league/subscription?leagueId=${league.id}`)
+                    : void unfollow()
+                }
+              >
+                {league.ownerUserId === user.id ? 'Manage subscription' : 'Remove from my leagues'}
+              </button>
+            </div>
+          </details>
         </div>
       </header>
       <aside className={`league-broadcast-status ${active ? 'available' : ''}`}>
@@ -110,9 +109,9 @@ export function LeagueDetailPage({
           'No broadcast available now'
         )}
       </aside>
-      {(opening.error || deleting.error) && (
+      {(opening.error || unfollowing.error) && (
         <p role="alert" className="discovery-error">
-          {opening.error ?? deleting.error}
+          {opening.error ?? unfollowing.error}
         </p>
       )}
       {discovery.status === 'loading' && (

@@ -15,6 +15,7 @@ import { AdminLeagueRegistry } from './AdminLeagueRegistry'
 import { BroadcastScheduleManager } from './BroadcastScheduleManager'
 import { LeagueDiscoverySummary } from './LeagueDiscoverySummary'
 import { UserAdministration } from './UserAdministration'
+import { BillingRefunds } from './BillingRefunds'
 
 type AdministrationSession = {
   user: AuthUser
@@ -103,6 +104,7 @@ export function AdministrationScreen({
       </header>
 
       <AdminLeagueRegistry onOpenLeague={onOpenLeague} />
+      <BillingRefunds />
       <BroadcastScheduleManager />
       <UserAdministration currentUserId={user.id} />
 

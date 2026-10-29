@@ -29,10 +29,6 @@ export const followLeague = async (
 ): Promise<RegisteredLeague> =>
   (await request(`/api/customer/leagues/${leagueId}/follow`, { signal, method: 'POST' })).json()
 
-export const deleteOwnedLeague = async (leagueId: number, signal?: AbortSignal) => {
-  await request(`/api/customer/leagues/${leagueId}`, { signal, method: 'DELETE' })
-}
-
 export const registerLeague = async (
   fplLeagueId: string,
   leagueType: FplLeagueType,
@@ -70,3 +66,6 @@ export const openLeagueBroadcast = async (
   (
     await request(`/api/customer/leagues/${leagueId}/broadcast/open`, { signal, method: 'POST' })
   ).json()
+export const unfollowLeague = async (leagueId: number, signal?: AbortSignal): Promise<void> => {
+  await request(`/api/customer/leagues/${leagueId}/follow`, { method: 'DELETE', signal })
+}

@@ -206,6 +206,13 @@ public class AccountService {
 		if (users.getFirst().role() == UserRole.ADMIN && adminCount() <= 1) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot delete the last administrator.");
 		}
+		var liveSubscriptions = jdbcTemplate.queryForObject("select count(*) from subscription s join league l on l.id = s.league_id where l.owner_user_id = ? and s.status <> 'canceled'", Integer.class, userId);
+		if (liveSubscriptions != null && liveSubscriptions > 0)
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "End this user's subscriptions in billing before deleting their account. Deleting an account does not cancel Paddle payments.");
+		var unresolvedCheckout = jdbcTemplate.queryForObject("select count(*) from billing_checkout c where c.user_id = ? and (c.transaction_id is null or not exists (select 1 from billing_payment p where p.transaction_id = c.transaction_id))", Integer.class, userId);
+		if (unresolvedCheckout != null && unresolvedCheckout > 0)
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Resolve this user's pending checkout in Paddle before deleting their account.");
+		jdbcTemplate.update("delete from billing_checkout where user_id = ?", userId);
 		jdbcTemplate.update("delete from league where owner_user_id = ?", userId);
 		jdbcTemplate.update("delete from league_registration where user_id = ?", userId);
 		jdbcTemplate.update("delete from pending_user_registration where email = ?", users.getFirst().email());

@@ -120,6 +120,7 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
             totalItems: leagues.length,
           },
         })
+      if (path === '/api/customer/admin/subscriptions') return route.fulfill({ json: [] })
       if (path === '/api/customer/admin/users')
         return route.fulfill({
           json: {

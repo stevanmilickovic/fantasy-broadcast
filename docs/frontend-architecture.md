@@ -10,6 +10,10 @@ Appearance, route URLs, backend contracts and the supported workflows remain com
 screen for that route. `routes.ts` is a pure access/route resolver; `useBrowserNavigation`
 owns push/replace history and back/forward updates. The URL owns page selection.
 Public/pricing/legal pages are available to signed-in users as well as guests.
+`/pay?_ptxn=…` is a public Paddle payment-link page and opens independently of the
+account session request. The billing feature loads only the browser-safe token, validates
+the link and initializes Paddle once per document. Paddle opens the existing transaction;
+server webhooks remain authoritative for entitlement changes.
 
 `features/auth/useAuthSession` owns the signed-in user and sign-out. `useAuthForm`
 models login, registration, email verification, recovery and password reset explicitly.
@@ -31,7 +35,7 @@ user or league changes, isolating event IDs, queued snapshots, timers, audio and
 | `features/public`         | Welcome/demo, pricing and legal pages; deterministic demo fixtures                          |
 | `features/auth`           | Session and authentication workflows, account deletion request                              |
 | `features/leagues`        | Registration/search/follow, league switching, owner deletion, standings, teams and matchups |
-| `features/billing`        | Abortable league preview, policy consent, explicit plan selection and Paddle checkout       |
+| `features/billing`        | Checkout, owner subscription management, price previews and shared billing contracts        |
 | `features/administration` | Independent league/user registries, scheduling, discovery and broadcast controls            |
 | `features/broadcast`      | Live transport, event queue, focus rotation, playback snapshots and scenes                  |
 | `features/players`        | Player-details dialog, current points/history and its API contract                          |
@@ -169,7 +173,12 @@ versions were changed by this refactor.
 ## League workspace design
 
 The customer workspace uses the public site's plum palette with league-scoped styles.
-`LeagueDetailPage` owns identity, broadcast availability and owner actions. Availability
+`LeagueDetailPage` owns identity, broadcast availability and owner actions. Its owner menu
+opens `/league/subscription?leagueId=…`; followers can remove their own registration.
+Billing mutations and payment previews belong to `features/billing`, and administration
+composes `BillingRefunds` for payment review and manually approved refund submissions.
+The backend owns entitlements, effective dates and refund balances. See
+[subscription management](subscriptions.md) for lifecycle rules and Paddle setup. Availability
 request failures stay local so that league data remains usable. The existing broadcast
 opening mutation still gates navigation and initializes sound from the user gesture.
 

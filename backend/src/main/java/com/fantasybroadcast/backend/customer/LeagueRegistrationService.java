@@ -33,9 +33,24 @@ public class LeagueRegistrationService {
 	}
 
 	public RegisteredLeague register(CurrentUser user, long fplLeagueId, FplLeagueType leagueType) {
+		requireRegistrationAllowed(user);
+		if (!user.admin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Use paid checkout to register a league.");
+		return registerLeague(user, fplLeagueId, leagueType);
+	}
+
+	public void requireRegistrationAllowed(CurrentUser user) {
 		if (!securityProperties.canRegisterLeague(user)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "League registration is closed for this test.");
 		}
+	}
+
+	public void requirePurchasingOwner(CurrentUser user, long fplLeagueId, FplLeagueType leagueType) {
+		var league = findLeague(fplLeagueId, leagueType);
+		if (league != null && league.ownerUserId() != user.id())
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "This league already has a purchasing owner. Follow the registered league instead, or contact support.");
+	}
+
+	private RegisteredLeague registerLeague(CurrentUser user, long fplLeagueId, FplLeagueType leagueType) {
 		if (fplLeagueId <= 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "League ID must be positive.");
 		var league = findLeague(fplLeagueId, leagueType);
 		if (league == null) {
@@ -107,14 +122,10 @@ public class LeagueRegistrationService {
 		return leagues.getFirst();
 	}
 
-	@Transactional
-	public void deleteOwned(CurrentUser user, long leagueId) {
-		var deletedRegistrations = jdbcTemplate.update("delete r from league_registration r join league l on l.id = r.league_id where l.id = ? and l.owner_user_id = ?", leagueId, user.id());
-		var deletedLeague = jdbcTemplate.update("delete from league where id = ? and owner_user_id = ?", leagueId, user.id());
-		if (deletedLeague == 0) {
-			if (deletedRegistrations > 0) throw new ResponseStatusException(HttpStatus.CONFLICT, "The league could not be deleted. Please try again.");
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Your league was not found.");
-		}
+	public void unfollow(CurrentUser user, long leagueId) {
+		var league = accessibleLeague(user, leagueId);
+		if (league.ownerUserId() == user.id()) throw new ResponseStatusException(HttpStatus.CONFLICT, "The purchasing owner must manage the subscription instead.");
+		jdbcTemplate.update("delete from league_registration where user_id = ? and league_id = ?", user.id(), leagueId);
 	}
 
 	public RegisteredLeague accessibleLeague(CurrentUser user, long leagueId) {
@@ -157,13 +168,16 @@ public class LeagueRegistrationService {
 	}
 
 	@Transactional
-	public RegisteredLeague registerPaid(long userId, long fplLeagueId, FplLeagueType leagueType, boolean aiBroadcaster) {
+	public RegisteredLeague registerPurchase(long userId, long fplLeagueId, FplLeagueType leagueType) {
+		var existing = findLeague(fplLeagueId, leagueType);
+		if (existing != null && existing.ownerUserId() != userId)
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "This league already belongs to another purchaser. Contact support.");
 		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where id = ?", (resultSet, rowNumber) ->
 				new CurrentUser(resultSet.getLong("id"), resultSet.getString("email"), resultSet.getString("display_name"), UserRole.valueOf(resultSet.getString("role"))), userId);
 		if (users.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The purchasing user was not found.");
-		var league = register(users.getFirst(), fplLeagueId, leagueType);
-		jdbcTemplate.update("update league set service_enabled = true, ai_narration_enabled = ?, voice_narration_enabled = ? where id = ?",
-				aiBroadcaster, aiBroadcaster, league.id());
+		// A verified paid purchase must still be fulfilled if registration closed after checkout.
+		var league = registerLeague(users.getFirst(), fplLeagueId, leagueType);
+		if (existing == null) jdbcTemplate.update("update league set service_enabled = false where id = ?", league.id());
 		return findLeague(fplLeagueId, leagueType);
 	}
 

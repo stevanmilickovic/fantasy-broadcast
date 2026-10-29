@@ -49,9 +49,11 @@ public class CustomerLeagueController {
 	private final FplDraftClient fplClient;
 	private final FplDraftMapper fplMapper;
 	private final BroadcastSecurityProperties securityProperties;
+	private final com.fantasybroadcast.backend.payment.SubscriptionService subscriptions;
 
 	public CustomerLeagueController(SessionService sessionService, LeagueRegistrationService leagueService, BroadcastScheduleService scheduleService,
-			MockLiveStateService liveStateService, FplDraftClient fplClient, FplDraftMapper fplMapper, BroadcastSecurityProperties securityProperties) {
+			MockLiveStateService liveStateService, FplDraftClient fplClient, FplDraftMapper fplMapper, BroadcastSecurityProperties securityProperties,
+			com.fantasybroadcast.backend.payment.SubscriptionService subscriptions) {
 		this.sessionService = sessionService;
 		this.leagueService = leagueService;
 		this.scheduleService = scheduleService;
@@ -59,6 +61,7 @@ public class CustomerLeagueController {
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
 		this.securityProperties = securityProperties;
+		this.subscriptions = subscriptions;
 	}
 
 	@GetMapping("/leagues")
@@ -100,7 +103,13 @@ public class CustomerLeagueController {
 
 	@DeleteMapping("/leagues/{leagueId}")
 	public void deleteOwnedLeague(HttpServletRequest request, @PathVariable @Positive long leagueId) {
-		leagueService.deleteOwned(currentUser(request), leagueId);
+		leagueService.accessibleLeague(currentUser(request), leagueId);
+		throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Manage the league subscription to stop renewal. League deletion is no longer available.");
+	}
+
+	@DeleteMapping("/leagues/{leagueId}/follow")
+	public void unfollowLeague(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+		leagueService.unfollow(currentUser(request), leagueId);
 	}
 
 	@GetMapping("/leagues/{leagueId}/overview")
@@ -226,6 +235,7 @@ public class CustomerLeagueController {
 	@PostMapping("/leagues/{leagueId}/broadcast/open")
 	public LiveStateResponse openBroadcast(HttpServletRequest request, @PathVariable @Positive long leagueId) {
 		var user = currentUser(request);
+		subscriptions.requireBroadcastAccess(user, leagueId);
 		if (scheduleService.activeFor(user).isEmpty()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "There is no active broadcast for this time.");
 		var league = leagueService.accessibleLeague(user, leagueId);
 		return liveStateService.startRealForLeague(league.id(), league.fplLeagueId(), league.leagueType(), league.scoringType(),

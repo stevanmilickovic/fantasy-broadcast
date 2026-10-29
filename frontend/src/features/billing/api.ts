@@ -1,6 +1,10 @@
 import { request } from '../../shared/api/http'
 import type { FplLeagueType } from '../../shared/fpl/types'
 import type { LeaguePaymentPreview, PaddleCheckout } from './types'
+export const loadPaymentConfiguration = async (
+  signal: AbortSignal,
+): Promise<{ clientSideToken: string }> =>
+  (await request('/api/paddle/configuration', { signal })).json()
 export const previewLeaguePayment = async (
   fplLeagueId: string,
   leagueType: FplLeagueType,

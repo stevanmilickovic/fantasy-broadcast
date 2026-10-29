@@ -6,6 +6,12 @@ const user: AuthUser = { id: 1, email: 'user@example.test', displayName: 'User',
 const admin: AuthUser = { ...user, role: 'ADMIN' }
 
 describe('route ownership', () => {
+  it('keeps direct payment links public for every session state', () => {
+    for (const viewer of [null, user, admin])
+      expect(resolveRoute('/pay', '?_ptxn=txn_0123456789abcdefghijklmnop', viewer)).toEqual({
+        page: 'payment-link',
+      })
+  })
   it('protects private pages and preserves password reset links', () => {
     expect(resolveRoute('/league', '?leagueId=42', null)).toEqual({
       page: 'redirect',

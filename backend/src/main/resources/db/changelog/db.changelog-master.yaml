@@ -25,3 +25,5 @@ databaseChangeLog:
       file: db/changelog/changes/012-password-reset-tokens.yaml
   - include:
       file: db/changelog/changes/013-account-deletion-requests.yaml
+  - include:
+      file: db/changelog/changes/014-subscription-management.yaml

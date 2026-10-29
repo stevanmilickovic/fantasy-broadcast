@@ -90,6 +90,24 @@ class SharedBroadcastPollingTests {
 	}
 
 	@Test
+	void expiringOneSubscriptionKeepsTheSharedPollerUntilTheLastLeagueEnds() {
+		start(1, FplLeagueType.DRAFT);
+		start(2, FplLeagueType.DRAFT);
+		var poller = ReflectionTestUtils.getField(service, "leaguePollTask");
+		service.updateLeagueEntitlement(1, false, false);
+		assertThat(ReflectionTestUtils.getField(service, "leaguePollTask")).isSameAs(poller);
+		clearInvocations(client);
+		ReflectionTestUtils.invokeMethod(service, "pollLeagueSessions");
+		verify(client, times(1)).getBroadcastDraftEventLive(1);
+		assertThat(service.currentState(2).sequence().currentStep()).isEqualTo(1);
+		service.updateLeagueEntitlement(2, false, false);
+		assertThat(ReflectionTestUtils.getField(service, "leaguePollTask")).isNull();
+		clearInvocations(client);
+		ReflectionTestUtils.invokeMethod(service, "pollLeagueSessions");
+		verifyNoInteractions(client);
+	}
+
+	@Test
 	void hourlyCompositionRefreshHandlesANewGameweekWithoutInventingNegativePointChanges() {
 		start(1, FplLeagueType.DRAFT);
 		var sessions = ReflectionTestUtils.getField(service, "leagueSessions");

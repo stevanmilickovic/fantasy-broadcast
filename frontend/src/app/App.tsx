@@ -4,6 +4,7 @@ import { AdministrationPage } from '../features/administration/AdministrationPag
 import { AuthScreen } from '../features/auth/AuthScreen'
 import { useAuthSession } from '../features/auth/useAuthSession'
 import { BroadcastPage } from '../features/broadcast/BroadcastPage'
+import { PaymentLinkPage } from '../features/billing/PaymentLinkPage'
 import { CustomerDashboard } from '../features/leagues/CustomerDashboard'
 import { PublicPage } from '../features/public/PublicPages'
 import { WelcomePage } from '../features/public/WelcomePage'
@@ -18,13 +19,15 @@ function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
 export default function App() {
   const { location, navigate } = useBrowserNavigation()
   const session = useAuthSession(navigate)
+  const route = resolveRoute(location.pathname, location.search, session.user)
+  if (route.page === 'payment-link')
+    return <PaymentLinkPage search={location.search} navigate={navigate} />
   if (session.isLoading)
     return (
       <main className="account-shell">
         <p>Checking your session…</p>
       </main>
     )
-  const route = resolveRoute(location.pathname, location.search, session.user)
   switch (route.page) {
     case 'redirect':
       return <Redirect to={route.to} navigate={navigate} />

@@ -1,16 +1,11 @@
 import type { PaddleCheckout } from './types'
+export type PaddleEvent = { name: string }
+type PaddleEventListener = (event: PaddleEvent) => void
 type PaddleApi = {
   Environment: { set: (environment: 'sandbox' | 'production') => void }
-  Initialize: (options: {
-    token: string
-    eventCallback?: (event: { name: string }) => void
-  }) => void
+  Initialize: (options: { token: string; eventCallback?: PaddleEventListener }) => void
   Checkout: {
-    open: (options: {
-      items: Array<{ priceId: string; quantity: number }>
-      customData: Record<string, string | number>
-      settings: { successUrl: string }
-    }) => void
+    open: (options: { transactionId: string; settings: { successUrl: string } }) => void
     close: () => void
   }
 }
@@ -20,6 +15,20 @@ declare global {
   }
 }
 let paddleLoad: Promise<PaddleApi> | null = null
+let initializedToken: string | null = null
+const listeners = new Set<PaddleEventListener>()
+
+export function isPaddleInitialized() {
+  return initializedToken !== null
+}
+
+export function onPaddleEvent(listener: PaddleEventListener) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
 const loadPaddle = () => {
   if (window.Paddle) return Promise.resolve(window.Paddle)
   if (paddleLoad) return paddleLoad
@@ -27,35 +36,62 @@ const loadPaddle = () => {
     const script = document.createElement('script')
     script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
     script.async = true
-    script.onload = () =>
-      window.Paddle ? resolve(window.Paddle) : reject(new Error('Paddle did not load.'))
-    script.onerror = () => reject(new Error('Paddle could not be loaded.'))
+    const failed = () => {
+      window.clearTimeout(timeout)
+      paddleLoad = null
+      script.remove()
+      reject(new Error('Secure checkout could not be loaded. Please reload the page to try again.'))
+    }
+    const timeout = window.setTimeout(failed, 20_000)
+    script.onload = () => {
+      window.clearTimeout(timeout)
+      if (window.Paddle) resolve(window.Paddle)
+      else failed()
+    }
+    script.onerror = failed
     document.head.append(script)
   })
   return paddleLoad
 }
-export const openPaddleCheckout = async (checkout: PaddleCheckout) => {
+
+export async function initializePaddle(clientSideToken: string, signal?: AbortSignal) {
   const paddle = await loadPaddle()
-  paddle.Environment.set(checkout.clientSideToken.startsWith('test_') ? 'sandbox' : 'production')
-  paddle.Initialize({
-    token: checkout.clientSideToken,
-    eventCallback: (event) => {
-      if (event.name !== 'checkout.completed') return
+  signal?.throwIfAborted()
+  if (initializedToken !== null && initializedToken !== clientSideToken)
+    throw new Error('Payment settings changed. Please reload this page.')
+  if (initializedToken === null) {
+    paddle.Environment.set(clientSideToken.startsWith('test_') ? 'sandbox' : 'production')
+    paddle.Initialize({
+      token: clientSideToken,
+      eventCallback: (event) => {
+        for (const listener of listeners) listener(event)
+      },
+    })
+    initializedToken = clientSideToken
+  }
+  return paddle
+}
+
+let stopPurchaseEvents: (() => void) | null = null
+export const openPaddleCheckout = async (checkout: PaddleCheckout, signal?: AbortSignal) => {
+  if (!checkout.transactionId)
+    throw new Error('A payment reference is required. Please refresh checkout.')
+  const paddle = await initializePaddle(checkout.clientSideToken, signal)
+  signal?.throwIfAborted()
+  stopPurchaseEvents?.()
+  stopPurchaseEvents = onPaddleEvent((event) => {
+    if (event.name === 'checkout.completed') {
+      stopPurchaseEvents?.()
+      stopPurchaseEvents = null
       paddle.Checkout.close()
       window.setTimeout(() => window.location.assign('/leagues'), 1500)
-    },
+    } else if (event.name === 'checkout.closed') {
+      stopPurchaseEvents?.()
+      stopPurchaseEvents = null
+    }
   })
   paddle.Checkout.open({
-    items: [{ priceId: checkout.priceId, quantity: 1 }],
-    customData: {
-      application: 'fantasy-broadcast',
-      user_id: checkout.userId,
-      fpl_league_id: checkout.fplLeagueId,
-      league_type: checkout.leagueType,
-      plan: checkout.plan,
-      payment_signature: checkout.paymentSignature,
-      terms_version: '2026-09-11',
-    },
+    transactionId: checkout.transactionId,
     settings: { successUrl: `${window.location.origin}/leagues` },
   })
 }

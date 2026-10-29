@@ -1,5 +1,5 @@
-import { ArrowLeft, Check, CircleCheck } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { ArrowLeft, Check, CircleAlert, CircleCheck } from 'lucide-react'
+import { useCallback, useState, type MouseEvent } from 'react'
 import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
 import type { FplLeagueType } from '../../shared/fpl/types'
@@ -19,22 +19,54 @@ export function LeagueCheckoutPage({
     parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT',
   )
   const [acceptedPolicies, setAcceptedPolicies] = useState(false)
+  const normalizedLeagueId = leagueId.trim()
+  const hasLeagueId = normalizedLeagueId.length > 0
+  const validLeagueId =
+    /^\d+$/.test(normalizedLeagueId) &&
+    Number.isSafeInteger(Number(normalizedLeagueId)) &&
+    Number(normalizedLeagueId) > 0
   const loadPreview = useCallback(
     (signal: AbortSignal) =>
-      leagueId.trim()
-        ? previewLeaguePayment(leagueId.trim(), leagueType, signal)
+      validLeagueId
+        ? previewLeaguePayment(normalizedLeagueId, leagueType, signal)
         : Promise.resolve(null),
-    [leagueId, leagueType],
+    [normalizedLeagueId, validLeagueId, leagueType],
   )
   const previewQuery = useQuery(leagueId + ':' + leagueType, loadPreview)
   const preview = previewQuery.data
   const checkout = useMutation()
-  const error = checkout.error ?? previewQuery.error ?? preview?.validationMessage
+  const leagueError =
+    hasLeagueId && !validLeagueId
+      ? 'Enter a valid, positive FPL league ID.'
+      : (previewQuery.error ?? preview?.validationMessage)
   const leagueIsValid = preview?.registrationEligible === true
+  const leagueName = !hasLeagueId
+    ? 'Enter your league ID'
+    : !validLeagueId
+      ? 'Check your league ID'
+      : previewQuery.status === 'loading'
+        ? 'Looking up your league…'
+        : (preview?.displayName ?? 'League unavailable')
+  const leagueDescription =
+    leagueIsValid && preview
+      ? `${preview.managerCount} managers · ${leagueType === 'DRAFT' ? 'Draft' : 'Classic'} league`
+      : validLeagueId && previewQuery.status === 'loading'
+        ? 'Checking FPL data…'
+        : 'Check the league ID and choose the matching league type.'
+  const canCheckout = leagueIsValid && preview?.checkoutReady && acceptedPolicies && !checkout.busy
+  const navigatePolicy = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return
+    event.preventDefault()
+    onNavigate(event.currentTarget.pathname)
+  }
   const openCheckout = async (plan: 'STANDARD' | 'AI_BROADCASTER') => {
     if (!acceptedPolicies || !preview?.checkoutReady || !leagueIsValid) return
     await checkout.run(async (signal) =>
-      openPaddleCheckout(await createPaddleCheckout(leagueId, leagueType, plan, signal)),
+      openPaddleCheckout(
+        await createPaddleCheckout(normalizedLeagueId, leagueType, plan, signal),
+        signal,
+      ),
     )
   }
   return (
@@ -53,19 +85,28 @@ export function LeagueCheckoutPage({
       </header>
       <section className="checkout-layout">
         <aside className="checkout-league-card">
-          <div>
+          <div className="checkout-league-summary">
             <span className="checkout-eyebrow">Your league</span>
-            <strong>
-              {preview?.displayName ?? 'Looking up your league…'}
+            <div className="checkout-league-name">
+              <strong>{leagueName}</strong>
               {leagueIsValid && (
                 <CircleCheck className="league-verified" size={23} aria-label="League verified" />
               )}
-            </strong>
-            <span>
-              {preview
-                ? `${preview.managerCount} managers · ${leagueType === 'DRAFT' ? 'Draft' : 'Classic'} league`
-                : 'Checking FPL data'}
-            </span>
+              {leagueError && (
+                <CircleAlert className="checkout-league-warning" size={23} aria-hidden="true" />
+              )}
+            </div>
+            <span>{leagueDescription}</span>
+            {leagueError && (
+              <p id="checkout-league-error" className="checkout-league-error" role="alert">
+                {leagueError}
+              </p>
+            )}
+            {previewQuery.error && (
+              <button type="button" className="checkout-retry" onClick={previewQuery.refresh}>
+                Try verification again
+              </button>
+            )}
           </div>
           <div className="checkout-league-controls">
             <label htmlFor="payment-league-id-professional">FPL league ID</label>
@@ -73,28 +114,43 @@ export function LeagueCheckoutPage({
               <input
                 id="payment-league-id-professional"
                 inputMode="numeric"
+                aria-invalid={Boolean(leagueError)}
+                aria-describedby={leagueError ? 'checkout-league-error' : undefined}
+                disabled={checkout.busy}
                 value={leagueId}
-                onChange={(event) => setLeagueId(event.target.value)}
+                onChange={(event) => {
+                  checkout.reset()
+                  setLeagueId(event.target.value)
+                }}
               />
             </div>
-            <div className="checkout-league-types" role="radiogroup">
+            <div className="checkout-league-types" role="group" aria-label="League type">
               <button
                 type="button"
                 className={leagueType === 'DRAFT' ? 'selected' : ''}
-                onClick={() => setLeagueType('DRAFT')}
+                aria-pressed={leagueType === 'DRAFT'}
+                disabled={checkout.busy}
+                onClick={() => {
+                  checkout.reset()
+                  setLeagueType('DRAFT')
+                }}
               >
                 Draft
               </button>
               <button
                 type="button"
                 className={leagueType === 'CLASSIC' ? 'selected' : ''}
-                onClick={() => setLeagueType('CLASSIC')}
+                aria-pressed={leagueType === 'CLASSIC'}
+                disabled={checkout.busy}
+                onClick={() => {
+                  checkout.reset()
+                  setLeagueType('CLASSIC')
+                }}
               >
                 Classic
               </button>
             </div>
           </div>
-          {error && <p className="discovery-error">{error}</p>}
         </aside>
         <section className="checkout-plans" aria-label="Broadcast plans">
           <article className="checkout-plan">
@@ -115,15 +171,13 @@ export function LeagueCheckoutPage({
             <button
               type="button"
               onClick={() => void openCheckout('STANDARD')}
-              disabled={
-                !leagueIsValid || !preview?.checkoutReady || !acceptedPolicies || checkout.busy
-              }
+              disabled={!canCheckout}
             >
               Choose Standard
             </button>
           </article>
           <article className="checkout-plan featured">
-            <span className="plan-badge">AI Commentator</span>
+            <span className="plan-badge">AI Broadcaster</span>
             <h2>€14.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>
@@ -143,39 +197,43 @@ export function LeagueCheckoutPage({
             <button
               type="button"
               onClick={() => void openCheckout('AI_BROADCASTER')}
-              disabled={
-                !leagueIsValid || !preview?.checkoutReady || !acceptedPolicies || checkout.busy
-              }
+              disabled={!canCheckout}
             >
               Choose AI Broadcaster
             </button>
           </article>
         </section>
       </section>
-      {preview && !preview.checkoutReady && (
-        <p className="checkout-notice">
-          Checkout is being prepared. Add the Paddle sandbox credentials and price IDs to enable
-          secure payment testing.
+      {checkout.error && (
+        <p className="checkout-notice checkout-payment-error" role="alert">
+          {checkout.error}
         </p>
       )}
-      <label className="checkout-consent">
+      {leagueIsValid && !preview?.checkoutReady && (
+        <p className="checkout-notice" role="status">
+          New league registrations are temporarily unavailable. Please try again later.
+        </p>
+      )}
+      <div className="checkout-consent">
         <input
+          id="checkout-policy-consent"
           type="checkbox"
+          disabled={checkout.busy}
           checked={acceptedPolicies}
           onChange={(event) => setAcceptedPolicies(event.target.checked)}
         />
-        <span>
+        <label htmlFor="checkout-policy-consent">
           By continuing, you agree to our{' '}
-          <button type="button" onClick={() => onNavigate('/terms')}>
+          <a href="/terms" onClick={navigatePolicy}>
             Terms of Service
-          </button>{' '}
+          </a>{' '}
           and acknowledge our{' '}
-          <button type="button" onClick={() => onNavigate('/privacy')}>
+          <a href="/privacy" onClick={navigatePolicy}>
             Privacy Policy
-          </button>
+          </a>
           .
-        </span>
-      </label>
+        </label>
+      </div>
       <p className="checkout-security">
         Secure payment powered by Paddle · Your card details never reach Fantasy Broadcast · Final
         price and any applicable taxes are shown before you pay

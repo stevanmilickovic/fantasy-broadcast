@@ -177,6 +177,22 @@ public class MockLiveStateService {
 		}
 	}
 
+	public synchronized void updateLeagueEntitlement(long leagueKey, boolean enabled, boolean ai) {
+		var session = leagueSessions.get(leagueKey);
+		if (session == null) return;
+		if (!enabled) {
+			cancelNarrationWait(session);
+			leagueSessions.remove(leagueKey);
+			var listeners = leagueEmitters.remove(leagueKey);
+			if (listeners != null) listeners.forEach(SseEmitter::complete);
+			if (leagueSessions.isEmpty()) stopLeagueSessions();
+		} else {
+			session.aiNarrationEnabled = ai;
+			session.voiceNarrationEnabled = ai;
+			if (!ai) cancelNarrationWait(session);
+		}
+	}
+
 	private void pollLeagueSession(long leagueKey, long fplLeagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
 		synchronized (this) {
 			var session = leagueSessions.get(leagueKey);

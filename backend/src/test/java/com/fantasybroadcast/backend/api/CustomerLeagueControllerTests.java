@@ -69,7 +69,7 @@ class CustomerLeagueControllerTests {
 		when(mapper.mapDraftEventLive(client.getDraftEventLive(2))).thenReturn(new FplDraftEventLive(java.util.List.of(), java.util.List.of()));
 		when(mapper.mapDraftPlayers(org.mockito.ArgumentMatchers.any(JsonNode.class), org.mockito.ArgumentMatchers.eq(bootstrap))).thenReturn(players);
 		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
-				client, mapper, new BroadcastSecurityProperties());
+				client, mapper, new BroadcastSecurityProperties(), mock(com.fantasybroadcast.backend.payment.SubscriptionService.class));
 
 		var overview = controller.draftLeagueOverview(request, 41);
 
@@ -83,7 +83,7 @@ class CustomerLeagueControllerTests {
 	@Test
 	void rejectsAnUnauthenticatedDraftOverviewRequestBeforeCallingFpl() {
 		var controller = new CustomerLeagueController(new SessionService(), mock(LeagueRegistrationService.class), mock(BroadcastScheduleService.class),
-				mock(MockLiveStateService.class), mock(FplDraftClient.class), mock(FplDraftMapper.class), new BroadcastSecurityProperties());
+				mock(MockLiveStateService.class), mock(FplDraftClient.class), mock(FplDraftMapper.class), new BroadcastSecurityProperties(), mock(com.fantasybroadcast.backend.payment.SubscriptionService.class));
 
 		assertThatThrownBy(() -> controller.draftLeagueOverview(new MockHttpServletRequest(), 41))
 				.isInstanceOf(ResponseStatusException.class)
@@ -113,7 +113,7 @@ class CustomerLeagueControllerTests {
 		when(mapper.mapPlayers(bootstrap)).thenReturn(java.util.List.of(new FplPlayer(12, "Player", "Test Player", "Club", 1, "MID", null)));
 		when(mapper.mapLivePlayers(liveRoot)).thenReturn(java.util.List.of(livePlayer));
 		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
-				client, mapper, new BroadcastSecurityProperties());
+				client, mapper, new BroadcastSecurityProperties(), mock(com.fantasybroadcast.backend.payment.SubscriptionService.class));
 
 		var details = controller.playerDetails(request, 41, 12, 3);
 

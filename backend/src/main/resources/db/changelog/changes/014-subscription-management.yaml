@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-subscription-management
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE subscription ADD COLUMN ai_access_until TIMESTAMP NULL;
+              ALTER TABLE subscription ADD COLUMN cancel_at TIMESTAMP NULL;
+              ALTER TABLE subscription ADD COLUMN past_due_since TIMESTAMP NULL;
+              ALTER TABLE subscription ADD COLUMN provider_updated_at TIMESTAMP(6) NULL;
+              ALTER TABLE subscription ADD COLUMN synced_at TIMESTAMP NULL;
+              ALTER TABLE subscription ADD COLUMN refund_ends_access BOOLEAN NOT NULL DEFAULT FALSE;
+              CREATE UNIQUE INDEX ux_subscription_provider_id ON subscription (billing_subscription_id);
+              CREATE TABLE billing_event (event_id VARCHAR(100) PRIMARY KEY, processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
+              CREATE TABLE billing_operation (
+                id VARCHAR(36) PRIMARY KEY, active_scope VARCHAR(160) UNIQUE,
+                scope VARCHAR(160) NOT NULL, actor_id BIGINT NOT NULL,
+                fingerprint VARCHAR(64) NOT NULL, request_data TEXT NOT NULL, status VARCHAR(40) NOT NULL,
+                provider_id VARCHAR(100), result TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+              );
+              CREATE TABLE billing_checkout (
+                source_key VARCHAR(100) PRIMARY KEY, user_id BIGINT NOT NULL,
+                operation_id VARCHAR(36) NOT NULL, transaction_id VARCHAR(100), plan_code VARCHAR(80) NOT NULL
+              );
+              CREATE TABLE billing_payment (
+                transaction_id VARCHAR(100) PRIMARY KEY, subscription_id VARCHAR(160) NOT NULL,
+                origin VARCHAR(80) NOT NULL, status VARCHAR(40) NOT NULL,
+                currency_code VARCHAR(3) NOT NULL, total BIGINT NOT NULL,
+                paid_at TIMESTAMP NOT NULL, snapshot TEXT NOT NULL
+              );
+              CREATE INDEX ix_billing_payment_subscription ON billing_payment (subscription_id, paid_at);
+              CREATE TABLE billing_refund (
+                adjustment_id VARCHAR(100) PRIMARY KEY, transaction_id VARCHAR(100) NOT NULL,
+                subscription_id VARCHAR(160) NOT NULL, status VARCHAR(40) NOT NULL,
+                amount BIGINT NOT NULL, currency_code VARCHAR(3) NOT NULL,
+                reason VARCHAR(1000) NOT NULL, ends_access BOOLEAN NOT NULL DEFAULT FALSE,
+                provider_updated_at TIMESTAMP(6) NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+              );

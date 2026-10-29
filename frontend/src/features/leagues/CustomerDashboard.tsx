@@ -6,6 +6,7 @@ import { LegalFooter } from '../../shared/ui/LegalFooter'
 import { AccountDeletionPage } from '../auth/AccountDeletionPage'
 import type { AuthUser } from '../auth/types'
 import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
+import { SubscriptionPage } from '../billing/SubscriptionPage'
 import { loadRegisteredLeagues } from './api'
 import { CustomerNavigation } from './CustomerNavigation'
 import { LeagueDetailPage } from './LeagueDetailPage'
@@ -34,7 +35,8 @@ export function CustomerDashboard({
     if (pathname === '/leagues') {
       if (leagues.length === 0) onNavigate('/leagues/new', true)
       else if (leagues.length === 1) onNavigate(`/league?leagueId=${leagues[0].id}`, true)
-    } else if (pathname === '/league' && !selectedLeague) onNavigate('/leagues', true)
+    } else if ((pathname === '/league' || pathname === '/league/subscription') && !selectedLeague)
+      onNavigate('/leagues', true)
   }, [leagues, pathname, selectedLeague, onNavigate])
   return (
     <main className="customer-shell">
@@ -69,7 +71,15 @@ export function CustomerDashboard({
           search={search}
           user={user}
           navigate={onNavigate}
-          onDeleted={query.refresh}
+          onChanged={query.refresh}
+        />
+      )}
+      {pathname === '/league/subscription' && selectedLeague && (
+        <SubscriptionPage
+          key={selectedLeague.id}
+          league={selectedLeague}
+          navigate={onNavigate}
+          onChanged={query.refresh}
         />
       )}
       {pathname === '/account-deletion' && <AccountDeletionPage />}

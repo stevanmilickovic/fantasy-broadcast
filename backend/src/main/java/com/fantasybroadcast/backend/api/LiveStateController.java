@@ -31,13 +31,15 @@ public class LiveStateController {
 	private final SessionService sessionService;
 	private final LeagueRegistrationService leagueService;
 	private final BroadcastSecurityProperties securityProperties;
+	private final com.fantasybroadcast.backend.payment.SubscriptionService subscriptions;
 
 	public LiveStateController(MockLiveStateService liveStateService, SessionService sessionService, LeagueRegistrationService leagueService,
-			BroadcastSecurityProperties securityProperties) {
+			BroadcastSecurityProperties securityProperties, com.fantasybroadcast.backend.payment.SubscriptionService subscriptions) {
 		this.liveStateService = liveStateService;
 		this.sessionService = sessionService;
 		this.leagueService = leagueService;
 		this.securityProperties = securityProperties;
+		this.subscriptions = subscriptions;
 	}
 
 	@GetMapping("/live-state")
@@ -108,7 +110,7 @@ public class LiveStateController {
 			if (!user.admin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required.");
 			return;
 		}
-		leagueService.accessibleLeague(user, leagueId);
+		subscriptions.requireBroadcastAccess(user, leagueId);
 	}
 
 	private void requireDevelopmentEndpoints() {
