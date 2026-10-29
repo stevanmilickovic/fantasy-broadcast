@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0 - 2026-10-29
+
+- Redesigned league selection, standings, teams and matchups with responsive layouts, animated pickers, styled scrolling and clearer winner/loser gradients.
+- Kept club selection within the loaded league workspace while preserving direct links and browser history.
+- Added the Insights tab with owned-player leaderboards, squad output and comparisons between fantasy scoring and H2H standings; corrected Draft entry matching and player-stat mapping.
+- Rebuilt broadcast presentation and transitions around real text elements with measured destinations, cancellation and frozen playback snapshots; fixed idle-score flashes and transition artifacts.
+- Improved broadcast jerseys, player notifications and phone portrait/landscape layouts, retaining jersey sizes in dense formations and animating labels as notifications appear and disappear.
+- Added automatic scrolling through broadcast matchup/club results with interaction pauses, reduced-motion support and scrollbars hidden on phones and revealed on desktop hover.
+- Restored the desktop layout and tilt of the homepage broadcast preview, simplified commentary indicators and removed empty commentary rows.
+- Strengthened browser color-scheme declarations and homepage protection against automatic darkening.
+- Cached FPL league and player data hourly and shared live polling every 10 seconds across active broadcasts, instead of polling separately for each league.
+- Automatically removed completed broadcast schedules and enforced a limit of 50 simultaneous viewers per league, disclosed on pricing and checkout pages.
+- Added subscription management with prorated upgrades, downgrades at renewal, cancellation/resumption, payment-detail updates and invoice access through Paddle.
+- Added administrator payment history and full/partial refund controls, webhook reconciliation, failed-renewal grace periods and off-season cancellation handling.
+- Added direct Paddle payment-link checkout and improved league validation, tooltips, consent alignment and user-facing messages when checkout is unavailable.
+- Simplified the registration screen's sign-in action and updated the business address in privacy, terms and refund policies.
+- Completed the seven-step frontend refactor, established formatting and regression tests, enforced frontend checks in CI and documented architecture and mobile handoff.
+- Added a repeatable local Docker testing stack that rebuilds and restarts the app while preserving the database, with exclusive initial-administrator setup.
+- Expanded project agent guidelines and added the shared Ponytail skills and design plans.
+- Updated Spring Framework to 7.0.9 and Jackson to 3.1.7 to address reported security vulnerabilities.
+
 ## 1.0.1 - 2026-09-14
 
 - Added player details with current-gameweek point changes, photos, and previous-gameweek totals.
