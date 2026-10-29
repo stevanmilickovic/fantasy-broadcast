@@ -91,11 +91,34 @@
   overflow: auto;
   min-width: 0;
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.match-chip-track:hover,
+.match-chip-track:focus-within {
   scrollbar-color: #60456d #201626;
+}
+.match-chip-track::-webkit-scrollbar {
+  height: 6px;
+}
+.match-chip-track::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+.match-chip-track:hover::-webkit-scrollbar-thumb,
+.match-chip-track:focus-within::-webkit-scrollbar-thumb {
+  background: #60456d;
+}
+@media (hover: none), (pointer: coarse) {
+  .match-chip-track {
+    scrollbar-width: none;
+  }
+  .match-chip-track::-webkit-scrollbar {
+    display: none;
+  }
 }
 .match-chip-track button {
   height: var(--broadcast-control-height);
-  max-width: 330px;
+  max-width: min(330px, 100%);
 }
 .match-chip-track button > b {
   white-space: nowrap;
@@ -282,12 +305,14 @@
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
+  overflow: visible;
 }
 .broadcast-bench {
   position: relative;
   grid-column: 1;
   grid-row: 1;
   min-width: 0;
+  overflow: visible;
   border-right: 1px solid var(--broadcast-line);
 }
 .broadcast-bench-label {
@@ -777,23 +802,22 @@
 }
 /* Composition depends on the actual stage container, including the embedded demo. */
 @container (max-width: 1050px) or (max-height: 480px) {
-  :where(.broadcast-view:not([data-layout='desktop']))
-    .broadcast-selectors
-    .broadcast-chip-viewport {
+  :where(.broadcast-view:not([data-layout='desktop'])) .match-chip-track {
+    scrollbar-width: none;
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) .match-chip-track::-webkit-scrollbar {
     display: none;
   }
   :where(.broadcast-view:not([data-layout='desktop']))
     .broadcast-selectors
     .broadcast-picker-trigger {
     display: inline-flex;
-    flex: 1;
+    flex: 0 0 auto;
     min-width: 0;
     justify-content: space-between;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-picker-trigger > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-scene {
     --intro-name-size: 34;

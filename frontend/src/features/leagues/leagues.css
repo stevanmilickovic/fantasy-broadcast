@@ -709,10 +709,10 @@
   font-variant-numeric: tabular-nums;
 }
 .league-matchup-club.winner {
-  --matchup-result-tint: #00ff851c;
+  --matchup-result-tint: #00ff8533;
 }
 .league-matchup-club.loser {
-  --matchup-result-tint: #ff6b851c;
+  --matchup-result-tint: #ff6b8533;
 }
 .league-matchup-club.first-club {
   background: linear-gradient(to top, var(--matchup-result-tint, transparent), transparent 90%);

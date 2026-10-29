@@ -21,13 +21,6 @@ export function BroadcastSquad({
 }) {
   const shirtCodes = useShirtCodes(shirtCodesOverride)
   const squad = useRef<HTMLElement>(null)
-  const maxRows = Math.max(
-    1,
-    team.benchPlayers.length,
-    ...['GKP', 'DEF', 'MID', 'FWD'].map(
-      (position) => team.activePlayers.filter((player) => player.position === position).length,
-    ),
-  )
   useLayoutEffect(() => {
     const element = squad.current
     if (!element) return
@@ -40,7 +33,7 @@ export function BroadcastSquad({
       const narrowestCard = Math.min(...players.map((card) => card.clientWidth))
       const height = Math.max(
         24,
-        Math.min(180, element.clientHeight / maxRows - metadataHeight - 8, narrowestCard * 1.1),
+        Math.min(180, element.clientHeight / 4 - metadataHeight - 8, narrowestCard * 1.1),
       )
       element.style.setProperty('--broadcast-shirt-height', `${height}px`)
     }
@@ -48,7 +41,7 @@ export function BroadcastSquad({
     observer.observe(element)
     resize()
     return () => observer.disconnect()
-  }, [maxRows])
+  }, [])
   const active = [...team.activePlayers].sort(
     (a, b) =>
       ['FWD', 'MID', 'DEF', 'GKP'].indexOf(a.position) -

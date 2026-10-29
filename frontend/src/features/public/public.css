@@ -1,4 +1,6 @@
 .welcome-page {
+  /* Opt out of browser auto-darkening; the homepage paints its own dark palette. */
+  color-scheme: only light;
   min-height: 100vh;
   overflow: hidden;
   color: #fff;

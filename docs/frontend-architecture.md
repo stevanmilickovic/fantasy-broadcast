@@ -120,7 +120,8 @@ changes expand beneath the real player name/points metadata; compact labels are 
 at rest and animate upward as notifications expand, returning as they collapse without
 changing row height. Event glow belongs to the metadata
 and jersey shape, not the whole player button. A squad ResizeObserver fits desktop
-jersey height to the available formation rows; compact jerseys extend beyond their image
+jersey height to a four-row formation; denser formations extend beyond the pitch instead
+of shrinking every jersey. Compact jerseys extend beyond their image
 slots without increasing row height. Idle snapshots omit historical
 events, preventing their deltas from being subtracted again during idle rotation. `useBroadcastAudio` sounds each event once when its presentation gate opens and the
 event belongs to the displayed focus. Shared sound helpers serialize narration and release
@@ -152,6 +153,12 @@ Container queries also adapt the embedded demo. Full-fit checks cover 360×640, 
 scrolling fallback. Commentary occupies a reserved rail with full text/events in a bounded
 dialog; all standings rows are available in their own table scroller. The welcome demo is
 hidden on narrow layouts where it cannot remain legible.
+The matchup/club strip scrolls slowly back and forth with a pause at each end. Hover,
+keyboard focus and touch interaction pause it; reduced motion disables automatic scrolling.
+Its scrollbar appears on desktop hover/focus and stays hidden on compact/touch layouts.
+The homepage opts out of Chromium auto-darkening while painting its own dark palette.
+Samsung Internet's forced dark mode can ignore website color declarations; the browser's
+"Use website dark mode" setting is outside the app's control.
 Administration targets desktop operators. Preserve reduced-motion treatment and keep
 essential controls, current scores and commentary readable at every supported size.
 

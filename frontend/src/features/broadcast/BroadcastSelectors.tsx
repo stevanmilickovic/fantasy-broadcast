@@ -2,6 +2,7 @@ import { Check, ChevronDown, Radio, X } from 'lucide-react'
 import { useId } from 'react'
 import { formatScoreline } from './broadcast'
 import { useDialogMotion } from '../../shared/ui/useDialogMotion'
+import { useResultsAutoScroll } from './useResultsAutoScroll'
 import type { BroadcastFocus, FantasyEventView, MatchupView, TeamView } from './types'
 
 type Choice = { id: string; label: string; score: string }
@@ -41,6 +42,7 @@ export function BroadcastSelectors({
   )
   const { dialog, show, open, closing, close, onClose } = useDialogMotion()
   const titleId = useId()
+  const track = useResultsAutoScroll()
   return (
     <nav
       className="broadcast-selectors"
@@ -56,7 +58,7 @@ export function BroadcastSelectors({
         Multi
       </button>
       <div className="broadcast-chip-viewport">
-        <div className="match-chip-track">
+        <div ref={track} className="match-chip-track">
           {choices.map((choice) => (
             <button
               type="button"
