@@ -1,6 +1,26 @@
 import { expect, test } from '@playwright/test'
 import { broadcastFixture, mockBroadcast } from './broadcastFixtures'
 
+test('every transition piece is off screen before the text finishes landing', async ({ page }) => {
+  await mockBroadcast(page)
+  await page.goto('/broadcast?leagueId=1')
+  const frame = page.locator('.broadcast-view')
+  await expect(frame).toHaveAttribute('data-motion', 'landing')
+  const fragments = await frame.evaluate((root) => {
+    const bounds = root.getBoundingClientRect()
+    return [...root.querySelectorAll('.broadcast-wipe, .broadcast-wipe i')].some((piece) => {
+      const box = piece.getBoundingClientRect()
+      return (
+        box.left < bounds.right - 0.5 &&
+        box.right > bounds.left + 0.5 &&
+        box.top < bounds.bottom - 0.5 &&
+        box.bottom > bounds.top + 0.5
+      )
+    })
+  })
+  expect(fragments).toBe(false)
+})
+
 for (const totalPoints of [false, true]) {
   test(`${totalPoints ? 'total-points' : 'H2H'} covers never flash back during initial or automatic reveal cleanup`, async ({
     page,

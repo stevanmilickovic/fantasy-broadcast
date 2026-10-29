@@ -133,7 +133,6 @@
   max-width: 80%;
 }
 .broadcast-scene {
-  --intro-stacked: 0;
   --intro-name-size: 76;
   --intro-score-size: 136;
   position: relative;
@@ -722,7 +721,6 @@
 .broadcast-wipe {
   z-index: 30;
   background: #201626;
-  border-right: 3px solid var(--broadcast-cyan);
 }
 .broadcast-wipe-title {
   position: absolute;
@@ -798,7 +796,6 @@
     white-space: nowrap;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-scene {
-    --intro-stacked: 1;
     --intro-name-size: 34;
     --intro-score-size: 80;
     grid-template-rows: 86px minmax(0, 1fr);
@@ -899,7 +896,7 @@
     min-height: 24px;
     padding: 0 5px;
     display: grid;
-    grid-template-columns: 18px minmax(0, 1fr);
+    grid-template-columns: 22px minmax(0, 1fr);
     align-items: center;
     gap: 3px;
     border-radius: 3px;
@@ -914,11 +911,20 @@
     height: 20px;
     margin: 0;
   }
+  :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-shirt img,
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-shirt svg {
-    width: 16px;
-    height: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 26px;
+    max-width: none;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-name {
+    align-self: stretch;
+    align-content: center;
     padding: 0;
     background: transparent;
     font-weight: 500;
@@ -935,14 +941,23 @@
     font-size: 13px;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-main {
+    --broadcast-player-event-height: 11px;
     line-height: 1;
     grid-column: 2;
     grid-template-columns: minmax(0, 1fr) auto 23px;
-    padding-bottom: 11px;
+    padding-bottom: 0;
     align-items: center;
+    transition: transform 180ms ease;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-player.has-event:not(.is-leaving)
+    .broadcast-player-main {
+    transform: translateY(calc(var(--broadcast-player-event-height) / -2));
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-event {
-    height: 11px;
+    top: 100%;
+    bottom: auto;
+    height: var(--broadcast-player-event-height);
     font-size: 9px;
     padding: 1px 3px;
     gap: 2px;
@@ -1017,13 +1032,12 @@
     grid-template-columns: minmax(0, 1fr) 22px;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player {
-    grid-template-columns: 16px minmax(0, 1fr);
+    grid-template-columns: 20px minmax(0, 1fr);
   }
 }
 /* A short, wide stage uses five rows per club instead of the tall portrait roster. */
 @container (max-height: 480px) and (min-width: 600px) {
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-scene {
-    --intro-stacked: 0;
     --intro-name-size: 38;
     --intro-score-size: 64;
     grid-template-rows: 58px minmax(0, 1fr);
@@ -1052,17 +1066,14 @@
     display: none;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player {
-    grid-template-columns: minmax(0, 1fr);
     padding: 2px 4px;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-main {
-    grid-column: 1;
     grid-template-columns: minmax(0, 1fr) 20px;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-name {
     font-size: 12px;
   }
-  :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-shirt,
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-status {
     display: none;
   }
@@ -1185,6 +1196,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .broadcast-player-main,
   .broadcast-player-event {
     transition: none;
   }

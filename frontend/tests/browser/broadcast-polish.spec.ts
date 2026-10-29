@@ -22,6 +22,7 @@ test('event light stays on metadata and jersey, and jerseys grow with desktop sp
       metadata: getComputedStyle(metadata).boxShadow,
       jersey: getComputedStyle(shape).filter,
       shirtHeight: shirt.getBoundingClientRect().height,
+      jerseyHeight: shape.getBoundingClientRect().height,
     }
   })
   expect(style.background).toBe('rgba(0, 0, 0, 0)')
@@ -29,7 +30,10 @@ test('event light stays on metadata and jersey, and jerseys grow with desktop sp
   expect(style.jersey).toContain('drop-shadow')
   const viewport = page.viewportSize()!
   if (viewport.width === 1920) expect(style.shirtHeight).toBeGreaterThan(90)
-  if (viewport.width === 390 || viewport.width === 820) expect(style.shirtHeight).toBe(20)
+  if (viewport.width <= 1050) {
+    expect(style.shirtHeight).toBe(20)
+    expect(style.jerseyHeight).toBeGreaterThan(20)
+  }
   await page.screenshot({ path: test.info().outputPath('player-polish.png'), fullPage: true })
 })
 

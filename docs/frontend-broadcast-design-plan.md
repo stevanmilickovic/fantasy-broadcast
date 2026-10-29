@@ -459,29 +459,18 @@ transaction again. Do not use a permanent “already ran” ref that suppresses 
 second setup and leaves the wipe stuck. Driver phase bookkeeping must not cause
 its own preparation effect to recreate the animations on every phase update.
 
-#### E. Prevent crossing text on portrait layouts
+#### E. Direct text flight on portrait layouts
 
-For stacked source slots and side-by-side final header cells, use two movement
-segments on the **same wrapper**, rather than guessing a curved path:
+Use the same direct flight on portrait and wide layouts. The user accepts temporary
+text overlap during travel; do not add a sideways detour or collision offsets:
 
 ```ts
-[
-  { transform: from, offset: 0 },
-  // First shrink and spread horizontally while keeping the source vertical center.
-  { transform: `translate(0px, ${dy}px) scale(1)`, offset: 0.4 },
-  // Then rise in the separate final horizontal lanes.
-  { transform: to, offset: 1 },
-];
+[{ transform: from }, { transform: to }];
 ```
 
-All text elements share segment boundaries and easing. The first segment retains
-the vertical separation of the source slots; the second uses the non-overlapping
-final horizontal cells. Ensure source-slot heights can contain both the scaled
-and final-height boxes (including a long two-line name). This is a layout invariant
-to check, not permission to add corrective offsets. If final composition stacks
-elements instead, use matching separated source lanes and validate the direct path.
-Wide single-row source/final layouts can use a direct two-keyframe flight with
-consistent left-to-right order and no overlapping endpoint boxes.
+All text elements share timing and easing. Preserve the measured source slots and
+final header positions. Endpoint boxes remain separated and inside the scene;
+overlap while flying from stacked portrait slots to the header is intentional.
 
 #### F. Timing and migration contract
 
@@ -773,7 +762,8 @@ The implementation must test the mechanism, not just wait until an overlay disap
    handoff frame. Do not compare only against a newly measured destination that
    might itself have moved incorrectly.
 3. Sample at least 0%, 20%, 40%, 60%, 80% and 100% of flight, plus the central hold.
-   Assert no pair of text boxes overlaps and all remain within scene bounds. Cover
+   Assert text stays within scene bounds and flights are direct. Allow transient
+   overlap from stacked portrait slots; keep endpoint boxes separated. Cover
    two-line names, unusually long names, negative/three-digit scores, all main layout
    modes and the embedded demo after page scrolling. Inspect a real-time recording
    as well: endpoint correctness alone does not establish a premium animation.
@@ -822,7 +812,7 @@ implementation stages above are project-specific design decisions.
 > repository guidelines. Preserve existing queue/scoring contracts and the signature
 > large central names/scores that fly into place. Follow section 5's actual-node
 > inverse-transform recipe: real final layout, empty intro slots, measured rectangles,
-> central hold, collision-free phone lanes, guarded WAAPI completion and cleanup.
+> central hold, direct phone flights, guarded WAAPI completion and cleanup.
 > Replace duplicated text, not the cinematic effect. Do not substitute a simple
 > wipe/fade. Prove both full H2H squads fit the specified phone viewports once settled.
 > Complete both scoring modes, standings and the shared homepage demo. Validate
@@ -830,6 +820,13 @@ implementation stages above are project-specific design decisions.
 > text for the responsive requirements.
 
 ## Implementation results
+
+Phone text now flies directly to its destination, with transient overlap allowed.
+Compact jerseys are larger inside the existing row layout, and names align vertically
+with their points. Compact labels animate upward while notifications expand below,
+then return to their centered position as notifications collapse. The title wipe no
+longer has a cyan right border. Wipe travel uses
+the measured extents of all skewed pieces so no corner remains during text landing.
 
 Broadcast selector chips align with Back and Multi, with their scrollbar below the
 control row. AI commentary uses speaker and sparkle icons without a repeated text
@@ -843,14 +840,14 @@ restoring it before paint; live responsive layouts keep their existing behavior.
 
 Latest polish: event light is confined to player metadata and jersey shapes; the
 outer player button remains transparent. Desktop jersey height uses measured formation
-row space, with a modest increase to metadata size and unchanged compact rules. The
+row space, with a modest increase to metadata size and preserved compact row heights. The
 first wipe stage alternates the product title and the registered league name, holding
 the title briefly before unveiling the score introduction.
 
 Follow-up design preferences supersede the original scene-only wipe and rail-only
 event treatment: the wipe/backdrop now span the entire live frame, with three
 decorative pieces moving at different paces. Named player point changes expand below
-the player metadata, within space reserved in compact rows. Idle snapshots discard
+the player metadata, below the centered labels in compact rows. Idle snapshots discard
 historical events so an idle switch introduces the current score immediately.
 
 Omit colored side rules beside club names and the
@@ -874,7 +871,7 @@ bounded excerpt and a full-update dialog rather than another timed event carouse
 Validation includes unit checks for stale completion rejection, queue freezing,
 large corrections, reduced motion, sound gating and Strict Mode narration cleanup.
 Browser checks sample the actual text flights, node identity, source/landing boxes,
-non-overlap and effect cleanup across all six viewport projects. Both full H2H squads
+direct flight and effect cleanup across all six viewport projects. Both full H2H squads
 fit without scrolling at 360×640, 375×667, 390×844, 430×932 and 844×390; the 667×375
 stress case also fits. Additional cases cover long names, shared Classic player IDs,
 25 standings rows, player-dialog league context and manual interruption. The existing

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { mockBroadcast } from './broadcastFixtures'
 
 for (const totalPoints of [false, true]) {
-  test(`${totalPoints ? 'total-points' : 'H2H'} real text holds, flies without overlap and lands without a handoff`, async ({
+  test(`${totalPoints ? 'total-points' : 'H2H'} real text holds, flies directly and lands without a handoff`, async ({
     page,
   }) => {
     const { errors } = await mockBroadcast(page, totalPoints)
@@ -12,6 +12,8 @@ for (const totalPoints of [false, true]) {
     const saved = await scene.evaluateHandle((root) => {
       const nodes = [...root.querySelectorAll<HTMLElement>('[data-reveal-role]')]
       const effects = nodes.flatMap((node) => node.getAnimations())
+      const slots = [...root.querySelectorAll<HTMLElement>('[data-intro-slot]')]
+      const stacked = slots.length > 1 && Math.abs(slots[0].offsetTop - slots[1].offsetTop) > 1
       const destinations = nodes.map((node) => {
         const effect = node.getAnimations()[0]
         if (!effect) throw new Error('Missing actual-node flight')
@@ -21,43 +23,53 @@ for (const totalPoints of [false, true]) {
         effect.currentTime = savedTime
         return rect
       })
-      return { nodes, effects, destinations }
+      return { nodes, effects, destinations, stacked }
     })
     await expect(scene).toHaveAttribute('data-motion', 'landing')
     for (const progress of [0, 0.2, 0.4, 0.6, 0.8, 0.99]) {
-      const metrics = await saved.evaluate(({ nodes, effects, destinations }, fraction) => {
-        effects.forEach((effect) => {
-          effect.pause()
-          effect.currentTime = 780 * fraction
-        })
-        const rects = nodes.map((node) => node.getBoundingClientRect())
-        const root = nodes[0].closest('.broadcast-scene')!.getBoundingClientRect()
-        return {
-          same: nodes.every((node) => node.isConnected),
-          inside: rects.every(
-            (rect) =>
-              rect.left >= root.left - 1 &&
-              rect.right <= root.right + 1 &&
-              rect.top >= root.top - 1 &&
-              rect.bottom <= root.bottom + 1,
-          ),
-          overlaps: rects.some((a, i) =>
-            rects
-              .slice(i + 1)
-              .some(
-                (b) =>
-                  a.left < b.right - 1 &&
-                  a.right > b.left + 1 &&
-                  a.top < b.bottom - 1 &&
-                  a.bottom > b.top + 1,
-              ),
-          ),
-          grows: rects.some((rect, i) => rect.width > destinations[i].width * 1.2),
-        }
-      }, progress)
+      const metrics = await saved.evaluate(
+        ({ nodes, effects, destinations, stacked }, fraction) => {
+          effects.forEach((effect) => {
+            effect.pause()
+            effect.currentTime = 780 * fraction
+          })
+          const rects = nodes.map((node) => node.getBoundingClientRect())
+          const root = nodes[0].closest('.broadcast-scene')!.getBoundingClientRect()
+          return {
+            same: nodes.every((node) => node.isConnected),
+            direct: effects.every(
+              (effect) =>
+                effect.effect instanceof KeyframeEffect &&
+                effect.effect.getKeyframes().length === 2,
+            ),
+            stacked,
+            inside: rects.every(
+              (rect) =>
+                rect.left >= root.left - 1 &&
+                rect.right <= root.right + 1 &&
+                rect.top >= root.top - 1 &&
+                rect.bottom <= root.bottom + 1,
+            ),
+            overlaps: rects.some((a, i) =>
+              rects
+                .slice(i + 1)
+                .some(
+                  (b) =>
+                    a.left < b.right - 1 &&
+                    a.right > b.left + 1 &&
+                    a.top < b.bottom - 1 &&
+                    a.bottom > b.top + 1,
+                ),
+            ),
+            grows: rects.some((rect, i) => rect.width > destinations[i].width * 1.2),
+          }
+        },
+        progress,
+      )
       expect(metrics.same).toBe(true)
       expect(metrics.inside).toBe(true)
-      expect(metrics.overlaps).toBe(false)
+      expect(metrics.direct).toBe(true)
+      if (!metrics.stacked) expect(metrics.overlaps).toBe(false)
       if (progress === 0) expect(metrics.grows).toBe(true)
     }
     const landing = await saved.evaluate(({ nodes, effects, destinations }) => {
