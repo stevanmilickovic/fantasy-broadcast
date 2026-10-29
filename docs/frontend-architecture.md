@@ -89,12 +89,13 @@ The live pipeline has separate owners:
    The fullscreen frame owns the wipe and backdrop, including over its controls and
    commentary; the embedded demo confines them to its own frame. Cover/uncover use
    a 480 ms core plus three pieces moving at different paces (up to 648 ms). The
-   wipe title holds for 360 ms, the central names/scores hold for 360 ms and their
-   text flight takes 780 ms. A reducer reveal counter alternates product/league
+   wipe travel includes the measured skewed-piece extents, keeping every piece off screen
+   during text landing. The wipe title holds for 360 ms, the central names/scores hold
+   for 360 ms and their text flight takes 780 ms. A reducer reveal counter alternates product/league
    titles independently of manual selections; the live page reads league identity
    through the existing registered-leagues query. Stacked
-   portrait introductions shrink/spread before rising in separate final lanes. Completion
-   follows animations, not parallel timer guesses. Introducing/landing are driver attributes;
+   portrait introductions fly directly to their final cells; overlap during travel is allowed.
+   Completion follows animations, not parallel timer guesses. Introducing/landing are driver attributes;
    the data reducer stays in preparing until settlement. Resize, font changes, visibility,
    reduced motion and unmount cancel effects and settle or dispose the transaction.
 6. `BroadcastMatchday` selects H2H/total-points presentation and owns the shared player
@@ -111,10 +112,12 @@ The live pipeline has separate owners:
 `usePlayerNotification` supplies the same notification/counting state machine to pitch
 and bench players. Pending deltas keep player points frozen until reveal; active events
 count their combined delta, then retain labels for the exit animation. Named point
-changes expand beneath the real player name/points metadata; compact rows reserve
-space for that box so squad height remains stable. Event glow belongs to the metadata
+changes expand beneath the real player name/points metadata; compact labels are centered
+at rest and animate upward as notifications expand, returning as they collapse without
+changing row height. Event glow belongs to the metadata
 and jersey shape, not the whole player button. A squad ResizeObserver fits desktop
-jersey height to the available formation rows; compact CSS keeps its existing sizes. Idle snapshots omit historical
+jersey height to the available formation rows; compact jerseys extend beyond their image
+slots without increasing row height. Idle snapshots omit historical
 events, preventing their deltas from being subtracted again during idle rotation. `useBroadcastAudio` sounds each event once when its presentation gate opens and the
 event belongs to the displayed focus. Shared sound helpers serialize narration and release
 audio/object URLs on completion or cancellation.
@@ -138,7 +141,8 @@ Checkout copy lives in JSX; CSS controls presentation rather than replacing prod
 Client experiences are checked at phone portrait, short phone landscape, tablet, laptop,
 desktop and TV sizes. Compact H2H broadcasts keep both full squads below the score.
 Portrait live broadcasts use two aligned 15-player columns, short landscape uses three
-columns of five rows per club, and wide stages use opposing formations with bench rails.
+columns of five rows per club with jerseys beside the labels, and wide stages use
+opposing formations with bench rails.
 Container queries also adapt the embedded demo. Full-fit checks cover 360×640, 375×667,
 390×844, 430×932 and short landscape; smaller/zoomed/oversized-squad cases allow a readable
 scrolling fallback. Commentary occupies a reserved rail with full text/events in a bounded

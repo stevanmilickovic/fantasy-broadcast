@@ -171,7 +171,6 @@
 /* A miniature desktop broadcast keeps its pitch composition at the hero's 16:9 size. */
 .welcome-broadcast-scale .broadcast-scene {
   grid-template-rows: 76px minmax(0, 1fr);
-  --intro-stacked: 0;
   --intro-name-size: 36;
   --intro-score-size: 64;
 }

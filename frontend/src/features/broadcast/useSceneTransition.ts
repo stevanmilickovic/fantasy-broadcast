@@ -6,6 +6,17 @@ import {
 } from './broadcastRevealGeometry'
 import type { BroadcastScenePresentation } from './sceneTypes'
 
+function measureInFrame<T>(element: HTMLElement, read: () => T): T {
+  const tiltedFrame = element.closest<HTMLElement>('[data-broadcast-tilt]')
+  const previousTransform = tiltedFrame?.style.transform ?? ''
+  if (tiltedFrame) tiltedFrame.style.transform = 'none'
+  try {
+    return read()
+  } finally {
+    if (tiltedFrame) tiltedFrame.style.transform = previousTransform
+  }
+}
+
 export function useSceneTransition(presentation: BroadcastScenePresentation) {
   const root = useRef<HTMLDivElement>(null)
   const { phase, transitionId: id, covered, settled } = presentation
@@ -26,6 +37,14 @@ export function useSceneTransition(presentation: BroadcastScenePresentation) {
       }
     }
     const pieces = [...wipe.querySelectorAll<HTMLElement>('i')]
+    const travel = measureInFrame(element, () => {
+      const frame = wipe.getBoundingClientRect()
+      const edges = pieces.map((piece) => piece.getBoundingClientRect())
+      return {
+        left: Math.max(frame.width, ...edges.map((edge) => edge.right - frame.left)) + 2,
+        right: Math.max(frame.width, ...edges.map((edge) => frame.right - edge.left)) + 2,
+      }
+    })
     let valid = true
     const effects: Animation[] = []
     const animate = (node: HTMLElement, frames: Keyframe[], options: KeyframeAnimationOptions) => {
@@ -84,8 +103,8 @@ export function useSceneTransition(presentation: BroadcastScenePresentation) {
         const core = animate(
           wipe,
           [
-            { transform: covering ? 'translateX(-145%)' : 'translateX(0)' },
-            { transform: covering ? 'translateX(0)' : 'translateX(145%)' },
+            { transform: covering ? `translateX(-${travel.left}px)` : 'translateX(0)' },
+            { transform: covering ? 'translateX(0)' : `translateX(${travel.right}px)` },
           ],
           { duration: timing.cover, easing: REVEAL_EASING },
         )
@@ -107,49 +126,40 @@ export function useSceneTransition(presentation: BroadcastScenePresentation) {
         return
       }
       const nodes = [...element.querySelectorAll<HTMLElement>('[data-reveal-role]')]
-      const stacked = getComputedStyle(stage).getPropertyValue('--intro-stacked').trim() === '1'
-      const measurements = (() => {
-        // Read in local CSS coordinates; the preview's decorative tilt is restored before paint.
-        const tiltedFrame = element.closest<HTMLElement>('[data-broadcast-tilt]')
-        const previousTransform = tiltedFrame?.style.transform ?? ''
-        if (tiltedFrame) tiltedFrame.style.transform = 'none'
-        try {
-          return nodes.map((node) => {
-            const slot = element.querySelector<HTMLElement>(
-              `[data-intro-slot="${node.dataset.revealRole}"]`,
-            )
-            const font = Number.parseFloat(getComputedStyle(node).fontSize)
-            const preferred = Number.parseFloat(
-              getComputedStyle(stage).getPropertyValue(
-                node.dataset.revealRole === 'score' ? '--intro-score-size' : '--intro-name-size',
-              ),
-            )
-            return {
-              node,
-              geometry: slot
-                ? revealTransform(
-                    node.getBoundingClientRect(),
-                    slot.getBoundingClientRect(),
-                    preferred / font,
-                  )
-                : null,
-            }
-          })
-        } finally {
-          if (tiltedFrame) tiltedFrame.style.transform = previousTransform
-        }
-      })()
+      const measurements = measureInFrame(element, () =>
+        nodes.map((node) => {
+          const slot = element.querySelector<HTMLElement>(
+            `[data-intro-slot="${node.dataset.revealRole}"]`,
+          )
+          const font = Number.parseFloat(getComputedStyle(node).fontSize)
+          const preferred = Number.parseFloat(
+            getComputedStyle(stage).getPropertyValue(
+              node.dataset.revealRole === 'score' ? '--intro-score-size' : '--intro-name-size',
+            ),
+          )
+          return {
+            node,
+            geometry: slot
+              ? revealTransform(
+                  node.getBoundingClientRect(),
+                  slot.getBoundingClientRect(),
+                  preferred / font,
+                )
+              : null,
+          }
+        }),
+      )
       if (!measurements.length || measurements.some(({ geometry }) => !geometry)) {
         finish()
         return
       }
       const flights = measurements.map(({ node, geometry }) => {
         if (!geometry) throw new Error('Missing reveal geometry')
-        const frames = [{ transform: geometry.from, offset: 0 }]
-        if (stacked)
-          frames.push({ transform: `translate(0px, ${geometry.dy}px) scale(1)`, offset: 0.4 })
-        frames.push({ transform: 'translate(0px, 0px) scale(1)', offset: 1 })
-        const flight = animate(node, frames, { duration: timing.flight, easing: REVEAL_EASING })
+        const flight = animate(
+          node,
+          [{ transform: geometry.from }, { transform: 'translate(0px, 0px) scale(1)' }],
+          { duration: timing.flight, easing: REVEAL_EASING },
+        )
         flight.pause()
         flight.currentTime = 0
         return flight
