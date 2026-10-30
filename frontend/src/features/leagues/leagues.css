@@ -80,7 +80,8 @@
   margin-left: auto;
 }
 .customer-navigation :is(summary, .profile-menu button),
-.league-header-actions summary {
+.league-header-actions summary,
+.league-actions-menu button {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -114,13 +115,15 @@
   border-radius: 6px;
   box-shadow: 0 12px 32px #0006;
 }
-.customer-navigation details > div button {
+.customer-navigation details > div button,
+.league-actions-menu button {
   width: 100%;
   border: 0;
   text-align: left;
   white-space: normal;
 }
-.customer-navigation details > div button:hover {
+.customer-navigation details > div button:hover,
+.league-actions-menu button:hover {
   background: #25002c;
 }
 .profile-menu strong {
