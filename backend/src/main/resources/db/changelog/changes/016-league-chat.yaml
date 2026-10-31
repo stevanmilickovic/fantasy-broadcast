@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-league-chat
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE league_chat_message (
+                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                league_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
+                send_id VARCHAR(36) NOT NULL, body VARCHAR(1000) NOT NULL,
+                created_at TIMESTAMP(6) NOT NULL,
+                CONSTRAINT uq_chat_send UNIQUE (user_id, send_id),
+                CONSTRAINT fk_chat_league FOREIGN KEY (league_id) REFERENCES league(id) ON DELETE CASCADE,
+                CONSTRAINT fk_chat_user FOREIGN KEY (user_id) REFERENCES app_user(id) ON DELETE CASCADE
+              );
+              CREATE INDEX ix_chat_league_id ON league_chat_message (league_id, id);
+              CREATE INDEX ix_chat_expiry ON league_chat_message (created_at);
+              CREATE INDEX ix_chat_user_time ON league_chat_message (user_id, created_at);

@@ -29,3 +29,5 @@ databaseChangeLog:
       file: db/changelog/changes/014-subscription-management.yaml
   - include:
       file: db/changelog/changes/015-league-privacy.yaml
+  - include:
+      file: db/changelog/changes/016-league-chat.yaml
