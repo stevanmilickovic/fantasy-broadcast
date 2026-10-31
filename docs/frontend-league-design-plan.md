@@ -235,17 +235,20 @@ long previous/future accordion dumps; every supplied historical/future week rema
 Optionally persist the chosen week in the URL alongside `view=matchups`; invalid values fall back
 to the current available week. Classic payloads may contain only the current week.
 
-Each card uses two rows, one per club, with the score aligned at the right. This same composition
-works on phones and makes long names legible. Desktop uses two cards per row when space permits;
-phone uses one. Add manager beneath the club when available. Use a small neutral gameweek/status
-line at the top. Make club names links to their team view; the card itself is not a competing link.
+Each card places clubs on the left and right, with their scores facing each other around a
+centered gradient boundary, without a dash. Allow long club and manager names to wrap. Below
+400px, place names above the centered score pair so both clubs retain readable space on their
+respective sides.
+Desktop uses two cards per row; below 960px use one. Add manager beneath the club when available.
+Keep the gameweek label above the card grid and omit per-card status and winner text. Make club
+names links to their team view; the card itself is not a competing link. Result gradients meet at
+one sharp center boundary between the scores, fading to transparent at the outer sides, top and
+bottom.
 
-Scores are white, 24–28px with tabular numerals. Finished matches can show a subtle green winner
-marker and textual result; draws use a neutral label. Upcoming scores are dashes. Never paint
-the losing score red solely because it is lower. Do not infer “Live” from a nonzero score or from
-an active broadcast schedule. Use “Final” only where `finished` is trustworthy; otherwise use
-neutral gameweek context. The Classic normalization currently supplies `finished: false`, so
-do not manufacture final/live status from that adapter. Preserve confirmed 0–0 results.
+Scores are white, 24–28px with tabular numerals. Finished matches use result gradients; draws
+remain neutral. Upcoming scores are dashes. Never paint the losing score red solely because it
+is lower. Only apply result colors when `finished` is trustworthy; the Classic normalization
+currently supplies `finished: false`. Preserve confirmed 0–0 results.
 
 ## 7. Motion and interaction states
 

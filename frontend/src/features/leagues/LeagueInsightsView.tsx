@@ -82,9 +82,6 @@ export function LeagueInsightsView({
         <div>
           <span className="kicker">Behind the table</span>
           <h2>Your league, in numbers</h2>
-          <p>
-            The players making an impact, the squads delivering, and the stories in the standings.
-          </p>
         </div>
         <span className="league-insights-week">
           <ChartNoAxesCombined size={16} aria-hidden="true" /> {week}

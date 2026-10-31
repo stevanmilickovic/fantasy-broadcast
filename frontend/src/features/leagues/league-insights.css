@@ -11,12 +11,6 @@
 .league-insights-intro h2 {
   margin: 10px 0;
 }
-.league-insights-intro p {
-  max-width: 600px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
-}
 .league-insights-week {
   display: inline-flex;
   flex-shrink: 0;

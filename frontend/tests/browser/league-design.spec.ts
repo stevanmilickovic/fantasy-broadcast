@@ -67,15 +67,130 @@ test('historical gameweeks remain selectable and final zero scores remain visibl
   await page.goto('/league?leagueId=1&view=matchups')
   await page.getByRole('button', { name: 'Previous gameweek' }).click()
   await expect(page).toHaveURL(/week=23/)
-  await expect(page.getByText('Final · Draw')).toBeVisible()
   await expect(page.locator('.league-matchup-club strong')).toHaveText(['0', '0'])
   await page.getByRole('button', { name: 'Gameweek', exact: true }).click()
   await page
     .getByRole('dialog', { name: 'Gameweek', exact: true })
     .getByRole('button', { name: 'Gameweek 25', exact: true })
     .click()
-  await expect(page.getByText('Upcoming', { exact: true })).toBeVisible()
   await expect(page.locator('.league-matchup-club strong')).toHaveText(['—', '—'])
+})
+
+test('matchup cards keep clubs on opposite sides of centered scores', async ({ page }) => {
+  const { errors, unexpectedRequests } = await mockApp(page)
+  await page.route('**/draft-overview', (route) =>
+    route.fulfill({
+      json: {
+        ...welcomeLeagueDiscovery,
+        gameweek: 24,
+        details: {
+          ...welcomeLeagueDiscovery.details,
+          league_entries: welcomeLeagueDiscovery.details.league_entries.map((entry, index) => ({
+            ...entry,
+            entry_name:
+              index === 0 ? 'A very long football club name that stays readable' : entry.entry_name,
+          })),
+          matches: [
+            {
+              id: 1,
+              event: 24,
+              league_entry_1: 1,
+              league_entry_2: 2,
+              league_entry_1_points: 1234,
+              league_entry_2_points: 987,
+              finished: true,
+            },
+            {
+              id: 2,
+              event: 24,
+              league_entry_1: 3,
+              league_entry_2: 4,
+              league_entry_1_points: -1,
+              league_entry_2_points: 0,
+              finished: true,
+            },
+            {
+              id: 3,
+              event: 24,
+              league_entry_1: 1,
+              league_entry_2: 3,
+              league_entry_1_points: 0,
+              league_entry_2_points: 0,
+              finished: true,
+            },
+            {
+              id: 4,
+              event: 24,
+              league_entry_1: 2,
+              league_entry_2: 4,
+              league_entry_1_points: 45,
+              league_entry_2_points: 20,
+              finished: false,
+            },
+          ],
+        },
+      },
+    }),
+  )
+  await page.goto('/league?leagueId=1&view=matchups')
+  const cards = page.locator('.league-matchup-card')
+  await expect(cards).toHaveCount(4)
+  await expect(cards.first().locator('.winner strong')).toHaveText('1234')
+  await expect(cards.nth(1).locator('.winner strong')).toHaveText('0')
+  await expect(cards.locator('header')).toHaveCount(0)
+  await expect(cards.locator('small').filter({ hasText: 'Winner' })).toHaveCount(0)
+  await expect(cards.nth(2).locator('.winner, .loser')).toHaveCount(0)
+  await expect(cards.nth(3).locator('.winner, .loser')).toHaveCount(0)
+  for (const card of await cards.all()) {
+    const positions = await card.evaluate((element) => {
+      const bounds = (selector: string) => {
+        const target = element.querySelector(selector)
+        if (!target) throw new Error(`Missing matchup element: ${selector}`)
+        return target.getBoundingClientRect()
+      }
+      const firstName = bounds('.first-club a')
+      const firstScore = bounds('.first-club strong')
+      const secondName = bounds('.second-club a')
+      const secondScore = bounds('.second-club strong')
+      const card = element.getBoundingClientRect()
+      const center = card.x + card.width / 2
+      return {
+        leftNameBeforeScore:
+          firstName.right <= firstScore.left || firstName.bottom <= firstScore.top,
+        scoresInOrder: firstScore.right <= center && center <= secondScore.left,
+        rightNameAfterScore:
+          secondScore.right <= secondName.left || secondName.bottom <= secondScore.top,
+        scoresAligned: Math.abs(firstScore.y - secondScore.y) < 1,
+        centerOffset: Math.abs((firstScore.right + secondScore.left) / 2 - center),
+        fits: element.scrollWidth <= element.clientWidth,
+      }
+    })
+    expect(positions).toMatchObject({
+      leftNameBeforeScore: true,
+      scoresInOrder: true,
+      rightNameAfterScore: true,
+      scoresAligned: true,
+      fits: true,
+    })
+    expect(positions.centerOffset).toBeLessThan(1)
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: test.info().outputPath('matchup-scorecards.png'), fullPage: true })
+  if (test.info().project.name === 'phone') {
+    await page.setViewportSize({ width: 320, height: 640 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    expect(
+      await cards.evaluateAll((elements) =>
+        elements.every((element) => element.scrollWidth <= element.clientWidth),
+      ),
+    ).toBe(true)
+    await page.screenshot({
+      path: test.info().outputPath('matchup-scorecards-narrow.png'),
+      fullPage: true,
+    })
+  }
+  expect(errors).toEqual([])
+  expect(unexpectedRequests).toEqual([])
 })
 
 test('Classic total points keeps long names and large totals readable, with unsupported tabs rejected', async ({

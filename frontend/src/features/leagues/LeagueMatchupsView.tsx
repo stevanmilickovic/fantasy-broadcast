@@ -78,49 +78,41 @@ export function LeagueMatchupsView({
             const upcoming = !match.finished && week.event > (discovery.gameweek ?? week.event)
             return (
               <article className="league-matchup-card" key={match.id}>
-                <header>
-                  {match.finished
-                    ? points[0] === points[1]
-                      ? 'Final · Draw'
-                      : 'Final'
-                    : upcoming
-                      ? 'Upcoming'
-                      : `Gameweek ${week.event}`}
-                </header>
-                {ids.map((id, side) => {
-                  const entry = discovery.details.league_entries.find(
-                    (entry) => entry.id === id || entry.entry_id === id,
-                  )
-                  const score = points[side]
-                  const opponentScore = points[1 - side]
-                  const decided =
-                    match.finished && score !== undefined && opponentScore !== undefined
-                  const winner = decided && score > opponentScore
-                  const loser = decided && score < opponentScore
-                  return (
-                    <div
-                      className={`league-matchup-club ${winner ? 'winner' : loser ? 'loser' : ''} ${side === 0 ? 'first-club' : 'second-club'}`}
-                      key={side}
-                    >
-                      <div>
-                        {entry ? (
-                          <LeagueTeamLink
-                            href={teamLink(entry.entry_id)}
-                            name={entry.entry_name}
-                            navigate={navigate}
-                          />
-                        ) : (
-                          `Entry ${id ?? 'unavailable'}`
-                        )}
-                        <small>
-                          {entry && managerName(entry.player_first_name, entry.player_last_name)}
-                          {winner && ' · Winner'}
-                        </small>
+                <div className="league-matchup-scoreboard">
+                  {ids.map((id, side) => {
+                    const entry = discovery.details.league_entries.find(
+                      (entry) => entry.id === id || entry.entry_id === id,
+                    )
+                    const score = points[side]
+                    const opponentScore = points[1 - side]
+                    const decided =
+                      match.finished && score !== undefined && opponentScore !== undefined
+                    const winner = decided && score > opponentScore
+                    const loser = decided && score < opponentScore
+                    return (
+                      <div
+                        className={`league-matchup-club ${winner ? 'winner' : loser ? 'loser' : ''} ${side === 0 ? 'first-club' : 'second-club'}`}
+                        key={side}
+                      >
+                        <div>
+                          {entry ? (
+                            <LeagueTeamLink
+                              href={teamLink(entry.entry_id)}
+                              name={entry.entry_name}
+                              navigate={navigate}
+                            />
+                          ) : (
+                            `Entry ${id ?? 'unavailable'}`
+                          )}
+                          <small>
+                            {entry && managerName(entry.player_first_name, entry.player_last_name)}
+                          </small>
+                        </div>
+                        <strong>{upcoming ? '—' : (points[side] ?? '—')}</strong>
                       </div>
-                      <strong>{upcoming ? '—' : (points[side] ?? '—')}</strong>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </article>
             )
           })}
