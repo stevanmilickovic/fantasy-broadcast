@@ -27,3 +27,5 @@ databaseChangeLog:
       file: db/changelog/changes/013-account-deletion-requests.yaml
   - include:
       file: db/changelog/changes/014-subscription-management.yaml
+  - include:
+      file: db/changelog/changes/015-league-privacy.yaml

@@ -51,7 +51,8 @@ public class LiveStateController {
 	@GetMapping(path = "/live-state/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public SseEmitter liveStateStream(HttpServletRequest request, @RequestParam(required = false) Long leagueId) {
 		requireLiveAccess(sessionService.require(request), leagueId);
-		return leagueId == null ? liveStateService.connectStream() : liveStateService.connectStream(leagueId);
+		return leagueId == null ? liveStateService.connectStream() : liveStateService.connectStream(leagueId,
+				() -> requireLiveAccess(sessionService.require(request), leagueId));
 	}
 
 	@PostMapping("/mock-live/start")

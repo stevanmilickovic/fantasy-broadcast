@@ -20,7 +20,7 @@ import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 @Profile("db & !test")
 public class LeagueRegistrationService {
 	private static final int MAX_MANAGERS = 50;
-	private static final String LEAGUE_COLUMNS = "id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, owner_user_id";
+	private static final String LEAGUE_COLUMNS = "id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, private_league, owner_user_id";
 
 	private final JdbcTemplate jdbcTemplate;
 	private final FplDraftClient fplClient;
@@ -75,10 +75,10 @@ public class LeagueRegistrationService {
 			return jdbcTemplate.query("select " + LEAGUE_COLUMNS + " from league order by created_at desc, id desc", this::mapLeague);
 		}
 		return jdbcTemplate.query("""
-				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, l.owner_user_id
-				from league l join league_registration r on r.league_id = l.id
-				where r.user_id = ? order by r.created_at desc
-				""", this::mapLeague, user.id());
+				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, l.private_league, l.owner_user_id
+				from league l left join league_registration r on r.league_id = l.id and r.user_id = ?
+				where r.user_id is not null or l.owner_user_id = ? order by l.created_at desc
+				""", this::mapLeague, user.id(), user.id());
 	}
 
 	public AdminLeaguePage allForAdmin(CurrentUser user, int page, int size, String search) {
@@ -89,7 +89,7 @@ public class LeagueRegistrationService {
 				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.email as owner_email,
 				       group_concat(member.email order by member.email separator ', ') as registered_users, l.created_at
 				from (
-					select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, owner_user_id, created_at
+					select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, private_league, owner_user_id, created_at
 					from league
 					where lower(display_name) like concat('%', lower(?), '%') or cast(fpl_league_id as char) like concat('%', ?, '%')
 					order by created_at desc, id desc limit ? offset ?
@@ -107,20 +107,30 @@ public class LeagueRegistrationService {
 		var searchTerm = query == null ? "" : query.trim();
 		if (searchTerm.isEmpty()) return List.of();
 		return jdbcTemplate.query("""
-				select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, owner_user_id
+				select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, private_league, owner_user_id
 				from league
 				where service_enabled = true and (lower(display_name) like concat('%', lower(?), '%') or cast(fpl_league_id as char) like concat('%', ?, '%'))
 				order by display_name, id limit 20
 				""", this::mapLeague, searchTerm, searchTerm);
 	}
 
-	public RegisteredLeague follow(CurrentUser user, long leagueId) {
-		var leagues = jdbcTemplate.query("select " + LEAGUE_COLUMNS + " from league where id = ? and service_enabled = true",
-				this::mapLeague, leagueId);
+	@Transactional
+	public FollowResult follow(CurrentUser user, long leagueId) {
+		var leagues = jdbcTemplate.query("select " + LEAGUE_COLUMNS + " from league where id = ? and service_enabled = true for update", this::mapLeague, leagueId);
 		if (leagues.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The registered league was not found.");
+		var league = leagues.getFirst();
+		var member = jdbcTemplate.queryForObject("select count(*) from league_registration where user_id = ? and league_id = ?", Integer.class, user.id(), leagueId);
+		if (league.privateLeague() && league.ownerUserId() != user.id() && !user.admin() && member == 0) {
+			jdbcTemplate.update("delete from league_follow_request where user_id = ? and league_id = ? and status = 'REJECTED'", user.id(), leagueId);
+			jdbcTemplate.update("insert ignore into league_follow_request (user_id, league_id, status) values (?, ?, 'PENDING')", user.id(), leagueId);
+			return new FollowResult(league, "PENDING");
+		}
 		jdbcTemplate.update("insert ignore into league_registration (user_id, league_id) values (?, ?)", user.id(), leagueId);
-		return leagues.getFirst();
+		jdbcTemplate.update("delete from league_follow_request where user_id = ? and league_id = ?", user.id(), leagueId);
+		return new FollowResult(league, "APPROVED");
 	}
+
+	public record FollowResult(RegisteredLeague league, String status) { }
 
 	public void unfollow(CurrentUser user, long leagueId) {
 		var league = accessibleLeague(user, leagueId);
@@ -131,7 +141,7 @@ public class LeagueRegistrationService {
 	public RegisteredLeague accessibleLeague(CurrentUser user, long leagueId) {
 		var leagues = user.admin()
 				? jdbcTemplate.query("select " + LEAGUE_COLUMNS + " from league where id = ?", this::mapLeague, leagueId)
-				: jdbcTemplate.query("select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, l.owner_user_id from league l join league_registration r on r.league_id = l.id where r.user_id = ? and l.id = ?", this::mapLeague, user.id(), leagueId);
+				: jdbcTemplate.query("select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, l.private_league, l.owner_user_id from league l where (l.owner_user_id = ? or exists (select 1 from league_registration r where r.league_id = l.id and r.user_id = ?)) and l.id = ?", this::mapLeague, user.id(), user.id(), leagueId);
 		if (leagues.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "League was not found.");
 		return leagues.getFirst();
 	}
@@ -257,7 +267,7 @@ public class LeagueRegistrationService {
 		return new RegisteredLeague(resultSet.getLong("id"), resultSet.getLong("fpl_league_id"), resultSet.getString("display_name"),
 				FplLeagueType.valueOf(resultSet.getString("league_type")), FplLeagueScoring.valueOf(resultSet.getString("scoring_type")),
 				resultSet.getBoolean("service_enabled"), resultSet.getBoolean("ai_narration_enabled"),
-				resultSet.getBoolean("voice_narration_enabled"), resultSet.getLong("owner_user_id"));
+				resultSet.getBoolean("voice_narration_enabled"), resultSet.getLong("owner_user_id"), resultSet.getBoolean("private_league"));
 	}
 
 	private AdminLeague mapAdminLeague(ResultSet resultSet, int rowNumber) throws SQLException {
@@ -269,7 +279,7 @@ public class LeagueRegistrationService {
 	}
 
 	public record RegisteredLeague(long id, long fplLeagueId, String displayName, FplLeagueType leagueType, FplLeagueScoring scoringType,
-			boolean serviceEnabled, boolean aiNarrationEnabled, boolean voiceNarrationEnabled, long ownerUserId) {
+			boolean serviceEnabled, boolean aiNarrationEnabled, boolean voiceNarrationEnabled, long ownerUserId, boolean privateLeague) {
 	}
 
 	public record AdminLeague(long id, long fplLeagueId, String displayName, FplLeagueType leagueType, FplLeagueScoring scoringType, boolean serviceEnabled,

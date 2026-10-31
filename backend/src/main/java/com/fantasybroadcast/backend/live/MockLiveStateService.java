@@ -153,9 +153,13 @@ public class MockLiveStateService {
 	}
 
 	public synchronized SseEmitter connectStream(long leagueKey) {
+		return connectStream(leagueKey, () -> { });
+	}
+
+	public synchronized SseEmitter connectStream(long leagueKey, Runnable accessCheck) {
 		var state = currentState(leagueKey);
 		var listeners = leagueEmitters.computeIfAbsent(leagueKey, unused -> new CopyOnWriteArrayList<>());
-		return connectStream(listeners, state);
+		return connectStream(listeners, state, accessCheck);
 	}
 
 	public synchronized void stopLeagueSessions() {
@@ -443,7 +447,16 @@ public class MockLiveStateService {
 	}
 
 	private SseEmitter connectStream(List<SseEmitter> listeners, LiveStateResponse state) {
-		var emitter = new SseEmitter(STREAM_TIMEOUT);
+		return connectStream(listeners, state, () -> { });
+	}
+
+	private SseEmitter connectStream(List<SseEmitter> listeners, LiveStateResponse state, Runnable accessCheck) {
+		var emitter = new SseEmitter(STREAM_TIMEOUT) {
+			@Override public void send(SseEventBuilder event) throws IOException {
+				accessCheck.run();
+				super.send(event);
+			}
+		};
 		emitter.onCompletion(() -> listeners.remove(emitter));
 		emitter.onTimeout(() -> listeners.remove(emitter));
 		emitter.onError(error -> listeners.remove(emitter));

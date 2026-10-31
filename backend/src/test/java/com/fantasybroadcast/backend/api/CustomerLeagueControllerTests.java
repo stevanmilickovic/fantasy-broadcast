@@ -52,7 +52,7 @@ class CustomerLeagueControllerTests {
 		var gameweekId = mock(JsonNode.class);
 		var players = java.util.List.of(new FplPlayer(1, "Player", "Test Player", "Club", 1, "MID", null));
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Test League", FplLeagueType.DRAFT,
-				FplLeagueScoring.H2H, true, false, false, user.id()));
+				FplLeagueScoring.H2H, true, false, false, user.id(), false));
 		when(client.getLeagueDetails(12345)).thenReturn(details);
 		when(client.getLeagueElementStatus(12345)).thenReturn(elementStatus);
 		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
@@ -106,7 +106,7 @@ class CustomerLeagueControllerTests {
 		var livePlayer = new FplLivePlayer(12, new FplLiveStats(90, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6),
 				java.util.List.of(new FplLiveExplanation(55, java.util.List.of(new FplLivePointBreakdown("goals_scored", 4, 1, 0)))));
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Test League", FplLeagueType.CLASSIC,
-				FplLeagueScoring.H2H, true, false, false, user.id()));
+				FplLeagueScoring.H2H, true, false, false, user.id(), false));
 		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getFantasyPlayerSummary(12)).thenReturn(summary);
 		when(client.getFantasyEventLive(3)).thenReturn(liveRoot);

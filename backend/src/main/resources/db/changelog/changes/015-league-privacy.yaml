@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-league-privacy
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE league ADD COLUMN private_league BOOLEAN NOT NULL DEFAULT FALSE;
+              CREATE TABLE league_follow_request (
+                user_id BIGINT NOT NULL, league_id BIGINT NOT NULL,
+                status VARCHAR(20) NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, league_id),
+                CONSTRAINT fk_follow_request_user FOREIGN KEY (user_id) REFERENCES app_user(id) ON DELETE CASCADE,
+                CONSTRAINT fk_follow_request_league FOREIGN KEY (league_id) REFERENCES league(id) ON DELETE CASCADE
+              );
+              CREATE INDEX ix_follow_request_league ON league_follow_request (league_id, status);

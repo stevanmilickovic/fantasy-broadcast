@@ -75,7 +75,7 @@ class SubscriptionTests {
 		var service = new SubscriptionService(db.repository, paddle, properties, sync, leagues, db.operations);
 		var standard = subscription("active", "standard", now, now.plus(Duration.ofDays(20)));
 		db.repository.saveSubscription(1, standard, BillingPlan.STANDARD);
-		when(leagues.accessibleLeague(any(CurrentUser.class), eq(1L))).thenReturn(new LeagueRegistrationService.RegisteredLeague(1, 100, "Test", FplLeagueType.DRAFT, FplLeagueScoring.H2H, true, false, false, 1));
+		when(leagues.accessibleLeague(any(CurrentUser.class), eq(1L))).thenReturn(new LeagueRegistrationService.RegisteredLeague(1, 100, "Test", FplLeagueType.DRAFT, FplLeagueScoring.H2H, true, false, false, 1, false));
 		when(paddle.get("/subscriptions/sub_test")).thenReturn(standard);
 		when(paddle.patch(eq("/subscriptions/sub_test/preview"), any())).thenReturn(json.readTree("""
 			{"currency_code":"EUR","immediate_transaction":{"details":{"totals":{"grand_total":"500"}}},"recurring_transaction_details":{"totals":{"grand_total":"1499"}}}

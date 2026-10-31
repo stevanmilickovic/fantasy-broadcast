@@ -97,7 +97,7 @@ public class CustomerLeagueController {
 	}
 
 	@PostMapping("/leagues/{leagueId}/follow")
-	public RegisteredLeague followLeague(HttpServletRequest request, @PathVariable @Positive long leagueId) {
+	public LeagueRegistrationService.FollowResult followLeague(HttpServletRequest request, @PathVariable @Positive long leagueId) {
 		return leagueService.follow(currentUser(request), leagueId);
 	}
 
