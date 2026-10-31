@@ -4,6 +4,7 @@ import { LeagueStandingsTable } from './LeagueStandingsTable'
 import { LeagueTeamsView } from './LeagueTeamsView'
 import { LeagueMatchupsView } from './LeagueMatchupsView'
 import { LeagueInsightsView } from './LeagueInsightsView'
+import { LeagueChat } from '../chat/LeagueChat'
 
 export function LeagueStandingsOverview({
   discovery,
@@ -12,7 +13,7 @@ export function LeagueStandingsOverview({
   search,
   navigate,
 }: {
-  discovery: LeagueDiscoveryState
+  discovery?: LeagueDiscoveryState
   scoringType: FplLeagueScoring
   leagueId: number
   search: string
@@ -21,8 +22,8 @@ export function LeagueStandingsOverview({
   const params = new URLSearchParams(search)
   const tabs =
     scoringType === 'H2H'
-      ? ['standings', 'teams', 'matchups', 'insights']
-      : ['standings', 'teams', 'insights']
+      ? ['standings', 'teams', 'matchups', 'insights', 'chat']
+      : ['standings', 'teams', 'insights', 'chat']
   const requested = params.get('view') ?? 'standings'
   const mode = tabs.includes(requested) ? requested : 'standings'
   const link = (view: string, entryId?: number, week?: number) =>
@@ -68,7 +69,8 @@ export function LeagueStandingsOverview({
         id={`league-panel-${mode}`}
         aria-labelledby={`league-tab-${mode}`}
       >
-        {mode === 'insights' && (
+        {mode === 'chat' && <LeagueChat key={leagueId} leagueId={leagueId} />}
+        {mode === 'insights' && discovery && (
           <LeagueInsightsView
             discovery={discovery}
             scoringType={scoringType}
@@ -77,7 +79,7 @@ export function LeagueStandingsOverview({
             navigate={navigate}
           />
         )}
-        {mode === 'standings' && (
+        {mode === 'standings' && discovery && (
           <LeagueStandingsTable
             discovery={discovery}
             scoringType={scoringType}
@@ -85,7 +87,7 @@ export function LeagueStandingsOverview({
             navigate={navigate}
           />
         )}
-        {mode === 'teams' && (
+        {mode === 'teams' && discovery && (
           <LeagueTeamsView
             discovery={discovery}
             leagueId={leagueId}
@@ -93,7 +95,7 @@ export function LeagueStandingsOverview({
             onSelect={(id) => navigate(link('teams', id))}
           />
         )}
-        {mode === 'matchups' && (
+        {mode === 'matchups' && discovery && (
           <LeagueMatchupsView
             discovery={discovery}
             selectedWeek={Number(params.get('week'))}

@@ -86,6 +86,15 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
       if (path === '/api/auth/password/forgot')
         return route.fulfill({ json: { message: 'Check your email.' } })
       if (path === '/api/customer/fpl/shirts') return route.fulfill({ json: welcomeShirtCodes })
+      if (path.endsWith('/chat'))
+        return route.fulfill({
+          json: {
+            messages: [],
+            hasOlder: false,
+            hasMore: false,
+            serverTime: new Date().toISOString(),
+          },
+        })
       if (path === '/api/customer/follow-requests' || path.endsWith('/follow-requests'))
         return route.fulfill({ json: [] })
       if (path === '/api/customer/leagues' || path === '/api/customer/leagues/search')

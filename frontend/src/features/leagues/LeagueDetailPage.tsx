@@ -118,7 +118,7 @@ export function LeagueDetailPage({
           {opening.error ?? unfollowing.error}
         </p>
       )}
-      {discovery.status === 'loading' && (
+      {new URLSearchParams(search).get('view') !== 'chat' && discovery.status === 'loading' && (
         <div className="league-loading" role="status">
           Loading league data…
           <div />
@@ -126,12 +126,12 @@ export function LeagueDetailPage({
           <div />
         </div>
       )}
-      {discovery.error && (
+      {new URLSearchParams(search).get('view') !== 'chat' && discovery.error && (
         <p role="alert" className="discovery-error">
           {discovery.error} <button onClick={discovery.refresh}>Try again</button>
         </p>
       )}
-      {discovery.data && (
+      {
         <LeagueStandingsOverview
           leagueId={league.id}
           discovery={discovery.data}
@@ -139,7 +139,7 @@ export function LeagueDetailPage({
           search={search}
           navigate={navigate}
         />
-      )}
+      }
     </section>
   )
 }
