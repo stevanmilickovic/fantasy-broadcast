@@ -155,11 +155,22 @@ function LeagueSearchCard({
               <small>
                 {league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} ·{' '}
                 {scoringLabel(league.scoringType)}
+                {league.privateLeague && ' · Private'}
                 {league.ownerUserId === user.id && <OwnerBadge />}
               </small>
             </span>
-            <button type="button" disabled={busy} onClick={() => void onFollow(league)}>
-              Follow
+            <button
+              type="button"
+              disabled={busy || league.followStatus === 'PENDING'}
+              onClick={() => void onFollow(league)}
+            >
+              {league.followStatus === 'PENDING'
+                ? 'Pending approval'
+                : league.followStatus === 'REJECTED'
+                  ? 'Request again'
+                  : league.privateLeague
+                    ? 'Request to follow'
+                    : 'Follow'}
             </button>
           </div>
         ))}

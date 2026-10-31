@@ -1249,3 +1249,41 @@
     max-width: none;
   }
 }
+.league-membership-settings,
+.league-follow-requests {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.league-membership-settings summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.league-membership-settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.league-membership-request {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.league-membership-request > span {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.league-membership-request small {
+  display: block;
+}
+.league-membership-request button,
+.league-follow-requests > button,
+.league-membership-settings > button {
+  min-height: 40px;
+  padding: 8px 12px;
+}

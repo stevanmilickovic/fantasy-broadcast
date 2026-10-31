@@ -51,6 +51,9 @@ export function CustomerNavigation({
           </summary>
           <div>
             <strong>{user.displayName}</strong>
+            <button type="button" onClick={() => onNavigate('/leagues/new')}>
+              Find leagues and requests
+            </button>
             <button type="button" onClick={() => onNavigate('/account')}>
               Account settings
             </button>

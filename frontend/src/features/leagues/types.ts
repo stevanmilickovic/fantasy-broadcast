@@ -13,4 +13,17 @@ export type RegisteredLeague = {
   aiNarrationEnabled: boolean
   voiceNarrationEnabled: boolean
   ownerUserId: number
+  privateLeague?: boolean
+  followStatus?: 'PENDING' | 'REJECTED'
+}
+
+export type FollowResult = { league: RegisteredLeague; status: 'PENDING' | 'APPROVED' }
+export type FollowRequest = {
+  userId: number
+  leagueId: number
+  leagueName: string
+  displayName: string
+  email: string
+  status: 'PENDING' | 'REJECTED'
+  createdAt: string
 }

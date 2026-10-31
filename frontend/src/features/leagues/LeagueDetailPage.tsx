@@ -15,6 +15,7 @@ import {
 } from './api'
 import { scoringLabel, toLeagueDiscovery } from './leagueData'
 import { LeagueStandingsOverview } from './LeagueStandingsOverview'
+import { LeagueMembershipSettings } from './LeagueMembershipSettings'
 import type { RegisteredLeague } from './types'
 
 export function LeagueDetailPage({
@@ -95,6 +96,9 @@ export function LeagueDetailPage({
           </details>
         </div>
       </header>
+      {(league.ownerUserId === user.id || user.role === 'ADMIN') && (
+        <LeagueMembershipSettings league={league} onChanged={onChanged} />
+      )}
       <aside className={`league-broadcast-status ${active ? 'available' : ''}`}>
         <Radio size={14} />
         {schedules.status === 'loading' ? (

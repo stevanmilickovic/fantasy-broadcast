@@ -6,7 +6,12 @@ import type {
 } from '../../shared/fpl/types'
 import type { BroadcastSchedule } from '../administration/types'
 import type { LiveStateResponse } from '../broadcast/types'
-import type { LeagueRegistrationAccess, RegisteredLeague } from './types'
+import type {
+  FollowRequest,
+  FollowResult,
+  LeagueRegistrationAccess,
+  RegisteredLeague,
+} from './types'
 export const loadRegisteredLeagues = async (signal?: AbortSignal): Promise<RegisteredLeague[]> =>
   (await request('/api/customer/leagues', { signal })).json()
 
@@ -23,11 +28,42 @@ export const searchRegisteredLeagues = async (
     await request(`/api/customer/leagues/search?${new URLSearchParams({ query })}`, { signal })
   ).json()
 
-export const followLeague = async (
+export const followLeague = async (leagueId: number, signal?: AbortSignal): Promise<FollowResult> =>
+  (await request(`/api/customer/leagues/${leagueId}/follow`, { signal, method: 'POST' })).json()
+
+export const loadFollowRequests = async (signal?: AbortSignal): Promise<FollowRequest[]> =>
+  (await request('/api/customer/follow-requests', { signal })).json()
+export const loadLeagueRequests = async (
   leagueId: number,
   signal?: AbortSignal,
-): Promise<RegisteredLeague> =>
-  (await request(`/api/customer/leagues/${leagueId}/follow`, { signal, method: 'POST' })).json()
+): Promise<FollowRequest[]> =>
+  (await request(`/api/customer/leagues/${leagueId}/follow-requests`, { signal })).json()
+export const cancelFollowRequest = async (leagueId: number, signal?: AbortSignal) => {
+  await request(`/api/customer/leagues/${leagueId}/follow-request`, { signal, method: 'DELETE' })
+}
+export const setLeaguePrivacy = async (
+  leagueId: number,
+  privateLeague: boolean,
+  signal?: AbortSignal,
+) => {
+  await request(`/api/customer/leagues/${leagueId}/privacy`, {
+    signal,
+    method: 'PATCH',
+    body: JSON.stringify({ privateLeague }),
+  })
+}
+export const decideFollowRequest = async (
+  leagueId: number,
+  userId: number,
+  approve: boolean,
+  signal?: AbortSignal,
+) => {
+  await request(`/api/customer/leagues/${leagueId}/follow-requests/${userId}`, {
+    signal,
+    method: 'POST',
+    body: JSON.stringify({ approve }),
+  })
+}
 
 export const registerLeague = async (
   fplLeagueId: string,
