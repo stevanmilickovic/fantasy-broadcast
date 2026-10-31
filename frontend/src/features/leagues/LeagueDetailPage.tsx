@@ -55,6 +55,7 @@ export function LeagueDetailPage({
       navigate(`/broadcast?leagueId=${league.id}`)
   }
   const active = schedules.data?.[0]
+  const showingChat = new URLSearchParams(search).get('view') === 'chat'
   return (
     <section className="selected-league-page">
       <a className="league-back" href="/leagues">
@@ -118,7 +119,7 @@ export function LeagueDetailPage({
           {opening.error ?? unfollowing.error}
         </p>
       )}
-      {new URLSearchParams(search).get('view') !== 'chat' && discovery.status === 'loading' && (
+      {!showingChat && discovery.status === 'loading' && (
         <div className="league-loading" role="status">
           Loading league data…
           <div />
@@ -126,20 +127,18 @@ export function LeagueDetailPage({
           <div />
         </div>
       )}
-      {new URLSearchParams(search).get('view') !== 'chat' && discovery.error && (
+      {!showingChat && discovery.error && (
         <p role="alert" className="discovery-error">
           {discovery.error} <button onClick={discovery.refresh}>Try again</button>
         </p>
       )}
-      {
-        <LeagueStandingsOverview
-          leagueId={league.id}
-          discovery={discovery.data}
-          scoringType={league.scoringType}
-          search={search}
-          navigate={navigate}
-        />
-      }
+      <LeagueStandingsOverview
+        leagueId={league.id}
+        discovery={discovery.data}
+        scoringType={league.scoringType}
+        search={search}
+        navigate={navigate}
+      />
     </section>
   )
 }

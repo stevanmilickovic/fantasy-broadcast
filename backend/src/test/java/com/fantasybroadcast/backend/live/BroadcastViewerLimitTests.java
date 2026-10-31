@@ -122,6 +122,18 @@ class BroadcastViewerLimitTests {
 		assertThat(open("").getResponse().getContentAsString()).contains("event:broadcast-full");
 	}
 
+	@Test
+	void leagueStreamsRecheckAccessBeforeEachMessage() throws Exception {
+		var allowed = new java.util.concurrent.atomic.AtomicBoolean(true);
+		var emitter = service.connectStream(1, () -> {
+			if (!allowed.get()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN);
+		});
+		allowed.set(false);
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().data("protected")))
+				.isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+		emitter.complete();
+	}
+
 	private MvcResult open(String query) throws Exception {
 		var result = mvc.perform(get("/api/live-state/stream" + query).cookie(session)).andReturn();
 		assertThat(result.getResponse().getStatus()).isEqualTo(200);

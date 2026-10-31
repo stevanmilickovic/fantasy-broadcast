@@ -140,6 +140,12 @@ function PrivacyPolicy() {
       </p>
       <h2>Retention and security</h2>
       <p>
+        League chats are visible to the league owner, approved followers and site administrators.
+        Chat participants can see your username and email address. Usernames can be changed and are
+        not unique. Messages disappear from chat 24 hours after sending and are removed by periodic
+        cleanup; historical backups may retain data until those backups expire.
+      </p>
+      <p>
         We keep account and league data while your account or the related service remains active,
         then only as long as reasonably necessary for support, security, legal obligations, dispute
         resolution, and record keeping. Pending registration data expires after 15 minutes and

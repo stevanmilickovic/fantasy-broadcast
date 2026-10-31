@@ -1,6 +1,6 @@
 # League privacy, usernames and chat
 
-Status: proposed plan; implementation has not started.
+Status: implemented in the six planned commits; final verification results are recorded below.
 
 ## Agreed requirements
 
@@ -76,4 +76,23 @@ Status: proposed plan; implementation has not started.
 - Verify phone portrait/landscape, tablet, laptop, desktop and TV, including long names, keyboard-open layout, history scrolling, reduced motion and broadcast commentary/player dialogs.
 - Update the architecture guide and existing privacy/retention copy. Run backend tests, frontend checks and relevant browser suites against a fresh build; report unrelated existing failures separately.
 
-Each commit includes its own relevant tests and leaves the application runnable. The sequence describes proposed commits; no commits will be created as part of planning.
+Each commit includes its own relevant tests and leaves the application runnable.
+
+## Verification
+
+- Profile persistence/session refresh, private follow approval/rejection/cancellation, chat isolation,
+  expiry, retries, rate limits, pagination and concurrent approval have backend tests.
+- The privacy/chat migrations run in tests against the pre-existing schema with existing data.
+- Browser workflows cover approval, duplicate usernames/email disclosure, failed-send retries,
+  FPL-independent chat, overlay fading/history, focus recovery and stable squad geometry across
+  phone portrait/landscape, tablet, laptop, desktop and TV sizes.
+- The normal frontend formatting gate encounters existing formatting failures elsewhere in the
+  repository; affected frontend files are formatted and lint/build/unit checks run separately.
+- Final checks: 84 backend tests; frontend lint/build and 55 unit tests; all 18 feature browser
+  cases across six viewports, including a simulated mobile keyboard and open-chat expiry.
+- The local Docker stack rebuilt successfully and upgraded the existing MySQL database. Live API
+  checks exercised approval, forbidden access, renaming, retry deduplication and 24-hour expiry.
+  Temporary test users/leagues were removed; existing credentials were reused.
+- The full browser run also found four existing matchup-scroll failures, reproduced against an
+  isolated pre-feature snapshot, and timing/pixel failures in existing animation/home-color tests.
+  These unrelated tests were left unchanged. The complete browser suite is not green.

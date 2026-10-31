@@ -51,6 +51,26 @@ broadcast API actions, while broadcast scenes never own administration state.
 
 ## Requests and asynchronous state
 
+`features/auth/AccountSettings` edits the existing account display name through `/api/auth/me`.
+The client refreshes its identity and the backend refreshes active session copies. Names
+can repeat; user IDs remain the identity used by chat and memberships.
+
+League owners manage privacy and follow requests through `LeagueMembershipSettings`.
+Pending/rejected requests live separately from approved `league_registration` rows, and
+`MyFollowRequests` keeps them separate from accessible leagues. Existing followers retain
+access when a league becomes private. Switching back to public approves pending requests.
+
+`features/chat/LeagueChat` and `useLeagueChat` own plain-text messaging, bounded history,
+send retries and expiry. The Chat tab works without an FPL overview. The backend checks
+access on every chat request, resolves current author identities, rate-limits sends and
+excludes messages at the 24-hour boundary. Clients use server time for expiry and poll
+while chat is open and visible, with backoff. Sends retain a retry ID until successful.
+
+`BroadcastChat` mounts beside broadcast presentation, preserving an open chat through
+scene changes. Its native dialog handles focus and Escape; `visualViewport` keeps the
+composer above mobile keyboards. Scrolling into history removes the fade. The floating
+button has reserved space beside the commentary rail.
+
 `shared/api/http.ts` provides the same-origin request boundary and `HttpError` with
 status and backend detail/message. Feature APIs own paths and response contracts.
 Queries supply a stable loader and a resource key to `useQuery`. Key/revision changes

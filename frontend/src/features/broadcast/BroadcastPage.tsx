@@ -11,6 +11,7 @@ import { useBroadcastPresentation } from './useBroadcastPresentation'
 import { useBroadcastAudio } from './useBroadcastAudio'
 import { useLiveState } from './useLiveState'
 import { useScreenWakeLock } from './useScreenWakeLock'
+import { BroadcastChat } from '../chat/BroadcastChat'
 import type { BroadcastFocus } from './types'
 
 export function BroadcastPage({
@@ -88,40 +89,46 @@ export function BroadcastPage({
     state.matchups.find((match) => match.id === presentation.displayedFocusId) ?? state.matchups[0]
   const commentary = state.commentary[0]
   return (
-    <BroadcastMatchday
-      leagueId={leagueId}
-      leagueName={leagueName}
-      displayLiveState={state}
-      matchup={matchup}
-      latestCommentaryId={commentary?.id}
-      latestCommentaryText={commentary?.text ?? ''}
-      latestCommentaryStatus={commentary?.status ?? 'WAITING'}
-      leaderName={
-        matchup
-          ? matchup.leaderManagerId === matchup.home.managerId
-            ? matchup.home.displayName
-            : matchup.leaderManagerId === matchup.away.managerId
-              ? matchup.away.displayName
-              : 'No one'
-          : 'No one'
-      }
-      broadcastFocus={broadcastFocus}
-      automaticFocus={presentation.displayedFocusId ?? 'multi'}
-      standings={presentation.standings}
-      presentation={{ ...presentation, showingLiveLeaderboard: presentation.displayingLeaderboard }}
-      connectionError={error}
-      onBack={() => navigate(user.role === 'ADMIN' ? '/administration' : '/leagues')}
-      onSelectFocus={(selection) => {
-        focus.dismissLeaderboard()
-        setManualStandings(false)
-        setBroadcastFocus(selection)
-        setSelectionRevision((value) => value + 1)
-      }}
-      onToggleStandings={() => {
-        focus.dismissLeaderboard()
-        setManualStandings(!presentation.displayingLeaderboard)
-        setSelectionRevision((value) => value + 1)
-      }}
-    />
+    <>
+      <BroadcastMatchday
+        leagueId={leagueId}
+        leagueName={leagueName}
+        displayLiveState={state}
+        matchup={matchup}
+        latestCommentaryId={commentary?.id}
+        latestCommentaryText={commentary?.text ?? ''}
+        latestCommentaryStatus={commentary?.status ?? 'WAITING'}
+        leaderName={
+          matchup
+            ? matchup.leaderManagerId === matchup.home.managerId
+              ? matchup.home.displayName
+              : matchup.leaderManagerId === matchup.away.managerId
+                ? matchup.away.displayName
+                : 'No one'
+            : 'No one'
+        }
+        broadcastFocus={broadcastFocus}
+        automaticFocus={presentation.displayedFocusId ?? 'multi'}
+        standings={presentation.standings}
+        presentation={{
+          ...presentation,
+          showingLiveLeaderboard: presentation.displayingLeaderboard,
+        }}
+        connectionError={error}
+        onBack={() => navigate(user.role === 'ADMIN' ? '/administration' : '/leagues')}
+        onSelectFocus={(selection) => {
+          focus.dismissLeaderboard()
+          setManualStandings(false)
+          setBroadcastFocus(selection)
+          setSelectionRevision((value) => value + 1)
+        }}
+        onToggleStandings={() => {
+          focus.dismissLeaderboard()
+          setManualStandings(!presentation.displayingLeaderboard)
+          setSelectionRevision((value) => value + 1)
+        }}
+      />
+      {leagueId && <BroadcastChat key={leagueId} leagueId={leagueId} />}
+    </>
   )
 }

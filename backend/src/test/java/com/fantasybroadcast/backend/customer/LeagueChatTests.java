@@ -10,8 +10,10 @@ import org.springframework.web.server.ResponseStatusException;
 class LeagueChatTests extends LeaguePrivacyTests {
 	private LeagueChatService chat;
 	private final MutableClock clock = new MutableClock();
-	@BeforeEach void chatSetup() {
-		jdbc.execute("create table league_chat_message (id bigint auto_increment primary key, league_id bigint references league(id) on delete cascade, user_id bigint references app_user(id) on delete cascade, send_id varchar(36), body varchar(1000), created_at timestamp(6), unique(user_id,send_id))");
+	@BeforeEach void chatSetup() throws Exception {
+		try (var connection = jdbc.getDataSource().getConnection(); var migration = new liquibase.Liquibase("db/changelog/changes/016-league-chat.yaml", new liquibase.resource.ClassLoaderResourceAccessor(), new liquibase.database.jvm.JdbcConnection(connection))) {
+			migration.update(new liquibase.Contexts(), new liquibase.LabelExpression());
+		}
 		chat = new LeagueChatService(jdbc, leagues, clock);
 	}
 	@Test void authorIdentityIsResolvedFromAccountsAndSendRetriesAreIdempotent() {

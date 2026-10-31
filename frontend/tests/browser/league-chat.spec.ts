@@ -53,7 +53,7 @@ test('league chat works without FPL data, preserves failed drafts and reveals se
   )
   await expect(page.getByText('Hello league', { exact: true })).toBeVisible()
   await expect(page.locator('.chat-messages img')).toHaveCount(0)
-  const authors = page.locator('.chat-author summary')
+  const authors = page.locator('.chat-author button')
   await authors.nth(1).click()
   await expect(page.getByText('two@example.com', { exact: true })).toBeVisible()
   await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Test message')

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import { useLeagueChat } from './useLeagueChat'
+import { ChatAuthor } from './ChatAuthor'
 
 export function LeagueChat({
   leagueId,
@@ -48,8 +49,9 @@ export function LeagueChat({
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     if (!draft.trim() || chat.sending) return
-    if (await chat.send(draft.trim())) {
-      setDraft('')
+    const text = draft.trim()
+    if (await chat.send(text)) {
+      setDraft((current) => (current.trim() === text ? '' : current))
       latest()
     }
   }
@@ -82,10 +84,7 @@ export function LeagueChat({
           {chat.messages.map((message) => (
             <li key={message.id} className="chat-message">
               <div className="chat-message-meta">
-                <details className="chat-author">
-                  <summary title={message.email}>{message.displayName}</summary>
-                  <span>{message.email}</span>
-                </details>
+                <ChatAuthor name={message.displayName} email={message.email} />
                 <time
                   dateTime={message.createdAt}
                   title={new Date(message.createdAt).toLocaleString()}
@@ -109,7 +108,10 @@ export function LeagueChat({
       {(chat.error || chat.sendError) && (
         <p className="chat-error" role="alert">
           {chat.sendError ?? chat.error}
-          {!chat.denied && (chat.sendError ? ' Your message is still in the box. Select Send to retry.' : ' Retrying connection automatically.')}
+          {!chat.denied &&
+            (chat.sendError
+              ? ' Your message is still in the box. Select Send to retry.'
+              : ' Retrying connection automatically.')}
         </p>
       )}
       <form className="chat-composer" onSubmit={(event) => void submit(event)}>
