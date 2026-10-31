@@ -403,6 +403,9 @@
 .broadcast-player-status {
   display: none;
 }
+.broadcast-player-points.is-empty {
+  color: #ffffff80;
+}
 .broadcast-player-main {
   position: relative;
   display: grid;
@@ -981,6 +984,9 @@
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-event {
     top: 100%;
     bottom: auto;
+    /* Match the one-pixel outline around the highlighted name and points. */
+    left: -1px;
+    right: -1px;
     height: var(--broadcast-player-event-height);
     font-size: 9px;
     padding: 1px 3px;

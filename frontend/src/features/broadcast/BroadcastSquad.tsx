@@ -154,7 +154,9 @@ function BroadcastPlayer({
         <span className="broadcast-player-status">
           {bench ? 'B' : player.autoSubstituted ? 'SUB' : player.position}
         </span>
-        <span className="broadcast-player-points">{points}</span>
+        <span className={`broadcast-player-points ${points === '–' ? 'is-empty' : ''}`}>
+          {points}
+        </span>
         <span className="broadcast-player-event" aria-hidden="true">
           <span>
             {activeEvents[0]?.type.replaceAll('_', ' ')}
