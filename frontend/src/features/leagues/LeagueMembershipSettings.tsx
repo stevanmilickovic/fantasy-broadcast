@@ -1,7 +1,6 @@
-import { useCallback } from 'react'
 import { useMutation } from '../../shared/api/useMutation'
-import { useQuery } from '../../shared/api/useQuery'
-import { decideFollowRequest, loadLeagueRequests, setLeaguePrivacy } from './api'
+import { decideFollowRequest, setLeaguePrivacy } from './api'
+import { useLeagueRequests } from './useLeagueRequests'
 import type { RegisteredLeague } from './types'
 
 export function LeagueMembershipSettings({
@@ -11,11 +10,7 @@ export function LeagueMembershipSettings({
   league: RegisteredLeague
   onChanged: () => void
 }) {
-  const load = useCallback(
-    (signal: AbortSignal) => loadLeagueRequests(league.id, signal),
-    [league.id],
-  )
-  const requests = useQuery(`requests:${league.id}`, load)
+  const requests = useLeagueRequests(league.id)
   const saving = useMutation()
   const changePrivacy = async (privateLeague: boolean) => {
     if (await saving.run((signal) => setLeaguePrivacy(league.id, privateLeague, signal))) {
@@ -29,22 +24,30 @@ export function LeagueMembershipSettings({
   }
   const pending = requests.data?.filter((request) => request.status === 'PENDING') ?? []
   return (
-    <details className="league-membership-settings">
-      <summary>Privacy and follow requests</summary>
-      <label>
-        <input
-          type="checkbox"
-          checked={!!league.privateLeague}
+    <section className="league-membership-settings" aria-labelledby="league-privacy-title">
+      <h2 id="league-privacy-title">Privacy and followers</h2>
+      <div className="league-privacy-control">
+        <div>
+          <h3 id="league-private-label">Private league</h3>
+          <p id="league-private-description">
+            {league.privateLeague
+              ? 'New followers need your approval. Existing followers keep access.'
+              : 'Anyone signed in can follow this league.'}
+          </p>
+        </div>
+        <button
+          className="league-privacy-switch"
+          type="button"
+          role="switch"
+          aria-checked={!!league.privateLeague}
+          aria-labelledby="league-private-label"
+          aria-describedby="league-private-description"
           disabled={saving.busy}
-          onChange={(event) => void changePrivacy(event.target.checked)}
-        />{' '}
-        Private league
-      </label>
-      <p>
-        {league.privateLeague
-          ? 'New followers need your approval. Existing followers keep access.'
-          : 'Anyone signed in can follow this league.'}
-      </p>
+          onClick={() => void changePrivacy(!league.privateLeague)}
+        >
+          <span aria-hidden="true" />
+        </button>
+      </div>
       <h3>Follow requests ({pending.length})</h3>
       <button type="button" onClick={requests.refresh}>
         Refresh requests
@@ -57,15 +60,17 @@ export function LeagueMembershipSettings({
             <strong>{request.displayName}</strong>
             <small>{request.email}</small>
           </span>
-          <button disabled={saving.busy} onClick={() => void decide(request.userId, true)}>
-            Approve
-          </button>
-          <button disabled={saving.busy} onClick={() => void decide(request.userId, false)}>
-            Reject
-          </button>
+          <div className="league-request-actions">
+            <button disabled={saving.busy} onClick={() => void decide(request.userId, true)}>
+              Approve
+            </button>
+            <button disabled={saving.busy} onClick={() => void decide(request.userId, false)}>
+              Reject
+            </button>
+          </div>
         </div>
       ))}
       {(saving.error || requests.error) && <p role="alert">{saving.error ?? requests.error}</p>}
-    </details>
+    </section>
   )
 }

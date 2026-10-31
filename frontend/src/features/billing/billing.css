@@ -368,10 +368,11 @@
     margin-top: 18px;
   }
 }
-.subscription-page {
-  width: min(1120px, 100%);
-  margin: 0 auto;
-  padding: 28px clamp(16px, 4vw, 48px) 56px;
+.league-subscription-settings > h2 {
+  margin: 32px 0 8px;
+}
+.league-subscription-settings > p {
+  margin-bottom: 24px;
 }
 .subscription-grid {
   display: grid;

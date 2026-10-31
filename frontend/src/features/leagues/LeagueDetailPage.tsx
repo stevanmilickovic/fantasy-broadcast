@@ -15,7 +15,7 @@ import {
 } from './api'
 import { scoringLabel, toLeagueDiscovery } from './leagueData'
 import { LeagueStandingsOverview } from './LeagueStandingsOverview'
-import { LeagueMembershipSettings } from './LeagueMembershipSettings'
+import { useLeagueRequests } from './useLeagueRequests'
 import type { RegisteredLeague } from './types'
 
 export function LeagueDetailPage({
@@ -32,6 +32,9 @@ export function LeagueDetailPage({
   onChanged: () => void
 }) {
   const menuRef = useDismissibleMenus()
+  const canManage = league.ownerUserId === user.id || user.role === 'ADMIN'
+  const requests = useLeagueRequests(league.id, canManage)
+  const pendingCount = requests.data?.filter((request) => request.status === 'PENDING').length ?? 0
   const load = useCallback(
     async (signal: AbortSignal) =>
       league.leagueType === 'CLASSIC'
@@ -78,28 +81,34 @@ export function LeagueDetailPage({
               {opening.busy ? 'Opening broadcast…' : 'Open broadcast'}
             </button>
           )}
-          <details className="league-actions-menu">
-            <summary aria-label="League actions">
-              <Ellipsis size={20} />
-            </summary>
-            <div>
-              <button
-                disabled={unfollowing.busy}
-                onClick={() =>
-                  league.ownerUserId === user.id
-                    ? navigate(`/league/subscription?leagueId=${league.id}`)
-                    : void unfollow()
-                }
+          <div className="league-actions-status">
+            {pendingCount > 0 && (
+              <span
+                className="league-request-badge"
+                role="status"
+                aria-label={`${pendingCount} pending follow ${pendingCount === 1 ? 'request' : 'requests'}`}
               >
-                {league.ownerUserId === user.id ? 'Manage subscription' : 'Remove from my leagues'}
-              </button>
-            </div>
-          </details>
+                {pendingCount}
+              </span>
+            )}
+            <details className="league-actions-menu">
+              <summary aria-label="League actions">
+                <Ellipsis size={20} />
+              </summary>
+              <div>
+                <button
+                  disabled={unfollowing.busy}
+                  onClick={() =>
+                    canManage ? navigate(`/league/manage?leagueId=${league.id}`) : void unfollow()
+                  }
+                >
+                  {canManage ? 'League management' : 'Remove from my leagues'}
+                </button>
+              </div>
+            </details>
+          </div>
         </div>
       </header>
-      {(league.ownerUserId === user.id || user.role === 'ADMIN') && (
-        <LeagueMembershipSettings league={league} onChanged={onChanged} />
-      )}
       <aside className={`league-broadcast-status ${active ? 'available' : ''}`}>
         <Radio size={14} />
         {schedules.status === 'loading' ? (

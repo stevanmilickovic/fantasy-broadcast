@@ -6,6 +6,20 @@ const user: AuthUser = { id: 1, email: 'user@example.test', displayName: 'User',
 const admin: AuthUser = { ...user, role: 'ADMIN' }
 
 describe('route ownership', () => {
+  it('opens league management and redirects existing subscription links', () => {
+    expect(resolveRoute('/league/manage', '?leagueId=42', user)).toEqual({
+      page: 'leagues',
+      pathname: '/league/manage',
+    })
+    expect(resolveRoute('/league/subscription', '?leagueId=42', user)).toEqual({
+      page: 'redirect',
+      to: '/league/manage?leagueId=42',
+    })
+    expect(resolveRoute('/league/manage', '?leagueId=42', null)).toEqual({
+      page: 'redirect',
+      to: '/login',
+    })
+  })
   it('keeps direct payment links public for every session state', () => {
     for (const viewer of [null, user, admin])
       expect(resolveRoute('/pay', '?_ptxn=txn_0123456789abcdefghijklmnop', viewer)).toEqual({

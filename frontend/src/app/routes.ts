@@ -41,11 +41,13 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
     return { page: 'broadcast', leagueId }
   }
   if (pathname === '/account') return { page: 'account' }
+  if (pathname === '/league/subscription')
+    return { page: 'redirect', to: `/league/manage${search}` }
   if (pathname === '/administration' && user.role === 'ADMIN') return { page: 'administration' }
   if (
     [
       '/league',
-      '/league/subscription',
+      '/league/manage',
       '/leagues',
       '/leagues/new',
       '/leagues/checkout',

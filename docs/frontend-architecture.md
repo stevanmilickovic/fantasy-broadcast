@@ -22,7 +22,7 @@ Broadcast league IDs must be positive safe integers; a global broadcast requires
 Backend authorization remains authoritative.
 
 `CustomerDashboard` queries the user's leagues and composes the picker, registration,
-detail, checkout or account-deletion page. A successful league-list response redirects
+detail, league management, checkout or account-deletion page. A successful league-list response redirects
 only list/detail routes; it must not displace checkout or account-deletion deep links.
 A detail page remounts when its league changes. A broadcast remounts when either its
 user or league changes, isolating event IDs, queued snapshots, timers, audio and SSE.
@@ -55,9 +55,12 @@ broadcast API actions, while broadcast scenes never own administration state.
 The client refreshes its identity and the backend refreshes active session copies. Names
 can repeat; user IDs remain the identity used by chat and memberships.
 
-League owners manage privacy and follow requests through `LeagueMembershipSettings`.
-Pending/rejected requests live separately from approved `league_registration` rows, and
-`MyFollowRequests` keeps them separate from accessible leagues. Existing followers retain
+League owners manage privacy and follow requests through `LeagueMembershipSettings` on
+`LeagueManagementPage`, alongside `LeagueSubscriptionSettings` for billing. Pending/rejected
+requests live separately from approved `league_registration` rows. Request lists appear only
+in league management; registration search retains the pending status for each league. An
+owner/admin badge beside the league action menu shows the number of pending requests and
+refreshes while visible and on focus. Existing followers retain
 access when a league becomes private. Switching back to public approves pending requests.
 
 `features/chat/LeagueChat` and `useLeagueChat` own plain-text messaging, bounded history,
@@ -201,7 +204,8 @@ versions were changed by this refactor.
 
 The customer workspace uses the public site's plum palette with league-scoped styles.
 `LeagueDetailPage` owns identity, broadcast availability and owner actions. Its owner menu
-opens `/league/subscription?leagueId=…`; followers can remove their own registration.
+opens `/league/manage?leagueId=…`; existing `/league/subscription` links redirect there.
+Followers can remove their own registration.
 Billing mutations and payment previews belong to `features/billing`, and administration
 composes `BillingRefunds` for payment review and manually approved refund submissions.
 The backend owns entitlements, effective dates and refund balances. See

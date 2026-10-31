@@ -6,7 +6,7 @@ import { LegalFooter } from '../../shared/ui/LegalFooter'
 import { AccountDeletionPage } from '../auth/AccountDeletionPage'
 import type { AuthUser } from '../auth/types'
 import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
-import { SubscriptionPage } from '../billing/SubscriptionPage'
+import { LeagueManagementPage } from './LeagueManagementPage'
 import { loadRegisteredLeagues } from './api'
 import { CustomerNavigation } from './CustomerNavigation'
 import { LeagueDetailPage } from './LeagueDetailPage'
@@ -35,9 +35,16 @@ export function CustomerDashboard({
     if (pathname === '/leagues') {
       if (leagues.length === 0) onNavigate('/leagues/new', true)
       else if (leagues.length === 1) onNavigate(`/league?leagueId=${leagues[0].id}`, true)
-    } else if ((pathname === '/league' || pathname === '/league/subscription') && !selectedLeague)
+    } else if ((pathname === '/league' || pathname === '/league/manage') && !selectedLeague)
       onNavigate('/leagues', true)
-  }, [leagues, pathname, selectedLeague, onNavigate])
+    else if (
+      pathname === '/league/manage' &&
+      selectedLeague &&
+      selectedLeague.ownerUserId !== user.id &&
+      user.role !== 'ADMIN'
+    )
+      onNavigate(`/league?leagueId=${selectedLeague.id}`, true)
+  }, [leagues, pathname, selectedLeague, onNavigate, user.id, user.role])
   return (
     <main className="customer-shell">
       <CustomerNavigation
@@ -74,14 +81,16 @@ export function CustomerDashboard({
           onChanged={query.refresh}
         />
       )}
-      {pathname === '/league/subscription' && selectedLeague && (
-        <SubscriptionPage
-          key={selectedLeague.id}
-          league={selectedLeague}
-          navigate={onNavigate}
-          onChanged={query.refresh}
-        />
-      )}
+      {pathname === '/league/manage' &&
+        selectedLeague &&
+        (selectedLeague.ownerUserId === user.id || user.role === 'ADMIN') && (
+          <LeagueManagementPage
+            key={selectedLeague.id}
+            league={selectedLeague}
+            navigate={onNavigate}
+            onChanged={query.refresh}
+          />
+        )}
       {pathname === '/account-deletion' && <AccountDeletionPage />}
       <LegalFooter onNavigate={onNavigate} className="customer-legal-footer" />
     </main>

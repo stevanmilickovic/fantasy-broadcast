@@ -10,7 +10,6 @@ import {
   loadLeagueRegistrationAccess,
   searchRegisteredLeagues,
 } from './api'
-import { MyFollowRequests } from './MyFollowRequests'
 import { LeagueRegistrationForm } from './LeagueRegistrationForm'
 import type { RegisteredLeague } from './types'
 
@@ -35,14 +34,12 @@ export function LeagueRegistrationPage({
   const results = useQuery(search, loadSearch)
   const following = useMutation()
   const requests = useQuery('my-requests', loadFollowRequests)
-  const [requestRevision, setRequestRevision] = useState(0)
   const follow = async (league: RegisteredLeague) => {
     const result = await following.run((signal) => followLeague(league.id, signal))
     if (result) {
       onFollowed()
       if (result.data.status === 'PENDING') {
         requests.refresh()
-        setRequestRevision((revision) => revision + 1)
       } else navigate(`/league?leagueId=${league.id}`)
     }
   }
@@ -54,40 +51,29 @@ export function LeagueRegistrationPage({
       </p>
     )
   return (
-    <>
-      <LeagueRegistrationForm
-        canRegisterLeague={access.data.canRegisterLeague}
-        leagueId={leagueId}
-        leagueType={leagueType}
-        busy={following.busy || results.status === 'loading'}
-        registrationMessage={null}
-        searchMessage={following.error ?? results.error ?? null}
-        searchResults={(results.data ?? []).map((league) => ({
-          ...league,
-          followStatus: requests.data?.find((request) => request.leagueId === league.id)?.status,
-        }))}
-        user={user}
-        onLeagueIdChange={setLeagueId}
-        onLeagueTypeChange={setLeagueType}
-        onSubmit={(event) => {
-          event.preventDefault()
-          navigate(
-            `/leagues/checkout?${new URLSearchParams({ fplLeagueId: leagueId, leagueType })}`,
-          )
-        }}
-        onSearch={(query) => {
-          if (query.trim() === search) results.refresh()
-          else setSearch(query.trim())
-        }}
-        onFollow={follow}
-      />
-      <MyFollowRequests
-        key={requestRevision}
-        onChanged={() => {
-          requests.refresh()
-          onFollowed()
-        }}
-      />
-    </>
+    <LeagueRegistrationForm
+      canRegisterLeague={access.data.canRegisterLeague}
+      leagueId={leagueId}
+      leagueType={leagueType}
+      busy={following.busy || results.status === 'loading'}
+      registrationMessage={null}
+      searchMessage={following.error ?? results.error ?? null}
+      searchResults={(results.data ?? []).map((league) => ({
+        ...league,
+        followStatus: requests.data?.find((request) => request.leagueId === league.id)?.status,
+      }))}
+      user={user}
+      onLeagueIdChange={setLeagueId}
+      onLeagueTypeChange={setLeagueType}
+      onSubmit={(event) => {
+        event.preventDefault()
+        navigate(`/leagues/checkout?${new URLSearchParams({ fplLeagueId: leagueId, leagueType })}`)
+      }}
+      onSearch={(query) => {
+        if (query.trim() === search) results.refresh()
+        else setSearch(query.trim())
+      }}
+      onFollow={follow}
+    />
   )
 }

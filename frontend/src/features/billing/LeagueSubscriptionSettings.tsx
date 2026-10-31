@@ -1,4 +1,4 @@
-import { ArrowLeft, CreditCard } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useMutation } from '../../shared/api/useMutation'
@@ -14,7 +14,7 @@ import {
 } from './subscriptionApi'
 import type { PlanPreview, Subscription } from './types'
 
-export function SubscriptionPage({
+export function LeagueSubscriptionSettings({
   league,
   navigate,
   onChanged,
@@ -29,15 +29,9 @@ export function SubscriptionPage({
   )
   const query = useQuery(`subscription:${league.id}`, load)
   return (
-    <section className="subscription-page">
-      <button className="checkout-back" onClick={() => navigate(`/league?leagueId=${league.id}`)}>
-        <ArrowLeft size={17} /> Back to league
-      </button>
-      <header className="checkout-heading">
-        <span className="kicker">Your subscription</span>
-        <h1>{league.displayName}</h1>
-        <p>Manage your plan, payments and renewal.</p>
-      </header>
+    <section className="league-subscription-settings" aria-label="Subscription">
+      <h2>Subscription</h2>
+      <p>Manage your plan, payments and renewal.</p>
       {query.status === 'loading' && <p role="status">Loading subscription…</p>}
       {query.error && (
         <p role="alert">

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useMutation } from '../../shared/api/useMutation'
 import { updateProfile } from './api'
@@ -21,15 +22,15 @@ export function AccountSettings({
     if (result) onUpdated(result.data)
   }
   return (
-    <main className="account-shell">
+    <main className="account-shell account-settings">
+      <button
+        type="button"
+        className="checkout-back"
+        onClick={() => navigate(user.role === 'ADMIN' ? '/administration' : '/leagues')}
+      >
+        <ArrowLeft size={17} /> Back
+      </button>
       <form className="account-card" onSubmit={(event) => void submit(event)}>
-        <button
-          type="button"
-          className="secondary-action"
-          onClick={() => navigate(user.role === 'ADMIN' ? '/administration' : '/leagues')}
-        >
-          Back
-        </button>
         <h1>Account settings</h1>
         <p>{user.email}</p>
         <label htmlFor="profile-name">Username</label>
