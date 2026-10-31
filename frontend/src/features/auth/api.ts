@@ -1,5 +1,13 @@
 import { request } from '../../shared/api/http'
 import type { AuthOptions, AuthResponse, AuthUser, PendingRegistrationResponse } from './types'
+export const updateProfile = async (displayName: string, signal?: AbortSignal): Promise<AuthUser> =>
+  (
+    await request('/api/auth/me', {
+      method: 'PATCH',
+      signal,
+      body: JSON.stringify({ displayName }),
+    })
+  ).json()
 export const authenticate = async (
   email: string,
   password: string,

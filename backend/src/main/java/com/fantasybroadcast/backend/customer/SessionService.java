@@ -56,6 +56,11 @@ public class SessionService {
 		sessions.entrySet().removeIf(entry -> entry.getValue().user().id() == userId);
 	}
 
+	public void refreshUser(CurrentUser user) {
+		sessions.replaceAll((token, session) -> session.user().id() == user.id()
+				? new Session(user, session.expiresAt()) : session);
+	}
+
 	private ResponseStatusException unauthorized() {
 		return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign in is required.");
 	}

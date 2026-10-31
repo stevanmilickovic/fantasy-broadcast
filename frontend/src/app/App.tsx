@@ -2,6 +2,7 @@
 import './styles.css'
 import { AdministrationPage } from '../features/administration/AdministrationPage'
 import { AuthScreen } from '../features/auth/AuthScreen'
+import { AccountSettings } from '../features/auth/AccountSettings'
 import { useAuthSession } from '../features/auth/useAuthSession'
 import { BroadcastPage } from '../features/broadcast/BroadcastPage'
 import { PaymentLinkPage } from '../features/billing/PaymentLinkPage'
@@ -48,6 +49,10 @@ export default function App() {
   }
   if (!session.user) return null
   switch (route.page) {
+    case 'account':
+      return (
+        <AccountSettings user={session.user} onUpdated={session.updateUser} navigate={navigate} />
+      )
     case 'administration':
       return (
         <AdministrationPage user={session.user} navigate={navigate} signOut={session.signOut} />

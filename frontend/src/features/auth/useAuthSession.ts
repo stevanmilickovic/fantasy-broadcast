@@ -39,5 +39,5 @@ export function useAuthSession(navigate: Navigate) {
     navigate('/', true)
   }, [navigate])
 
-  return { user, isLoading, handleAuthenticated, signOut }
+  return { user, isLoading, handleAuthenticated, signOut, updateUser: setUser }
 }

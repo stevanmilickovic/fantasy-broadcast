@@ -83,6 +83,13 @@ public class AuthController {
 		return sessionService.require(request);
 	}
 
+	@org.springframework.web.bind.annotation.PatchMapping("/me")
+	public CurrentUser updateProfile(HttpServletRequest request, @Valid @RequestBody ProfileRequest profile) {
+		return accountService.updateDisplayName(sessionService.require(request), profile.displayName());
+	}
+
+	public record ProfileRequest(@NotBlank @Size(max = 160) String displayName) { }
+
 	@PostMapping("/account-deletion-request")
 	public AccountDeletionRequest requestAccountDeletion(HttpServletRequest request) {
 		return accountService.requestDeletion(sessionService.require(request));

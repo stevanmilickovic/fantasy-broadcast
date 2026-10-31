@@ -51,6 +51,9 @@ export function CustomerNavigation({
           </summary>
           <div>
             <strong>{user.displayName}</strong>
+            <button type="button" onClick={() => onNavigate('/account')}>
+              Account settings
+            </button>
             <button type="button" onClick={onSignOut}>
               Sign out
             </button>

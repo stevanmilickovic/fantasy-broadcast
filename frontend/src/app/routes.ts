@@ -8,6 +8,7 @@ export type Route =
   | { page: 'auth'; pathname: string }
   | { page: 'leagues'; pathname: string }
   | { page: 'administration' }
+  | { page: 'account' }
   | { page: 'broadcast'; leagueId?: number }
   | { page: 'redirect'; to: string }
 
@@ -39,6 +40,7 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
     if (!leagueId && user.role !== 'ADMIN') return { page: 'redirect', to: '/leagues' }
     return { page: 'broadcast', leagueId }
   }
+  if (pathname === '/account') return { page: 'account' }
   if (pathname === '/administration' && user.role === 'ADMIN') return { page: 'administration' }
   if (
     [

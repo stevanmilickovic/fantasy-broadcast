@@ -97,6 +97,7 @@ export function AdministrationScreen({
         </div>
         <div className="account-nav administration-account-nav">
           <span>Administrator · {user.email}</span>
+          <a href="/account">Account settings</a>
           <button className="secondary-action" onClick={onSignOut}>
             Sign out
           </button>

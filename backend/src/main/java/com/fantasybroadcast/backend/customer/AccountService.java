@@ -155,6 +155,17 @@ public class AccountService {
 		return users.getFirst();
 	}
 
+	public CurrentUser updateDisplayName(CurrentUser user, String displayName) {
+		var name = displayName == null ? "" : displayName.strip();
+		if (name.isBlank() || name.codePointCount(0, name.length()) > 40 || name.codePoints().anyMatch(Character::isISOControl))
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username must contain 1–40 characters without control characters.");
+		if (jdbcTemplate.update("update app_user set display_name = ?, updated_at = current_timestamp where id = ?", name, user.id()) == 0)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account was not found.");
+		var updated = findByEmail(user.email());
+		sessionService.refreshUser(updated);
+		return updated;
+	}
+
 	public AccountDeletionRequest requestDeletion(CurrentUser user) {
 		jdbcTemplate.update("insert ignore into account_deletion_request (user_id) values (?)", user.id());
 		return new AccountDeletionRequest("Your account-deletion request has been received. We will review it, including any active subscription, before deleting your account.");
