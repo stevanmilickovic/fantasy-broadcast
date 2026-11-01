@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.0 - 2026-11-01
+
+- Added private leagues with owner-controlled privacy, follow requests, approval/rejection and cancellation; existing followers retain access when a league becomes private.
+- Enforced approved membership across protected league data and chat, and rechecked access before sending live broadcast updates.
+- Added editable usernames in account settings, allowing duplicate names while keeping active sessions and Google sign-in consistent with saved names.
+- Added a league Chat tab with plain-text messages, sender emails always visible beside usernames in muted text, history pagination, safe send retries and rate limits; chat remains available when FPL data is unavailable.
+- Added a floating broadcast chat button and bottom-anchored overlay with fading recent messages, readable scrolling history, mobile keyboard support and focus recovery.
+- Made chat messages disappear after 24 hours, added periodic database cleanup and documented chat identity visibility and retention.
+- Renamed league subscription management to League management and moved privacy controls and follow requests into each league's management page, with a pending-request count beside the league action menu.
+- Removed follow requests from account-specific registration/follow pages, improved the privacy control design and aligned the account settings back button with other pages while preserving mobile usability.
+- Added goalkeeper-specific jerseys in broadcasts and league team views using the existing shared shirt data and caching.
+- Added yellow, orange and red player availability indicators to broadcast name/points labels and league team names, with playing probabilities and availability details confined to the player details modal; joined benched broadcast name/points labels without a gap.
+- Replaced combined broadcast point-update labels with event descriptions such as bonus and assist, truncating long descriptions before the points total to prevent overlap.
+- Added owner-managed PNG team emblem uploads with transparent backgrounds, automatic resizing/compression to at most 512 pixels and 200 KB, validated access and cacheable image delivery.
+- Displayed team emblems across league teams, standings, matchups and Insights, plus broadcasts and live standings; added larger opposing emblems to matchup cards and responsive transitions with vertically stacked emblems on phones.
+- Documented a deferred Custom subscription proposal and interactive pricing calculator covering larger leagues, viewer capacity, AI allowances, league growth and Paddle integration; no Custom tier or billing changes were implemented.
+- Reworked league matchups into opposing scoreboards, refined winner/loser gradients and narrow-screen layouts, and simplified Insights copy.
+- Fixed league subscription action-menu styling, dimmed broadcast dashes for players without points and aligned mobile notification widths with highlighted player labels.
+- Added database migrations and expanded profile, membership, concurrency, chat expiry and responsive browser coverage; documented implementation and verification results.
+
 ## 1.1.0 - 2026-10-29
 
 - Redesigned league selection, standings, teams and matchups with responsive layouts, animated pickers, styled scrolling and clearer winner/loser gradients.
