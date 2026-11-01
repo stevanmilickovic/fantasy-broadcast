@@ -1,4 +1,5 @@
 import { ArrowLeft, Ellipsis, Radio } from 'lucide-react'
+import { TeamEmblemProvider } from './TeamEmblemProvider'
 import { useDismissibleMenus } from './useDismissibleMenus'
 import { useCallback } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
@@ -141,13 +142,15 @@ export function LeagueDetailPage({
           {discovery.error} <button onClick={discovery.refresh}>Try again</button>
         </p>
       )}
-      <LeagueStandingsOverview
-        leagueId={league.id}
-        discovery={discovery.data}
-        scoringType={league.scoringType}
-        search={search}
-        navigate={navigate}
-      />
+      <TeamEmblemProvider leagueId={league.id}>
+        <LeagueStandingsOverview
+          leagueId={league.id}
+          discovery={discovery.data}
+          scoringType={league.scoringType}
+          search={search}
+          navigate={navigate}
+        />
+      </TeamEmblemProvider>
     </section>
   )
 }

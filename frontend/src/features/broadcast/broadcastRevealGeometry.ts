@@ -1,6 +1,10 @@
 type Rect = { left: number; top: number; width: number; height: number }
 
-export function revealTransform(destination: Rect, source: Rect, preferredScale: number) {
+export function revealTransform(
+  destination: Rect,
+  source: Rect,
+  preferredScale = Number.MAX_VALUE,
+) {
   const values = [...Object.values(destination), ...Object.values(source), preferredScale]
   if (
     values.some((value) => !Number.isFinite(value)) ||

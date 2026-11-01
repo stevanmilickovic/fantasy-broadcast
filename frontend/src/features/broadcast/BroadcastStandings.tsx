@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
+import { TeamEmblem } from '../leagues/TeamEmblem'
 import { useReducedMotion } from './useReducedMotion'
 import type { LiveStandingView } from './types'
 
@@ -79,7 +80,10 @@ export function LiveStandings({
               >
                 <td>{standing.position}</td>
                 <th scope="row">
-                  <strong>{standing.teamName}</strong>
+                  <strong>
+                    <TeamEmblem managerId={standing.teamId} />
+                    {standing.teamName}
+                  </strong>
                   <span>{standing.managerName}</span>
                 </th>
                 <td>{standing.gameweekPoints}</td>

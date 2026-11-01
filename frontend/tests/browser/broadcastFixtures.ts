@@ -87,6 +87,7 @@ export async function mockBroadcast(
         },
       })
     if (path === '/api/customer/fpl/shirts') return route.fulfill({ json: welcomeShirtCodes })
+    if (path.endsWith('/teams/emblems')) return route.fulfill({ json: [] })
     return route.fulfill({ status: 404, json: { detail: 'Unexpected test request: ' + path } })
   })
   await page.route('https://fantasy.premierleague.com/**', (route) =>

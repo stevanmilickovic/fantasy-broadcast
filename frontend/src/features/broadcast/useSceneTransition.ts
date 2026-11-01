@@ -143,7 +143,7 @@ export function useSceneTransition(presentation: BroadcastScenePresentation) {
               ? revealTransform(
                   node.getBoundingClientRect(),
                   slot.getBoundingClientRect(),
-                  preferred / font,
+                  node.dataset.revealRole?.endsWith('-emblem') ? undefined : preferred / font,
                 )
               : null,
           }
@@ -157,7 +157,13 @@ export function useSceneTransition(presentation: BroadcastScenePresentation) {
         if (!geometry) throw new Error('Missing reveal geometry')
         const flight = animate(
           node,
-          [{ transform: geometry.from }, { transform: 'translate(0px, 0px) scale(1)' }],
+          [
+            {
+              transform: geometry.from,
+              opacity: node.dataset.revealRole?.endsWith('-emblem') ? 0.65 : 1,
+            },
+            { transform: 'translate(0px, 0px) scale(1)', opacity: 1 },
+          ],
           { duration: timing.flight, easing: REVEAL_EASING },
         )
         flight.pause()

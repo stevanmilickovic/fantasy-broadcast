@@ -10,6 +10,12 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+	@ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+	public ResponseEntity<ApiErrorResponse> handleOversizedUpload() {
+		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+				.body(new ApiErrorResponse("Choose a PNG image no larger than 5 MB."));
+	}
+
 	@ExceptionHandler(FplDraftClientException.class)
 	public ResponseEntity<FplErrorResponse> handleFplDraftClientException(FplDraftClientException exception) {
 		var status = HttpStatus.BAD_GATEWAY;

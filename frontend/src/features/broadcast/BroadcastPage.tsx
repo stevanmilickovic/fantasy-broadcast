@@ -1,4 +1,6 @@
 import { useQuery } from '../../shared/api/useQuery'
+import { TeamEmblemProvider } from '../leagues/TeamEmblemProvider'
+import { useTeamEmblems } from '../leagues/teamEmblems'
 import { loadRegisteredLeagues } from '../leagues/api'
 import { Radio } from 'lucide-react'
 import { useState } from 'react'
@@ -14,15 +16,22 @@ import { useScreenWakeLock } from './useScreenWakeLock'
 import { BroadcastChat } from '../chat/BroadcastChat'
 import type { BroadcastFocus } from './types'
 
-export function BroadcastPage({
-  user,
-  leagueId,
-  navigate,
-}: {
+type Props = {
   user: AuthUser
   leagueId?: number
   navigate: Navigate
-}) {
+}
+
+export function BroadcastPage(props: Props) {
+  return (
+    <TeamEmblemProvider leagueId={props.leagueId}>
+      <LeagueBroadcast {...props} />
+    </TeamEmblemProvider>
+  )
+}
+
+function LeagueBroadcast({ user, leagueId, navigate }: Props) {
+  const emblems = useTeamEmblems()
   const leagues = useQuery(`broadcast-leagues:${user.id}`, loadRegisteredLeagues)
   const leagueName = leagues.data?.find((league) => league.id === leagueId)?.displayName
   const [broadcastFocus, setBroadcastFocus] = useState<BroadcastFocus>('multi')
@@ -55,6 +64,7 @@ export function BroadcastPage({
     presentation.displayingLeaderboard ? null : presentation.displayedFocusId,
   )
   if (
+    emblems.loading ||
     !liveState ||
     (!liveState.matchups.length && !liveState.teams.length) ||
     !presentation.liveState
@@ -66,7 +76,7 @@ export function BroadcastPage({
           <h1>Fantasy Broadcast</h1>
           <p>
             {error ??
-              (liveState
+              (liveState && !liveState.matchups.length && !liveState.teams.length
                 ? 'No teams are available for this broadcast yet.'
                 : 'Connecting to the broadcast…')}
           </p>

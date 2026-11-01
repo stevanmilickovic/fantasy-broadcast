@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, ChartNoAxesCombined } from 'lucide-react'
 import { useState } from 'react'
+import { TeamEmblem } from './TeamEmblem'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import type { FplLeagueScoring, LeagueDiscoveryState } from '../../shared/fpl/types'
 import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
@@ -68,12 +69,14 @@ export function LeagueInsightsView({
       name: bestBench?.entry.entry_name,
       value: bestBench ? `${bestBench.benchPoints} pts` : '—',
       detail: 'Highest raw bench total this gameweek',
+      entryId: bestBench?.entry.entry_id,
     },
     {
       title: 'Biggest climb',
       name: climber?.entry.entry_name,
       value: climber ? `↑ ${climber.movement}` : '—',
       detail: 'Places gained since the previous table',
+      entryId: climber?.entry.entry_id,
     },
   ]
   return (
@@ -93,7 +96,10 @@ export function LeagueInsightsView({
           <article className="league-insight-highlight" key={highlight.title}>
             <span>{highlight.title}</span>
             <strong>{highlight.value}</strong>
-            <h3>{highlight.name ?? 'No leader yet'}</h3>
+            <h3>
+              {highlight.entryId && <TeamEmblem entryId={highlight.entryId} />}
+              {highlight.name ?? 'No leader yet'}
+            </h3>
             <small>{highlight.detail}</small>
           </article>
         ))}
@@ -150,6 +156,7 @@ export function LeagueInsightsView({
                     {player.premierLeagueClub} · {player.position}
                   </small>
                   <span className="league-insight-owners">
+                    {owners.length === 1 && <TeamEmblem entryId={owners[0].entry_id} />}
                     {owners.length === 1
                       ? owners[0].entry_name
                       : `${owners.length} clubs · ${Math.round((owners.length / insights.clubs.length) * 100)}% ownership`}
@@ -200,6 +207,7 @@ export function LeagueInsightsView({
                 <article className="league-insight-performance-row" key={row.entry.entry_id}>
                   <div className="league-insight-club">
                     <LeagueTeamLink
+                      entryId={row.entry.entry_id}
                       href={teamLink(row.entry.entry_id)}
                       name={row.entry.entry_name}
                       navigate={navigate}
@@ -271,6 +279,7 @@ export function LeagueInsightsView({
                   <tr key={club.entry.entry_id}>
                     <th scope="row">
                       <LeagueTeamLink
+                        entryId={club.entry.entry_id}
                         href={teamLink(club.entry.entry_id)}
                         name={club.entry.entry_name}
                         navigate={navigate}

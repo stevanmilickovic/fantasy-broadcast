@@ -87,6 +87,8 @@ export function BroadcastFrame({
           ).map((role) => (
             <span key={role} data-intro-slot={role} />
           ))}
+          {kind !== 'standings' && <span data-intro-slot="home-emblem" />}
+          {kind === 'h2h' && <span data-intro-slot="away-emblem" />}
         </div>
       </div>
       <div className="broadcast-intro-backdrop" aria-hidden="true" />

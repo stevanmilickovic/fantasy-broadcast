@@ -88,6 +88,24 @@ league data, checkout readiness and policy consent. The payment SDK belongs to b
 
 ## Broadcast data and playback
 
+League owners manage per-team PNG emblems in `LeagueEmblemSettings` on the league
+management page. `TeamEmblemProvider` loads one metadata list per mounted league;
+`TeamEmblem` reuses each versioned image URL in league tabs and broadcasts, including
+the existing team-name reveal animation. Draft entry IDs and broadcast manager IDs
+are mapped separately because FPL uses different identities for those views.
+Matchup emblems remain inside their team links but are positioned at the outer edges,
+centered against the full club box. Broadcast emblems have independent reveal slots:
+large at the outer ends on wide screens, stacked around names and scores in portrait,
+then landing beside the full club identity. Names may overlap the emblem slightly
+during wide reveals; the same image nodes and cached URLs are reused throughout.
+
+The backend validates actual PNG content, a 5 MB upload limit and decoded dimensions
+before processing. It preserves transparency, fits images within a 512-pixel square,
+strips metadata and reduces dimensions further if needed to fit 200 KB. One image
+per team is stored in MySQL and replaced in place; league deletion cascades. Images
+require league access and use private browser caching with a versioned URL and ETag.
+No image bytes are embedded in overview JSON or live SSE updates.
+
 The live pipeline has separate owners:
 
 1. `useLiveState` loads the initial snapshot and subscribes to named `live-state` SSE

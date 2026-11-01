@@ -2,6 +2,15 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { HttpError, request, requestJson } from './http'
 
 afterEach(() => vi.unstubAllGlobals())
+it('lets the browser set the multipart boundary for image uploads', async () => {
+  const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+  vi.stubGlobal('fetch', fetch)
+  const body = new FormData()
+  body.append('image', new Blob(['png'], { type: 'image/png' }), 'team.png')
+  await request('/api/test', { method: 'PUT', body })
+  expect(fetch.mock.calls[0][1].body).toBe(body)
+  expect(fetch.mock.calls[0][1].headers.has('Content-Type')).toBe(false)
+})
 it('preserves structured server errors and handles non-JSON failures', async () => {
   const fetch = vi
     .fn()

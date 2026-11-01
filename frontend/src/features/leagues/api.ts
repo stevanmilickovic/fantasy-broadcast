@@ -1,4 +1,5 @@
 import { request } from '../../shared/api/http'
+import type { TeamEmblemData } from './teamEmblems'
 import type {
   ClassicLeagueDiscovery,
   DraftLeagueDiscovery,
@@ -12,6 +13,35 @@ import type {
   LeagueRegistrationAccess,
   RegisteredLeague,
 } from './types'
+
+export const loadTeamEmblems = async (
+  leagueId: number,
+  signal?: AbortSignal,
+): Promise<TeamEmblemData[]> =>
+  (await request(`/api/customer/leagues/${leagueId}/teams/emblems`, { signal })).json()
+
+export const uploadTeamEmblem = async (
+  leagueId: number,
+  entryId: number,
+  file: File,
+  signal?: AbortSignal,
+) => {
+  const body = new FormData()
+  body.append('image', file)
+  await request(`/api/customer/leagues/${leagueId}/teams/${entryId}/emblem`, {
+    method: 'PUT',
+    body,
+    signal,
+  })
+}
+
+export const deleteTeamEmblem = async (leagueId: number, entryId: number, signal?: AbortSignal) => {
+  await request(`/api/customer/leagues/${leagueId}/teams/${entryId}/emblem`, {
+    method: 'DELETE',
+    signal,
+  })
+}
+
 export const loadRegisteredLeagues = async (signal?: AbortSignal): Promise<RegisteredLeague[]> =>
   (await request('/api/customer/leagues', { signal })).json()
 

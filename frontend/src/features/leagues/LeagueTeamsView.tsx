@@ -1,4 +1,5 @@
 import { LeagueSelect } from './LeagueSelect'
+import { TeamEmblem } from './TeamEmblem'
 import { useState } from 'react'
 import type { LeagueDiscoveryState } from '../../shared/fpl/types'
 import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
@@ -67,7 +68,10 @@ export function LeagueTeamsView({
               aria-pressed={selected.entry_id === entry.entry_id}
               onClick={() => onSelect(entry.entry_id)}
             >
-              <strong>{entry.entry_name}</strong>
+              <strong>
+                <TeamEmblem entryId={entry.entry_id} />
+                {entry.entry_name}
+              </strong>
               <span>{managerName(entry.player_first_name, entry.player_last_name)}</span>
             </button>
           ))}

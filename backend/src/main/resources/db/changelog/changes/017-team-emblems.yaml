@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017-team-emblems
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE league_team_emblem (
+                league_id BIGINT NOT NULL,
+                entry_id BIGINT NOT NULL,
+                version VARCHAR(36) NOT NULL,
+                image MEDIUMBLOB NOT NULL,
+                PRIMARY KEY (league_id, entry_id),
+                CONSTRAINT fk_emblem_league FOREIGN KEY (league_id) REFERENCES league(id) ON DELETE CASCADE
+              );

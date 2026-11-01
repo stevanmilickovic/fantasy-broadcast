@@ -97,6 +97,7 @@ export function LeagueMatchupsView({
                         <div>
                           {entry ? (
                             <LeagueTeamLink
+                              entryId={entry.entry_id}
                               href={teamLink(entry.entry_id)}
                               name={entry.entry_name}
                               navigate={navigate}

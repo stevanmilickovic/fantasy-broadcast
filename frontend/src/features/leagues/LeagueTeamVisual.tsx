@@ -1,4 +1,5 @@
 import { Shirt } from 'lucide-react'
+import { TeamEmblem } from './TeamEmblem'
 import { useState } from 'react'
 import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
 import { shirtCodeFor, shirtUrlFor } from '../../shared/fpl/shirts'
@@ -36,7 +37,10 @@ export function LeagueTeamVisual({
     <section className="league-team-stage" aria-label={`${entryName} players`}>
       <header>
         <span>{manager}</span>
-        <h2>{entryName}</h2>
+        <h2>
+          <TeamEmblem entryId={entryId} />
+          {entryName}
+        </h2>
         <strong aria-label="Current starter points">
           {starters.length > 0 &&
           starters.every((player) => discovery.livePlayers?.some((live) => live.id === player.id))

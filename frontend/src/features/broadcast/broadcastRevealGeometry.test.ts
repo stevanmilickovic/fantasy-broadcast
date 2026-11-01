@@ -11,3 +11,12 @@ it('fits the same element into a source slot using uniform scale and center tran
   expect(revealTransform({ ...destination, width: 0 }, source, 2)).toBeNull()
   expect(revealTransform(destination, { ...source, top: NaN }, 2)).toBeNull()
 })
+
+it('fills the emblem slot while preserving the image aspect ratio', () => {
+  expect(
+    revealTransform(
+      { left: 20, top: 40, width: 40, height: 40 },
+      { left: 0, top: 200, width: 240, height: 180 },
+    ),
+  ).toMatchObject({ scale: 4.5, dx: 80, dy: 230 })
+})

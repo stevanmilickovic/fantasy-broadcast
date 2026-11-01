@@ -1,0 +1,90 @@
+.team-emblem {
+  display: inline-block;
+  width: 1.8em;
+  height: 1.8em;
+  flex: 0 0 auto;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-inline-end: 0.45em;
+}
+.league-team-link {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+}
+.league-team-link > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.league-emblem-settings {
+  padding: clamp(16px, 3vw, 28px);
+  border: 1px solid #ffffff1a;
+  border-radius: 16px;
+  background: #ffffff05;
+}
+.league-emblem-settings > p,
+.league-emblem-settings > small {
+  color: #bbb4c6;
+}
+.league-emblem-list {
+  padding: 0;
+  list-style: none;
+}
+.league-emblem-list > li,
+.league-emblem-team,
+.league-emblem-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.league-emblem-list > li {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-block: 14px;
+  border-bottom: 1px solid #ffffff14;
+}
+.league-emblem-team {
+  flex: 1 1 180px;
+  overflow-wrap: anywhere;
+}
+.league-emblem-actions {
+  flex-wrap: wrap;
+}
+.league-emblem-upload,
+.league-emblem-actions button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #ffffff33;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.league-emblem-upload {
+  position: relative;
+}
+.league-emblem-upload:focus-within,
+.league-emblem-actions button:focus-visible {
+  outline: 2px solid #c4a4ff;
+  outline-offset: 3px;
+}
+.league-emblem-upload:has(input:disabled),
+.league-emblem-actions button:disabled {
+  opacity: 0.5;
+}
+.league-emblem-upload input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.broadcast-standings .team-emblem {
+  width: 1.6em;
+  height: 1.6em;
+}

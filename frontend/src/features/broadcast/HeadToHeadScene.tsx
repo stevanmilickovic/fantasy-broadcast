@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { TeamEmblem } from '../leagues/TeamEmblem'
 import { formatScoreline } from './broadcast'
 import { BroadcastFrame } from './BroadcastFrame'
 import { BroadcastSquad } from './BroadcastSquad'
@@ -18,7 +19,10 @@ export function BroadcastTeamIdentity({
 }) {
   return (
     <div className={`broadcast-identity ${role}`} data-reveal-cell>
-      <h2 data-reveal-role={role}>{team.clubName}</h2>
+      <TeamEmblem managerId={team.managerId} revealRole={`${role}-emblem`} />
+      <h2 data-reveal-role={role}>
+        <span>{team.clubName}</span>
+      </h2>
       <p>{team.displayName}</p>
       <small className="broadcast-leading">{leading ? 'Leading' : '\u00a0'}</small>
     </div>

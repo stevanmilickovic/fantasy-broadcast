@@ -204,6 +204,32 @@
   white-space: nowrap;
   margin-top: 4px;
 }
+.broadcast-identity:has(> .team-emblem) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: clamp(6px, 1cqw, 18px);
+}
+.broadcast-identity > .team-emblem {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  align-self: center;
+  width: clamp(32px, 4cqw, 84px);
+  height: clamp(32px, 4cqw, 84px);
+  margin: 0;
+}
+.broadcast-identity:has(> .team-emblem) > :not(.team-emblem) {
+  grid-column: 2;
+}
+.broadcast-identity.away:has(> .team-emblem) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  justify-items: end;
+}
+.broadcast-identity.away > .team-emblem {
+  grid-column: 2;
+}
+.broadcast-identity.away:has(> .team-emblem) > :not(.team-emblem) {
+  grid-column: 1;
+}
 .broadcast-leading {
   display: block;
   font-size: 11px;
@@ -734,6 +760,24 @@
 .broadcast-intro-layout > span {
   min-width: 0;
 }
+.broadcast-intro-layout > [data-intro-slot$='-emblem'] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22%;
+}
+.broadcast-intro-layout > [data-intro-slot='home-emblem'] {
+  left: 0;
+}
+.broadcast-intro-layout > [data-intro-slot='away-emblem'] {
+  right: 0;
+}
+.broadcast-scene:has([data-reveal-role='home-emblem']) [data-intro-slot='home'] {
+  margin-left: 45%;
+}
+.broadcast-scene:has([data-reveal-role='away-emblem']) [data-intro-slot='away'] {
+  margin-right: 45%;
+}
 .broadcast-scene-points .broadcast-intro-layout {
   grid-template-columns: 1.5fr 1fr;
 }
@@ -808,6 +852,12 @@
   z-index: 20;
   will-change: transform;
 }
+.broadcast-scene[data-phase='preparing'] .broadcast-identity > .team-emblem {
+  z-index: 15;
+}
+.broadcast-scene[data-phase='preparing'] .broadcast-identity h2 {
+  text-shadow: 0 2px 12px #120d19;
+}
 /* Composition depends on the actual stage container, including the embedded demo. */
 @container (max-width: 1050px) or (max-height: 480px) {
   :where(.broadcast-view:not([data-layout='desktop'])) .match-chip-track {
@@ -861,6 +911,10 @@
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity.away {
     border: 0;
     padding: 0;
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity > .team-emblem {
+    width: clamp(20px, 3.6cqw, 32px);
+    height: clamp(20px, 3.6cqw, 32px);
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity h2 {
     font-size: 16px;
@@ -1134,6 +1188,51 @@
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-scene-standings {
     grid-template-rows: minmax(0, 1fr);
+  }
+}
+/* Portrait reveals put each emblem outside its name, around the central score. */
+@container (max-width: 599px) or ((max-width: 1050px) and (min-height: 481px)) {
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene:has(.broadcast-identity > .team-emblem)
+    .broadcast-intro-layout {
+    inset: 6% 8%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1.25fr 0.6fr 1fr 0.6fr 1.25fr;
+    gap: clamp(8px, 2cqh, 18px);
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene:has(.broadcast-identity > .team-emblem)
+    [data-intro-slot] {
+    position: static;
+    width: auto;
+    margin: 0;
+    grid-column: 1;
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) [data-intro-slot='home-emblem'] {
+    grid-row: 1;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene:has(.broadcast-identity > .team-emblem)
+    [data-intro-slot='home'] {
+    grid-row: 2;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene:has(.broadcast-identity > .team-emblem)
+    [data-intro-slot='score'] {
+    grid-row: 3;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene:has(.broadcast-identity > .team-emblem)
+    [data-intro-slot='away'] {
+    grid-row: 4;
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) [data-intro-slot='away-emblem'] {
+    grid-row: 5;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene-points:has(.broadcast-identity > .team-emblem)
+    .broadcast-intro-layout {
+    grid-template-rows: 1.25fr 0.6fr 1fr;
   }
 }
 @container (min-width: 2600px) {

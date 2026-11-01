@@ -13,7 +13,8 @@ export function errorMessage(error: unknown, fallback = 'Unable to complete the 
 
 export async function request(path: string, options: RequestInit = {}): Promise<Response> {
   const headers = new Headers(options.headers)
-  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type'))
+    headers.set('Content-Type', 'application/json')
   const response = await fetch(path, { ...options, headers })
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null)

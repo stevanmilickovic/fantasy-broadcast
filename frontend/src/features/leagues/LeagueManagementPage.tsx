@@ -1,4 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
+import { TeamEmblemProvider } from './TeamEmblemProvider'
+import { LeagueEmblemSettings } from './LeagueEmblemSettings'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LeagueSubscriptionSettings } from '../billing/LeagueSubscriptionSettings'
 import { LeagueMembershipSettings } from './LeagueMembershipSettings'
@@ -23,6 +25,9 @@ export function LeagueManagementPage({
         <p>{league.displayName}</p>
       </header>
       <LeagueMembershipSettings league={league} onChanged={onChanged} />
+      <TeamEmblemProvider leagueId={league.id}>
+        <LeagueEmblemSettings leagueId={league.id} />
+      </TeamEmblemProvider>
       <LeagueSubscriptionSettings league={league} navigate={navigate} onChanged={onChanged} />
     </section>
   )
