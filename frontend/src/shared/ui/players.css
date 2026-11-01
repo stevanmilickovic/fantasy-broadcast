@@ -126,3 +126,21 @@
     width: 70px;
   }
 }
+.broadcast-player[data-availability='yellow'],
+.league-player-token[data-availability='yellow'],
+.player-availability[data-availability='yellow'] {
+  --player-availability-color: #ffe36b;
+  --player-availability-text: #241027;
+}
+.broadcast-player[data-availability='orange'],
+.league-player-token[data-availability='orange'],
+.player-availability[data-availability='orange'] {
+  --player-availability-color: #ffae4d;
+  --player-availability-text: #241027;
+}
+.broadcast-player[data-availability='red'],
+.league-player-token[data-availability='red'],
+.player-availability[data-availability='red'] {
+  --player-availability-color: #ff6b85;
+  --player-availability-text: #241027;
+}

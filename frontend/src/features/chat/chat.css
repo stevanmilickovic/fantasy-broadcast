@@ -57,29 +57,17 @@
   color: #d0c0d6;
 }
 .chat-author {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
   color: #6fffb3;
 }
-.chat-author button {
-  cursor: pointer;
+.chat-author strong {
   font-weight: 650;
-  text-align: left;
-  padding: 0;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  overflow-wrap: anywhere;
 }
-.chat-author span {
-  display: none;
-  color: #e9d9ed;
+.chat-author-email {
+  color: #a3a0a8;
   font-size: 12px;
-}
-.chat-author:hover span,
-.chat-author:focus-within span,
-.chat-author[data-expanded='true'] span {
-  display: block;
 }
 .chat-composer {
   display: grid;

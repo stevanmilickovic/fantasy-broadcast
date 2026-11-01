@@ -1,3 +1,5 @@
+import type { PlayerAvailability } from '../../shared/fpl/types'
+
 export type PlayerDetails = {
   id: number
   name: string
@@ -5,6 +7,7 @@ export type PlayerDetails = {
   club: string
   position: string
   photoCode: number
+  availability?: PlayerAvailability | null
   gameweek: number
   points: number
   changes: Array<{ stat: string; value: number; points: number; fixture: number }>

@@ -90,6 +90,20 @@ class SharedBroadcastPollingTests {
 	}
 
 	@Test
+	void cachedAvailabilityReachesBothLeagueTypesAndSurvivesAutomaticSubstitution() {
+		((ObjectNode) bootstrap.path("elements").get(0)).put("status", "d").put("chance_of_playing_next_round", 75).put("news", "Knock");
+		start(1, FplLeagueType.DRAFT);
+		start(2, FplLeagueType.CLASSIC);
+		for (long key = 1; key <= 2; key++) {
+			var player = service.currentState(key).teams().stream().flatMap(team -> java.util.stream.Stream.concat(team.activePlayers().stream(), team.benchPlayers().stream()))
+					.filter(candidate -> candidate.id().equals("328")).findFirst().orElseThrow();
+			assertThat(player.availability()).isEqualTo(new com.fantasybroadcast.backend.fpl.FplPlayer.Availability("d", null, 75, "Knock"));
+			PlayerView substituted = ReflectionTestUtils.invokeMethod(service, "markAutoSubstituted", player);
+			assertThat(substituted.availability()).isEqualTo(player.availability());
+		}
+	}
+
+	@Test
 	void expiringOneSubscriptionKeepsTheSharedPollerUntilTheLastLeagueEnds() {
 		start(1, FplLeagueType.DRAFT);
 		start(2, FplLeagueType.DRAFT);

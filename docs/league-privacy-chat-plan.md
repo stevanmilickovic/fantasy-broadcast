@@ -8,7 +8,7 @@ Status: implemented in the six planned commits; final verification results are r
 - Following a private league requires approval before league data, broadcasts or chat become accessible.
 - Followers share a league chat, available through a league tab and a broadcast overlay.
 - Existing account display names are the initial usernames. Users can change their name; duplicates are allowed.
-- Hovering a sender reveals their email. Keyboard focus and tapping provide the same information.
+- Sender emails are always visible in muted gray beside their usernames, wrapping when needed on narrow screens.
 - Chat messages disappear 24 hours after the server accepts them.
 
 ## Proposed behavior and implementation choices
@@ -61,7 +61,7 @@ Status: implemented in the six planned commits; final verification results are r
 ### 5. Add the league chat tab
 
 - Add a URL-addressable Chat tab and shared chat component/hook, independent of FPL overview loading or availability.
-- Place the composer below chronological messages; show usernames, timestamps and sender email on hover/focus/tap.
+- Place the composer below chronological messages; show usernames, timestamps and always-visible sender emails.
 - Start at the newest messages. Follow new messages only when already near the bottom; otherwise preserve reading position and offer a New messages control.
 - Preserve scroll position when prepending older messages; handle loading, empty, offline, expired-session, lost-access and send-failure states without losing the draft.
 - Test two-user delivery, duplicate names, safe text rendering, reconnects, scrolling and expiry using the shared browser fixtures.

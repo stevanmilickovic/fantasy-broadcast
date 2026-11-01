@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { loadPlayerDetails } from './api'
 import type { PlayerDetails } from './types'
+import { playerAvailability } from '../../shared/fpl/availability'
 
 export type SelectedPlayer = {
   id: number | string
@@ -48,6 +49,7 @@ export function PlayerDetailsModal({
   const photoUrl = details?.photoCode
     ? `https://resources.premierleague.com/premierleague/photos/players/110x140/p${details.photoCode}.png`
     : undefined
+  const availability = playerAvailability(details?.availability)
 
   return (
     <dialog
@@ -99,6 +101,24 @@ export function PlayerDetailsModal({
             />
           )}
         </header>
+        {details?.availability && (
+          <section
+            className="player-availability"
+            data-availability={availability.severity}
+            aria-label="Current availability"
+          >
+            <strong>{availability.label}</strong>
+            {availability.chance !== null && (
+              <p>
+                {availability.chance}% chance of playing {availability.round} gameweek
+              </p>
+            )}
+            {availability.chance === null && availability.severity && (
+              <p>Playing percentage not provided by FPL.</p>
+            )}
+            {details.availability.news && <p>{details.availability.news}</p>}
+          </section>
+        )}
         <div className="player-details-tabs" role="tablist" aria-label="Player points">
           <button
             type="button"

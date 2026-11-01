@@ -31,7 +31,7 @@ public class FplDraftMapper {
 					(firstName + " " + secondName).trim(),
 					teams.getOrDefault(intValue(element, "team"), ""),
 					intValue(element, "team"),
-					positions.getOrDefault(intValue(element, "element_type"), ""), seasonStats(element)));
+					positions.getOrDefault(intValue(element, "element_type"), ""), seasonStats(element), availability(element)));
 		}
 
 		return players;
@@ -47,7 +47,22 @@ public class FplDraftMapper {
 		for (var element : draft.path("elements")) codeById.put(intValue(element, "id"), intValue(element, "code"));
 		return mapPlayers(draft).stream().map(player -> new FplPlayer(player.id(), player.webName(), player.fullName(),
 				player.premierLeagueClub(), player.premierLeagueClubId(), player.position(),
-				seasonByCode.getOrDefault(codeById.get(player.id()), player.season()))).toList();
+				seasonByCode.getOrDefault(codeById.get(player.id()), player.season()), player.availability())).toList();
+	}
+
+	private FplPlayer.Availability availability(JsonNode element) {
+		var status = text(element, "status");
+		var news = text(element, "news");
+		var thisRound = playingChance(element.path("chance_of_playing_this_round"));
+		var nextRound = playingChance(element.path("chance_of_playing_next_round"));
+		return status.isBlank() && news.isBlank() && thisRound == null && nextRound == null ? null
+				: new FplPlayer.Availability(status, thisRound, nextRound, news);
+	}
+
+	private Integer playingChance(JsonNode value) {
+		if (!value.isIntegralNumber() || !value.canConvertToInt()) return null;
+		var chance = value.asInt(-1);
+		return chance >= 0 && chance <= 100 ? chance : null;
 	}
 
 	private FplPlayer.SeasonStats seasonStats(JsonNode element) {

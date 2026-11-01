@@ -1,9 +1,10 @@
 import { Shirt } from 'lucide-react'
 import { useState } from 'react'
 import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
-import { shirtCodeFor } from '../../shared/fpl/shirts'
+import { shirtCodeFor, shirtUrlFor } from '../../shared/fpl/shirts'
 import type { FplClubShirt, LeagueDiscoveryState } from '../../shared/fpl/types'
 import { type LeaguePlayer, leaguePlayersForEntry } from './leagueData'
+import { playerAvailability } from '../../shared/fpl/availability'
 export function LeagueTeamVisual({
   discovery,
   entryId,
@@ -96,15 +97,15 @@ function LeaguePlayerToken({
   onSelect: (player: SelectedPlayer) => void
 }) {
   const [imageFailed, setImageFailed] = useState(false)
-  const shirtUrl = shirtCode
-    ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${shirtCode}-110.png`
-    : undefined
+  const availability = playerAvailability(player.availability)
+  const shirtUrl = shirtUrlFor(shirtCode, player.position)
   return (
     <button
       type="button"
       className="league-player-token"
       onClick={() => onSelect({ id: player.id, name: player.fullName, shirtUrl })}
-      aria-label={`View ${player.fullName} points`}
+      aria-label={`View ${player.fullName} points${availability.severity ? ` — ${availability.label}` : ''}`}
+      data-availability={availability.severity}
     >
       <div className="player-core">
         <div className="shirt-wrap">

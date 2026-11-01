@@ -57,9 +57,7 @@ export function LeagueChat({
   }
   return (
     <section className="league-chat" aria-label="League chat">
-      <p className="chat-notice">
-        Messages disappear after 24 hours. Select a username to see their email.
-      </p>
+      <p className="chat-notice">Messages disappear after 24 hours.</p>
       <div
         className="chat-message-area"
         ref={list}

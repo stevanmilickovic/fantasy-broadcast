@@ -63,7 +63,7 @@ class FplDraftMapperTests {
 	@Test
 	void mapsSeasonStatsAndMatchesDraftPlayersByCodeRatherThanId() {
 		var draft = objectMapper.readTree("""
-				{"elements":[{"id":1,"code":99},{"id":2,"code":88},{"id":3,"code":0}]}
+				{"elements":[{"id":1,"code":99,"status":"d","chance_of_playing_next_round":75,"news":"Hip injury"},{"id":2,"code":88},{"id":3,"code":0}]}
 				""");
 		var fantasy = objectMapper.readTree("""
 				{"elements":[
@@ -77,6 +77,30 @@ class FplDraftMapperTests {
 		assertThat(players.getFirst().season()).isEqualTo(new FplPlayer.SeasonStats(105, 8, 4, 3));
 		assertThat(players.get(1).season()).isNull();
 		assertThat(players.get(2).season()).isNull();
+		assertThat(players.getFirst().availability()).isEqualTo(new com.fantasybroadcast.backend.fpl.FplPlayer.Availability("d", null, 75, "Hip injury"));
+	}
+
+	@Test
+	void mapsAvailabilityWithoutTreatingMissingProbabilitiesAsZero() {
+		var root = objectMapper.readTree("""
+				{"elements":[
+				 {"id":1,"status":"a","chance_of_playing_this_round":null,"chance_of_playing_next_round":null},
+				 {"id":2,"status":"d","chance_of_playing_this_round":75,"chance_of_playing_next_round":50,"news":"Knock - 50% chance of playing"},
+				 {"id":3,"status":"i","chance_of_playing_this_round":0,"chance_of_playing_next_round":0,"news":"Injury"},
+				 {"id":4,"status":"s","chance_of_playing_this_round":-1,"chance_of_playing_next_round":101},
+				 {"id":5,"status":"d","chance_of_playing_this_round":"75","chance_of_playing_next_round":75.5},
+				 {"id":6}, {"id":7,"status":"d","chance_of_playing_next_round":4294967371}
+				]}
+				""");
+		var players = mapper.mapPlayers(root);
+		assertThat(players.get(0).availability()).isEqualTo(new com.fantasybroadcast.backend.fpl.FplPlayer.Availability("a", null, null, ""));
+		assertThat(players.get(1).availability()).isEqualTo(new com.fantasybroadcast.backend.fpl.FplPlayer.Availability("d", 75, 50, "Knock - 50% chance of playing"));
+		assertThat(players.get(2).availability().chanceOfPlayingNextRound()).isZero();
+		for (var index : new int[]{3, 4, 6}) {
+			assertThat(players.get(index).availability().chanceOfPlayingThisRound()).isNull();
+			assertThat(players.get(index).availability().chanceOfPlayingNextRound()).isNull();
+		}
+		assertThat(players.get(5).availability()).isNull();
 	}
 
 	@Test

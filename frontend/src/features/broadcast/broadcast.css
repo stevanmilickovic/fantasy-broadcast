@@ -386,7 +386,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
-  background: #201626e8;
+  background: var(--player-availability-color, #201626e8);
+  color: var(--player-availability-text, inherit);
+  /* Cover fractional-pixel seams in centered player cards. */
+  box-shadow: 1px 0 var(--player-availability-color, transparent);
   padding: 4px;
   font-size: inherit;
   font-weight: 600;
@@ -397,14 +400,18 @@
   place-items: center;
   min-width: 24px;
   padding: 4px;
-  background: #2b1d33;
+  background: var(--player-availability-color, #2b1d33);
+  color: var(--player-availability-text, inherit);
   font-weight: 750;
 }
 .broadcast-player-status {
   display: none;
+  align-self: stretch;
+  align-content: center;
+  background: var(--player-availability-color, transparent);
 }
 .broadcast-player-points.is-empty {
-  color: #ffffff80;
+  color: var(--player-availability-text, #ffffff80);
 }
 .broadcast-player-main {
   position: relative;
@@ -439,6 +446,7 @@
     opacity 180ms ease;
 }
 .broadcast-player-event > span {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -447,9 +455,6 @@
 .broadcast-player-event b {
   flex-shrink: 0;
   white-space: nowrap;
-}
-.broadcast-player-event small {
-  font-size: 0.85em;
 }
 .broadcast-player.has-event .broadcast-player-event {
   transform: scaleY(1);
@@ -461,7 +466,7 @@
 }
 .broadcast-player.has-event .broadcast-player-name,
 .broadcast-player.has-event .broadcast-player-points {
-  background: #00ff8524;
+  background: var(--player-availability-color, #00ff8524);
 }
 .broadcast-player.has-event .broadcast-player-main {
   background: #00ff851c;
@@ -486,7 +491,7 @@
 }
 .broadcast-player.negative-event.has-event .broadcast-player-name,
 .broadcast-player.negative-event.has-event .broadcast-player-points {
-  background: #ff6b8524;
+  background: var(--player-availability-color, #ff6b8524);
 }
 .broadcast-player.negative-event .broadcast-player-event {
   background: #ff6b85;
@@ -953,16 +958,16 @@
     align-self: stretch;
     align-content: center;
     padding: 0;
-    background: transparent;
+    background: var(--player-availability-color, transparent);
     font-weight: 500;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-status {
     display: inline;
     font-size: 8px;
-    color: var(--broadcast-muted);
+    color: var(--player-availability-text, var(--broadcast-muted));
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-player-points {
-    background: transparent;
+    background: var(--player-availability-color, transparent);
     padding: 0;
     min-width: 20px;
     font-size: 13px;

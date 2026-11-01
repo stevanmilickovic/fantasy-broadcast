@@ -60,12 +60,20 @@ export type FplElementStatusRaw = {
   }>
 }
 
+export type PlayerAvailability = {
+  status: string
+  chanceOfPlayingThisRound: number | null
+  chanceOfPlayingNextRound: number | null
+  news: string
+}
+
 export type FplPlayer = {
   id: number
   webName: string
   fullName: string
   premierLeagueClub: string
   position: string
+  availability?: PlayerAvailability | null
   season?: {
     totalPoints: number
     goalsScored: number

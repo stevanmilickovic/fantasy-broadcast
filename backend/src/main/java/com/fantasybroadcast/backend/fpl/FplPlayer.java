@@ -7,7 +7,9 @@ public record FplPlayer(
 		String premierLeagueClub,
 		int premierLeagueClubId,
 		String position,
-		SeasonStats season
+		SeasonStats season,
+		Availability availability
 ) {
 	public record SeasonStats(int totalPoints, int goalsScored, int assists, int cleanSheets) { }
+	public record Availability(String status, Integer chanceOfPlayingThisRound, Integer chanceOfPlayingNextRound, String news) { }
 }

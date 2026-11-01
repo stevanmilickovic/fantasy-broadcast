@@ -221,13 +221,13 @@ public class CustomerLeagueController {
 		}
 		return new PlayerDetails(player.id(), player.fullName(), player.webName(), player.premierLeagueClub(),
 				player.position(), playerCode, gameweek, livePlayer == null ? 0 : livePlayer.totalPoints(), changes,
-				history.entrySet().stream().map(entry -> new PlayerGameweekPoints(entry.getKey(), entry.getValue())).toList());
+				history.entrySet().stream().map(entry -> new PlayerGameweekPoints(entry.getKey(), entry.getValue())).toList(), player.availability());
 	}
 
 	public record PlayerPointChange(String stat, int value, int points, int fixture) { }
 	public record PlayerGameweekPoints(int gameweek, int points) { }
 	public record PlayerDetails(int id, String name, String shortName, String club, String position, int photoCode,
-			int gameweek, int points, List<PlayerPointChange> changes, List<PlayerGameweekPoints> history) { }
+			int gameweek, int points, List<PlayerPointChange> changes, List<PlayerGameweekPoints> history, FplPlayer.Availability availability) { }
 
 	public record LeagueRegistrationAccess(boolean canRegisterLeague) {
 	}

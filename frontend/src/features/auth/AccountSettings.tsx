@@ -46,8 +46,8 @@ export function AccountSettings({
           autoComplete="nickname"
         />
         <p>
-          Names do not need to be unique. Other members of a league chat can see your email by
-          selecting your name.
+          Names do not need to be unique. Your email is visible beside your username in league
+          chats.
         </p>
         {saving.error && <p role="alert">{saving.error}</p>}
         {saving.status === 'success' && <p role="status">Username saved.</p>}

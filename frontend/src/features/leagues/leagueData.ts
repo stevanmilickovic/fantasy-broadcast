@@ -1,4 +1,9 @@
-import type { FplLeagueScoring, FplStanding, LeagueDiscoveryState } from '../../shared/fpl/types'
+import type {
+  FplLeagueScoring,
+  FplStanding,
+  LeagueDiscoveryState,
+  PlayerAvailability,
+} from '../../shared/fpl/types'
 import { type ClassicLeagueDiscovery } from '../../shared/fpl/types'
 export type LeaguePlayer = {
   id: number
@@ -10,6 +15,7 @@ export type LeaguePlayer = {
   minutes: number
   starter: boolean
   lineupPosition: number
+  availability?: PlayerAvailability | null
 }
 
 export function toLeagueDiscovery(
@@ -141,6 +147,7 @@ export function leaguePlayersForEntry(
         fullName: player?.fullName ?? 'Unknown player',
         club: player?.premierLeagueClub ?? 'Unknown club',
         position: player?.position ?? 'MID',
+        availability: player?.availability,
         points: livePlayersById.get(status.element)?.stats.totalPoints ?? 0,
         minutes: livePlayersById.get(status.element)?.stats.minutes ?? 0,
         starter: pick ? lineupPosition <= 11 : true,

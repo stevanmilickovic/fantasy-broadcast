@@ -138,8 +138,27 @@ The live pipeline has separate owners:
 
 `usePlayerNotification` supplies the same notification/counting state machine to pitch
 and bench players. Pending deltas keep player points frozen until reveal; active events
-count their combined delta, then retain labels for the exit animation. Named point
-changes expand beneath the real player name/points metadata; compact labels are centered
+count their combined delta, then retain labels for the exit animation. Grouped point
+changes list their event names separated by commas, with ellipsis before the unshrinking
+points total. Broadcast squads and league teams share `shirtUrlFor`: goalkeeper kits use
+the `_1` image variant of the same cached club code. Existing FPL data-cache lifetimes
+remain unchanged; regular and goalkeeper images share the preload path and normal HTTP caching.
+`FplPlayer.availability` carries status, current/next-round playing chance and news from
+the already-cached Classic/Draft bootstrap responses. Broadcast `PlayerView` keeps this
+separate from its match status and preserves it during automatic substitutions. The same
+metadata reaches league teams and the existing player-details endpoint, without extra
+upstream requests or a change to cache lifetimes.
+
+`shared/fpl/availability.ts` supplies the common warning rules: yellow for a 75% playing
+chance, orange for 50%/25%, red for unavailable/injured/suspended players or 0%. The next
+round takes precedence, falling back to this round when absent; the modal labels the
+round explicitly. Available players with blank percentages keep normal styling and show
+Available without an invented 100%. Numeric probabilities and FPL news appear only in
+player details; cards use warning colors and nonnumeric accessible status labels.
+Broadcast name/status/points labels form a continuous warning strip; league teams color
+only the name, keeping their separate points badge neutral.
+
+Named point changes expand beneath the real player name/points metadata; compact labels are centered
 at rest and animate upward as notifications expand, returning as they collapse without
 changing row height. Event glow belongs to the metadata
 and jersey shape, not the whole player button. A squad ResizeObserver fits desktop

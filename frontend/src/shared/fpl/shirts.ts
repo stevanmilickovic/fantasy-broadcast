@@ -1,4 +1,10 @@
 import type { FplClubShirt } from './types'
+export function shirtUrlFor(code: number | undefined, position: string, size: 66 | 110 = 110) {
+  return code
+    ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${code}${position === 'GKP' ? '_1' : ''}-${size}.png`
+    : undefined
+}
+
 export function shirtCodeFor(clubName: string, shirtCodes: FplClubShirt[]) {
   const requestedName = normalizeClubName(clubName)
   const exactMatch = shirtCodes.find((team) =>

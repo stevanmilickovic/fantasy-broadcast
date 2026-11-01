@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { mockApp } from './fixtures'
 import type { ChatMessage } from '../../src/features/chat/api'
 
-test('league chat works without FPL data, preserves failed drafts and reveals sender identity', async ({
+test('league chat works without FPL data, preserves failed drafts and always shows sender emails', async ({
   page,
 }) => {
   await mockApp(page)
@@ -53,9 +53,10 @@ test('league chat works without FPL data, preserves failed drafts and reveals se
   )
   await expect(page.getByText('Hello league', { exact: true })).toBeVisible()
   await expect(page.locator('.chat-messages img')).toHaveCount(0)
-  const authors = page.locator('.chat-author button')
-  await authors.nth(1).click()
+  await expect(page.getByText('one@example.com', { exact: true })).toBeVisible()
   await expect(page.getByText('two@example.com', { exact: true })).toBeVisible()
+  await expect(page.locator('.chat-author-email').first()).toHaveCSS('color', 'rgb(163, 160, 168)')
+  await expect(page.locator('.chat-author button')).toHaveCount(0)
   await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Test message')
   await page.getByRole('button', { name: 'Send', exact: true }).click()
   await expect(page.getByRole('textbox', { name: 'Message', exact: true })).toHaveValue(

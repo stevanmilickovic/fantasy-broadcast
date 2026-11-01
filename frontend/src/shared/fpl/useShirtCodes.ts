@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { loadFplShirts } from './api'
+import { shirtUrlFor } from './shirts'
 import type { FplClubShirt } from './types'
 
 export function useShirtCodes(override?: FplClubShirt[]): FplClubShirt[] {
@@ -12,9 +13,14 @@ export function useShirtCodes(override?: FplClubShirt[]): FplClubShirt[] {
         if (controller.signal.aborted) return
         setCodes(teams)
         for (const team of teams)
-          for (const size of [66, 110]) {
+          for (const url of [
+            shirtUrlFor(team.code, 'DEF', 66),
+            shirtUrlFor(team.code, 'DEF'),
+            shirtUrlFor(team.code, 'GKP'),
+          ]) {
+            if (!url) continue
             const shirt = new Image()
-            shirt.src = `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${team.code}-${size}.png`
+            shirt.src = url
           }
       })
       .catch(() => {

@@ -50,7 +50,7 @@ class CustomerLeagueControllerTests {
 		var currentEvent = mock(JsonNode.class);
 		var current = mock(JsonNode.class);
 		var gameweekId = mock(JsonNode.class);
-		var players = java.util.List.of(new FplPlayer(1, "Player", "Test Player", "Club", 1, "MID", null));
+		var players = java.util.List.of(new FplPlayer(1, "Player", "Test Player", "Club", 1, "MID", null, null));
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Test League", FplLeagueType.DRAFT,
 				FplLeagueScoring.H2H, true, false, false, user.id(), false));
 		when(client.getLeagueDetails(12345)).thenReturn(details);
@@ -110,7 +110,8 @@ class CustomerLeagueControllerTests {
 		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getFantasyPlayerSummary(12)).thenReturn(summary);
 		when(client.getFantasyEventLive(3)).thenReturn(liveRoot);
-		when(mapper.mapPlayers(bootstrap)).thenReturn(java.util.List.of(new FplPlayer(12, "Player", "Test Player", "Club", 1, "MID", null)));
+		var availability = new FplPlayer.Availability("d", 75, 50, "Knock");
+		when(mapper.mapPlayers(bootstrap)).thenReturn(java.util.List.of(new FplPlayer(12, "Player", "Test Player", "Club", 1, "MID", null, availability)));
 		when(mapper.mapLivePlayers(liveRoot)).thenReturn(java.util.List.of(livePlayer));
 		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
 				client, mapper, new BroadcastSecurityProperties(), mock(com.fantasybroadcast.backend.payment.SubscriptionService.class));
@@ -118,6 +119,7 @@ class CustomerLeagueControllerTests {
 		var details = controller.playerDetails(request, 41, 12, 3);
 
 		assertThat(details.photoCode()).isEqualTo(1234);
+		assertThat(details.availability()).isEqualTo(availability);
 		assertThat(details.points()).isEqualTo(6);
 		assertThat(details.changes()).containsExactly(new CustomerLeagueController.PlayerPointChange("goals_scored", 1, 4, 55));
 		assertThat(details.history()).containsExactly(new CustomerLeagueController.PlayerGameweekPoints(1, 3),

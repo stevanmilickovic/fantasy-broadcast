@@ -1,3 +1,5 @@
+import type { PlayerAvailability } from '../../shared/fpl/types'
+
 export type SequenceState = {
   currentStep: number
   totalSteps: number
@@ -23,6 +25,7 @@ export type PlayerView = {
   status: string
   recentDelta: number
   autoSubstituted?: boolean
+  availability?: PlayerAvailability | null
 }
 
 export type TeamView = {

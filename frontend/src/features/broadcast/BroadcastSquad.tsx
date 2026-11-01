@@ -1,9 +1,10 @@
 import { Shirt } from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { shirtCodeFor } from '../../shared/fpl/shirts'
+import { shirtCodeFor, shirtUrlFor } from '../../shared/fpl/shirts'
 import type { FplClubShirt } from '../../shared/fpl/types'
 import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
 import { usePlayerNotification } from './usePlayerNotification'
+import { playerAvailability } from '../../shared/fpl/availability'
 import type { FantasyEventView, PlayerView, TeamView } from './types'
 
 export function BroadcastSquad({
@@ -62,11 +63,7 @@ export function BroadcastSquad({
         player={player}
         managerId={team.managerId}
         bench={bench}
-        shirtUrl={
-          code
-            ? `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${code}-110.png`
-            : undefined
-        }
+        shirtUrl={shirtUrlFor(code, player.position)}
         events={relevant(events)}
         pendingDelta={
           events.length
@@ -126,16 +123,19 @@ function BroadcastPlayer({
   style: CSSProperties
 }) {
   const [failedImage, setFailedImage] = useState<string>()
+  const availability = playerAvailability(player.availability)
   const { pointsToRender, notificationEventId, activeEvents, notificationLeaving } =
     usePlayerNotification(player.points, events, pendingDelta)
   const delta = activeEvents.reduce((sum, event) => sum + event.pointDelta, 0)
+  const eventLabel = activeEvents.map((event) => event.type.replaceAll('_', ' ')).join(', ')
   const points = pointsToRender === 0 && (player.minutes ?? 0) === 0 ? '–' : pointsToRender
   return (
     <button
       type="button"
       className={`broadcast-player ${bench ? 'is-bench' : ''} ${notificationEventId ? 'has-event' : ''} ${delta < 0 ? 'negative-event' : ''} ${notificationLeaving ? 'is-leaving' : ''}`}
       style={style}
-      aria-label={`View ${player.displayName} points`}
+      aria-label={`View ${player.displayName} points${availability.severity ? ` — ${availability.label}` : ''}`}
+      data-availability={availability.severity}
       data-player-id={player.id}
       data-manager-id={managerId}
       data-player-name={player.displayName}
@@ -158,10 +158,7 @@ function BroadcastPlayer({
           {points}
         </span>
         <span className="broadcast-player-event" aria-hidden="true">
-          <span>
-            {activeEvents[0]?.type.replaceAll('_', ' ')}
-            {activeEvents.length > 1 && <small> +{activeEvents.length - 1}</small>}
-          </span>
+          <span title={eventLabel}>{eventLabel}</span>
           <b>{notificationEventId && delta !== 0 ? `${delta > 0 ? '+' : ''}${delta} pts` : ''}</b>
         </span>
       </span>

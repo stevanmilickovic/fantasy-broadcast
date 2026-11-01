@@ -739,7 +739,7 @@ public class MockLiveStateService {
 			var points = live == null ? 0 : live.totalPoints();
 			var minutes = live == null ? 0 : live.stats().minutes();
 			var view = new PlayerView(String.valueOf(player.id()), player.fullName(), player.webName(), player.premierLeagueClub(),
-					player.position(), "" + pick.position(), points, minutes, "AVAILABLE", 0);
+					player.position(), "" + pick.position(), points, minutes, "AVAILABLE", 0, false, player.availability());
 			if (pick.starter()) {
 				active.add(view);
 				liveScore += points * Math.max(1, pick.multiplier());
@@ -790,7 +790,7 @@ public class MockLiveStateService {
 	}
 
 	private PlayerView markAutoSubstituted(PlayerView player) {
-		return new PlayerView(player.id(), player.displayName(), player.shortName(), player.premierLeagueClub(), player.position(), player.lineupSlot(), player.points(), player.minutes(), player.status(), player.recentDelta(), true);
+		return new PlayerView(player.id(), player.displayName(), player.shortName(), player.premierLeagueClub(), player.position(), player.lineupSlot(), player.points(), player.minutes(), player.status(), player.recentDelta(), true, player.availability());
 	}
 
 	private List<FantasyEventView> detectPointEvents(LiveStateResponse state, Map<String, Integer> priorPoints,
