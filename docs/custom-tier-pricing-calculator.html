@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom league pricing research</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f3f5f8; color: #172333; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1050px; padding: 28px 18px 50px; margin: auto; }
+  h1 { line-height: 1.2; } h2 { font-size: 1.15rem; margin-top: 0; }
+  .muted { color: #526173; } .notice { border-left: 4px solid #b56809; padding: 12px; background: #fff3dc; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 285px), 1fr)); gap: 18px; }
+  section, details { background: white; border: 1px solid #d8dfe8; border-radius: 12px; padding: 20px; margin: 18px 0; }
+  label { display: block; margin: 14px 0; } input[type=number] { display: block; width: 100%; font: inherit; padding: 8px; border: 1px solid #8c98a7; border-radius: 5px; }
+  input[type=checkbox] { width: 19px; height: 19px; vertical-align: middle; margin-right: 8px; }
+  input:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #2968c9; outline-offset: 3px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .price { font-size: 2.2rem; font-weight: 750; } dl { margin: 12px 0; }
+  .row { display: flex; gap: 15px; justify-content: space-between; border-bottom: 1px solid #e5eaf0; padding: 8px 0; }
+  dt { flex: 1; } dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .bar { height: 20px; background: #366cc1; border-radius: 3px; min-width: 2px; margin: 6px 0 14px; }
+  .goal { background: #16826e; } .warning { color: #a02626; font-weight: 650; }
+  a { color: #2159a5; } small { display: block; }
+</style>
+<main>
+  <h1>Custom league pricing calculator</h1>
+  <p class="muted">Research proposal · 1 November 2026 · Runs locally, without checkout or external requests.</p>
+  <p class="notice">Prices are suggestions. The smaller feed is an <strong>unmeasured engineering target</strong>; it is not available in the current app. This calculator cannot certify that a server supports a selected capacity.</p>
+  <div class="grid">
+    <section>
+      <h2>Subscription</h2>
+      <label>FPL teams <input id="teams" type="number" value="250" min="1" max="10000" step="1"></label>
+      <label>Requested concurrent viewer slots <input id="viewers" type="number" value="250" min="50" max="10000" step="50"></label>
+      <label><input id="ai" type="checkbox">Include AI highlights (+€10/month)</label>
+      <small class="muted">Up to 200 highlights / 44,000 characters per billing month, with a 40/gameweek pacing limit. Capacity rounds up to packs of 50.</small>
+    </section>
+    <section aria-live="polite" aria-atomic="true">
+      <h2 id="plan">Custom</h2>
+      <div class="price" id="price"></div>
+      <p id="capacity"></p>
+      <p id="breakdown" class="muted"></p>
+      <p id="taxDescription"></p>
+    </section>
+  </div>
+  <details>
+    <summary>Cost and usage assumptions</summary>
+    <p>Change these to explore risk. Hosting allocation and EUR generation reserves are planning assumptions. The server's unused traffic allowance must be shared across all leagues.</p>
+    <div class="grid">
+      <div>
+        <label>Active broadcast hours/month (744 = full 31-day month) <input id="hours" type="number" value="60" min="0" max="744" step="1"></label>
+        <label>Average occupied viewer capacity (%) <input id="occupancy" type="number" value="100" min="0" max="100" step="1"></label>
+        <label>Hypothetical average wire update (KB every 10 seconds) <input id="updateKB" type="number" value="20" min="0.1" max="100000" step="0.1"></label>
+        <label>Cold full-league visits per viewer slot/month <input id="visits" type="number" value="2" min="0" max="10000" step="1"></label>
+        <small class="muted">Concurrent slots do not bound distinct visits. Each modeled cold visit loads the full initial snapshot and every team emblem. Pagination/caching can reduce this.</small>
+      </div>
+      <div>
+        <label>Average emblem size (KB/team) <input id="emblemKB" type="number" value="200" min="0" max="200" step="1"></label>
+        <label>Allocated hosting/operations (€/league/month) <input id="hosting" type="number" value="5" min="0" max="10000" step="0.1"></label>
+        <label>Remaining shared free outgoing traffic (TB/month) <input id="freeTB" type="number" value="0" min="0" max="10000" step="0.1"></label>
+        <label>VAT rate (%) <input id="vat" type="number" value="20" min="0" max="100" step="0.1"></label>
+        <label><input id="inclusive" type="checkbox">Suggested list price includes VAT</label>
+        <label>Paddle fixed fee, planning EUR conversion <input id="fixedFee" type="number" value="0.5" min="0" max="100" step="0.01"></label>
+      </div>
+    </div>
+    <p class="muted">Other assumptions: €1/TB outgoing overage; €0.06/GB/month storage reserve; 5% transaction fee on customer payment; €4.40 voice + €0.06 text reserve when AI is selected; 51.2 MB audio/viewer; 25% additional buffer on direct costs. USD 0.50 is Paddle's published fixed fee, not necessarily €0.50 on settlement. No fixed provider-plan fee is included; add its allocated share to hosting if applicable. Support, refunds, FX charges and taxes on costs may require higher reserves.</p>
+  </details>
+  <div class="grid">
+    <section>
+      <h2>Delivery comparison</h2>
+      <p>Live transfer only; raw snapshot size is estimated at 5.28 KB/team. Compression of the current feed has not been measured.</p>
+      <div id="rawLabel"></div><div id="rawBar" class="bar"></div>
+      <div id="targetLabel"></div><div id="targetBar" class="bar goal"></div>
+      <p id="peak" class="muted"></p>
+      <p id="storage" class="muted"></p>
+    </section>
+    <section aria-live="polite" aria-atomic="true">
+      <h2>Economics using the hypothetical smaller feed</h2>
+      <dl id="economics"></dl>
+      <p id="margin" class="warning"></p>
+      <small class="muted">Contribution is before business overhead, development and income tax. A positive margin does not prove server capacity or future profitability.</small>
+    </section>
+  </div>
+  <p>Existing paid leagues could receive a growth buffer of 10%, with a minimum of 5 and maximum of 25 teams. Viewer slots retain a hard admission limit. New leagues buy capacity for their actual team count. See the <a href="custom-tier-pricing-proposal.md">full proposal</a> for grace periods, billing changes and rollout requirements.</p>
+  <p class="muted">Sources: <a href="https://docs.hetzner.com/robot/general/traffic/">Hetzner traffic</a> · <a href="https://elevenlabs.io/pricing/api">ElevenLabs API</a> · <a href="https://www.paddle.com/pricing">Paddle fees</a> · <a href="https://developer.paddle.com/build/subscriptions/add-remove-products-prices-addons/">Paddle recurring add-ons</a>.</p>
+</main>
+<script>
+  function calculate(options) {
+    const teamPacks = Math.max(0, Math.ceil(options.teams / 50) - 1);
+    const viewerPacks = Math.max(0, Math.ceil(options.viewers / 50) - 1);
+    const teamCapacity = (teamPacks + 1) * 50;
+    const viewerCapacity = (viewerPacks + 1) * 50;
+    const price = (499 + 300 * teamPacks + 200 * viewerPacks + (options.ai ? 1000 : 0)) / 100;
+    const averageViewers = viewerCapacity * options.occupancy / 100;
+    const rawBytes = options.teams * 5280;
+    const rawTB = rawBytes * 360 * options.hours * averageViewers / 1e12;
+    const targetTB = options.updateKB * 1000 * 360 * options.hours * averageViewers / 1e12;
+    const coldVisits = viewerCapacity * options.visits;
+    const initialTB = rawBytes * coldVisits / 1e12;
+    const imagesTB = options.teams * options.emblemKB * 1000 * coldVisits / 1e12;
+    const audioTB = options.ai ? 51.2e6 * viewerCapacity / 1e12 : 0;
+    const outgoingTB = targetTB + initialTB + imagesTB + audioTB;
+    const networkCost = Math.max(0, outgoingTB - options.freeTB);
+    const storageGB = options.teams * options.emblemKB / 1e6;
+    const directCost = options.hosting + networkCost + storageGB * 0.06 + (options.ai ? 4.46 : 0);
+    const bufferedCost = directCost * 1.25;
+    const taxMultiplier = 1 + options.vat / 100;
+    const pretaxRevenue = options.inclusive ? price / taxMultiplier : price;
+    const grossPayment = options.inclusive ? price : price * taxMultiplier;
+    const paddleFee = grossPayment * 0.05 + options.fixedFee;
+    const contribution = pretaxRevenue - paddleFee - bufferedCost;
+    const minimumPretax = (bufferedCost + options.fixedFee) / (1 - 0.05 * taxMultiplier - 0.7);
+    return { teamPacks, viewerPacks, teamCapacity, viewerCapacity, price, rawTB, targetTB,
+      outgoingTB, networkCost, storageGB, bufferedCost, pretaxRevenue, grossPayment, paddleFee,
+      contribution, margin: contribution / pretaxRevenue * 100,
+      minimumList: options.inclusive ? minimumPretax * taxMultiplier : minimumPretax,
+      rawMbps: rawBytes * 8 / 10 * averageViewers / 1e6,
+      targetMbps: options.updateKB * 1000 * 8 / 10 * averageViewers / 1e6 };
+  }
+
+  const byId = id => document.getElementById(id);
+  const euro = amount => new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(amount);
+  const number = amount => new Intl.NumberFormat('en-IE', { maximumFractionDigits: 3 }).format(amount);
+  const numericIds = ['teams', 'viewers', 'hours', 'occupancy', 'updateKB', 'visits', 'emblemKB', 'hosting', 'freeTB', 'vat', 'fixedFee'];
+  function update() {
+    const options = {};
+    for (const id of numericIds) {
+      const input = byId(id);
+      if (input.value === '' || !Number.isFinite(Number(input.value))) return;
+      options[id] = Math.max(Number(input.min), Math.min(Number(input.max), Number(input.value)));
+    }
+    options.teams = Math.ceil(options.teams);
+    options.viewers = Math.ceil(options.viewers);
+    options.ai = byId('ai').checked;
+    options.inclusive = byId('inclusive').checked;
+    const result = calculate(options);
+    byId('plan').textContent = result.teamPacks || result.viewerPacks ? 'Custom' : options.ai ? 'AI Broadcaster' : 'Standard';
+    byId('price').textContent = euro(result.price) + ' / month';
+    byId('capacity').textContent = result.teamCapacity + ' team capacity · ' + result.viewerCapacity + ' concurrent slots';
+    byId('breakdown').textContent = '€4.99 base + ' + result.teamPacks + ' × €3 team packs + ' + result.viewerPacks + ' × €2 viewer packs' + (options.ai ? ' + €10 AI' : '');
+    byId('taxDescription').textContent = (options.inclusive ? 'VAT included. ' : 'Before VAT. ') + 'Illustrative customer total: ' + euro(result.grossPayment);
+    byId('rawLabel').textContent = 'Current full JSON, uncompressed: ' + number(result.rawTB) + ' TB/month';
+    byId('targetLabel').textContent = 'Hypothetical ' + options.updateKB + ' KB updates: ' + number(result.targetTB) + ' TB/month';
+    const largest = Math.max(result.rawTB, result.targetTB, 0.000001);
+    byId('rawBar').style.width = result.rawTB / largest * 100 + '%';
+    byId('targetBar').style.width = result.targetTB / largest * 100 + '%';
+    byId('peak').textContent = 'At the selected average occupancy: ' + number(result.rawMbps) + ' Mbit/s raw versus ' + number(result.targetMbps) + ' Mbit/s at the hypothetical smaller update size.';
+    byId('storage').textContent = 'Emblems stored: ' + number(result.storageGB) + ' GB. Images and initial loads are additional traffic.';
+    const rows = [
+      ['Revenue before VAT', euro(result.pretaxRevenue)], ['Paddle fee estimate', euro(result.paddleFee)],
+      ['All modeled outgoing traffic', number(result.outgoingTB) + ' TB'], ['Transfer overage estimate', euro(result.networkCost)],
+      ['Direct costs including 25% buffer', euro(result.bufferedCost)], ['Contribution', euro(result.contribution)],
+      ['List price for 70% target margin', euro(result.minimumList)]
+    ];
+    byId('economics').replaceChildren(...rows.map(([label, value]) => {
+      const row = document.createElement('div'); row.className = 'row';
+      const title = document.createElement('dt'); title.textContent = label;
+      const amount = document.createElement('dd'); amount.textContent = value;
+      row.append(title, amount); return row;
+    }));
+    byId('margin').textContent = number(result.margin) + '% contribution margin under these assumptions.';
+    byId('margin').className = result.margin < 70 ? 'warning' : '';
+  }
+
+  function selfCheck() {
+    const base = { teams: 50, viewers: 50, ai: false, hours: 60, occupancy: 100, updateKB: 20,
+      visits: 0, emblemKB: 0, hosting: 0, freeTB: 0, vat: 0, fixedFee: 0.5, inclusive: false };
+    function equal(actual, expected) { if (Math.abs(actual - expected) > 0.000001) throw new Error('Calculator check failed: ' + actual + ' != ' + expected); }
+    equal(calculate(base).price, 4.99);
+    equal(calculate({ ...base, ai: true }).price, 14.99);
+    equal(calculate({ ...base, teams: 51 }).teamCapacity, 100);
+    equal(calculate({ ...base, viewers: 51 }).price, 6.99);
+    equal(calculate({ ...base, teams: 500, viewers: 250, ai: true }).price, 49.99);
+    equal(calculate({ ...base, teams: 1000, viewers: 1000 }).targetTB, 0.432);
+    equal(calculate({ ...base, teams: 5000, viewers: 5000 }).price, 499.99);
+    equal(calculate({ ...base, freeTB: 20 }).networkCost, 0);
+    equal(calculate({ ...base, vat: 20, inclusive: true }).pretaxRevenue, 4.99 / 1.2);
+    const test = calculate({ ...base, vat: 20, hosting: 5 });
+    equal((test.minimumList - test.minimumList * 1.2 * 0.05 - 0.5 - test.bufferedCost) / test.minimumList, 0.7);
+  }
+  selfCheck();
+  document.querySelectorAll('input').forEach(input => input.addEventListener('input', update));
+  update();
+</script>
+</html>
