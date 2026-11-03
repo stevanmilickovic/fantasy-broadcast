@@ -138,7 +138,7 @@ Set it to `true` to offer AI Broadcaster again. Restart/recreate the backend
 after changing its environment. The frontend reads availability from the backend;
 it needs no separate flag or rebuild.
 
-When disabled, pricing and checkout show only Standard and an AI availability
-notice, and subscription settings hide upgrades to AI. Existing paid AI access,
+When disabled, pricing and checkout keep the AI card greyed out with a disabled button
+labelled Currently unavailable, and subscription settings hide upgrades to AI. Existing paid AI access,
 webhook processing, cancellation, refunds and downgrades remain available.
 Standard checkout does not require an AI price ID while AI sales are disabled.

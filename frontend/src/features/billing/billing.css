@@ -579,6 +579,10 @@
   cursor: pointer;
 }
 
-.checkout-plans:has(> article:only-child) {
-  grid-template-columns: minmax(0, 1fr);
+.checkout-plan[aria-disabled='true'] {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+.checkout-plan[aria-disabled='true'] button {
+  cursor: not-allowed;
 }

@@ -43,31 +43,30 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
           <h2>
             €6.99 <small>/ league / month</small>
           </h2>
-          <p>Everything your league needs for a live matchday.</p>
+          <p>Live matchday coverage, billed monthly per league.</p>
           <ul>
             <li>Live matchday broadcast</li>
-            <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers per league</li>
+            <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers</li>
             <li>League standings and teams</li>
-            <li>Fixture and score updates</li>
           </ul>
           <button onClick={() => onNavigate('/register')}>Get started</button>
         </article>
-        {aiBroadcasterEnabled && (
-          <article className="public-featured">
-            <span>AI Broadcaster</span>
-            <h2>
-              €19.99 <small>/ league / month</small>
-            </h2>
-            <p>For leagues that want the full commentary experience.</p>
-            <ul>
-              <li>Everything in Standard</li>
-              <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers per league</li>
-              <li>AI match commentary</li>
-              <li>Natural voice narration</li>
-            </ul>
-            <button onClick={() => onNavigate('/register')}>Get started</button>
-          </article>
-        )}
+        <article className="public-featured" aria-disabled={!aiBroadcasterEnabled}>
+          <span>AI Broadcaster</span>
+          <h2>
+            €19.99 <small>/ league / month</small>
+          </h2>
+          <p>Live coverage with AI voice commentary, billed monthly per league.</p>
+          <ul>
+            <li>Live matchday broadcast</li>
+            <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers</li>
+            <li>League standings and teams</li>
+            <li>AI voice commentary</li>
+          </ul>
+          <button disabled={!aiBroadcasterEnabled} onClick={() => onNavigate('/register')}>
+            {aiBroadcasterEnabled ? 'Get started' : 'Currently unavailable'}
+          </button>
+        </article>
       </div>
       {notice && (
         <p className="public-note" role="status">

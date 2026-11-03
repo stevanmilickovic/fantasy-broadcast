@@ -726,6 +726,10 @@
   }
 }
 
-.public-plans:has(> article:only-child) {
-  grid-template-columns: minmax(0, 1fr);
+.public-plans article[aria-disabled='true'] {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+.public-plans article[aria-disabled='true'] button {
+  cursor: not-allowed;
 }

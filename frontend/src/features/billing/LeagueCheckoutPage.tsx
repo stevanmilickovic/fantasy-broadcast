@@ -179,34 +179,32 @@ export function LeagueCheckoutPage({
               Choose Standard
             </button>
           </article>
-          {aiBroadcasterEnabled && (
-            <article className="checkout-plan featured">
-              <span className="plan-badge">AI Broadcaster</span>
-              <h2>€19.99</h2>
-              <p>Per league, per month · Renews monthly during the season</p>
-              <ul>
-                <li>
-                  <Check size={16} /> Live matchday broadcast
-                </li>
-                <li>
-                  <Check size={16} /> Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers
-                </li>
-                <li>
-                  <Check size={16} /> League standings and teams
-                </li>
-                <li>
-                  <Check size={16} /> AI voice commentary
-                </li>
-              </ul>
-              <button
-                type="button"
-                onClick={() => void openCheckout('AI_BROADCASTER')}
-                disabled={!canCheckout}
-              >
-                Choose AI Broadcaster
-              </button>
-            </article>
-          )}
+          <article className="checkout-plan featured" aria-disabled={!aiBroadcasterEnabled}>
+            <span className="plan-badge">AI Broadcaster</span>
+            <h2>€19.99</h2>
+            <p>Per league, per month · Renews monthly during the season</p>
+            <ul>
+              <li>
+                <Check size={16} /> Live matchday broadcast
+              </li>
+              <li>
+                <Check size={16} /> Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers
+              </li>
+              <li>
+                <Check size={16} /> League standings and teams
+              </li>
+              <li>
+                <Check size={16} /> AI voice commentary
+              </li>
+            </ul>
+            <button
+              type="button"
+              onClick={() => void openCheckout('AI_BROADCASTER')}
+              disabled={!canCheckout || !aiBroadcasterEnabled}
+            >
+              {aiBroadcasterEnabled ? 'Choose AI Broadcaster' : 'Currently unavailable'}
+            </button>
+          </article>
         </section>
       </section>
       {notice && (

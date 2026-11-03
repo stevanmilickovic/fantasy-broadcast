@@ -58,10 +58,9 @@ it('offers Standard only when AI is disabled', async () => {
   vi.mocked(createPaddleCheckout).mockClear()
   render(<LeagueCheckoutPage search="?fplLeagueId=42" onNavigate={vi.fn()} />)
   await screen.findByText('Standard league')
-  await screen.findByText(
-    'AI Broadcaster is currently unavailable for purchase. Standard is available.',
-  )
-  expect(screen.queryByRole('button', { name: 'Choose AI Broadcaster' })).toBeNull()
+  expect(
+    (screen.getByRole('button', { name: 'Currently unavailable' }) as HTMLButtonElement).disabled,
+  ).toBe(true)
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(screen.getByRole('button', { name: 'Choose Standard' }))
   await waitFor(() =>
