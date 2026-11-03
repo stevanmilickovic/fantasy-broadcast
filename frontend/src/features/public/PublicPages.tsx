@@ -39,7 +39,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
         <article>
           <span>Standard</span>
           <h2>
-            €4.99 <small>/ league / month</small>
+            €6.99 <small>/ league / month</small>
           </h2>
           <p>Everything your league needs for a live matchday.</p>
           <ul>
@@ -53,7 +53,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
         <article className="public-featured">
           <span>AI Broadcaster</span>
           <h2>
-            €14.99 <small>/ league / month</small>
+            €19.99 <small>/ league / month</small>
           </h2>
           <p>For leagues that want the full commentary experience.</p>
           <ul>

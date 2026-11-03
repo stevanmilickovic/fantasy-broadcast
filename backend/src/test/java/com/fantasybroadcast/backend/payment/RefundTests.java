@@ -72,7 +72,7 @@ class RefundTests {
 		var now = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
 		db.repository.saveSubscription(1, new SubscriptionTests().subscription("active", "standard", now, now.plus(Duration.ofDays(20))), BillingPlan.STANDARD);
 		db.repository.savePayment(json.readTree("""
-			{"id":"txn_test","subscription_id":"sub_test","origin":"api","status":"completed","currency_code":"EUR","created_at":"2026-10-29T10:00:00Z","details":{"totals":{"grand_total":"499"}}}
+			{"id":"txn_test","subscription_id":"sub_test","origin":"api","status":"completed","currency_code":"EUR","created_at":"2026-10-29T10:00:00Z","details":{"totals":{"grand_total":"699"}}}
 			"""));
 		var paddle = mock(PaddleClient.class);
 		var service = new RefundService(db.repository, paddle, mock(SubscriptionSyncService.class), db.operations);

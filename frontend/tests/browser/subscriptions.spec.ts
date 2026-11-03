@@ -13,7 +13,7 @@ const initialSubscription = {
   refundUntil: '2026-11-10T12:00:00Z',
   awaitingConfirmation: false,
   currencyCode: 'EUR',
-  renewalTotal: '499',
+  renewalTotal: '699',
 }
 
 test('owners can review upgrades, schedule downgrades and undo cancellation', async ({ page }) => {
@@ -31,7 +31,7 @@ test('owners can review upgrades, schedule downgrades and undo cancellation', as
           effectiveAt: subscription.accessUntil,
           chargeNow: target === 'AI_BROADCASTER' && subscription.plan === 'STANDARD' ? '500' : '0',
           currencyCode: 'EUR',
-          renewalTotal: target === 'STANDARD' ? '499' : '1499',
+          renewalTotal: target === 'STANDARD' ? '699' : '1999',
           immediate: target === 'AI_BROADCASTER' && subscription.plan === 'STANDARD',
         },
       })
@@ -44,7 +44,7 @@ test('owners can review upgrades, schedule downgrades and undo cancellation', as
         ...subscription,
         plan: 'AI_BROADCASTER',
         renewalPlan: target,
-        renewalTotal: target === 'STANDARD' ? '499' : '1499',
+        renewalTotal: target === 'STANDARD' ? '699' : '1999',
       }
     }
     if (path.endsWith('/cancel')) {
@@ -94,8 +94,8 @@ test('administrators review partial refunds and see pending approval without dup
   const payment = {
     id: 'txn_test',
     currencyCode: 'EUR',
-    total: 1499,
-    refundable: 1499,
+    total: 1999,
+    refundable: 1999,
     paidAt: '2026-10-29T12:00:00Z',
     initialPurchase: true,
     withinRefundWindow: true,

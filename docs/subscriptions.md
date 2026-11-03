@@ -59,7 +59,8 @@ Reuse the existing Standard and AI Broadcaster monthly recurring price IDs. Plan
 replace the price on the existing subscription instead of creating another subscription.
 
 Configure `PADDLE_API_KEY`, `PADDLE_CLIENT_SIDE_TOKEN`, `PADDLE_STANDARD_PRICE_ID`,
-`PADDLE_AI_BROADCASTER_PRICE_ID` and `PADDLE_WEBHOOK_SECRET_KEY`. Both prices must be
+`PADDLE_AI_BROADCASTER_PRICE_ID` and `PADDLE_WEBHOOK_SECRET_KEY`. Set Standard to
+EUR 6.99/month and AI Broadcaster to EUR 19.99/month in Paddle. Both prices must be
 monthly recurring prices, quantity one. `PADDLE_API_URL` defaults to the sandbox API.
 For the local Docker stack, add sandbox values to the ignored `.env.testing` file.
 Never commit credentials. Sandbox and live use their own credentials, price IDs and

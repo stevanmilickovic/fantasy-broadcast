@@ -155,7 +155,7 @@ export function LeagueCheckoutPage({
         <section className="checkout-plans" aria-label="Broadcast plans">
           <article className="checkout-plan">
             <span>Standard</span>
-            <h2>€4.99</h2>
+            <h2>€6.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>
               <li>
@@ -178,7 +178,7 @@ export function LeagueCheckoutPage({
           </article>
           <article className="checkout-plan featured">
             <span className="plan-badge">AI Broadcaster</span>
-            <h2>€14.99</h2>
+            <h2>€19.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>
               <li>
