@@ -21,6 +21,14 @@ public class PaddleConfigurationController {
 		this.properties = properties;
 	}
 
+	@GetMapping("/plans")
+	public ResponseEntity<PlanAvailability> plans() {
+		return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+				.body(new PlanAvailability(properties.isAiBroadcasterEnabled()));
+	}
+
+	public record PlanAvailability(boolean aiBroadcasterEnabled) { }
+
 	@GetMapping("/configuration")
 	public ResponseEntity<?> configuration() {
 		if (!properties.isConfigured()) {

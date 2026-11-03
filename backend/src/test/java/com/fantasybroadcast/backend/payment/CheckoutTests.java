@@ -35,6 +35,27 @@ class CheckoutTests {
 	}
 
 	@Test
+	void disabledAiRejectsCheckoutButStandardWorksWithoutAnAiPrice() throws Exception {
+		var db = new BillingTestDatabase();
+		var properties = SubscriptionTests.properties();
+		properties.setAiBroadcasterEnabled(false);
+		properties.setAiBroadcasterPriceId("");
+		properties.setApiKey("sandbox-key"); properties.setClientSideToken("test_token"); properties.setWebhookSecretKey("sandbox-secret");
+		var leagues = mock(LeagueRegistrationService.class);
+		var paddle = mock(PaddleClient.class);
+		var owner = new CurrentUser(1, "owner@example.com", "Owner", UserRole.USER);
+		var service = new PaddleCheckoutService(properties, leagues, db.repository, paddle, db.operations);
+		when(leagues.preview(100, FplLeagueType.DRAFT)).thenReturn(new LeagueRegistrationService.LeaguePreview("Test", 10, null));
+		assertThatThrownBy(() -> service.createCheckout(owner, 100, FplLeagueType.DRAFT, "AI_BROADCASTER"))
+				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("AI Broadcaster is currently unavailable");
+		verifyNoInteractions(paddle);
+		when(paddle.post(eq("/transactions"), any())).thenReturn(db.json.readTree("{\"id\":\"txn_standard\"}"));
+		assertThat(service.createCheckout(owner, 100, FplLeagueType.DRAFT, "STANDARD").transactionId()).isEqualTo("txn_standard");
+		properties.setAiBroadcasterEnabled(true);
+		assertThat(properties.isConfigured()).isFalse();
+	}
+
+	@Test
 	void customersCannotUseTheOldFreeRegistrationEndpoint() {
 		var security = new com.fantasybroadcast.backend.security.BroadcastSecurityProperties();
 		security.setLeagueRegistrationEnabled(true);

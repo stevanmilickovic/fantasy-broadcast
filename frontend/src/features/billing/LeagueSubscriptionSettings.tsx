@@ -12,6 +12,7 @@ import {
   openBillingPortal,
   previewPlan,
 } from './subscriptionApi'
+import { usePlanAvailability } from './usePlanAvailability'
 import type { PlanPreview, Subscription } from './types'
 
 export function LeagueSubscriptionSettings({
@@ -65,6 +66,7 @@ function SubscriptionDetails({
   refresh: () => void
   navigate: Navigate
 }) {
+  const { aiBroadcasterEnabled, notice } = usePlanAvailability()
   const mutation = useMutation()
   const [preview, setPreview] = useState<{ value: PlanPreview; requestId: string } | null>(null)
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null)
@@ -157,16 +159,23 @@ function SubscriptionDetails({
                 Contact support if it remains pending.
               </p>
             )}
+            {notice && (
+              <p className="billing-notice" role="status">
+                {notice}
+              </p>
+            )}
             <div className="subscription-actions">
-              {subscription.status === 'active' && !subscription.cancelAt && (
-                <button disabled={blocked} onClick={() => void getPreview()}>
-                  {pendingDowngrade
-                    ? 'Keep AI Broadcaster'
-                    : subscription.plan === 'STANDARD'
-                      ? 'Upgrade to AI'
-                      : 'Downgrade to Standard'}
-                </button>
-              )}
+              {subscription.status === 'active' &&
+                !subscription.cancelAt &&
+                (subscription.renewalPlan === 'AI_BROADCASTER' || aiBroadcasterEnabled) && (
+                  <button disabled={blocked} onClick={() => void getPreview()}>
+                    {pendingDowngrade
+                      ? 'Keep AI Broadcaster'
+                      : subscription.plan === 'STANDARD'
+                        ? 'Upgrade to AI'
+                        : 'Downgrade to Standard'}
+                  </button>
+                )}
               {['active', 'past_due'].includes(subscription.status ?? '') && (
                 <button
                   className="secondary-action"

@@ -77,6 +77,7 @@ broadcast:
       cleanup-interval: ${BROADCAST_NARRATION_CLEANUP_INTERVAL:5m}
 
 paddle:
+  ai-broadcaster-enabled: ${PADDLE_AI_BROADCASTER_ENABLED:false}
   api-key: ${PADDLE_API_KEY:}
   client-side-token: ${PADDLE_CLIENT_SIDE_TOKEN:}
   standard-price-id: ${PADDLE_STANDARD_PRICE_ID:}

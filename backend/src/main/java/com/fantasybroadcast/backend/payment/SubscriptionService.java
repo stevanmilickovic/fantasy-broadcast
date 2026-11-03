@@ -50,6 +50,7 @@ public class SubscriptionService {
 	}
 
 	public ChangePreview preview(CurrentUser user, long leagueId, BillingPlan target) {
+		properties.requirePlanAvailable(target);
 		var subscription = requireSubscription(user, leagueId);
 		var provider = sync.refresh(subscription.id());
 		subscription = repository.find(subscription.id());
@@ -66,6 +67,7 @@ public class SubscriptionService {
 	}
 
 	public Summary change(CurrentUser user, long leagueId, BillingPlan target, Instant expectedVersion, String requestId) {
+		properties.requirePlanAvailable(target);
 		var subscription = requireSubscription(user, leagueId);
 		var id = subscription.id();
 		operations.run(requestId, "subscription:" + id, user.id(), Map.of("target", target, "version", expectedVersion.toString()), () -> {

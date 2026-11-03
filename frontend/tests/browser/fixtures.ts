@@ -68,6 +68,8 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
     (url) => url.pathname.startsWith('/api/'),
     async (route) => {
       const path = new URL(route.request().url()).pathname
+      if (path === '/api/paddle/plans')
+        return route.fulfill({ json: { aiBroadcasterEnabled: true } })
       if (path === '/api/auth/me')
         return route.fulfill(session ? { json: session } : { status: 401, json: {} })
       if (path === '/api/live-state') return route.fulfill({ json: welcomeBroadcastState(0) })

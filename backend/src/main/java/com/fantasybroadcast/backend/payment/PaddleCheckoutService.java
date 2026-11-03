@@ -40,6 +40,7 @@ public class PaddleCheckoutService {
 		var preview = leagues.preview(fplLeagueId, leagueType);
 		if (preview.validationMessage() != null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, preview.validationMessage());
 		var normalizedPlan = normalizePlan(plan);
+		properties.requirePlanAvailable(BillingPlan.valueOf(normalizedPlan));
 		var signature = signature(user.id(), fplLeagueId, leagueType, normalizedPlan);
 		var sourceKey = leagueType.name() + ":" + fplLeagueId;
 		var reservations = billing.jdbc().queryForList("select * from billing_checkout where source_key = ?", sourceKey);

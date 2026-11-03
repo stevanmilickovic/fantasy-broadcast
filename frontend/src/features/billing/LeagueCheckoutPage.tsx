@@ -5,6 +5,7 @@ import { useQuery } from '../../shared/api/useQuery'
 import type { FplLeagueType } from '../../shared/fpl/types'
 import { createPaddleCheckout, previewLeaguePayment } from '../billing/api'
 import { openPaddleCheckout } from '../billing/paddleCheckout'
+import { usePlanAvailability } from './usePlanAvailability'
 import { MAX_BROADCAST_VIEWERS } from '../broadcast/broadcastLimits'
 export function LeagueCheckoutPage({
   search,
@@ -13,6 +14,7 @@ export function LeagueCheckoutPage({
   search: string
   onNavigate: (path: string) => void
 }) {
+  const { aiBroadcasterEnabled, notice } = usePlanAvailability()
   const parameters = new URLSearchParams(search)
   const [leagueId, setLeagueId] = useState(parameters.get('fplLeagueId') ?? '')
   const [leagueType, setLeagueType] = useState<FplLeagueType>(
@@ -61,6 +63,7 @@ export function LeagueCheckoutPage({
     onNavigate(event.currentTarget.pathname)
   }
   const openCheckout = async (plan: 'STANDARD' | 'AI_BROADCASTER') => {
+    if (plan === 'AI_BROADCASTER' && !aiBroadcasterEnabled) return
     if (!acceptedPolicies || !preview?.checkoutReady || !leagueIsValid) return
     await checkout.run(async (signal) =>
       openPaddleCheckout(
@@ -78,7 +81,7 @@ export function LeagueCheckoutPage({
         <span className="kicker">Fantasy Broadcast</span>
         <h1>Bring your league to the broadcast.</h1>
         <p>
-          Choose a monthly plan for this league. Both plans include up to {MAX_BROADCAST_VIEWERS}{' '}
+          Choose a monthly plan for this league. Each plan includes up to {MAX_BROADCAST_VIEWERS}{' '}
           simultaneous broadcast viewers per league. Each open broadcast tab or device counts as one
           viewer.
         </p>
@@ -176,34 +179,41 @@ export function LeagueCheckoutPage({
               Choose Standard
             </button>
           </article>
-          <article className="checkout-plan featured">
-            <span className="plan-badge">AI Broadcaster</span>
-            <h2>€19.99</h2>
-            <p>Per league, per month · Renews monthly during the season</p>
-            <ul>
-              <li>
-                <Check size={16} /> Live matchday broadcast
-              </li>
-              <li>
-                <Check size={16} /> Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers
-              </li>
-              <li>
-                <Check size={16} /> League standings and teams
-              </li>
-              <li>
-                <Check size={16} /> AI voice commentary
-              </li>
-            </ul>
-            <button
-              type="button"
-              onClick={() => void openCheckout('AI_BROADCASTER')}
-              disabled={!canCheckout}
-            >
-              Choose AI Broadcaster
-            </button>
-          </article>
+          {aiBroadcasterEnabled && (
+            <article className="checkout-plan featured">
+              <span className="plan-badge">AI Broadcaster</span>
+              <h2>€19.99</h2>
+              <p>Per league, per month · Renews monthly during the season</p>
+              <ul>
+                <li>
+                  <Check size={16} /> Live matchday broadcast
+                </li>
+                <li>
+                  <Check size={16} /> Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers
+                </li>
+                <li>
+                  <Check size={16} /> League standings and teams
+                </li>
+                <li>
+                  <Check size={16} /> AI voice commentary
+                </li>
+              </ul>
+              <button
+                type="button"
+                onClick={() => void openCheckout('AI_BROADCASTER')}
+                disabled={!canCheckout}
+              >
+                Choose AI Broadcaster
+              </button>
+            </article>
+          )}
         </section>
       </section>
+      {notice && (
+        <p className="checkout-notice" role="status">
+          {notice}
+        </p>
+      )}
       {checkout.error && (
         <p className="checkout-notice checkout-payment-error" role="alert">
           {checkout.error}

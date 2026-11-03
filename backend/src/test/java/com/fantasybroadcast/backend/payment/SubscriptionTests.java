@@ -95,6 +95,20 @@ class SubscriptionTests {
 	}
 
 	@Test
+	void disabledAiRejectsPreviewsAndConfirmedUpgradesBeforeContactingPaddle() {
+		var properties = properties();
+		properties.setAiBroadcasterEnabled(false);
+		var paddle = mock(PaddleClient.class);
+		var service = new SubscriptionService(mock(BillingRepository.class), paddle, properties,
+				mock(SubscriptionSyncService.class), mock(LeagueRegistrationService.class), mock(BillingOperations.class));
+		assertThatThrownBy(() -> service.preview(owner, 1, BillingPlan.AI_BROADCASTER))
+				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("AI Broadcaster is currently unavailable");
+		assertThatThrownBy(() -> service.change(owner, 1, BillingPlan.AI_BROADCASTER, now, UUID.randomUUID().toString()))
+				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("AI Broadcaster is currently unavailable");
+		verifyNoInteractions(paddle);
+	}
+
+	@Test
 	void uncertainFinancialRequestsCannotBeSubmittedAgainEvenWithANewReference() throws Exception {
 		var db = new BillingTestDatabase();
 		var id = UUID.randomUUID().toString();
@@ -114,5 +128,5 @@ class SubscriptionTests {
 		node.putNull("scheduled_change");
 		return node;
 	}
-	static PaddleProperties properties() { var properties = new PaddleProperties(); properties.setStandardPriceId("standard"); properties.setAiBroadcasterPriceId("ai"); return properties; }
+	static PaddleProperties properties() { var properties = new PaddleProperties(); properties.setAiBroadcasterEnabled(true); properties.setStandardPriceId("standard"); properties.setAiBroadcasterPriceId("ai"); return properties; }
 }

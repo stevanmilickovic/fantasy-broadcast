@@ -1,3 +1,4 @@
+import { usePlanAvailability } from '../billing/usePlanAvailability'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import { PublicHeader } from '../../shared/ui/PublicHeader'
@@ -27,6 +28,7 @@ export function PublicPage({ page, onNavigate }: Props) {
 }
 
 function Pricing({ onNavigate }: { onNavigate: Navigate }) {
+  const { aiBroadcasterEnabled, notice } = usePlanAvailability()
   return (
     <section className="public-content pricing-content">
       <h1>Choose your matchday broadcast.</h1>
@@ -50,21 +52,28 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
           </ul>
           <button onClick={() => onNavigate('/register')}>Get started</button>
         </article>
-        <article className="public-featured">
-          <span>AI Broadcaster</span>
-          <h2>
-            €19.99 <small>/ league / month</small>
-          </h2>
-          <p>For leagues that want the full commentary experience.</p>
-          <ul>
-            <li>Everything in Standard</li>
-            <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers per league</li>
-            <li>AI match commentary</li>
-            <li>Natural voice narration</li>
-          </ul>
-          <button onClick={() => onNavigate('/register')}>Get started</button>
-        </article>
+        {aiBroadcasterEnabled && (
+          <article className="public-featured">
+            <span>AI Broadcaster</span>
+            <h2>
+              €19.99 <small>/ league / month</small>
+            </h2>
+            <p>For leagues that want the full commentary experience.</p>
+            <ul>
+              <li>Everything in Standard</li>
+              <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers per league</li>
+              <li>AI match commentary</li>
+              <li>Natural voice narration</li>
+            </ul>
+            <button onClick={() => onNavigate('/register')}>Get started</button>
+          </article>
+        )}
       </div>
+      {notice && (
+        <p className="public-note" role="status">
+          {notice}
+        </p>
+      )}
       <p className="public-note">
         Subscriptions renew monthly until cancelled or the season ends. The final price, any
         applicable tax, and billing details are shown in Paddle checkout before purchase.{' '}

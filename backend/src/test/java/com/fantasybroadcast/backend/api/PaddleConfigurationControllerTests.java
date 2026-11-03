@@ -22,6 +22,18 @@ class PaddleConfigurationControllerTests {
 	}
 
 	@Test
+	void planAvailabilityIsPublicWithoutPaymentCredentialsAndNeverCached() {
+		var properties = new PaddleProperties();
+		var controller = new PaddleConfigurationController(properties);
+		var response = controller.plans();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getHeaders().getCacheControl()).isEqualTo("no-store");
+		assertThat(response.getBody().aiBroadcasterEnabled()).isFalse();
+		properties.setAiBroadcasterEnabled(true);
+		assertThat(controller.plans().getBody().aiBroadcasterEnabled()).isTrue();
+	}
+
+	@Test
 	void unconfiguredCheckoutReturnsAnActionableErrorWithoutLeakingSettings() {
 		var response = new PaddleConfigurationController(new PaddleProperties()).configuration();
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);

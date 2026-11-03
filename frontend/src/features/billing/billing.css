@@ -578,3 +578,7 @@
   font-weight: 750;
   cursor: pointer;
 }
+
+.checkout-plans:has(> article:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}

@@ -725,3 +725,7 @@
     justify-content: center;
   }
 }
+
+.public-plans:has(> article:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}

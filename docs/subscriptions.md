@@ -128,3 +128,17 @@ References: [Paddle plan changes](https://developer.paddle.com/build/subscriptio
 [refund adjustments](https://developer.paddle.com/api-reference/adjustments/create-adjustment/),
 [customer portal sessions](https://developer.paddle.com/api-reference/customer-portals/create-customer-portal-session/),
 [default payment links](https://developer.paddle.com/build/transactions/default-payment-link/).
+
+### Temporarily offering Standard only
+
+Set `PADDLE_AI_BROADCASTER_ENABLED=false` in the backend environment file
+(`data/backend/application.env` in production or `.env.testing` for the local
+Docker stack). AI purchases and plan changes to AI are disabled by default.
+Set it to `true` to offer AI Broadcaster again. Restart/recreate the backend
+after changing its environment. The frontend reads availability from the backend;
+it needs no separate flag or rebuild.
+
+When disabled, pricing and checkout show only Standard and an AI availability
+notice, and subscription settings hide upgrades to AI. Existing paid AI access,
+webhook processing, cancellation, refunds and downgrades remain available.
+Standard checkout does not require an AI price ID while AI sales are disabled.

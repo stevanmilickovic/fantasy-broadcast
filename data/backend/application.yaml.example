@@ -73,6 +73,7 @@ broadcast:
       cleanup-interval: 5m
 
 paddle:
+  ai-broadcaster-enabled: ${PADDLE_AI_BROADCASTER_ENABLED:false}
   api-key: pdl_sdbx_apikey_replace-me
   client-side-token: test_replace-me
   standard-price-id: pri_replace-me

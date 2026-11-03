@@ -1,6 +1,11 @@
 import { request } from '../../shared/api/http'
 import type { FplLeagueType } from '../../shared/fpl/types'
 import type { LeaguePaymentPreview, PaddleCheckout } from './types'
+export const loadPlanAvailability = async (
+  signal: AbortSignal,
+): Promise<{ aiBroadcasterEnabled: boolean }> =>
+  (await request('/api/paddle/plans', { signal })).json()
+
 export const loadPaymentConfiguration = async (
   signal: AbortSignal,
 ): Promise<{ clientSideToken: string }> =>
