@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 - 2026-11-05
+
+- Updated displayed monthly prices to EUR 6.99 for Standard and EUR 19.99 for AI Broadcaster, and simplified pricing descriptions.
+- Disabled new AI Broadcaster purchases and upgrades by default through backend-controlled availability, while preserving existing paid AI access, cancellations, refunds and downgrades.
+- Added a separate Form column to Draft and Classic H2H standings with the last five completed results, colored win/loss/draw bubbles and gameweek score details.
+- Included recent completed Classic matchups in league overview data and excluded unfinished matchups from standings form.
+- Simplified phone H2H standings to show bright league points and dimmer fantasy points without the extra fantasy-points label.
+- Enlarged mobile matchup and broadcast club emblems, cropped them at the outer edges and layered club text above them; kept clipping consistent throughout broadcast transitions.
+- Expanded standings, emblem and transition browser coverage and corrected the controller test fixture for the current league record.
+
 ## 1.2.0 - 2026-11-01
 
 - Added private leagues with owner-controlled privacy, follow requests, approval/rejection and cancellation; existing followers retain access when a league becomes private.

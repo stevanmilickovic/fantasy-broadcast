@@ -70,7 +70,7 @@ Build and run the backend in one command on Linux/macOS (recommended, from the r
 
 ```bash
 ./backend/mvnw -f backend/pom.xml clean package
-java -jar backend/target/backend-1.2.0.jar
+java -jar backend/target/backend-1.3.0.jar
 ```
 
 This compiles, tests, packages, and starts the backend. Stop it with `Ctrl+C`.
