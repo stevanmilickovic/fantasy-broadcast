@@ -24,7 +24,7 @@ test('public navigation, login and password recovery remain usable', async ({ pa
   await page.getByRole('button', { name: 'Pricing', exact: true }).click()
   await expect(page).toHaveURL('/pricing')
   await expect(
-    page.locator('.public-plans li').filter({ hasText: '50 simultaneous viewers per league' }),
+    page.locator('.public-plans li').filter({ hasText: 'Up to 50 simultaneous viewers' }),
   ).toHaveCount(2)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await checkViewport(page)
