@@ -853,6 +853,7 @@
   will-change: transform;
 }
 .broadcast-scene[data-phase='preparing'] .broadcast-identity > .team-emblem {
+  position: var(--broadcast-emblem-position, relative);
   z-index: 15;
 }
 .broadcast-scene[data-phase='preparing'] .broadcast-identity h2 {
@@ -913,8 +914,46 @@
     padding: 0;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity > .team-emblem {
-    width: clamp(20px, 3.6cqw, 32px);
-    height: clamp(20px, 3.6cqw, 32px);
+    --broadcast-emblem-position: absolute;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    translate: -50% -50%;
+    width: clamp(96px, 18cqw, 128px);
+    height: clamp(96px, 18cqw, 128px);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity:has(> .team-emblem) {
+    position: relative;
+    display: block;
+    /* Keep the outer edge clipped while leaving room for the full introduction. */
+    clip-path: inset(0 -100vmax -100vmax 0);
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-identity.away:has(> .team-emblem) {
+    clip-path: inset(0 0 -100vmax -100vmax);
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity.away > .team-emblem {
+    left: auto;
+    right: 0;
+    translate: 50% -50%;
+  }
+  :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity > :not(.team-emblem) {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 6px #120d19;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene[data-phase='preparing']
+    .broadcast-identity:has(> .team-emblem) {
+    z-index: 20;
+  }
+  :where(.broadcast-view:not([data-layout='desktop']))
+    .broadcast-scene[data-phase='preparing']
+    .broadcast-identity:has(> .team-emblem)
+    :is(p, small) {
+    visibility: hidden;
   }
   :where(.broadcast-view:not([data-layout='desktop'])) .broadcast-identity h2 {
     font-size: 16px;

@@ -116,15 +116,24 @@ test('matchup emblems sit at the outer edges and center against the full club bo
       const image = club.querySelector('.team-emblem')?.getBoundingClientRect()
       if (!image) throw new Error('Missing matchup emblem')
       const box = club.getBoundingClientRect()
+      const card = club.closest('.league-matchup-card')?.getBoundingClientRect()
+      if (!card) throw new Error('Missing matchup card')
+      const cropped = matchMedia(
+        '(max-width: 600px), (max-width: 900px) and (max-height: 480px)',
+      ).matches
+      const first = club.classList.contains('first-club')
       return {
+        cropped,
         width: image.width,
         centered: Math.abs(image.top + image.height / 2 - box.top - box.height / 2),
-        edge: club.classList.contains('first-club')
-          ? Math.abs(image.left - box.left)
-          : Math.abs(image.right - box.right),
+        edge: cropped
+          ? Math.abs(image.left + image.width / 2 - (first ? card.left + 1 : card.right - 1))
+          : first
+            ? Math.abs(image.left - box.left)
+            : Math.abs(image.right - box.right),
       }
     })
-    expect(layout.width).toBeGreaterThanOrEqual(44)
+    expect(layout.width).toBeGreaterThanOrEqual(layout.cropped ? 120 : 44)
     expect(layout.centered).toBeLessThan(1)
     expect(layout.edge).toBeLessThan(1)
   }
@@ -139,7 +148,17 @@ test('matchup emblems sit at the outer edges and center against the full club bo
   if (test.info().project.name === 'phone') {
     await page.setViewportSize({ width: 320, height: 640 })
     await fits(page)
-    expect(await card.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+    const clipping = await card.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      return {
+        overflow: getComputedStyle(element).overflow,
+        textFits: [...element.querySelectorAll('a > span, small, strong')].every((node) => {
+          const text = node.getBoundingClientRect()
+          return text.left >= box.left && text.right <= box.right
+        }),
+      }
+    })
+    expect(clipping).toEqual({ overflow: 'hidden', textFits: true })
   }
 })
 
@@ -180,7 +199,9 @@ for (const points of [false, true]) {
       const stacked = first.bottom <= home.top + 1
       return {
         stacked,
-        larger: first.width > image.offsetWidth * 1.5,
+        larger:
+          first.width >
+          image.offsetWidth * (getComputedStyle(image).position === 'absolute' ? 1 : 1.5),
         homeOutside: stacked
           ? Math.abs(centerX(first) - centerX(frame)) < 1
           : centerX(first) < centerX(home),
@@ -230,6 +251,37 @@ for (const points of [false, true]) {
       path: test.info().outputPath('emblem-introduction.png'),
       fullPage: true,
     })
+    const edgeClipping = await flights.evaluate((effects) => {
+      const images = [
+        ...document.querySelectorAll<HTMLElement>('.broadcast-identity > .team-emblem'),
+      ].filter((image) => getComputedStyle(image).position === 'absolute')
+      let checked = 0
+      let escaped = false
+      for (const fraction of [0.5, 0.9, 0.99, 1]) {
+        for (const effect of effects) {
+          const duration = Number(effect.effect?.getTiming().duration)
+          effect.currentTime = duration * fraction
+        }
+        for (const image of images) {
+          const club = image.parentElement
+          if (!club) throw new Error('Missing club identity')
+          const bounds = club.getBoundingClientRect()
+          const logo = image.getBoundingClientRect()
+          const x = club.classList.contains('away') ? bounds.right + 1 : bounds.left - 1
+          const y = logo.top + logo.height / 2
+          if (x <= logo.left || x >= logo.right) continue
+          checked++
+          image.style.pointerEvents = 'auto'
+          escaped ||= document.elementFromPoint(x, y) === image
+          image.style.removeProperty('pointer-events')
+        }
+      }
+      return { cropped: images.length > 0, checked, escaped }
+    })
+    if (edgeClipping.cropped) {
+      expect(edgeClipping.checked).toBeGreaterThan(0)
+      expect(edgeClipping.escaped).toBe(false)
+    }
     await flights.evaluate((effects) => effects.forEach((effect) => effect.finish()))
     await flights.dispose()
     await expect(scene).toHaveAttribute('data-phase', 'idle')
@@ -239,9 +291,22 @@ for (const points of [false, true]) {
         if (!node.parentElement) throw new Error('Missing club identity')
         const image = node.getBoundingClientRect(),
           club = node.parentElement.getBoundingClientRect()
-        return Math.abs(image.top + image.height / 2 - club.top - club.height / 2)
+        const cropped = getComputedStyle(node).position === 'absolute'
+        const away = node.parentElement.classList.contains('away')
+        return {
+          centered: Math.abs(image.top + image.height / 2 - club.top - club.height / 2),
+          cropped,
+          width: image.width,
+          edge: Math.abs(image.left + image.width / 2 - (away ? club.right : club.left)),
+          clip: getComputedStyle(node.parentElement).clipPath,
+        }
       })
-      expect(position).toBeLessThan(1)
+      expect(position.centered).toBeLessThan(1)
+      if (position.cropped) {
+        expect(position.width).toBeGreaterThanOrEqual(96)
+        expect(position.edge).toBeLessThan(1)
+        expect(position.clip).toMatch(/^inset\(/)
+      }
     }
     await fits(page)
     await page.screenshot({ path: test.info().outputPath('emblem-broadcast.png'), fullPage: true })

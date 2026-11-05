@@ -162,7 +162,7 @@ export function useSceneTransition(presentation: BroadcastScenePresentation) {
               transform: geometry.from,
               opacity: node.dataset.revealRole?.endsWith('-emblem') ? 0.65 : 1,
             },
-            { transform: 'translate(0px, 0px) scale(1)', opacity: 1 },
+            { transform: 'translate(0px, 0px) scale(1)', opacity: getComputedStyle(node).opacity },
           ],
           { duration: timing.flight, easing: REVEAL_EASING },
         )

@@ -98,6 +98,9 @@ centered against the full club box. Broadcast emblems have independent reveal sl
 large at the outer ends on wide screens, stacked around names and scores in portrait,
 then landing beside the full club identity. Names may overlap the emblem slightly
 during wide reveals; the same image nodes and cached URLs are reused throughout.
+On phone matchup cards and compact broadcasts, resting emblems are enlarged and
+half-cropped at the outer edges, behind the club text. Broadcast introductions still
+show the full emblem before landing in that cropped position.
 
 The backend validates actual PNG content, a 5 MB upload limit and decoded dimensions
 before processing. It preserves transparency, fits images within a 512-pixel square,

@@ -1285,13 +1285,33 @@
     align-self: flex-start;
   }
 }
-@media (max-width: 600px) {
-  .league-matchup-club:has(.team-emblem) {
+@media (max-width: 600px), (max-width: 900px) and (max-height: 480px) {
+  .league-matchup-card {
+    padding-inline: 16px;
+    overflow: hidden;
+  }
+  .league-matchup-club:has(.team-emblem),
+  .league-matchup-club.second-club:has(.team-emblem) {
+    --matchup-emblem-size: clamp(120px, 32vw, 160px);
+    min-height: var(--matchup-emblem-size);
+    padding-inline: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: space-between;
     gap: 12px;
+  }
+  .league-matchup-club .team-emblem {
+    left: -16px;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .league-matchup-club.second-club .team-emblem {
+    left: auto;
+    right: -16px;
+    transform: translate(50%, -50%);
   }
   .league-matchup-club:has(.team-emblem) > strong {
     align-self: flex-end;

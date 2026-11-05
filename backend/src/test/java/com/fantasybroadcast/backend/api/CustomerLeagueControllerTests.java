@@ -51,7 +51,7 @@ class CustomerLeagueControllerTests {
 					.put("finished", event < 8 || (event == 8 && currentFinished));
 		}
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Classic League", FplLeagueType.CLASSIC,
-				FplLeagueScoring.H2H, true, false, false, user.id()));
+				FplLeagueScoring.H2H, true, false, false, user.id(), false));
 		when(client.getClassicLeagueStandings(12345)).thenReturn(json.readTree("{\"standings\":{\"results\":[]}}"));
 		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getFantasyEventLive(8)).thenReturn(json.readTree("{\"elements\":[]}"));
