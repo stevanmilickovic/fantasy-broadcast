@@ -34,6 +34,49 @@ import tools.jackson.databind.JsonNode;
 
 class CustomerLeagueControllerTests {
 
+	@org.junit.jupiter.params.ParameterizedTest
+	@org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+	void classicOverviewIncludesFiveFinishedGameweeksAndTheCurrentMatchup(boolean currentFinished) {
+		var sessions = new SessionService();
+		var user = new CurrentUser(7, "viewer@example.com", "Viewer", UserRole.USER);
+		var request = new MockHttpServletRequest();
+		request.setCookies(new Cookie(SessionService.COOKIE_NAME, sessions.create(user)));
+		var leagues = mock(LeagueRegistrationService.class);
+		var client = mock(FplDraftClient.class);
+		var json = new tools.jackson.databind.ObjectMapper();
+		var bootstrap = json.createObjectNode();
+		var events = bootstrap.putArray("events");
+		for (int event = 1; event <= 9; event++) {
+			events.addObject().put("id", event).put("is_current", event == 8)
+					.put("finished", event < 8 || (event == 8 && currentFinished));
+		}
+		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Classic League", FplLeagueType.CLASSIC,
+				FplLeagueScoring.H2H, true, false, false, user.id()));
+		when(client.getClassicLeagueStandings(12345)).thenReturn(json.readTree("{\"standings\":{\"results\":[]}}"));
+		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getFantasyEventLive(8)).thenReturn(json.readTree("{\"elements\":[]}"));
+		for (int event = 1; event <= 9; event++) {
+			when(client.getClassicLeagueMatches(12345, event)).thenReturn(json.readTree("""
+					{"results":[{"entry_1_entry":101,"entry_2_entry":202,"entry_1_points":0,"entry_2_points":5}]}
+					"""));
+		}
+		var controller = new CustomerLeagueController(sessions, leagues, mock(BroadcastScheduleService.class), mock(MockLiveStateService.class),
+				client, new FplDraftMapper(), new BroadcastSecurityProperties(), mock(com.fantasybroadcast.backend.payment.SubscriptionService.class));
+
+		var overview = controller.leagueOverview(request, 41);
+
+		assertThat(overview.matches().stream().filter(CustomerLeagueController.ClassicOverviewMatch::finished)
+				.map(CustomerLeagueController.ClassicOverviewMatch::event)).containsExactlyElementsOf(
+						currentFinished ? java.util.List.of(8, 7, 6, 5, 4) : java.util.List.of(7, 6, 5, 4, 3));
+		assertThat(overview.matches().stream().filter(match -> match.event() == 8)).hasSize(1);
+		assertThat(overview.matches()).allSatisfy(match -> {
+			assertThat(match.firstEntryId()).isEqualTo(101);
+			assertThat(match.firstPoints()).isZero();
+		});
+		verify(client, org.mockito.Mockito.never()).getClassicLeagueMatches(12345, 2);
+		verify(client, org.mockito.Mockito.never()).getClassicLeagueMatches(12345, 9);
+	}
+
 	@Test
 	void providesDraftOverviewOnlyAfterCheckingTheUsersLeagueAccess() {
 		var sessions = new SessionService();

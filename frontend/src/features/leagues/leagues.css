@@ -411,6 +411,41 @@
 .secondary-score {
   color: #d9cbe0;
 }
+.league-h2h-table th:nth-child(2) {
+  width: 32%;
+}
+.league-table th.league-form-column {
+  width: 144px;
+}
+.league-recent-form {
+  display: flex;
+  gap: 3px;
+}
+.league-form-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 750;
+  color: #25002c;
+}
+.league-form-bubble.result-w {
+  background: #00ff85;
+}
+.league-form-bubble.result-l {
+  background: #ff6b85;
+}
+.league-form-bubble.result-d {
+  background: #c0c7d2;
+}
+.league-form-empty {
+  color: #b6a4bd;
+  font-size: 12px;
+}
 .league-rank {
   display: inline-block;
   min-width: 24px;
@@ -1121,6 +1156,27 @@
   }
   .league-table th:last-child {
     width: 104px;
+  }
+  .league-h2h-table th,
+  .league-h2h-table td {
+    padding-inline: 6px;
+  }
+  .league-h2h-table th:first-child {
+    width: 36px;
+  }
+  .league-h2h-table th:last-child {
+    width: 64px;
+  }
+  .league-h2h-table th.league-form-column {
+    width: 110px;
+  }
+  .league-h2h-table .league-recent-form {
+    gap: 2px;
+  }
+  .league-h2h-table .league-form-bubble {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
   }
   .league-table .league-desktop-column {
     display: none;

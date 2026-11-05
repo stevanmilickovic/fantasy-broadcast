@@ -60,12 +60,12 @@ export function toLeagueDiscovery(
       league_entries: entries,
       matches: classic.matches.map((match, index) => ({
         id: index,
-        event: classic.gameweek,
+        event: match.event ?? classic.gameweek,
         league_entry_1: match.firstEntryId,
         league_entry_2: match.secondEntryId,
         league_entry_1_points: match.firstPoints,
         league_entry_2_points: match.secondPoints,
-        finished: false,
+        finished: match.finished ?? false,
       })),
       standings: classic.entries.map((entry) => ({
         league_entry: entry.entryId,
@@ -109,6 +109,34 @@ export function standingEntryId(standing: FplStanding) {
 
 export function standingLastRank(standing: FplStanding) {
   return standing.last_rank ?? standing.lastRank ?? null
+}
+
+export function recentMatchResults(
+  matches: LeagueDiscoveryState['details']['matches'],
+  entryId: number,
+) {
+  return matches
+    .filter(
+      (match) =>
+        match.finished &&
+        (match.league_entry_1 ?? match.firstLeagueEntryId) !== undefined &&
+        (match.league_entry_2 ?? match.secondLeagueEntryId) !== undefined &&
+        ((match.league_entry_1 ?? match.firstLeagueEntryId) === entryId ||
+          (match.league_entry_2 ?? match.secondLeagueEntryId) === entryId) &&
+        (match.league_entry_1_points ?? match.firstPoints) !== undefined &&
+        (match.league_entry_2_points ?? match.secondPoints) !== undefined,
+    )
+    .sort((a, b) => a.event - b.event || a.id - b.id)
+    .slice(-5)
+    .map((match) => {
+      const first = (match.league_entry_1 ?? match.firstLeagueEntryId) === entryId
+      const firstPoints = match.league_entry_1_points ?? match.firstPoints ?? 0
+      const secondPoints = match.league_entry_2_points ?? match.secondPoints ?? 0
+      const points = first ? firstPoints : secondPoints
+      const opponentPoints = first ? secondPoints : firstPoints
+      const result = points > opponentPoints ? 'W' : points < opponentPoints ? 'L' : 'D'
+      return { id: match.id, event: match.event, points, opponentPoints, result }
+    })
 }
 
 export function managerName(firstName: string, lastName: string) {

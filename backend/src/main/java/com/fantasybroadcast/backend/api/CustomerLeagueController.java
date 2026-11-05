@@ -131,12 +131,32 @@ public class CustomerLeagueController {
 		var bootstrap = fplClient.getFantasyBootstrapStatic();
 		var gameweek = currentGameweek(bootstrap);
 		var matches = league.scoringType() == FplLeagueScoring.H2H
-				? fplMapper.mapClassicLeague(standingsRoot, fplClient.getClassicLeagueMatches(league.fplLeagueId(), gameweek)).matches()
-				: List.<com.fantasybroadcast.backend.fpl.FplClassicMatch>of();
+				? classicOverviewMatches(league.fplLeagueId(), standingsRoot, bootstrap, gameweek)
+				: List.<ClassicOverviewMatch>of();
 		var entryEvents = new java.util.LinkedHashMap<Long, FplEntryEvent>();
 		for (var entry : entries) entryEvents.put(entry.entryId(), fplMapper.mapEntryEvent(fplClient.getFantasyEntryEvent(entry.entryId(), gameweek)));
 		return new ClassicLeagueDiscovery(league.displayName(), league.scoringType(), gameweek, entries, fplMapper.mapPlayers(bootstrap), entryEvents,
 				fplMapper.mapLivePlayers(fplClient.getFantasyEventLive(gameweek)), matches);
+	}
+
+	private List<ClassicOverviewMatch> classicOverviewMatches(long leagueId, tools.jackson.databind.JsonNode standings,
+			tools.jackson.databind.JsonNode bootstrap, int gameweek) {
+		var finishedEvents = new java.util.TreeSet<Integer>(java.util.Comparator.reverseOrder());
+		for (var event : bootstrap.path("events")) {
+			if (event.path("finished").asBoolean(false) && event.path("id").asInt() <= gameweek) {
+				finishedEvents.add(event.path("id").asInt());
+			}
+		}
+		var events = new java.util.LinkedHashSet<>(finishedEvents.stream().limit(5).toList());
+		events.add(gameweek);
+		var matches = new java.util.ArrayList<ClassicOverviewMatch>();
+		for (var event : events) {
+			for (var match : fplMapper.mapClassicLeague(standings, fplClient.getClassicLeagueMatches(leagueId, event)).matches()) {
+				matches.add(new ClassicOverviewMatch(event, finishedEvents.contains(event), match.firstEntryId(),
+						match.secondEntryId(), match.firstPoints(), match.secondPoints()));
+			}
+		}
+		return matches;
 	}
 
 	private int currentGameweek(tools.jackson.databind.JsonNode bootstrap) {
@@ -248,7 +268,11 @@ public class CustomerLeagueController {
 	public record ClassicLeagueDiscovery(String leagueName, FplLeagueScoring scoringType, int gameweek,
 			List<com.fantasybroadcast.backend.fpl.FplClassicLeagueEntry> entries, List<FplPlayer> players,
 			java.util.Map<Long, FplEntryEvent> entryEvents, List<FplLivePlayer> livePlayers,
-			List<com.fantasybroadcast.backend.fpl.FplClassicMatch> matches) {
+			List<ClassicOverviewMatch> matches) {
+	}
+
+	public record ClassicOverviewMatch(int event, boolean finished, long firstEntryId, long secondEntryId,
+			int firstPoints, int secondPoints) {
 	}
 
 	public record DraftLeagueDiscovery(int gameweek, tools.jackson.databind.JsonNode details, tools.jackson.databind.JsonNode elementStatus,

@@ -167,6 +167,8 @@ export type ClassicLeagueDiscovery = {
   >
   livePlayers: FplLivePlayer[]
   matches: Array<{
+    event?: number
+    finished?: boolean
     firstEntryId: number
     secondEntryId: number
     firstPoints: number

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import type { FplLeagueScoring, LeagueDiscoveryState } from '../../shared/fpl/types'
 import {
   managerName,
+  recentMatchResults,
   standingEntryId,
   standingGamePoints,
   standingLastRank,
@@ -50,7 +51,7 @@ export function LeagueStandingsTable({
           <h2>League standings</h2>
           <p>
             {h2h
-              ? 'League points decide rank. Fantasy points are cumulative player points.'
+              ? 'League points decide rank. Fantasy points are cumulative player points. Form shows the last five completed matchups, newest on the right.'
               : 'Ranked by total fantasy points.'}
           </p>
         </div>
@@ -65,7 +66,7 @@ export function LeagueStandingsTable({
           </label>
         )}
       </header>
-      <table className="league-table">
+      <table className={`league-table${h2h ? ' league-h2h-table' : ''}`}>
         <thead>
           <tr>
             <th scope="col">Rank</th>
@@ -73,6 +74,11 @@ export function LeagueStandingsTable({
             <th scope="col" className="league-desktop-column">
               Movement
             </th>
+            {h2h && (
+              <th scope="col" className="league-form-column">
+                Form
+              </th>
+            )}
             {h2h && (
               <th scope="col" className="league-desktop-column numeric">
                 Fantasy points
@@ -86,6 +92,9 @@ export function LeagueStandingsTable({
         <tbody>
           {rows.map(({ standing, entry }) => {
             const last = standingLastRank(standing)
+            const form = h2h
+              ? recentMatchResults(discovery.details.matches, standingEntryId(standing))
+              : []
             const delta = last ? last - standing.rank : null
             const Icon = delta === null || delta === 0 ? Minus : delta > 0 ? ArrowUp : ArrowDown
             const movement = (
@@ -127,6 +136,32 @@ export function LeagueStandingsTable({
                 </td>
                 <td className="league-desktop-column">{movement}</td>
                 {h2h && (
+                  <td className="league-form-column">
+                    <span className="league-recent-form" role="group" aria-label="Recent form">
+                      {form.length ? (
+                        form.map((match) => {
+                          const outcome =
+                            match.result === 'W' ? 'Win' : match.result === 'L' ? 'Loss' : 'Draw'
+                          const label = `Gameweek ${match.event}: ${outcome}, ${match.points}–${match.opponentPoints}`
+                          return (
+                            <span
+                              key={match.id}
+                              className={`league-form-bubble result-${match.result.toLowerCase()}`}
+                              role="img"
+                              aria-label={label}
+                              title={label}
+                            >
+                              {match.result}
+                            </span>
+                          )
+                        })
+                      ) : (
+                        <span className="league-form-empty">No completed results</span>
+                      )}
+                    </span>
+                  </td>
+                )}
+                {h2h && (
                   <td className="league-desktop-column numeric secondary-score">
                     {standingGamePoints(standing)}
                   </td>
@@ -134,8 +169,8 @@ export function LeagueStandingsTable({
                 <td className="numeric">
                   <strong>{standingPoints(standing)}</strong>
                   {h2h && (
-                    <small className="league-mobile-detail">
-                      {standingGamePoints(standing)} fantasy pts
+                    <small className="league-mobile-detail" aria-label="Fantasy points">
+                      {standingGamePoints(standing)}
                     </small>
                   )}
                 </td>

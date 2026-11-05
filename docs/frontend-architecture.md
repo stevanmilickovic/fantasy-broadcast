@@ -280,5 +280,8 @@ views, including cancellation when a modal unmounts. This keeps selection panels
 in browser mobile emulation as well as narrow and short screens.
 Missing live player data shows unavailable points rather than a confirmed zero. Matchups
 navigate only returned gameweeks; final status requires the supplied finished flag.
-The Classic adapter does not establish final status. Player dialogs remain shared with
+Classic matchups include the current gameweek and the five latest finished gameweeks;
+their final status comes from the bootstrap event's finished flag. H2H standings show
+up to five completed results in a separate Form column, oldest to newest, excluding unfinished
+matchups and unavailable scores. Player dialogs remain shared with
 broadcasts; league-specific visual changes are scoped beneath the customer shell.
