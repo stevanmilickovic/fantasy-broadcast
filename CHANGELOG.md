@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.3 - 2026-11-06
+
+- Add server-side pagination to subscriptions and registered league discovery, with fixed ten-item pages and newest-first league ordering.
+- Keep registration and league discovery in responsive side-by-side cards, with distinct search and paging controls.
+- Show Open league for existing followers while preserving private-league approval states.
+- Add pagination and follow workflow coverage and a project skill rule against redundant UI copy.
+
 ## 1.3.2 - 2026-11-06
 
 - Automatically open the newly registered league after server-side payment confirmation, including when the subscriber has multiple leagues.
