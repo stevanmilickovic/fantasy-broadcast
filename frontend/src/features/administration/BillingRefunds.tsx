@@ -1,3 +1,5 @@
+import { useBrowserNavigation } from '../../app/useBrowserNavigation'
+import { Pagination } from '../../shared/ui/Pagination'
 import { useCallback, useState } from 'react'
 import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
@@ -10,14 +12,24 @@ import {
 import type { AdminSubscription, Payment } from '../billing/types'
 
 export function BillingRefunds() {
-  const [input, setInput] = useState('')
-  const [search, setSearch] = useState('')
+  const { location, navigate } = useBrowserNavigation()
+  const params = new URLSearchParams(location.search)
+  const search = params.get('subscriptionSearch') ?? ''
+  const requestedPage = Number(params.get('subscriptionPage') ?? 0)
+  const page = Number.isSafeInteger(requestedPage) && requestedPage >= 0 ? requestedPage : 0
+  const changePage = (nextPage: number, term = search) => {
+    const next = new URLSearchParams(location.search)
+    next.set('subscriptionPage', String(nextPage))
+    next.set('subscriptionSearch', term)
+    setSelected(null)
+    navigate(`${location.pathname}?${next}`)
+  }
   const [selected, setSelected] = useState<AdminSubscription | null>(null)
   const load = useCallback(
-    (signal: AbortSignal) => loadBillingSubscriptions(search, signal),
-    [search],
+    (signal: AbortSignal) => loadBillingSubscriptions(search, page, signal),
+    [search, page],
   )
-  const query = useQuery(`billing:${search}`, load)
+  const query = useQuery(`billing:${search}:${page}`, load)
   return (
     <section
       className="league-discovery admin-registry billing-administration"
@@ -33,9 +45,9 @@ export function BillingRefunds() {
           className="billing-search"
           onSubmit={(event) => {
             event.preventDefault()
-            setSearch(input.trim())
-            setSelected(null)
-            if (search === input.trim()) query.refresh()
+            const term = String(new FormData(event.currentTarget).get('search') ?? '').trim()
+            changePage(0, term)
+            if (page === 0 && search === term) query.refresh()
           }}
         >
           <label htmlFor="billing-search">
@@ -43,8 +55,9 @@ export function BillingRefunds() {
           </label>
           <input
             id="billing-search"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
+            key={search}
+            name="search"
+            defaultValue={search}
             maxLength={160}
           />
           <button type="submit">Find subscriptions</button>
@@ -56,15 +69,15 @@ export function BillingRefunds() {
           {query.error} <button onClick={query.refresh}>Retry</button>
         </p>
       )}
-      {query.data?.length === 0 && (
+      {query.data?.items.length === 0 && (
         <p className="empty-text">
           No matching subscriptions. Existing Paddle purchases are imported during billing
           reconciliation.
         </p>
       )}
-      {query.data && query.data.length > 0 && (
+      {query.data && query.data.items.length > 0 && (
         <div className="billing-subscriptions">
-          {query.data.map((subscription) => (
+          {query.data.items.map((subscription) => (
             <button
               key={subscription.id}
               aria-pressed={selected?.id === subscription.id}
@@ -80,12 +93,19 @@ export function BillingRefunds() {
           ))}
         </div>
       )}
-      {query.data?.length === 50 && (
-        <p className="empty-text">
-          Showing up to 50 subscriptions. Narrow the search to find another league.
-        </p>
+      {query.data && (
+        <Pagination
+          page={page}
+          totalItems={query.data.totalItems}
+          size={query.data.size}
+          label="Subscription pages"
+          busy={false}
+          onPageChange={changePage}
+        />
       )}
-      {selected && <RefundPayments key={selected.id} subscription={selected} />}
+      {selected && query.data?.items.some((item) => item.id === selected.id) && (
+        <RefundPayments key={selected.id} subscription={selected} />
+      )}
     </section>
   )
 }

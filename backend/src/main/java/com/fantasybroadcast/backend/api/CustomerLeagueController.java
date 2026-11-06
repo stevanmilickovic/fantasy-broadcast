@@ -90,10 +90,12 @@ public class CustomerLeagueController {
 	}
 
 	@GetMapping("/leagues/search")
-	public List<RegisteredLeague> searchRegisteredLeagues(HttpServletRequest request,
-			@RequestParam(defaultValue = "") String query) {
+	public LeagueRegistrationService.RegisteredLeaguePage searchRegisteredLeagues(HttpServletRequest request,
+			@RequestParam(defaultValue = "") String query,
+			@RequestParam(defaultValue = "0") @PositiveOrZero int page,
+			@RequestParam(defaultValue = "10") @Positive @Max(100) int size) {
 		currentUser(request);
-		return leagueService.searchRegistered(query);
+		return leagueService.searchRegistered(query, page, size);
 	}
 
 	@PostMapping("/leagues/{leagueId}/follow")

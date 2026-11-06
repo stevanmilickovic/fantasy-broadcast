@@ -4,6 +4,9 @@ import com.fantasybroadcast.backend.customer.SessionService;
 import com.fantasybroadcast.backend.payment.RefundService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.PositiveOrZero;
+import org.springframework.validation.annotation.Validated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -14,6 +17,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Validated
 @Profile("db & !test")
 @RequestMapping("/api/customer/admin/subscriptions")
 public class BillingAdministrationController {
@@ -21,8 +25,10 @@ public class BillingAdministrationController {
 	private final RefundService refunds;
 	public BillingAdministrationController(SessionService sessions, RefundService refunds) { this.sessions = sessions; this.refunds = refunds; }
 	@GetMapping
-	public List<RefundService.AdminSubscription> search(HttpServletRequest request, @RequestParam(defaultValue = "") String search) {
-		return refunds.search(sessions.require(request), search);
+	public RefundService.AdminSubscriptionPage search(HttpServletRequest request, @RequestParam(defaultValue = "") String search,
+			@RequestParam(defaultValue = "0") @PositiveOrZero int page,
+			@RequestParam(defaultValue = "10") @Positive @Max(100) int size) {
+		return refunds.search(sessions.require(request), search, page, size);
 	}
 	@GetMapping("/{subscriptionId}/payments")
 	public List<RefundService.Payment> payments(HttpServletRequest request, @PathVariable String subscriptionId) {

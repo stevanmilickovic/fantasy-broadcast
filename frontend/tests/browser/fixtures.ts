@@ -102,8 +102,11 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
         })
       if (path === '/api/customer/follow-requests' || path.endsWith('/follow-requests'))
         return route.fulfill({ json: [] })
-      if (path === '/api/customer/leagues' || path === '/api/customer/leagues/search')
-        return route.fulfill({ json: leagues })
+      if (path === '/api/customer/leagues/search')
+        return route.fulfill({
+          json: { items: leagues, page: 0, size: 10, totalItems: leagues.length },
+        })
+      if (path === '/api/customer/leagues') return route.fulfill({ json: leagues })
       if (path === '/api/customer/league-registration')
         return route.fulfill({ json: { canRegisterLeague: true } })
       if (path.endsWith('/draft-overview')) return route.fulfill({ json: discovery })
@@ -136,7 +139,8 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
             totalItems: leagues.length,
           },
         })
-      if (path === '/api/customer/admin/subscriptions') return route.fulfill({ json: [] })
+      if (path === '/api/customer/admin/subscriptions')
+        return route.fulfill({ json: { items: [], page: 0, size: 10, totalItems: 0 } })
       if (path === '/api/customer/admin/users')
         return route.fulfill({
           json: {

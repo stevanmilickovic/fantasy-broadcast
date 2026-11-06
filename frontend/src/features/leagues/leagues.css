@@ -852,8 +852,18 @@
   padding: 8px 16px;
   font-weight: 600;
 }
+.find-league-card .secondary-action {
+  border: 1px solid #ffffff30;
+  background: #ffffff08;
+  color: #e9dfed;
+}
+.find-league-card .secondary-action:hover:not(:disabled) {
+  border-color: #ffffff60;
+  background: #ffffff14;
+}
 .league-type-toggle,
-.league-search > div {
+.league-search > form,
+.league-search-result {
   display: flex;
   gap: 8px;
 }
@@ -1263,7 +1273,8 @@
   .register-league-card {
     padding: 24px;
   }
-  .league-search > div {
+  .league-search > form,
+  .league-search-result {
     flex-wrap: wrap;
   }
   .league-search input {
@@ -1489,4 +1500,23 @@
 .league-player-token[data-availability] .player-meta strong {
   padding: 3px 6px;
   border-radius: 3px;
+}
+
+.league-search > form {
+  margin-top: 0;
+}
+.league-search input {
+  flex: 1;
+  min-width: 0;
+}
+.league-search-result button {
+  flex-shrink: 0;
+}
+.find-league-card h2 {
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 8px 0 12px;
+}
+.league-onboarding > .register-league-card > form {
+  max-width: 560px;
 }

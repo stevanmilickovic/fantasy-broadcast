@@ -126,17 +126,22 @@ test('administrators review partial refunds and see pending approval without dup
       return route.fulfill({ json: refund })
     }
     return route.fulfill({
-      json: [
-        {
-          id: 'sub_test',
-          leagueId: 1,
-          leagueName: 'Sunday League Elite',
-          ownerEmail: viewer.email,
-          plan: 'AI_BROADCASTER',
-          status: 'active',
-          periodEnd: initialSubscription.accessUntil,
-        },
-      ],
+      json: {
+        items: [
+          {
+            id: 'sub_test',
+            leagueId: 1,
+            leagueName: 'Sunday League Elite',
+            ownerEmail: viewer.email,
+            plan: 'AI_BROADCASTER',
+            status: 'active',
+            periodEnd: initialSubscription.accessUntil,
+          },
+        ],
+        page: 0,
+        size: 10,
+        totalItems: 1,
+      },
     })
   })
   await page.goto('/administration')

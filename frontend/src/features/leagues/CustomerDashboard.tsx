@@ -76,7 +76,12 @@ export function CustomerDashboard({
         <p>Loading leagues…</p>
       )}
       {pathname === '/leagues/new' && (
-        <LeagueRegistrationPage user={user} navigate={onNavigate} onFollowed={query.refresh} />
+        <LeagueRegistrationPage
+          user={user}
+          followedLeagues={leagues}
+          navigate={onNavigate}
+          onFollowed={query.refresh}
+        />
       )}
       {pathname === '/leagues/checkout' &&
         (confirmingPayment ? (

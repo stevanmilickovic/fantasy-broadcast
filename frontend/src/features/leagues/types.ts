@@ -14,7 +14,7 @@ export type RegisteredLeague = {
   voiceNarrationEnabled: boolean
   ownerUserId: number
   privateLeague?: boolean
-  followStatus?: 'PENDING' | 'REJECTED'
+  followStatus?: 'APPROVED' | 'PENDING' | 'REJECTED'
 }
 
 export type FollowResult = { league: RegisteredLeague; status: 'PENDING' | 'APPROVED' }

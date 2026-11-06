@@ -29,20 +29,25 @@ public class RefundService {
 		this.operations = operations;
 	}
 
-	public List<AdminSubscription> search(CurrentUser user, String search) {
+	public AdminSubscriptionPage search(CurrentUser user, String search, int page, int size) {
 		requireAdmin(user);
 		var term = search.trim();
 		if (term.length() > 160) throw badRequest("Search is too long.");
-		return repository.jdbc().query("""
-				select s.billing_subscription_id, s.league_id, l.display_name, u.email, s.plan_code, s.status, s.current_period_end
+		var from = """
 				from subscription s join league l on l.id = s.league_id join app_user u on u.id = l.owner_user_id
 				where lower(l.display_name) like concat('%', lower(?), '%') or lower(u.email) like concat('%', lower(?), '%')
 				or s.billing_subscription_id = ? or cast(l.fpl_league_id as char) = ?
 				or exists (select 1 from billing_payment p where p.subscription_id = s.billing_subscription_id and p.transaction_id = ?)
-				order by s.id desc limit 50
-				""", (rs, row) -> new AdminSubscription(rs.getString(1), rs.getLong(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6),
-					rs.getTimestamp(7) == null ? null : rs.getTimestamp(7).toInstant()), term, term, term, term, term);
+				""";
+		var total = repository.jdbc().queryForObject("select count(*) " + from, Long.class, term, term, term, term, term);
+		var items = repository.jdbc().query("select s.billing_subscription_id, s.league_id, l.display_name, u.email, s.plan_code, s.status, s.current_period_end "
+				+ from + " order by s.id desc limit ? offset ?",
+				(rs, row) -> new AdminSubscription(rs.getString(1), rs.getLong(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6),
+					rs.getTimestamp(7) == null ? null : rs.getTimestamp(7).toInstant()), term, term, term, term, term, size, (long) page * size);
+		return new AdminSubscriptionPage(items, page, size, total == null ? 0 : total);
 	}
+
+	public record AdminSubscriptionPage(List<AdminSubscription> items, int page, int size, long totalItems) { }
 
 	public List<Payment> payments(CurrentUser user, String subscriptionId) {
 		requireAdmin(user);

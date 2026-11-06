@@ -17,7 +17,8 @@ the repository guidelines; no global plugin installation is required.
 
 Source: [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned
 to commit `09c434ab73ca43761c5d8b0c5d341926c2fba710`.
-License: [MIT](PONYTAIL-LICENSE). The six skill files are unchanged upstream copies.
+License: [MIT](PONYTAIL-LICENSE). The main Ponytail skill includes a local rule
+against redundant UI copy; the other five skill files are unchanged upstream copies.
 
 This is the instruction-only installation. Plugin lifecycle hooks, persistent mode
 configuration, a dashboard and host-specific slash commands are not installed.
@@ -25,6 +26,7 @@ Request a skill by its name; do not assume plugin commands/configuration describ
 in the upstream help are available in this setup.
 
 To update, review a new upstream revision, replace the six skill directories and
-license together, and update the pinned commit here. Keep local project rules in
+license together, and update the pinned commit here. Preserve the local UI-copy rule
+in `ponytail/SKILL.md` when updating. Keep other local project rules in
 `AGENTS.md` rather than editing upstream skills. The gain skill's benchmark source
 is in the upstream repository at the pinned revision; it is not a local benchmark.

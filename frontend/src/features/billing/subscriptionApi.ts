@@ -1,3 +1,4 @@
+import type { PageResult } from '../../shared/api/http'
 import { requestJson } from '../../shared/api/http'
 import type {
   AdminSubscription,
@@ -35,9 +36,9 @@ export const cancelSubscription = (
 ) => post<Subscription>(`${base(id)}/cancel`, { undo, requestId }, signal)
 export const openBillingPortal = (id: number, signal: AbortSignal) =>
   post<{ url: string }>(`${base(id)}/portal`, {}, signal)
-export const loadBillingSubscriptions = (search: string, signal: AbortSignal) =>
-  requestJson<AdminSubscription[]>(
-    `/api/customer/admin/subscriptions?${new URLSearchParams({ search })}`,
+export const loadBillingSubscriptions = (search: string, page: number, signal: AbortSignal) =>
+  requestJson<PageResult<AdminSubscription>>(
+    `/api/customer/admin/subscriptions?${new URLSearchParams({ search, page: String(page), size: '10' })}`,
     { signal },
   )
 export const loadSubscriptionPayments = (id: string, signal: AbortSignal) =>

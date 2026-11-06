@@ -30,7 +30,8 @@ test('owner approval moves a private follow request into accessible leagues', as
     const path = new URL(route.request().url()).pathname
     if (path === '/api/auth/me') return route.fulfill({ json: applicant })
     if (path === '/api/customer/leagues') return route.fulfill({ json: approved ? [league] : [] })
-    if (path === '/api/customer/leagues/search') return route.fulfill({ json: [league] })
+    if (path === '/api/customer/leagues/search')
+      return route.fulfill({ json: { items: [league], page: 0, size: 10, totalItems: 1 } })
     if (path === '/api/customer/follow-requests')
       return route.fulfill({ json: pending ? [request] : [] })
     if (path.endsWith('/follow')) {
@@ -60,7 +61,7 @@ test('owner approval moves a private follow request into accessible leagues', as
   await page.getByRole('button', { name: 'Request to follow', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Pending approval' })).toBeDisabled()
   await expect(page.getByRole('region', { name: 'Your follow requests' })).toHaveCount(0)
-  await expect(page).toHaveURL('/leagues/new')
+  await expect(page).toHaveURL('/leagues/new?search=Sunday&page=0')
   await owner.goto(`/league?leagueId=${league.id}`)
   await expect(owner.getByRole('status', { name: '1 pending follow request' })).toHaveText('1')
   await expect(owner.getByRole('switch', { name: 'Private league' })).toHaveCount(0)

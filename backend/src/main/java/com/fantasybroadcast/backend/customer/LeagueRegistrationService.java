@@ -103,16 +103,16 @@ public class LeagueRegistrationService {
 		return new AdminLeaguePage(leagues, page, size, total == null ? 0 : total);
 	}
 
-	public List<RegisteredLeague> searchRegistered(String query) {
+	public RegisteredLeaguePage searchRegistered(String query, int page, int size) {
 		var searchTerm = query == null ? "" : query.trim();
-		if (searchTerm.isEmpty()) return List.of();
-		return jdbcTemplate.query("""
-				select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, private_league, owner_user_id
-				from league
-				where service_enabled = true and (lower(display_name) like concat('%', lower(?), '%') or cast(fpl_league_id as char) like concat('%', ?, '%'))
-				order by display_name, id limit 20
-				""", this::mapLeague, searchTerm, searchTerm);
+		var filter = "from league where service_enabled = true and (lower(display_name) like concat('%', lower(?), '%') or cast(fpl_league_id as char(32)) like concat('%', ?, '%'))";
+		var total = jdbcTemplate.queryForObject("select count(*) " + filter, Long.class, searchTerm, searchTerm);
+		var items = jdbcTemplate.query("select " + LEAGUE_COLUMNS + " " + filter + " order by created_at desc, id desc limit ? offset ?",
+				this::mapLeague, searchTerm, searchTerm, size, (long) page * size);
+		return new RegisteredLeaguePage(items, page, size, total == null ? 0 : total);
 	}
+
+	public record RegisteredLeaguePage(List<RegisteredLeague> items, int page, int size, long totalItems) { }
 
 	@Transactional
 	public FollowResult follow(CurrentUser user, long leagueId) {

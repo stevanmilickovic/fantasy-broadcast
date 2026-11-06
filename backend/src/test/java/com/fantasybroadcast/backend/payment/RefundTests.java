@@ -61,7 +61,7 @@ class RefundTests {
 		var paddle = mock(PaddleClient.class);
 		var service = new RefundService(mock(BillingRepository.class), paddle, mock(SubscriptionSyncService.class), mock(BillingOperations.class));
 		var user = new CurrentUser(1, "user@example.com", "User", UserRole.USER);
-		assertThatThrownBy(() -> service.search(user, "")).isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> service.search(user, "", 0, 10)).isInstanceOf(ResponseStatusException.class);
 		assertThatThrownBy(() -> service.submit(user, "sub_test", "txn_test", UUID.randomUUID().toString(), null, "Test reason", true)).isInstanceOf(ResponseStatusException.class);
 		verifyNoInteractions(paddle);
 	}
@@ -76,8 +76,30 @@ class RefundTests {
 			"""));
 		var paddle = mock(PaddleClient.class);
 		var service = new RefundService(db.repository, paddle, mock(SubscriptionSyncService.class), db.operations);
-		assertThat(service.search(new CurrentUser(2, "admin@example.com", "Admin", UserRole.ADMIN), "txn_test")).singleElement().satisfies(subscription -> assertThat(subscription.leagueName()).isEqualTo("Test league"));
+		assertThat(service.search(new CurrentUser(2, "admin@example.com", "Admin", UserRole.ADMIN), "txn_test", 0, 10).items()).singleElement().satisfies(subscription -> assertThat(subscription.leagueName()).isEqualTo("Test league"));
 		verifyNoInteractions(paddle);
+	}
+
+	@Test
+	void subscriptionsPageNewestFirstWithFilteredTotals() throws Exception {
+		var db = new BillingTestDatabase();
+		var now = Instant.now();
+		var data = new SubscriptionTests().subscription("active", "standard", now, now.plus(Duration.ofDays(20)));
+		for (int id = 1; id <= 12; id++) {
+			((tools.jackson.databind.node.ObjectNode) data).put("id", "sub_" + id);
+			if (id > 1) db.jdbc.update("insert into league (id, fpl_league_id, display_name, owner_user_id) values (?, ?, ?, 1)", id, 100 + id, "League " + id);
+			db.repository.saveSubscription(id, data, BillingPlan.STANDARD);
+		}
+		var service = new RefundService(db.repository, mock(PaddleClient.class), mock(SubscriptionSyncService.class), db.operations);
+		var admin = new CurrentUser(2, "admin@example.com", "Admin", UserRole.ADMIN);
+		var first = service.search(admin, "", 0, 10);
+		assertThat(first.totalItems()).isEqualTo(12);
+		assertThat(first.items()).hasSize(10);
+		assertThat(first.items().getFirst().id()).isEqualTo("sub_12");
+		assertThat(service.search(admin, "", 1, 10).items()).extracting(RefundService.AdminSubscription::id).containsExactly("sub_2", "sub_1");
+		assertThat(service.search(admin, "sub_4", 0, 10).totalItems()).isEqualTo(1);
+		assertThat(service.search(admin, "missing", 0, 10).totalItems()).isZero();
+		assertThat(service.search(admin, "", 2, 10).items()).isEmpty();
 	}
 
 	private JsonNode payment() {

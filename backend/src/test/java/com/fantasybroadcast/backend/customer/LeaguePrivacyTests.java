@@ -31,6 +31,21 @@ class LeaguePrivacyTests {
 		leagues = new LeagueRegistrationService(jdbc, mock(FplDraftClient.class), new BroadcastSecurityProperties());
 		memberships = new LeagueMembershipService(jdbc);
 	}
+	@Test void registeredDirectoryPagesNewestFirstAndFiltersOnlyEnabledLeagues() {
+		jdbc.update("update league set created_at = '2026-01-01 00:00:00'");
+		var first = leagues.searchRegistered("", 0, 1);
+		assertThat(first.totalItems()).isEqualTo(2);
+		assertThat(first.items()).extracting(LeagueRegistrationService.RegisteredLeague::id).containsExactly(2L);
+		assertThat(leagues.searchRegistered("", 1, 1).items()).extracting(LeagueRegistrationService.RegisteredLeague::id).containsExactly(1L);
+		assertThat(leagues.searchRegistered("", 2, 1).items()).isEmpty();
+		assertThat(leagues.searchRegistered(" LEAGUE ", 0, 10).totalItems()).isEqualTo(1);
+		assertThat(leagues.searchRegistered("200", 0, 10).items()).extracting(LeagueRegistrationService.RegisteredLeague::id).containsExactly(2L);
+		jdbc.update("update league set created_at = '2026-02-01 00:00:00' where id = 1");
+		assertThat(leagues.searchRegistered("", 0, 10).items()).extracting(LeagueRegistrationService.RegisteredLeague::id).containsExactly(1L, 2L);
+		jdbc.update("update league set service_enabled = false where id = 2");
+		assertThat(leagues.searchRegistered("", 0, 10).totalItems()).isEqualTo(1);
+	}
+
 	@Test void privateRequestsCannotReadLeagueUntilOwnerApproves() {
 		memberships.setPrivacy(owner, 1, true);
 		assertThat(leagues.follow(follower, 1).status()).isEqualTo("PENDING");

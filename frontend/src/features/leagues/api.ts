@@ -1,3 +1,4 @@
+import type { PageResult } from '../../shared/api/http'
 import { request } from '../../shared/api/http'
 import type { TeamEmblemData } from './teamEmblems'
 import type {
@@ -52,10 +53,14 @@ export const loadLeagueRegistrationAccess = async (
 
 export const searchRegisteredLeagues = async (
   query: string,
+  page: number,
   signal?: AbortSignal,
-): Promise<RegisteredLeague[]> =>
+): Promise<PageResult<RegisteredLeague>> =>
   (
-    await request(`/api/customer/leagues/search?${new URLSearchParams({ query })}`, { signal })
+    await request(
+      `/api/customer/leagues/search?${new URLSearchParams({ query, page: String(page), size: '10' })}`,
+      { signal },
+    )
   ).json()
 
 export const followLeague = async (leagueId: number, signal?: AbortSignal): Promise<FollowResult> =>

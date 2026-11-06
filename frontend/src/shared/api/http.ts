@@ -1,3 +1,10 @@
+export type PageResult<T> = {
+  items: T[]
+  page: number
+  size: number
+  totalItems: number
+}
+
 export class HttpError extends Error {
   status: number
   constructor(status: number, message: string) {
