@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 - 2026-11-06
+
+- Automatically open the newly registered league after server-side payment confirmation, including when the subscriber has multiple leagues.
+- Wait for delayed payment confirmation and offer a retry without requiring another payment.
+- Style and space the confirmation page buttons consistently with existing billing controls.
+
 ## 1.3.1 - 2026-11-06
 
 - Corrected the pricing workflow test to match the current simultaneous-viewer text.

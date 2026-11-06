@@ -16,7 +16,7 @@ workflow** for the desired branch or tag when responsive verification is needed.
 
 Deploy from the directory that contains `compose.production.yaml`. Create `data/backend/application.env` and `data/backend/application.yaml` there. They are host-managed configuration files and must never be committed.
 
-`application.env` supplies MySQL credentials, `DB_URL`, provider keys, initial-admin credentials, the Cloudflare Tunnel token, and image variables such as `IMAGE_REGISTRY=ghcr.io/your-account` and `IMAGE_TAG=1.3.1`. `application.yaml` holds non-secret application configuration such as the email sender and public URL.
+`application.env` supplies MySQL credentials, `DB_URL`, provider keys, initial-admin credentials, the Cloudflare Tunnel token, and image variables such as `IMAGE_REGISTRY=ghcr.io/your-account` and `IMAGE_TAG=1.3.2`. `application.yaml` holds non-secret application configuration such as the email sender and public URL.
 
 To deploy a released image, run `bash scripts/deploy-production.sh`. The script validates the host-managed configuration files, pulls the configured image tags, starts the services, and checks backend health. MySQL, the backend, and the web service are private to the Compose network. The Cloudflare Tunnel container reaches the web service at `http://web:8080`; configure that service URL when creating the tunnel's published application. No HTTP or HTTPS port is published on the VPS.
 
