@@ -229,10 +229,12 @@ essential controls, current scores and commentary readable at every supported si
 
 Run the commands in [frontend/README.md](../frontend/README.md). Unit tests live beside
 code; browser workflows and deterministic API fixtures live in `tests/browser`.
-Type checking covers application code, configurations and browser tests. CI runs the
-same checks on pull requests and gates container publication through the reusable
-frontend workflow. Browser tests exercise the built production bundle using a preview
-server, not a development-only entry point.
+Type checking covers application code, configurations and browser tests. Version-tag
+releases run formatting, lint, unit tests and the production build once, then package
+the checked outputs into container images. Browser and responsive screen tests run
+only on demand through the manual browser workflow or the local test command. They
+exercise the built production bundle using a preview server, not a development-only
+entry point.
 
 Mocked browser coverage verifies client orchestration, rendering and interaction. It
 cannot verify backend authorization, mail delivery, a Paddle transaction, actual audio

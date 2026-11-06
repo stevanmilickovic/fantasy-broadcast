@@ -2,6 +2,18 @@
 
 `VERSION` is the release version. CI uses it for Maven builds and for the immutable versioned container tags; each image also receives a Git-SHA tag and OCI version/revision labels.
 
+Only pushed version tags matching `vMAJOR.MINOR.PATCH` trigger image publishing;
+ordinary branch pushes and pull requests do not run CI. The tag must match `VERSION`.
+The release job runs frontend checks/build and backend tests/package once on the
+runner, then uses the Dockerfiles' `release` targets with the prebuilt artifacts as
+named build contexts. Docker does not repeat compilation or tests. npm, Maven and
+Docker layers are cached; both published images retain HIGH/CRITICAL security scans.
+Default Docker builds still compile from source, including backend tests, for the
+local testing launcher.
+
+Browser/screen tests are separate: start **Actions → Browser tests (manual) → Run
+workflow** for the desired branch or tag when responsive verification is needed.
+
 Deploy from the directory that contains `compose.production.yaml`. Create `data/backend/application.env` and `data/backend/application.yaml` there. They are host-managed configuration files and must never be committed.
 
 `application.env` supplies MySQL credentials, `DB_URL`, provider keys, initial-admin credentials, the Cloudflare Tunnel token, and image variables such as `IMAGE_REGISTRY=ghcr.io/your-account` and `IMAGE_TAG=1.3.0`. `application.yaml` holds non-secret application configuration such as the email sender and public URL.

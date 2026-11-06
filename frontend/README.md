@@ -28,7 +28,8 @@ Browser tests start a production preview on port 4173, so run `npm run check` or
 `npm run build` first. They use deterministic API fixtures and Chromium; no backend,
 mail service or payment credentials are required. API interceptors match paths
 starting with `/api/` so they cannot intercept source modules. Screenshots and failure
-traces are written to `test-results/` and uploaded by CI.
+traces are written to `test-results/`. The manual browser workflow uploads failure
+artifacts; CI records traces on the first retry instead of tracing every passing test.
 
 To use an already installed Chrome instead of downloading Chromium:
 
@@ -59,8 +60,16 @@ Follow [AGENTS.md](AGENTS.md) when changing frontend code.
 
 ## Continuous integration
 
-`Frontend checks` runs on pull requests and can be started manually. Container
-publishing calls the same reusable workflow and waits for its formatting, lint,
-unit, type/build and browser checks before building or publishing images. Repository
-branch protection can require the `frontend` job from `Frontend checks`; that hosting
-setting is managed outside this repository.
+Automatic CI runs only when a version tag such as `v1.3.0` is pushed. The tag must
+match `VERSION`. The release job runs `npm run check` and packages/tests the backend
+once, then builds container images from those outputs. npm, Maven and Docker layer
+caches reduce repeat downloads and packaging work. Releases retain image security
+scans and do not install browsers or run screen tests.
+
+Run the full responsive suite on demand from **Actions → Browser tests (manual) →
+Run workflow**, selecting the branch or tag to test. It builds the frontend and runs
+all six viewport projects. Browser tests remain available locally with the commands
+above. Ordinary branch pushes and pull requests do not trigger these workflows.
+
+If branch protection previously required the removed `Frontend checks` job, update
+that GitHub setting to match this tag-only release policy.
