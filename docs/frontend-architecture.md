@@ -85,6 +85,10 @@ operation, and suppresses results after cancellation. Unmounting cancels the req
 reset cancels it and clears its state. Independent forms use independent mutations.
 Checkout calls the selected STANDARD or AI_BROADCASTER plan handler only after valid
 league data, checkout readiness and policy consent. The payment SDK belongs to billing.
+Successful registration checkout returns to a confirmation view with the purchased FPL
+league ID and type. It polls the authenticated league list for up to a minute, then
+opens that league once server-side payment confirmation enables it. Delayed confirmation
+and request failures offer a retry without starting another payment.
 
 ## Broadcast data and playback
 

@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+﻿import { useCallback, useEffect } from 'react'
 import { positiveId } from '../../app/routes'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useQuery } from '../../shared/api/useQuery'
@@ -6,6 +6,7 @@ import { LegalFooter } from '../../shared/ui/LegalFooter'
 import { AccountDeletionPage } from '../auth/AccountDeletionPage'
 import type { AuthUser } from '../auth/types'
 import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
+import { LeaguePaymentConfirmation } from '../billing/LeaguePaymentConfirmation'
 import { LeagueManagementPage } from './LeagueManagementPage'
 import { loadRegisteredLeagues } from './api'
 import { CustomerNavigation } from './CustomerNavigation'
@@ -27,8 +28,20 @@ export function CustomerDashboard({
   onSignOut: () => void
 }) {
   const query = useQuery(`leagues:${user.id}`, loadRegisteredLeagues)
+  const refreshLeagues = query.refresh
   const leagues = query.data
-  const selectedId = positiveId(new URLSearchParams(search).get('leagueId'))
+  const parameters = new URLSearchParams(search)
+  const paymentLeagueId = positiveId(parameters.get('fplLeagueId'))
+  const confirmingPayment =
+    parameters.get('payment') === 'completed' && paymentLeagueId !== undefined
+  const paymentConfirmed = useCallback(
+    (leagueId: number) => {
+      refreshLeagues()
+      onNavigate(`/league?leagueId=${leagueId}`, true)
+    },
+    [refreshLeagues, onNavigate],
+  )
+  const selectedId = positiveId(parameters.get('leagueId'))
   const selectedLeague = leagues?.find((league) => league.id === selectedId) ?? null
   useEffect(() => {
     if (!leagues) return
@@ -65,9 +78,19 @@ export function CustomerDashboard({
       {pathname === '/leagues/new' && (
         <LeagueRegistrationPage user={user} navigate={onNavigate} onFollowed={query.refresh} />
       )}
-      {pathname === '/leagues/checkout' && (
-        <LeagueCheckoutPage key={search} search={search} onNavigate={onNavigate} />
-      )}
+      {pathname === '/leagues/checkout' &&
+        (confirmingPayment ? (
+          <LeaguePaymentConfirmation
+            key={search}
+            fplLeagueId={paymentLeagueId}
+            leagueType={parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT'}
+            userId={user.id}
+            onConfirmed={paymentConfirmed}
+            onNavigate={onNavigate}
+          />
+        ) : (
+          <LeagueCheckoutPage key={search} search={search} onNavigate={onNavigate} />
+        ))}
       {pathname === '/leagues' && leagues && (
         <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />
       )}

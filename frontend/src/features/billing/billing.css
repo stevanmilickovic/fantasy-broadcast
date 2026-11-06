@@ -401,7 +401,11 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+.payment-confirmation-actions {
+  margin-top: 24px;
+}
 .subscription-card button,
+.payment-confirmation-actions button,
 .billing-administration button,
 .billing-contact {
   min-height: 44px;
@@ -412,11 +416,13 @@
   cursor: pointer;
 }
 .subscription-card .subscription-actions > button:first-child,
+.payment-confirmation-actions > button:first-child,
 .billing-contact {
   background: #20e6ff;
   color: #18001d;
 }
 .subscription-card .secondary-action,
+.payment-confirmation-actions .secondary-action,
 .subscription-card .billing-refresh {
   color: #d9cbe0;
   border-color: #ffffff24;

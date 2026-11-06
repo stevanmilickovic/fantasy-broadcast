@@ -78,13 +78,18 @@ export const openPaddleCheckout = async (checkout: PaddleCheckout, signal?: Abor
     throw new Error('A payment reference is required. Please refresh checkout.')
   const paddle = await initializePaddle(checkout.clientSideToken, signal)
   signal?.throwIfAborted()
+  const successPath = `/leagues/checkout?${new URLSearchParams({
+    fplLeagueId: String(checkout.fplLeagueId),
+    leagueType: checkout.leagueType,
+    payment: 'completed',
+  })}`
   stopPurchaseEvents?.()
   stopPurchaseEvents = onPaddleEvent((event) => {
     if (event.name === 'checkout.completed') {
       stopPurchaseEvents?.()
       stopPurchaseEvents = null
       paddle.Checkout.close()
-      window.setTimeout(() => window.location.assign('/leagues'), 1500)
+      window.location.assign(successPath)
     } else if (event.name === 'checkout.closed') {
       stopPurchaseEvents?.()
       stopPurchaseEvents = null
@@ -92,6 +97,6 @@ export const openPaddleCheckout = async (checkout: PaddleCheckout, signal?: Abor
   })
   paddle.Checkout.open({
     transactionId: checkout.transactionId,
-    settings: { successUrl: `${window.location.origin}/leagues` },
+    settings: { successUrl: `${window.location.origin}${successPath}` },
   })
 }
