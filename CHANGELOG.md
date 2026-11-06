@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 - 2026-11-06
+
+- Corrected the pricing workflow test to match the current simultaneous-viewer text.
+- Limited automatic CI and image publishing to version-tag pushes, with a check that the tag matches `VERSION`.
+- Moved the full browser and responsive screen suite to a manual workflow, with traces recorded on the first CI retry.
+- Removed duplicate release builds and tests by packaging prebuilt frontend assets and the tested backend JAR into Docker release targets.
+- Added Maven and Docker layer caching, retained npm caching and image security scans, and excluded browser reports from Docker build contexts.
+
 ## 1.3.0 - 2026-11-05
 
 - Updated displayed monthly prices to EUR 6.99 for Standard and EUR 19.99 for AI Broadcaster, and simplified pricing descriptions.
