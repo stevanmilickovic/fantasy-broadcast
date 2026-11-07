@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.5 - 2026-11-07
+
+- Give homepage broadcast preview clubs distinct squads, including substitutes, and keep scoring events, commentary and totals consistent across frames.
+- Hide the return-to-leagues button while payment confirmation is processing; show it after a timeout or failed check, and hide it again on retry.
+- Add regression coverage for preview squad ownership, scoring consistency and payment-confirmation navigation.
+
 ## 1.3.4 - 2026-11-07
 
 - Persist verified Paddle webhook events before acknowledgment, process them in the background with durable retries, and recover unfinished work after restarts.
