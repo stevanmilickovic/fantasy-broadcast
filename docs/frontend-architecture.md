@@ -24,6 +24,12 @@ Backend authorization remains authoritative.
 `CustomerDashboard` queries the user's leagues and composes the picker, registration,
 detail, league management, checkout or account-deletion page. A successful league-list response redirects
 only list/detail routes; it must not displace checkout or account-deletion deep links.
+
+Discovery lives at `/leagues/find`; `/leagues/new` is a focused registration-by-ID form.
+Old registration URLs carrying search/page parameters redirect to discovery. The submitted
+search and pagination belong to the URL; clearing the draft immediately replaces the URL
+with an unfiltered first page. History changes synchronize the draft without remounting
+its input. Discovery remains usable when registration eligibility cannot be loaded.
 A detail page remounts when its league changes. A broadcast remounts when either its
 user or league changes, isolating event IDs, queued snapshots, timers, audio and SSE.
 

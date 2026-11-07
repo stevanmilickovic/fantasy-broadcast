@@ -818,9 +818,21 @@
 }
 .league-onboarding {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 800px;
+  margin-inline: auto;
   gap: 24px;
   align-items: start;
+}
+.league-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.league-workflow-link {
+  color: #20e6ff;
+  justify-self: start;
+  padding: 12px 0;
 }
 .register-league-card {
   padding: 32px;

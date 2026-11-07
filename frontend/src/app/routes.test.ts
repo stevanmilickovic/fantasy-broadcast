@@ -6,6 +6,20 @@ const user: AuthUser = { id: 1, email: 'user@example.test', displayName: 'User',
 const admin: AuthUser = { ...user, role: 'ADMIN' }
 
 describe('route ownership', () => {
+  it('separates discovery from registration and preserves old discovery links', () => {
+    expect(resolveRoute('/leagues/find', '?search=Sunday', user)).toEqual({
+      page: 'leagues',
+      pathname: '/leagues/find',
+    })
+    expect(resolveRoute('/leagues/new', '', user)).toEqual({
+      page: 'leagues',
+      pathname: '/leagues/new',
+    })
+    expect(resolveRoute('/leagues/new', '?search=Sunday&page=2', user)).toEqual({
+      page: 'redirect',
+      to: '/leagues/find?search=Sunday&page=2',
+    })
+  })
   it('opens league management and redirects existing subscription links', () => {
     expect(resolveRoute('/league/manage', '?leagueId=42', user)).toEqual({
       page: 'leagues',

@@ -35,7 +35,12 @@ receive unique suffixes, and manual names still require uniqueness.
   deduplicated, dismissible and keyboard/safe-area aware; repeated completion links are consumed.
   Verification: lint/build and 78 unit tests pass; 24 account/checkout browser checks pass
   across six viewports, plus six keyboard-position cases. Phone/desktop screenshots reviewed.
-- Remaining work: steps 4–19. Existing-name repair is omitted per the user's confirmation.
+- Step 4: separate discovery and registration URLs, explicit navigation actions, legacy
+  search-link redirects and immediate URL reset on clear without losing input focus.
+  Verification: lint/build and 79 unit tests; 24 discovery/privacy browser cases across
+  six viewports, with existing pagination/login/checkout workflows also checked on
+  phone, short landscape and desktop. Clearing an in-flight search is covered.
+- Remaining work: steps 5–19. Existing-name repair is omitted per the user's confirmation.
 
 ## Product decisions
 

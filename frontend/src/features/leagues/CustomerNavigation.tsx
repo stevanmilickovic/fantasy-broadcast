@@ -40,7 +40,7 @@ export function CustomerNavigation({
                 description: `${league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} · ${scoringLabel(league.scoringType)}`,
                 badge: league.ownerUserId === user.id ? 'Owner' : undefined,
               }))}
-              action={{ label: 'Add or find a league', onClick: () => onNavigate('/leagues/new') }}
+              action={{ label: 'Find leagues', onClick: () => onNavigate('/leagues/find') }}
             />
           </div>
         )}
@@ -51,8 +51,11 @@ export function CustomerNavigation({
           </summary>
           <div>
             <strong>{user.displayName}</strong>
-            <button type="button" onClick={() => onNavigate('/leagues/new')}>
+            <button type="button" onClick={() => onNavigate('/leagues/find')}>
               Find leagues
+            </button>
+            <button type="button" onClick={() => onNavigate('/leagues/new')}>
+              Register a league
             </button>
             <button type="button" onClick={() => onNavigate('/account')}>
               Account settings

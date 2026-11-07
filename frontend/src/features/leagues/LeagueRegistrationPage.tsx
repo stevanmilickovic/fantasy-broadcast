@@ -1,112 +1,59 @@
-import { Pagination } from '../../shared/ui/Pagination'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
-import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
 import type { FplLeagueType } from '../../shared/fpl/types'
-import type { AuthUser } from '../auth/types'
-import {
-  followLeague,
-  loadFollowRequests,
-  loadLeagueRegistrationAccess,
-  searchRegisteredLeagues,
-} from './api'
+import { loadLeagueRegistrationAccess } from './api'
 import { LeagueRegistrationForm } from './LeagueRegistrationForm'
-import type { RegisteredLeague } from './types'
 
-export function LeagueRegistrationPage({
-  user,
-  followedLeagues,
-  navigate,
-  onFollowed,
-}: {
-  user: AuthUser
-  followedLeagues: RegisteredLeague[] | undefined
-  navigate: Navigate
-  onFollowed: () => void
-}) {
+export function LeagueRegistrationPage({ navigate }: { navigate: Navigate }) {
   const access = useQuery('registration-access', loadLeagueRegistrationAccess)
   const [leagueId, setLeagueId] = useState('')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
-  const params = new URLSearchParams(window.location.search)
-  const search = params.get('search') ?? ''
-  const requestedPage = Number(params.get('page') ?? 0)
-  const page = Number.isSafeInteger(requestedPage) && requestedPage >= 0 ? requestedPage : 0
-  const changePage = (nextPage: number, term = search) => {
-    const next = new URLSearchParams({ search: term, page: String(nextPage) })
-    navigate(`${window.location.pathname}?${next}`)
-  }
-  const loadSearch = useCallback(
-    (signal: AbortSignal) => searchRegisteredLeagues(search, page, signal),
-    [search, page],
-  )
-  const results = useQuery(`${search}:${page}`, loadSearch)
-  const following = useMutation()
-  const requests = useQuery('my-requests', loadFollowRequests)
-  const follow = async (league: RegisteredLeague) => {
-    if (league.followStatus === 'APPROVED') {
-      navigate(`/league?leagueId=${league.id}`)
-      return
-    }
-    const result = await following.run((signal) => followLeague(league.id, signal))
-    if (result) {
-      onFollowed()
-      if (result.data.status === 'PENDING') {
-        requests.refresh()
-      } else navigate(`/league?leagueId=${league.id}`)
-    }
-  }
-  if (access.status === 'loading') return <p>Checking league registration…</p>
-  if (access.status === 'error')
-    return (
-      <p role="alert" className="discovery-error">
-        {access.error}
-      </p>
-    )
   return (
-    <LeagueRegistrationForm
-      key={search}
-      canRegisterLeague={access.data.canRegisterLeague}
-      leagueId={leagueId}
-      leagueType={leagueType}
-      busy={following.busy || results.status === 'loading' || !followedLeagues}
-      registrationMessage={null}
-      searchMessage={following.error ?? results.error ?? null}
-      searchResults={(results.data?.items ?? []).map((league) => ({
-        ...league,
-        followStatus: followedLeagues?.some((followed) => followed.id === league.id)
-          ? 'APPROVED'
-          : requests.data?.find((request) => request.leagueId === league.id)?.status,
-      }))}
-      pagination={
-        results.data ? (
-          <Pagination
-            page={page}
-            totalItems={results.data.totalItems}
-            size={results.data.size}
-            label="Registered league pages"
-            busy={following.busy}
-            onPageChange={changePage}
-          />
-        ) : null
-      }
-      loading={results.status === 'loading'}
-      onRetry={() => {
-        following.reset()
-        results.refresh()
-      }}
-      user={user}
-      onLeagueIdChange={setLeagueId}
-      onLeagueTypeChange={setLeagueType}
-      onSubmit={(event) => {
-        event.preventDefault()
-        navigate(`/leagues/checkout?${new URLSearchParams({ fplLeagueId: leagueId, leagueType })}`)
-      }}
-      onSearch={(query) => {
-        if (page === 0 && query.trim() === search) results.refresh()
-        changePage(0, query.trim())
-      }}
-      onFollow={follow}
-    />
+    <section className="customer-empty league-onboarding">
+      {access.status === 'loading' ? (
+        <p role="status">Checking league registration?</p>
+      ) : access.error ? (
+        <p role="alert">
+          {access.error} <button onClick={access.refresh}>Retry</button>
+        </p>
+      ) : access.data?.canRegisterLeague ? (
+        <LeagueRegistrationForm
+          leagueId={leagueId}
+          leagueType={leagueType}
+          onLeagueIdChange={setLeagueId}
+          onLeagueTypeChange={setLeagueType}
+          onSubmit={(event) => {
+            event.preventDefault()
+            navigate(
+              `/leagues/checkout?${new URLSearchParams({ fplLeagueId: leagueId, leagueType })}`,
+            )
+          }}
+        />
+      ) : (
+        <div className="register-league-card">
+          <h1>League registration is closed</h1>
+          <p>You can still find and follow registered leagues.</p>
+        </div>
+      )}
+      <a
+        className="league-workflow-link"
+        href="/leagues/find"
+        onClick={(event) => {
+          if (
+            event.button === 0 &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.shiftKey &&
+            !event.altKey
+          ) {
+            event.preventDefault()
+            navigate('/leagues/find')
+          }
+        }}
+      >
+        Find leagues
+      </a>
+    </section>
   )
 }

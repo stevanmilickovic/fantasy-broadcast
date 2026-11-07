@@ -25,9 +25,14 @@ export function LeaguePicker({
           <h1>Your leagues</h1>
           <p>Explore your standings, teams and matchups.</p>
         </div>
-        <button className="add-league-card" onClick={() => onNavigate('/leagues/new')}>
-          <Plus size={18} /> Add or find a league
-        </button>
+        <div className="league-picker-actions">
+          <button className="add-league-card" onClick={() => onNavigate('/leagues/find')}>
+            Find leagues
+          </button>
+          <button className="add-league-card" onClick={() => onNavigate('/leagues/new')}>
+            <Plus size={18} /> Register a league
+          </button>
+        </div>
       </header>
       {leagues.length > 6 && (
         <label className="league-filter">

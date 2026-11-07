@@ -13,6 +13,7 @@ import { CustomerNavigation } from './CustomerNavigation'
 import { LeagueDetailPage } from './LeagueDetailPage'
 import { LeaguePicker } from './LeaguePicker'
 import { LeagueRegistrationPage } from './LeagueRegistrationPage'
+import { LeagueDiscoveryPage } from './LeagueDiscoveryPage'
 import { useNotifications } from '../../shared/ui/notifications'
 
 export function CustomerDashboard({
@@ -90,8 +91,10 @@ export function CustomerDashboard({
       {query.status === 'loading' && (pathname === '/leagues' || pathname === '/league') && (
         <p>Loading leagues…</p>
       )}
-      {pathname === '/leagues/new' && (
-        <LeagueRegistrationPage
+      {pathname === '/leagues/new' && <LeagueRegistrationPage navigate={onNavigate} />}
+      {pathname === '/leagues/find' && (
+        <LeagueDiscoveryPage
+          search={search}
           user={user}
           followedLeagues={leagues}
           navigate={onNavigate}

@@ -2,6 +2,10 @@
 
 Status: implemented in the league workspace. Broadcast scene redesign is deferred.
 
+Next-version update: discovery and registration now have separate routes and explicit
+navigation actions. The earlier combined onboarding composition is superseded by
+`next-version-plan.md`; the established palette and league layout guidance still apply.
+
 Implementation uses the compositions and responsive modes below. The league header omits the
 extra decorative eyebrow to keep useful information closer to the top of phone screens.
 A subsequent mobile-emulation fix replaces native club/gameweek select popups with

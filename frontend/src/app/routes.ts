@@ -41,6 +41,11 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
     return { page: 'broadcast', leagueId }
   }
   if (pathname === '/account') return { page: 'account' }
+  if (
+    pathname === '/leagues/new' &&
+    (new URLSearchParams(search).has('search') || new URLSearchParams(search).has('page'))
+  )
+    return { page: 'redirect', to: `/leagues/find${search}` }
   if (pathname === '/league/subscription')
     return { page: 'redirect', to: `/league/manage${search}` }
   if (pathname === '/administration' && user.role === 'ADMIN') return { page: 'administration' }
@@ -50,6 +55,7 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
       '/league/manage',
       '/leagues',
       '/leagues/new',
+      '/leagues/find',
       '/leagues/checkout',
       '/account-deletion',
     ].includes(pathname)
