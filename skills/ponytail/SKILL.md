@@ -46,6 +46,17 @@ Never cut: validation at trust boundaries, error handling that prevents data los
 
 ## Levels
 
+## Project commit convention
+
+Match the repository's recent history: use a short, sentence-case imperative title
+such as `Fix Paddle webhook reliability and checkout validation` or
+`Add pagination to subscriptions and registered leagues`. Do not add Conventional
+Commit prefixes, ticket numbers or a trailing period unless explicitly requested.
+Keep each requested change in a focused, verified commit. Reserve
+`Update version to vX.Y.Z` for an actual coordinated release version change.
+
+## Levels
+
 | Level | Behavior |
 |-------|----------|
 | **lite** | Build what was asked. Name the smaller option in one line and let the user pick. |

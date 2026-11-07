@@ -18,7 +18,8 @@ the repository guidelines; no global plugin installation is required.
 Source: [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned
 to commit `09c434ab73ca43761c5d8b0c5d341926c2fba710`.
 License: [MIT](PONYTAIL-LICENSE). The main Ponytail skill includes a local rule
-against redundant UI copy; the other five skill files are unchanged upstream copies.
+against redundant UI copy and the repository's imperative commit-title convention;
+the other five skill files are unchanged upstream copies.
 
 This is the instruction-only installation. Plugin lifecycle hooks, persistent mode
 configuration, a dashboard and host-specific slash commands are not installed.
