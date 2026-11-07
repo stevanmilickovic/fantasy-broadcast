@@ -47,8 +47,8 @@ export function LeaguePaymentConfirmation({
           : 'Payment confirmation is taking longer than expected. You can check again or return to your leagues. Please do not pay again.'}
       </p>
       {query.error && <p role="alert">{query.error}</p>}
-      <div className="subscription-actions payment-confirmation-actions">
-        {!waiting && (
+      {!waiting && (
+        <div className="subscription-actions payment-confirmation-actions">
           <button
             type="button"
             onClick={() => {
@@ -58,15 +58,11 @@ export function LeaguePaymentConfirmation({
           >
             Check again
           </button>
-        )}
-        <button
-          type="button"
-          className={waiting ? undefined : 'secondary-action'}
-          onClick={() => onNavigate('/leagues')}
-        >
-          Go to your leagues
-        </button>
-      </div>
+          <button type="button" className="secondary-action" onClick={() => onNavigate('/leagues')}>
+            Go to your leagues
+          </button>
+        </div>
+      )}
     </section>
   )
 }
