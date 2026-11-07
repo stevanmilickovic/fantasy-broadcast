@@ -3,6 +3,7 @@ import type { AuthUser } from '../auth/types'
 import { scoringLabel } from './leagueData'
 import { OwnerBadge } from './OwnerBadge'
 import type { RegisteredLeague } from './types'
+import { ArrowRight, Clock3, LockKeyhole, Plus } from 'lucide-react'
 export function LeagueSearchCard({
   busy,
   message,
@@ -55,34 +56,57 @@ export function LeagueSearchCard({
           </button>
         </form>
         {loading && <p role="status">Loading registered leagues…</p>}
-        {searchResults.map((league) => (
-          <div className="league-search-result" key={league.id}>
-            <span>
-              <strong>{league.displayName}</strong>
-              <small>
-                {league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} ·{' '}
-                {scoringLabel(league.scoringType)}
-                {league.privateLeague && ' · Private'}
-                {league.ownerUserId === user.id && <OwnerBadge />}
-              </small>
-            </span>
-            <button
-              type="button"
-              disabled={busy || league.followStatus === 'PENDING'}
-              onClick={() => void onFollow(league)}
-            >
-              {league.followStatus === 'APPROVED'
-                ? 'Open league'
-                : league.followStatus === 'PENDING'
-                  ? 'Pending approval'
-                  : league.followStatus === 'REJECTED'
-                    ? 'Request again'
-                    : league.privateLeague
-                      ? 'Request to follow'
-                      : 'Follow'}
-            </button>
-          </div>
-        ))}
+        {searchResults.map((league) => {
+          const kind =
+            league.followStatus === 'APPROVED'
+              ? 'open'
+              : league.followStatus === 'PENDING'
+                ? 'pending'
+                : league.privateLeague || league.followStatus === 'REJECTED'
+                  ? 'request'
+                  : 'follow'
+          const Icon =
+            kind === 'open'
+              ? ArrowRight
+              : kind === 'pending'
+                ? Clock3
+                : kind === 'request'
+                  ? LockKeyhole
+                  : Plus
+          return (
+            <div className="league-search-result" key={league.id}>
+              <span>
+                <strong>{league.displayName}</strong>
+                <small>
+                  {league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} ·{' '}
+                  {scoringLabel(league.scoringType)}
+                  {league.privateLeague && ' · Private'}
+                  {league.ownerUserId === user.id && <OwnerBadge />}
+                </small>
+              </span>
+              <button
+                className="league-result-action"
+                data-kind={kind}
+                type="button"
+                disabled={busy || league.followStatus === 'PENDING'}
+                onClick={() => void onFollow(league)}
+              >
+                <span>
+                  {league.followStatus === 'APPROVED'
+                    ? 'Open league'
+                    : league.followStatus === 'PENDING'
+                      ? 'Pending approval'
+                      : league.followStatus === 'REJECTED'
+                        ? 'Request again'
+                        : league.privateLeague
+                          ? 'Request to follow'
+                          : 'Follow'}
+                </span>
+                <Icon size={16} aria-hidden="true" />
+              </button>
+            </div>
+          )
+        })}
         {noResults && <p className="empty-text">No registered leagues found.</p>}
       </div>
       {message && (

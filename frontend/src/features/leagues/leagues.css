@@ -874,8 +874,7 @@
   background: #ffffff14;
 }
 .league-type-toggle,
-.league-search > form,
-.league-search-result {
+.league-search > form {
   display: flex;
   gap: 8px;
 }
@@ -889,10 +888,51 @@
   color: #18001d;
 }
 .league-search-result {
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
   padding-top: 16px;
   border-top: 1px solid var(--border);
+}
+.league-search-result .league-result-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 100px;
+  max-width: 144px;
+  min-height: 44px;
+  white-space: normal;
+  line-height: 1.3;
+  border: 1px solid transparent;
+}
+.league-result-action svg {
+  flex-shrink: 0;
+}
+.league-result-action[data-kind='request'] {
+  color: #e9dfed;
+  border-color: #b6a4bd;
+  background: transparent;
+}
+.league-result-action[data-kind='open'] {
+  color: #20e6ff;
+  border-color: #20e6ff40;
+  background: #20e6ff0a;
+}
+.league-result-action[data-kind='pending']:disabled {
+  color: #d9cbe0;
+  border-color: #ffffff30;
+  background: #ffffff08;
+  opacity: 1;
+  cursor: default;
+}
+.league-result-action:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.league-result-action:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 .league-search-result span {
   min-width: 0;
@@ -1285,8 +1325,7 @@
   .register-league-card {
     padding: 24px;
   }
-  .league-search > form,
-  .league-search-result {
+  .league-search > form {
     flex-wrap: wrap;
   }
   .league-search input {
@@ -1520,9 +1559,6 @@
 .league-search input {
   flex: 1;
   min-width: 0;
-}
-.league-search-result button {
-  flex-shrink: 0;
 }
 .find-league-card h2 {
   font-size: 28px;

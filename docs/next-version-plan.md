@@ -47,7 +47,12 @@ receive unique suffixes, and manual names still require uniqueness.
   Verification: lint/build, 86 unit tests, 49 browser checks on phone, short landscape and
   desktop, with two expected desktop-only skips. Provider redirects use mocked browser
   responses here; configured real Google sign-in remains an integration release check.
-- Remaining work: steps 6–19. Existing-name repair is omitted per the user's confirmation.
+- Step 6: result rows keep wrapped identity text beside a stable right-hand action,
+  with labeled/icon variants for following, requests, opening and pending approval.
+  Pending text retains full contrast. Verification: lint/build, 12 layout/approval
+  browser cases across six viewports plus six final style checks; phone tests include
+  320/360/390px widths. Phone and desktop screenshots reviewed.
+- Remaining work: steps 7–19. Existing-name repair is omitted per the user's confirmation.
 
 ## Product decisions
 
