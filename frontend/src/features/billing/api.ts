@@ -26,12 +26,13 @@ export const createPaddleCheckout = async (
   fplLeagueId: string,
   leagueType: FplLeagueType,
   plan: 'STANDARD' | 'AI_BROADCASTER',
+  consent: { acceptedPolicies: boolean; termsVersion: string },
   signal?: AbortSignal,
 ): Promise<PaddleCheckout> =>
   (
     await request('/api/customer/league-payment/checkout', {
       signal,
       method: 'POST',
-      body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType, plan }),
+      body: JSON.stringify({ fplLeagueId: Number(fplLeagueId), leagueType, plan, ...consent }),
     })
   ).json()

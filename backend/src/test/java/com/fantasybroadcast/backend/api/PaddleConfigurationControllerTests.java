@@ -10,7 +10,7 @@ class PaddleConfigurationControllerTests {
 	@Test
 	void anonymousConfigurationExposesOnlyTheBrowserTokenAndIsNotCached() {
 		var properties = new PaddleProperties();
-		properties.setApiKey("server-secret");
+		properties.setApiKey("pdl_sdbx_apikey_server-secret");
 		properties.setWebhookSecretKey("webhook-secret");
 		properties.setClientSideToken("test_public-token");
 		properties.setStandardPriceId("pri_standard");

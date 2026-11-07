@@ -18,6 +18,19 @@ afterEach(() => {
 })
 
 describe('Paddle SDK lifecycle', () => {
+  it('rejects invalid tokens before loading or initializing checkout', async () => {
+    const initialize = vi.fn()
+    window.Paddle = {
+      Environment: { set: vi.fn() },
+      Initialize: initialize,
+      Checkout: { open: vi.fn(), close: vi.fn() },
+    }
+    const { initializePaddle } = await import('./paddleCheckout')
+    for (const token of ['', 'invalid', 'test_', 'live_'])
+      await expect(initializePaddle(token)).rejects.toThrow('Payment settings are invalid')
+    expect(initialize).not.toHaveBeenCalled()
+  })
+
   it('initializes once when a customer closes checkout and opens it again', async () => {
     const sdk = {
       Environment: { set: vi.fn() },

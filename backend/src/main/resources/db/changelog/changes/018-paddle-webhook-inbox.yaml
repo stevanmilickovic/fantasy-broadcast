@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018-paddle-webhook-inbox
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE billing_event MODIFY COLUMN processed_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
+              ALTER TABLE billing_event ADD COLUMN payload LONGTEXT NULL;
+              ALTER TABLE billing_event ADD COLUMN next_attempt_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+              ALTER TABLE billing_event ADD COLUMN locked_until TIMESTAMP NULL;
+              CREATE INDEX ix_billing_event_pending ON billing_event (processed_at, next_attempt_at);

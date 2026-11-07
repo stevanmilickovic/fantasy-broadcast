@@ -40,9 +40,10 @@ public class LeaguePaymentController {
 	}
 	@org.springframework.web.bind.annotation.PostMapping("/checkout")
 	public PaddleCheckoutService.Checkout checkout(HttpServletRequest request, @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody CheckoutRequest checkout) {
-		return checkouts.createCheckout(sessions.require(request), checkout.fplLeagueId(), checkout.leagueType(), checkout.plan());
+		return checkouts.createCheckout(sessions.require(request), checkout.fplLeagueId(), checkout.leagueType(), checkout.plan(), checkout.acceptedPolicies(), checkout.termsVersion());
 	}
 	public record LeaguePreview(String displayName, int managerCount, boolean registrationEligible, String validationMessage, boolean checkoutReady) { }
 	public record CheckoutRequest(@Positive long fplLeagueId, @jakarta.validation.constraints.NotNull FplLeagueType leagueType,
-			@jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "STANDARD|AI_BROADCASTER") String plan) { }
+			@jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "STANDARD|AI_BROADCASTER") String plan,
+			@jakarta.validation.constraints.AssertTrue boolean acceptedPolicies, @jakarta.validation.constraints.NotBlank String termsVersion) { }
 }

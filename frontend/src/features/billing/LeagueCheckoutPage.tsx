@@ -7,6 +7,7 @@ import { createPaddleCheckout, previewLeaguePayment } from '../billing/api'
 import { openPaddleCheckout } from '../billing/paddleCheckout'
 import { usePlanAvailability } from './usePlanAvailability'
 import { MAX_BROADCAST_VIEWERS } from '../broadcast/broadcastLimits'
+import { TERMS_VERSION } from '../public/policyVersions'
 export function LeagueCheckoutPage({
   search,
   onNavigate,
@@ -67,7 +68,13 @@ export function LeagueCheckoutPage({
     if (!acceptedPolicies || !preview?.checkoutReady || !leagueIsValid) return
     await checkout.run(async (signal) =>
       openPaddleCheckout(
-        await createPaddleCheckout(normalizedLeagueId, leagueType, plan, signal),
+        await createPaddleCheckout(
+          normalizedLeagueId,
+          leagueType,
+          plan,
+          { acceptedPolicies, termsVersion: TERMS_VERSION },
+          signal,
+        ),
         signal,
       ),
     )

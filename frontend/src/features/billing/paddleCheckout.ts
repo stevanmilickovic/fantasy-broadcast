@@ -55,6 +55,8 @@ const loadPaddle = () => {
 }
 
 export async function initializePaddle(clientSideToken: string, signal?: AbortSignal) {
+  if (!/^(test|live)_.+/.test(clientSideToken))
+    throw new Error('Payment settings are invalid. Please contact support.')
   const paddle = await loadPaddle()
   signal?.throwIfAborted()
   if (initializedToken !== null && initializedToken !== clientSideToken)

@@ -33,3 +33,5 @@ databaseChangeLog:
       file: db/changelog/changes/016-league-chat.yaml
   - include:
       file: db/changelog/changes/017-team-emblems.yaml
+  - include:
+      file: db/changelog/changes/018-paddle-webhook-inbox.yaml

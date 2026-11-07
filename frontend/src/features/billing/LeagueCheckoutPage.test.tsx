@@ -40,6 +40,7 @@ it('requires consent and submits the explicit selected plan', async () => {
       '42',
       'DRAFT',
       'AI_BROADCASTER',
+      { acceptedPolicies: true, termsVersion: '2026-10-29' },
       expect.any(AbortSignal),
     ),
   )
@@ -68,6 +69,7 @@ it('offers Standard only when AI is disabled', async () => {
       '42',
       'DRAFT',
       'STANDARD',
+      { acceptedPolicies: true, termsVersion: '2026-10-29' },
       expect.any(AbortSignal),
     ),
   )

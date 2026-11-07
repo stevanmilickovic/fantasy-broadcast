@@ -3,6 +3,7 @@ import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import { PublicHeader } from '../../shared/ui/PublicHeader'
 import { MAX_BROADCAST_VIEWERS } from '../broadcast/broadcastLimits'
+import { TERMS_VERSION } from './policyVersions'
 
 type Props = { page: 'pricing' | 'privacy' | 'terms' | 'refunds'; onNavigate: Navigate }
 
@@ -85,12 +86,18 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
 function Policy({ page }: { page: 'privacy' | 'terms' | 'refunds' }) {
   const title =
     page === 'privacy' ? 'Privacy Policy' : page === 'terms' ? 'Terms of Service' : 'Refund Policy'
+  const effectiveDate = new Date(
+    `${page === 'terms' ? TERMS_VERSION : '2026-09-11'}T00:00:00Z`,
+  ).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
   return (
     <article className="public-content policy-content">
       <h1>{title}</h1>
-      <p className="policy-date">
-        Effective date: {page === 'terms' ? '29 October 2026' : '11 September 2026'}
-      </p>
+      <p className="policy-date">Effective date: {effectiveDate}</p>
       <Seller />
       {page === 'privacy' && <PrivacyPolicy />}
       {page === 'terms' && <TermsOfService />}

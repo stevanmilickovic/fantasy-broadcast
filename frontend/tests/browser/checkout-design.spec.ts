@@ -153,12 +153,19 @@ test('verification can retry and payment failures appear separately from league 
         })
       : route.fulfill({ json: validLeague }),
   )
-  await page.route('**/api/customer/league-payment/checkout', (route) =>
-    route.fulfill({
+  await page.route('**/api/customer/league-payment/checkout', (route) => {
+    expect(route.request().postDataJSON()).toEqual({
+      fplLeagueId: 42,
+      leagueType: 'DRAFT',
+      plan: 'STANDARD',
+      acceptedPolicies: true,
+      termsVersion: '2026-10-29',
+    })
+    return route.fulfill({
       status: 409,
       json: { detail: 'We could not start this payment. Please try again.' },
-    }),
-  )
+    })
+  })
   await page.goto('/leagues/checkout?fplLeagueId=42')
   await expect(page.getByRole('alert')).toContainText('could not verify this league')
   await page.getByRole('button', { name: 'Try verification again', exact: true }).click()

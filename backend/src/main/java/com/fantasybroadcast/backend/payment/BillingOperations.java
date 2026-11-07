@@ -69,6 +69,11 @@ public class BillingOperations {
 		return jdbc.queryForObject("select count(*) from billing_operation where active_scope = ?", Integer.class, scope) > 0;
 	}
 
+	public JsonNode checkoutData(String id) {
+		return jdbc.query("select request_data from billing_operation where id = ? and scope like 'checkout:%'",
+				(rs, row) -> json.readTree(rs.getString(1)), id).stream().findFirst().orElse(null);
+	}
+
 	public void reconcileSubscription(String id, JsonNode data, BillingPlan plan) {
 		var rows = jdbc.queryForList("select id, request_data from billing_operation where active_scope = ? and created_at < ?", "subscription:" + id,
 				java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(120)));

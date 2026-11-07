@@ -65,6 +65,9 @@ monthly recurring prices, quantity one. `PADDLE_API_URL` defaults to the sandbox
 For the local Docker stack, add sandbox values to the ignored `.env.testing` file.
 Never commit credentials. Sandbox and live use their own credentials, price IDs and
 notification destinations. For production, set `PADDLE_API_URL=https://api.paddle.com`.
+Billing stays unavailable if the API URL, browser token and modern API key refer to
+different environments. Legacy API keys have no environment prefix; Paddle validates
+their account when called.
 
 ### API permissions and webhooks
 
@@ -81,6 +84,22 @@ Configure a public HTTPS notification destination at `/api/paddle/webhook`. Keep
 `adjustment.created` and `adjustment.updated`. Copy that destination's signing secret
 into `PADDLE_WEBHOOK_SECRET_KEY`. Keep the public webhook reachable when testing;
 localhost alone cannot receive Paddle notifications.
+
+Verified webhook events are saved to the database before acknowledgment. A background
+worker processes them separately, retries failures after 30 seconds, and recovers
+unfinished work after a restart. Duplicate deliveries reuse the saved event. Existing
+processed events remain processed when migration `018-paddle-webhook-inbox` runs.
+
+Checkout requires explicit acceptance of the current terms version, checked on the
+server and recorded with its timestamp in the saved checkout and Paddle metadata.
+When terms change, update `PaddleCheckoutService.TERMS_VERSION` and the frontend's
+`policyVersions.ts` together. An unfinished checkout with older terms is cancelled and
+replaced after the customer accepts the current terms; completed payments are not changed.
+
+Purchase verification uses the saved checkout record, so API-key rotation does not
+invalidate outstanding checkouts, including earlier HMAC checkouts with saved operation
+records. Historical purchases without an operation record retain their original HMAC
+verification and still require the API key that signed them.
 
 ### Customer portal and invoices
 

@@ -1,6 +1,7 @@
 package com.fantasybroadcast.backend.api;
 
 import com.fantasybroadcast.backend.payment.PaddleProperties;
+import com.fantasybroadcast.backend.payment.PaddleWebhookProcessor;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -20,15 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/paddle")
 public class PaddleWebhookController {
 	private final PaddleProperties properties;
-	private final com.fantasybroadcast.backend.payment.SubscriptionSyncService subscriptions;
-	private final com.fantasybroadcast.backend.payment.RefundService refunds;
-	private final com.fantasybroadcast.backend.payment.BillingRepository billing;
+	private final PaddleWebhookProcessor processor;
 	private final tools.jackson.databind.ObjectMapper objectMapper;
 
 	public PaddleWebhookController(PaddleProperties properties, tools.jackson.databind.ObjectMapper objectMapper,
-			com.fantasybroadcast.backend.payment.SubscriptionSyncService subscriptions, com.fantasybroadcast.backend.payment.RefundService refunds, com.fantasybroadcast.backend.payment.BillingRepository billing) {
+			PaddleWebhookProcessor processor) {
 		this.properties = properties; this.objectMapper = objectMapper;
-		this.subscriptions = subscriptions; this.refunds = refunds; this.billing = billing;
+		this.processor = processor;
 	}
 
 	@PostMapping("/webhook")
@@ -38,14 +37,9 @@ public class PaddleWebhookController {
 		if (!validSignature(request.getHeader("Paddle-Signature"), body)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		var event = objectMapper.readTree(body);
 		var id = event.path("event_id").asText("");
-		if (id.isBlank()) return ResponseEntity.badRequest().build();
-		if (billing.jdbc().queryForObject("select count(*) from billing_event where event_id = ?", Integer.class, id) > 0) return ResponseEntity.ok().build();
-		var type = event.path("event_type").asText();
-		var data = event.path("data");
-		if (type.equals("transaction.completed")) subscriptions.acceptPayment(data);
-		else if (type.startsWith("subscription.")) subscriptions.refresh(data.path("id").asText());
-		else if (type.startsWith("adjustment.")) refunds.acceptAdjustment(data);
-		billing.jdbc().update("insert ignore into billing_event (event_id) values (?)", id);
+		if (id.isBlank() || id.length() > 100 || event.path("event_type").asText().isBlank() || !event.path("data").isObject())
+			return ResponseEntity.badRequest().build();
+		processor.enqueue(id, body);
 		return ResponseEntity.ok().build();
 	}
 
