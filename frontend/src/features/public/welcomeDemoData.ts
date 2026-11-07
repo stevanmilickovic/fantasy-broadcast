@@ -1,4 +1,5 @@
 import type { LeagueDiscoveryState } from '../../shared/fpl/types'
+import type { TeamEmblemData } from '../leagues/teamEmblems'
 import type {
   FantasyEventView,
   LiveStandingView,
@@ -31,6 +32,13 @@ const clubs: DemoClub[] = [
     color: '#ffcf3f',
   },
 ]
+
+export const welcomeTeamEmblems: TeamEmblemData[] = clubs.map((club, index) => ({
+  entryId: index + 1,
+  managerId: club.id,
+  name: club.club,
+  url: `/demo-logos/${club.id}.png`,
+}))
 
 export const welcomeDemoFrames: DemoFrame[] = [
   {

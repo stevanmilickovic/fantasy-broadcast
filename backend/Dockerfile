@@ -4,6 +4,7 @@ ARG APP_VERSION
 WORKDIR /workspace
 COPY VERSION ./VERSION
 COPY backend ./backend
+COPY scripts/PrepareDemoLogos.java ./scripts/PrepareDemoLogos.java
 RUN cd backend && ./mvnw -Drevision=${APP_VERSION} --no-transfer-progress package
 
 FROM eclipse-temurin:21-jre-alpine AS runtime

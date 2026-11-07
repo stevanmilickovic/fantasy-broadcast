@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BroadcastMatchday } from '../broadcast/BroadcastMatchday'
 import { useBroadcastPresentation } from '../broadcast/useBroadcastPresentation'
-import { welcomeBroadcastState, welcomeDemoFrames, welcomeShirtCodes } from './welcomeDemoData'
+import { TeamEmblemsContext } from '../leagues/teamEmblems'
+import {
+  welcomeBroadcastState,
+  welcomeDemoFrames,
+  welcomeShirtCodes,
+  welcomeTeamEmblems,
+} from './welcomeDemoData'
+
+const demoEmblems = { teams: welcomeTeamEmblems, loading: false, refresh: () => {} }
 
 export function WelcomeBroadcastDemo() {
   const [frame, setFrame] = useState(0)
@@ -39,41 +47,43 @@ export function WelcomeBroadcastDemo() {
     displayed.matchups[0]
   const commentary = displayed.commentary[0]
   return (
-    <div
-      className="welcome-real-broadcast"
-      data-broadcast-tilt
-      aria-label="Interactive example of the live broadcast"
-    >
-      <div className="welcome-broadcast-scale">
-        <BroadcastMatchday
-          layout="desktop"
-          leagueName="Sunday League Elite"
-          shirtCodesOverride={welcomeShirtCodes}
-          displayLiveState={displayed}
-          matchup={matchup}
-          latestCommentaryId={commentary?.id}
-          latestCommentaryText={commentary?.text ?? ''}
-          latestCommentaryStatus={commentary?.status ?? 'WAITING'}
-          leaderName={matchup.home.displayName}
-          broadcastFocus={selection}
-          automaticFocus={presentation.displayedFocusId ?? 'multi'}
-          presentation={{
-            ...presentation,
-            showingLiveLeaderboard: presentation.displayingLeaderboard,
-          }}
-          standings={displayed.standings}
-          onBack={() => {}}
-          onSelectFocus={(value) => {
-            setSelection(value)
-            setStandings(false)
-            setRevision((current) => current + 1)
-          }}
-          onToggleStandings={() => {
-            setStandings((value) => !value)
-            setRevision((current) => current + 1)
-          }}
-        />
+    <TeamEmblemsContext value={demoEmblems}>
+      <div
+        className="welcome-real-broadcast"
+        data-broadcast-tilt
+        aria-label="Interactive example of the live broadcast"
+      >
+        <div className="welcome-broadcast-scale">
+          <BroadcastMatchday
+            layout="desktop"
+            leagueName="Sunday League Elite"
+            shirtCodesOverride={welcomeShirtCodes}
+            displayLiveState={displayed}
+            matchup={matchup}
+            latestCommentaryId={commentary?.id}
+            latestCommentaryText={commentary?.text ?? ''}
+            latestCommentaryStatus={commentary?.status ?? 'WAITING'}
+            leaderName={matchup.home.displayName}
+            broadcastFocus={selection}
+            automaticFocus={presentation.displayedFocusId ?? 'multi'}
+            presentation={{
+              ...presentation,
+              showingLiveLeaderboard: presentation.displayingLeaderboard,
+            }}
+            standings={displayed.standings}
+            onBack={() => {}}
+            onSelectFocus={(value) => {
+              setSelection(value)
+              setStandings(false)
+              setRevision((current) => current + 1)
+            }}
+            onToggleStandings={() => {
+              setStandings((value) => !value)
+              setRevision((current) => current + 1)
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </TeamEmblemsContext>
   )
 }
