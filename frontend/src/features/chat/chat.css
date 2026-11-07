@@ -65,10 +65,6 @@
 .chat-author strong {
   font-weight: 650;
 }
-.chat-author-email {
-  color: #a3a0a8;
-  font-size: 12px;
-}
 .chat-composer {
   display: grid;
   flex-shrink: 0;

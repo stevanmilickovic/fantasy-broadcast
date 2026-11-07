@@ -35,12 +35,12 @@ public class RefundService {
 		if (term.length() > 160) throw badRequest("Search is too long.");
 		var from = """
 				from subscription s join league l on l.id = s.league_id join app_user u on u.id = l.owner_user_id
-				where lower(l.display_name) like concat('%', lower(?), '%') or lower(u.email) like concat('%', lower(?), '%')
+				where lower(l.display_name) like concat('%', lower(?), '%') or lower(u.display_name) like concat('%', lower(?), '%')
 				or s.billing_subscription_id = ? or cast(l.fpl_league_id as char) = ?
 				or exists (select 1 from billing_payment p where p.subscription_id = s.billing_subscription_id and p.transaction_id = ?)
 				""";
 		var total = repository.jdbc().queryForObject("select count(*) " + from, Long.class, term, term, term, term, term);
-		var items = repository.jdbc().query("select s.billing_subscription_id, s.league_id, l.display_name, u.email, s.plan_code, s.status, s.current_period_end "
+		var items = repository.jdbc().query("select s.billing_subscription_id, s.league_id, l.display_name, concat(u.display_name, ' (#', u.id, ')'), s.plan_code, s.status, s.current_period_end "
 				+ from + " order by s.id desc limit ? offset ?",
 				(rs, row) -> new AdminSubscription(rs.getString(1), rs.getLong(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6),
 					rs.getTimestamp(7) == null ? null : rs.getTimestamp(7).toInstant()), term, term, term, term, term, size, (long) page * size);
@@ -162,7 +162,7 @@ public class RefundService {
 	private void requireAdmin(CurrentUser user) { if (!user.admin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Administrator access is required."); }
 	private ResponseStatusException badRequest(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, message); }
 
-	public record AdminSubscription(String id, long leagueId, String leagueName, String ownerEmail, String plan, String status, Instant periodEnd) { }
+	public record AdminSubscription(String id, long leagueId, String leagueName, String ownerName, String plan, String status, Instant periodEnd) { }
 	public record Payment(String id, String currencyCode, long total, long refundable, Instant paidAt, boolean initialPurchase, boolean withinRefundWindow, List<Refund> refunds, boolean awaitingConfirmation) { }
 	public record Refund(String id, String status, long amount, String reason) { }
 }

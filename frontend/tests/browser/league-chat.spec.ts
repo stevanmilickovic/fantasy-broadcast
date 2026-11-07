@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { mockApp } from './fixtures'
 import type { ChatMessage } from '../../src/features/chat/api'
 
-test('league chat works without FPL data, preserves failed drafts and always shows sender emails', async ({
+test('league chat works without FPL data, preserves failed drafts and keeps sender emails private', async ({
   page,
 }) => {
   await mockApp(page)
@@ -14,7 +14,6 @@ test('league chat works without FPL data, preserves failed drafts and always sho
       leagueId: 1,
       userId: 2,
       displayName: 'Same name',
-      email: 'one@example.com',
       body: '<img src=x onerror=alert(1)>',
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
@@ -24,7 +23,6 @@ test('league chat works without FPL data, preserves failed drafts and always sho
       leagueId: 1,
       userId: 3,
       displayName: 'Same name',
-      email: 'two@example.com',
       body: 'Hello league',
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
@@ -53,9 +51,9 @@ test('league chat works without FPL data, preserves failed drafts and always sho
   )
   await expect(page.getByText('Hello league', { exact: true })).toBeVisible()
   await expect(page.locator('.chat-messages img')).toHaveCount(0)
-  await expect(page.getByText('one@example.com', { exact: true })).toBeVisible()
-  await expect(page.getByText('two@example.com', { exact: true })).toBeVisible()
-  await expect(page.locator('.chat-author-email').first()).toHaveCSS('color', 'rgb(163, 160, 168)')
+  await expect(page.getByText('one@example.com', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('two@example.com', { exact: true })).toHaveCount(0)
+  await expect(page.locator('.chat-author-email')).toHaveCount(0)
   await expect(page.locator('.chat-author button')).toHaveCount(0)
   await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Test message')
   await page.getByRole('button', { name: 'Send', exact: true }).click()

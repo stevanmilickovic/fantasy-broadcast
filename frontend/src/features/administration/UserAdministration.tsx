@@ -55,7 +55,7 @@ export function UserAdministration({ currentUserId }: Props) {
           id="admin-user-search"
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search by email or display name"
+          placeholder="Search by username or account ID"
         />
         <button type="submit" className="secondary-action">
           Search
@@ -79,7 +79,7 @@ export function UserAdministration({ currentUserId }: Props) {
           <div className="admin-user-row" key={user.id}>
             <span>
               <strong>{user.displayName}</strong>
-              <small>{user.email}</small>
+              <small>{`User #${user.id}`}</small>
             </span>
             <span>{user.role}</span>
             <span>

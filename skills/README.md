@@ -27,7 +27,7 @@ Request a skill by its name; do not assume plugin commands/configuration describ
 in the upstream help are available in this setup.
 
 To update, review a new upstream revision, replace the six skill directories and
-license together, and update the pinned commit here. Preserve the local UI-copy rule
+license together, and update the pinned commit here. Preserve the local UI-copy and commit-style rules
 in `ponytail/SKILL.md` when updating. Keep other local project rules in
 `AGENTS.md` rather than editing upstream skills. The gain skill's benchmark source
 is in the upstream repository at the pinned revision; it is not a local benchmark.

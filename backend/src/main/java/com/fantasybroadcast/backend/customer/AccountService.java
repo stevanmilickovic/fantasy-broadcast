@@ -176,7 +176,7 @@ public class AccountService {
 		var searchTerm = search == null ? "" : search.trim();
 		var total = jdbcTemplate.queryForObject("""
 				select count(*) from app_user
-				where lower(email) like concat('%', lower(?), '%') or lower(display_name) like concat('%', lower(?), '%')
+				where cast(id as char(32)) = ? or lower(display_name) like concat('%', lower(?), '%')
 				""", Long.class, searchTerm, searchTerm);
 		var users = jdbcTemplate.query("""
 				select u.id, u.email, u.display_name, u.role, u.created_at, count(distinct r.league_id) as registered_league_count,
@@ -184,7 +184,7 @@ public class AccountService {
 				from (
 					select id, email, display_name, role, created_at
 					from app_user
-					where lower(email) like concat('%', lower(?), '%') or lower(display_name) like concat('%', lower(?), '%')
+					where cast(id as char(32)) = ? or lower(display_name) like concat('%', lower(?), '%')
 					order by created_at desc, id desc limit ? offset ?
 				) u
 				left join league_registration r on r.user_id = u.id
@@ -198,8 +198,10 @@ public class AccountService {
 	public AdminUser promoteToAdmin(CurrentUser currentUser, long userId) {
 		requireAdmin(currentUser);
 		if (securityProperties.isExclusiveInitialAdmin()) {
-			var target = adminUser(userId);
-			if (!target.email().equalsIgnoreCase(securityProperties.getInitialAdminEmail().trim())) {
+			var targets = jdbcTemplate.queryForList("select email from app_user where id = ?", String.class, userId);
+			if (targets.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found.");
+			var target = targets.getFirst();
+			if (!target.equalsIgnoreCase(securityProperties.getInitialAdminEmail().trim())) {
 				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This environment permits only its configured administrator.");
 			}
 		}
@@ -262,7 +264,7 @@ public class AccountService {
 	}
 
 	private AdminUser mapAdminUser(ResultSet resultSet, int rowNumber) throws SQLException {
-		return new AdminUser(resultSet.getLong("id"), resultSet.getString("email"), resultSet.getString("display_name"),
+		return new AdminUser(resultSet.getLong("id"), resultSet.getString("display_name"),
 				UserRole.valueOf(resultSet.getString("role")), resultSet.getTimestamp("created_at").toInstant().toString(),
 				resultSet.getLong("registered_league_count"), resultSet.getLong("owned_league_count"));
 	}
@@ -355,7 +357,7 @@ public class AccountService {
 	public record PasswordResetRequest(String message) {
 	}
 
-	public record AdminUser(long id, String email, String displayName, UserRole role, String createdAt, long registeredLeagueCount,
+	public record AdminUser(long id, String displayName, UserRole role, String createdAt, long registeredLeagueCount,
 			long ownedLeagueCount) {
 	}
 

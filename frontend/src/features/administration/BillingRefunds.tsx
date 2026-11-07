@@ -51,7 +51,7 @@ export function BillingRefunds() {
           }}
         >
           <label htmlFor="billing-search">
-            League, FPL ID, owner email or payment/subscription ID
+            League, FPL ID, owner username or payment/subscription ID
           </label>
           <input
             id="billing-search"
@@ -84,7 +84,7 @@ export function BillingRefunds() {
               onClick={() => setSelected(subscription)}
             >
               <strong>{subscription.leagueName}</strong>
-              <span>{subscription.ownerEmail}</span>
+              <span>{subscription.ownerName}</span>
               <small>
                 {planName(subscription.plan)} · {subscription.status} · Paid through{' '}
                 {billingDate(subscription.periodEnd)}
@@ -124,7 +124,7 @@ function RefundPayments({ subscription }: { subscription: AdminSubscription }) {
       <header>
         <div>
           <h3>{subscription.leagueName}</h3>
-          <p>{subscription.ownerEmail}</p>
+          <p>{subscription.ownerName}</p>
           <small>{subscription.id}</small>
         </div>
         <button className="secondary-action" onClick={query.refresh}>
@@ -263,7 +263,7 @@ function RefundForm({
     <section className="billing-refund-form" aria-label="Review refund">
       <h3>Refund {subscription.leagueName}</h3>
       <p>
-        {payment.id} · {subscription.ownerEmail}
+        {payment.id} · {subscription.ownerName}
       </p>
       {!review ? (
         <form
@@ -330,7 +330,7 @@ function RefundForm({
           <p>
             Refund{' '}
             <strong>{formatMoney(partial ?? payment.refundable, payment.currencyCode)}</strong> to
-            the original payment method for <strong>{subscription.ownerEmail}</strong>.
+            the original payment method for <strong>{subscription.ownerName}</strong>.
           </p>
           <p>{reason}</p>
           <p>

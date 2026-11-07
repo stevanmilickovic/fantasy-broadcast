@@ -55,6 +55,11 @@ broadcast API actions, while broadcast scenes never own administration state.
 The client refreshes its identity and the backend refreshes active session copies. Names
 can repeat; user IDs remain the identity used by chat and memberships.
 
+Chat and membership DTOs expose usernames and IDs without account emails. Administrative
+user lists omit emails too; league/billing ownership labels use usernames and IDs.
+Customer Draft overviews allowlist upstream display fields. FPL errors do not forward
+upstream response bodies to browsers.
+
 League owners manage privacy and follow requests through `LeagueMembershipSettings` on
 `LeagueManagementPage`, alongside `LeagueSubscriptionSettings` for billing. Pending/rejected
 requests live separately from approved `league_registration` rows. Request lists appear only

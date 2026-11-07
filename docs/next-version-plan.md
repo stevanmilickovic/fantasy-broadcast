@@ -15,6 +15,19 @@ validate uniqueness when migrating and fail clearly on an unexpected collision;
 do not build an automatic duplicate-renaming migration. Future defaults still
 receive unique suffixes, and manual names still require uniqueness.
 
+## Implementation progress
+
+- Preparation: committed plan and the existing plain imperative commit-title convention.
+- Step 1: removed cross-account emails from chat/membership/admin/billing responses,
+  replaced admin labels with usernames and IDs, allowlisted customer FPL payloads and
+  removed raw upstream error bodies. Own-account authentication emails remain available.
+- Verification for step 1: 136 backend tests pass; frontend lint, 75 unit tests and
+  production build pass. Affected phone/desktop browser workflows: 25 pass, 3 expected
+  desktop-only exclusions on phone. Playwright Chromium was installed for these checks.
+- The full frontend check stops at existing formatting violations across untouched
+  files. Changed frontend files are formatted; no unrelated formatting sweep was made.
+- Remaining work: steps 2–19. Existing-name repair is omitted per the user's confirmation.
+
 ## Product decisions
 
 - Use unique, case-insensitive usernames. Keep `display_name` as the displayed username

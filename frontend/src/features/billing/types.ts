@@ -45,7 +45,7 @@ export type AdminSubscription = {
   id: string
   leagueId: number
   leagueName: string
-  ownerEmail: string
+  ownerName: string
   plan: BillingPlan
   status: string
   periodEnd: string | null

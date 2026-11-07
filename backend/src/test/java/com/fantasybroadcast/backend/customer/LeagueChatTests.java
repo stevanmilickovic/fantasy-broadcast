@@ -10,6 +10,19 @@ import org.springframework.web.server.ResponseStatusException;
 class LeagueChatTests extends LeaguePrivacyTests {
 	private LeagueChatService chat;
 	private final MutableClock clock = new MutableClock();
+	@Test void responsesNeverSerializeAccountEmails() throws Exception {
+		var mapper = new tools.jackson.databind.ObjectMapper();
+		var sent = chat.send(owner, 1, "Hello", UUID.randomUUID().toString());
+		assertThat(mapper.writeValueAsString(sent)).doesNotContain("email", owner.email());
+		assertThat(mapper.writeValueAsString(chat.messages(owner, 1, null, null)))
+				.doesNotContain("email", owner.email());
+		memberships.setPrivacy(owner, 1, true);
+		leagues.follow(follower, 1);
+		assertThat(mapper.writeValueAsString(memberships.requests(owner, 1L)))
+				.contains("Follower").doesNotContain("email", follower.email());
+		assertThat(mapper.writeValueAsString(memberships.requests(follower, null)))
+				.doesNotContain("email", follower.email());
+	}
 	@BeforeEach void chatSetup() throws Exception {
 		try (var connection = jdbc.getDataSource().getConnection(); var migration = new liquibase.Liquibase("db/changelog/changes/016-league-chat.yaml", new liquibase.resource.ClassLoaderResourceAccessor(), new liquibase.database.jvm.JdbcConnection(connection))) {
 			migration.update(new liquibase.Contexts(), new liquibase.LabelExpression());

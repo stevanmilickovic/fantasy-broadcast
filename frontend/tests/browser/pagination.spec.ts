@@ -76,7 +76,7 @@ test('subscription administration pages all results and resets search', async ({
             id: `sub_${index}`,
             leagueId: 1,
             leagueName: `Billing league ${index + 1}`,
-            ownerEmail: viewer.email,
+            ownerName: `${viewer.displayName} (#${viewer.id})`,
             plan: 'STANDARD',
             status: 'active',
             periodEnd: null,
@@ -98,7 +98,7 @@ test('subscription administration pages all results and resets search', async ({
   await page.reload()
   await expect(pagination).toContainText('Page 2 of 2')
   await billing
-    .getByLabel('League, FPL ID, owner email or payment/subscription ID')
+    .getByLabel('League, FPL ID, owner username or payment/subscription ID')
     .fill('specific')
   await billing.getByRole('button', { name: 'Find subscriptions' }).click()
   await expect(pagination).toContainText('Page 1 of 1')

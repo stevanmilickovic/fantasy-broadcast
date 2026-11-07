@@ -23,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class LeagueChatService {
 	private static final Duration RETENTION = Duration.ofHours(24);
 	private static final int PAGE_SIZE = 50;
-	private static final String MESSAGE_SELECT = "select m.id, m.league_id, m.user_id, m.send_id, m.body, m.created_at, u.display_name, u.email from league_chat_message m join app_user u on u.id = m.user_id";
+	private static final String MESSAGE_SELECT = "select m.id, m.league_id, m.user_id, m.send_id, m.body, m.created_at, u.display_name from league_chat_message m join app_user u on u.id = m.user_id";
 	private final JdbcTemplate jdbc;
 	private final LeagueRegistrationService leagues;
 	private final Clock clock;
@@ -84,8 +84,8 @@ public class LeagueChatService {
 	private Message mapMessage(ResultSet rs, int row) throws SQLException {
 		var created = rs.getTimestamp("created_at").toInstant();
 		return new Message(Long.toString(rs.getLong("id")), rs.getLong("league_id"), rs.getLong("user_id"), rs.getString("display_name"),
-				rs.getString("email"), rs.getString("body"), created.toString(), created.plus(RETENTION).toString());
+				rs.getString("body"), created.toString(), created.plus(RETENTION).toString());
 	}
-	public record Message(String id, long leagueId, long userId, String displayName, String email, String body, String createdAt, String expiresAt) { }
+	public record Message(String id, long leagueId, long userId, String displayName, String body, String createdAt, String expiresAt) { }
 	public record MessagePage(List<Message> messages, boolean hasOlder, boolean hasMore, String serverTime) { }
 }

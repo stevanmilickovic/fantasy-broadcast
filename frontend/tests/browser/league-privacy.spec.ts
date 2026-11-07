@@ -22,7 +22,6 @@ test('owner approval moves a private follow request into accessible leagues', as
     leagueId: league.id,
     leagueName: league.displayName,
     displayName: applicant.displayName,
-    email: applicant.email,
     status: 'PENDING',
     createdAt: new Date().toISOString(),
   }

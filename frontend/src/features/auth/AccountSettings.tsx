@@ -45,10 +45,7 @@ export function AccountSettings({
           maxLength={40}
           autoComplete="nickname"
         />
-        <p>
-          Names do not need to be unique. Your email is visible beside your username in league
-          chats.
-        </p>
+        <p>Your username identifies you in league chats. Your account email stays private.</p>
         {saving.error && <p role="alert">{saving.error}</p>}
         {saving.status === 'success' && <p role="status">Username saved.</p>}
         <button disabled={saving.busy}>{saving.busy ? 'Saving…' : 'Save username'}</button>

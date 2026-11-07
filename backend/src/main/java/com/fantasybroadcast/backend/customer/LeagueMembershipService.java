@@ -40,12 +40,12 @@ public class LeagueMembershipService {
 	public List<FollowRequest> requests(CurrentUser user, Long leagueId) {
 		if (leagueId != null) requireOwner(user, leagueId);
 		return jdbc.query("""
-				select r.user_id, r.league_id, r.status, r.created_at, u.display_name, u.email, l.display_name as league_name
+				select r.user_id, r.league_id, r.status, r.created_at, u.display_name, l.display_name as league_name
 				from league_follow_request r join app_user u on u.id = r.user_id join league l on l.id = r.league_id
 				where %s order by r.created_at, r.user_id
 				""".formatted(leagueId == null ? "r.user_id = ?" : "r.league_id = ?"), (rs, row) ->
 				new FollowRequest(rs.getLong("user_id"), rs.getLong("league_id"), rs.getString("league_name"), rs.getString("display_name"),
-						rs.getString("email"), rs.getString("status"), rs.getTimestamp("created_at").toInstant().toString()), leagueId == null ? user.id() : leagueId);
+						rs.getString("status"), rs.getTimestamp("created_at").toInstant().toString()), leagueId == null ? user.id() : leagueId);
 	}
 
 	@Transactional
@@ -66,5 +66,5 @@ public class LeagueMembershipService {
 		jdbc.update("delete from league_follow_request where user_id = ? and league_id = ?", user.id(), leagueId);
 	}
 
-	public record FollowRequest(long userId, long leagueId, String leagueName, String displayName, String email, String status, String createdAt) { }
+	public record FollowRequest(long userId, long leagueId, String leagueName, String displayName, String status, String createdAt) { }
 }

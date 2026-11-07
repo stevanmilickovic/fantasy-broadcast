@@ -197,7 +197,8 @@ public class CustomerLeagueController {
 			entryEvents.put((long) entry.entryId(), fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek)));
 		}
 		var livePlayers = fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players();
-		return new DraftLeagueDiscovery(gameweek, details, fplClient.getLeagueElementStatus(league.fplLeagueId()),
+		return new DraftLeagueDiscovery(gameweek, com.fantasybroadcast.backend.fpl.CustomerFplData.leagueDetails(details),
+				com.fantasybroadcast.backend.fpl.CustomerFplData.elementStatus(fplClient.getLeagueElementStatus(league.fplLeagueId())),
 				fplMapper.mapDraftPlayers(fplClient.getDraftBootstrapStatic(), bootstrap), entryEvents, livePlayers);
 	}
 

@@ -30,17 +30,18 @@ export function useUserAdministration() {
     if (!result) return
 
     await refresh()
-    setMessage(`${user.email} is now an administrator.`)
+    setMessage(`${user.displayName} (#${user.id}) is now an administrator.`)
   }
 
   const remove = async (user: AdminUser) => {
-    if (!window.confirm(`Delete ${user.email} and any leagues they created?`)) return
+    if (!window.confirm(`Delete ${user.displayName} (#${user.id}) and any leagues they created?`))
+      return
     const result = await mutation.run((signal) => deleteAdminUser(user.id, signal))
     if (!result) return
 
     const nextPage = users.length === 1 && page > 0 ? page - 1 : page
     await refresh(nextPage)
-    setMessage(`${user.email} was deleted.`)
+    setMessage(`${user.displayName} (#${user.id}) was deleted.`)
   }
 
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))

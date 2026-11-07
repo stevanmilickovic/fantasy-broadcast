@@ -117,7 +117,7 @@ export function AdminLeagueRegistry({ onOpenLeague }: Props) {
             <span>
               {league.leagueType} · {scoringLabel(league.scoringType)} · #{league.fplLeagueId}
             </span>
-            <span>Owner: {league.ownerEmail ?? '—'}</span>
+            <span>Owner: {league.ownerName ?? '—'}</span>
             <label className="league-enabled">
               <input
                 type="checkbox"

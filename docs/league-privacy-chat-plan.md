@@ -2,6 +2,10 @@
 
 Status: implemented in the six planned commits; final verification results are recorded below.
 
+Update for the next version: the historical email-visibility decisions below are
+superseded by `next-version-plan.md`. Chat and follow-request responses now identify
+users by username and ID and do not include account emails.
+
 ## Agreed requirements
 
 - The league owner controls whether a league is private and approves follow requests.

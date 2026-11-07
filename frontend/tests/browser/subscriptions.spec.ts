@@ -132,7 +132,7 @@ test('administrators review partial refunds and see pending approval without dup
             id: 'sub_test',
             leagueId: 1,
             leagueName: 'Sunday League Elite',
-            ownerEmail: viewer.email,
+            ownerName: `${viewer.displayName} (#${viewer.id})`,
             plan: 'AI_BROADCASTER',
             status: 'active',
             periodEnd: initialSubscription.accessUntil,

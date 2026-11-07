@@ -13,7 +13,6 @@ test('broadcast chat fades recent messages and reveals readable history without 
           leagueId: 1,
           userId: 1,
           displayName: 'A long player username shared with others',
-          email: 'player@example.com',
           body: `Message ${index + 1}: Hello league`,
           createdAt: new Date().toISOString(),
           expiresAt: new Date(Date.now() + 86_400_000).toISOString(),

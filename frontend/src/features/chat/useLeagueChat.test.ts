@@ -14,7 +14,6 @@ const message = (id: string, expiresAt = '2026-11-01T12:00:00Z'): ChatMessage =>
   leagueId: 1,
   userId: 1,
   displayName: 'Same name',
-  email: 'one@example.com',
   body: id,
   createdAt: '2026-10-31T12:00:00Z',
   expiresAt,

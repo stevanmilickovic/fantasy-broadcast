@@ -86,8 +86,8 @@ class CustomerLeagueControllerTests {
 		var leagues = mock(LeagueRegistrationService.class);
 		var client = mock(FplDraftClient.class);
 		var mapper = mock(FplDraftMapper.class);
-		var details = mock(JsonNode.class);
-		var elementStatus = mock(JsonNode.class);
+		var details = tools.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+		var elementStatus = tools.jackson.databind.node.JsonNodeFactory.instance.objectNode();
 		var bootstrap = mock(JsonNode.class);
 		var events = mock(JsonNode.class);
 		var currentEvent = mock(JsonNode.class);
@@ -116,8 +116,8 @@ class CustomerLeagueControllerTests {
 
 		var overview = controller.draftLeagueOverview(request, 41);
 
-		assertThat(overview.details()).isSameAs(details);
-		assertThat(overview.elementStatus()).isSameAs(elementStatus);
+		assertThat(overview.details()).isEqualTo(details).isNotSameAs(details);
+		assertThat(overview.elementStatus()).isEqualTo(elementStatus).isNotSameAs(elementStatus);
 		assertThat(overview.players()).containsExactlyElementsOf(players);
 		assertThat(overview.entryEvents()).containsKey(9001L);
 		verify(leagues).accessibleLeague(user, 41);

@@ -1,7 +1,7 @@
-export function ChatAuthor({ name, email }: { name: string; email: string }) {
+export function ChatAuthor({ name }: { name: string }) {
   return (
     <span className="chat-author">
-      <strong>{name}</strong> <span className="chat-author-email">{email}</span>
+      <strong>{name}</strong>
     </span>
   )
 }

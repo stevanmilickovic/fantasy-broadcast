@@ -86,8 +86,8 @@ public class LeagueRegistrationService {
 		var searchTerm = search == null ? "" : search.trim();
 		var total = jdbcTemplate.queryForObject("select count(*) from league where lower(display_name) like concat('%', lower(?), '%') or cast(fpl_league_id as char) like concat('%', ?, '%')", Long.class, searchTerm, searchTerm);
 		var leagues = jdbcTemplate.query("""
-				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.email as owner_email,
-				       group_concat(member.email order by member.email separator ', ') as registered_users, l.created_at
+				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, concat(owner.display_name, ' (#', owner.id, ')') as owner_name,
+				       group_concat(concat(member.display_name, ' (#', member.id, ')') order by member.id separator ', ') as registered_users, l.created_at
 				from (
 					select id, fpl_league_id, display_name, league_type, scoring_type, service_enabled, ai_narration_enabled, voice_narration_enabled, private_league, owner_user_id, created_at
 					from league
@@ -97,7 +97,7 @@ public class LeagueRegistrationService {
 				left join app_user owner on owner.id = l.owner_user_id
 				left join league_registration r on r.league_id = l.id
 				left join app_user member on member.id = r.user_id
-				group by l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.email, l.created_at
+				group by l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.display_name, owner.id, l.created_at
 				order by l.created_at desc, l.id desc
 				""", this::mapAdminLeague, searchTerm, searchTerm, size, (long) page * size);
 		return new AdminLeaguePage(leagues, page, size, total == null ? 0 : total);
@@ -161,14 +161,14 @@ public class LeagueRegistrationService {
 
 	private AdminLeague adminLeague(long id) {
 		var leagues = jdbcTemplate.query("""
-				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.email as owner_email,
-				       group_concat(member.email order by member.email separator ', ') as registered_users, l.created_at
+				select l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, concat(owner.display_name, ' (#', owner.id, ')') as owner_name,
+				       group_concat(concat(member.display_name, ' (#', member.id, ')') order by member.id separator ', ') as registered_users, l.created_at
 				from league l
 				left join app_user owner on owner.id = l.owner_user_id
 				left join league_registration r on r.league_id = l.id
 				left join app_user member on member.id = r.user_id
 				where l.id = ?
-				group by l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.email, l.created_at
+				group by l.id, l.fpl_league_id, l.display_name, l.league_type, l.scoring_type, l.service_enabled, l.ai_narration_enabled, l.voice_narration_enabled, owner.display_name, owner.id, l.created_at
 				""", this::mapAdminLeague, id);
 		return leagues.getFirst();
 	}
@@ -274,7 +274,7 @@ public class LeagueRegistrationService {
 		return new AdminLeague(resultSet.getLong("id"), resultSet.getLong("fpl_league_id"), resultSet.getString("display_name"),
 				FplLeagueType.valueOf(resultSet.getString("league_type")), FplLeagueScoring.valueOf(resultSet.getString("scoring_type")),
 				resultSet.getBoolean("service_enabled"), resultSet.getBoolean("ai_narration_enabled"),
-				resultSet.getBoolean("voice_narration_enabled"), resultSet.getString("owner_email"),
+				resultSet.getBoolean("voice_narration_enabled"), resultSet.getString("owner_name"),
 				resultSet.getString("registered_users"), resultSet.getTimestamp("created_at").toInstant().toString());
 	}
 
@@ -283,7 +283,7 @@ public class LeagueRegistrationService {
 	}
 
 	public record AdminLeague(long id, long fplLeagueId, String displayName, FplLeagueType leagueType, FplLeagueScoring scoringType, boolean serviceEnabled,
-			boolean aiNarrationEnabled, boolean voiceNarrationEnabled, String ownerEmail, String registeredUsers, String createdAt) {
+			boolean aiNarrationEnabled, boolean voiceNarrationEnabled, String ownerName, String registeredUsers, String createdAt) {
 	}
 
 	public record AdminLeaguePage(List<AdminLeague> items, int page, int size, long totalItems) {

@@ -23,7 +23,6 @@ export type FollowRequest = {
   leagueId: number
   leagueName: string
   displayName: string
-  email: string
   status: 'PENDING' | 'REJECTED'
   createdAt: string
 }

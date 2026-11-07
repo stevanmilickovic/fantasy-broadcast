@@ -1,6 +1,6 @@
 import type { RegisteredLeague } from '../leagues/types'
 export type AdminLeague = RegisteredLeague & {
-  ownerEmail: string | null
+  ownerName: string | null
   registeredUsers: string | null
   createdAt: string
 }
@@ -14,7 +14,6 @@ export type AdminLeaguePage = {
 
 export type AdminUser = {
   id: number
-  email: string
   displayName: string
   role: 'USER' | 'ADMIN'
   createdAt: string

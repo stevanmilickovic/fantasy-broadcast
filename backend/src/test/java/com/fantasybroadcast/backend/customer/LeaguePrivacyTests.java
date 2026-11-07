@@ -16,6 +16,16 @@ class LeaguePrivacyTests {
 	LeagueMembershipService memberships;
 	final CurrentUser owner = new CurrentUser(1, "owner@example.com", "Owner", UserRole.USER);
 	final CurrentUser follower = new CurrentUser(2, "follower@example.com", "Follower", UserRole.USER);
+	@Test void administrativeLeagueListsUseNamesAndIdsWithoutEmailDisclosure() throws Exception {
+		leagues.follow(follower, 1);
+		var admin = new CurrentUser(3, "admin@example.test", "Admin", UserRole.ADMIN);
+		var page = leagues.allForAdmin(admin, 0, 10, "");
+		var json = new tools.jackson.databind.ObjectMapper().writeValueAsString(page);
+		assertThat(json).contains("Owner (#1)", "Follower (#2)")
+				.doesNotContain("ownerEmail", owner.email(), follower.email());
+		assertThatThrownBy(() -> leagues.allForAdmin(follower, 0, 10, ""))
+				.isInstanceOf(ResponseStatusException.class);
+	}
 	@BeforeEach void setup() throws Exception {
 		var source = new JdbcDataSource();
 		source.setURL("jdbc:h2:mem:" + java.util.UUID.randomUUID() + ";MODE=MySQL;DB_CLOSE_DELAY=-1");

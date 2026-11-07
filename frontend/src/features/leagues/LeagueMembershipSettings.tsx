@@ -58,7 +58,6 @@ export function LeagueMembershipSettings({
         <div className="league-membership-request" key={request.userId}>
           <span>
             <strong>{request.displayName}</strong>
-            <small>{request.email}</small>
           </span>
           <div className="league-request-actions">
             <button disabled={saving.busy} onClick={() => void decide(request.userId, true)}>

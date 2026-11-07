@@ -5,7 +5,6 @@ export type ChatMessage = {
   leagueId: number
   userId: number
   displayName: string
-  email: string
   body: string
   createdAt: string
   expiresAt: string

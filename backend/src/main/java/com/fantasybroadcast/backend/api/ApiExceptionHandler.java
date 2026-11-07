@@ -21,10 +21,9 @@ public class ApiExceptionHandler {
 		var status = HttpStatus.BAD_GATEWAY;
 		return ResponseEntity.status(status)
 				.body(new FplErrorResponse(
-						exception.getMessage(),
+						"FPL data is temporarily unavailable. Please try again.",
 						exception.getStatusCode(),
-						exception.getUrl(),
-						exception.getBodyPreview()));
+						exception.getUrl()));
 	}
 
 	@ExceptionHandler(ResponseStatusException.class)
@@ -33,7 +32,7 @@ public class ApiExceptionHandler {
 				.body(new ApiErrorResponse(exception.getReason() == null ? "The request could not be completed." : exception.getReason()));
 	}
 
-	public record FplErrorResponse(String message, Integer upstreamStatusCode, String upstreamUrl, String bodyPreview) {
+	public record FplErrorResponse(String message, Integer upstreamStatusCode, String upstreamUrl) {
 	}
 
 	public record ApiErrorResponse(String message) {

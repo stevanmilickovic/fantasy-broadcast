@@ -82,7 +82,7 @@ export function LeagueChat({
           {chat.messages.map((message) => (
             <li key={message.id} className="chat-message">
               <div className="chat-message-meta">
-                <ChatAuthor name={message.displayName} email={message.email} />
+                <ChatAuthor name={message.displayName} />
                 <time
                   dateTime={message.createdAt}
                   title={new Date(message.createdAt).toLocaleString()}

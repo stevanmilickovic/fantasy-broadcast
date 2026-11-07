@@ -130,8 +130,8 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
           json: {
             items: leagues.map((league) => ({
               ...league,
-              ownerEmail: viewer.email,
-              registeredUsers: viewer.email,
+              ownerName: `${viewer.displayName} (#${viewer.id})`,
+              registeredUsers: `${viewer.displayName} (#${viewer.id})`,
               createdAt: '2026-10-01T12:00:00Z',
             })),
             page: 0,
