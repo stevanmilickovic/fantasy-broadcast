@@ -50,6 +50,7 @@ export function WelcomeBroadcastDemo() {
     <TeamEmblemsContext value={demoEmblems}>
       <div
         className="welcome-real-broadcast"
+        data-nosnippet=""
         data-broadcast-tilt
         aria-label="Interactive example of the live broadcast"
       >

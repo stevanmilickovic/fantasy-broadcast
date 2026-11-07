@@ -52,7 +52,7 @@ export function WelcomePage({ onNavigate }: Props) {
         </div>
       </section>
 
-      <section className="welcome-features">
+      <section className="welcome-features" data-nosnippet="">
         <article>
           <Users size={24} />
           <h3>Bring your league</h3>
