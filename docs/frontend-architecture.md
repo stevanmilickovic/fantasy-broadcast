@@ -105,8 +105,11 @@ and error are explicit states. `refresh` starts a new revision.
 `useMutation` permits one active submission per hook, passes its abort signal to the
 operation, and suppresses results after cancellation. Unmounting cancels the request;
 reset cancels it and clears its state. Independent forms use independent mutations.
-Checkout calls the selected STANDARD or AI_BROADCASTER plan handler only after valid
-league data, checkout readiness and policy consent. The payment SDK belongs to billing.
+Checkout creates the selected STANDARD or AI_BROADCASTER payment only after valid
+league data, checkout readiness and policy consent. Plan buttons remain actionable
+before consent and guide to missing prerequisites. Consent guidance highlights/focuses
+the checkbox and reserves clear space above the bottom notification. Accepting consent
+does not automatically create a payment. The payment SDK belongs to billing.
 Successful registration checkout returns to a confirmation view with the purchased FPL
 league ID and type. It polls the authenticated league list for up to a minute, then
 opens that league once server-side payment confirmation enables it. Delayed confirmation

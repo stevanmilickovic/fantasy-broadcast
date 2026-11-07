@@ -109,8 +109,8 @@ test('registration opens checkout and both plans require policy consent', async 
   await expect(page.locator('.checkout-heading')).toContainText(
     'Each open broadcast tab or device counts as one viewer.',
   )
-  await expect(standard).toBeDisabled()
-  await expect(ai).toBeDisabled()
+  await expect(standard).toBeEnabled()
+  await expect(ai).toBeEnabled()
   await page.getByRole('checkbox').check()
   await expect(standard).toBeEnabled()
   await expect(ai).toBeEnabled()

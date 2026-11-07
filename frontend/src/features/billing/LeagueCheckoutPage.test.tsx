@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { createPaddleCheckout, previewLeaguePayment, loadPlanAvailability } from './api'
 import { LeagueCheckoutPage } from './LeagueCheckoutPage'
 import { openPaddleCheckout } from './paddleCheckout'
@@ -10,6 +10,10 @@ vi.mock('./api', () => ({
   loadPlanAvailability: vi.fn(),
 }))
 vi.mock('./paddleCheckout', () => ({ openPaddleCheckout: vi.fn() }))
+beforeEach(() => {
+  vi.clearAllMocks()
+  HTMLElement.prototype.scrollIntoView = vi.fn()
+})
 
 it('requires consent and submits the explicit selected plan', async () => {
   vi.mocked(loadPlanAvailability).mockResolvedValue({ aiBroadcasterEnabled: true })
@@ -32,8 +36,16 @@ it('requires consent and submits the explicit selected plan', async () => {
   render(<LeagueCheckoutPage search="?fplLeagueId=42&leagueType=DRAFT" onNavigate={vi.fn()} />)
   await screen.findByText('Test league')
   const plan = screen.getByRole('button', { name: 'Choose AI Broadcaster' }) as HTMLButtonElement
-  expect(plan.disabled).toBe(true)
+  expect(plan.disabled).toBe(false)
+  fireEvent.click(plan)
+  const consent = screen.getByRole('checkbox')
+  await waitFor(() => expect(document.activeElement).toBe(consent))
+  expect(consent.getAttribute('aria-invalid')).toBe('true')
+  expect(createPaddleCheckout).not.toHaveBeenCalled()
+  expect(openPaddleCheckout).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('checkbox'))
+  expect(consent.getAttribute('aria-invalid')).toBe('false')
+  expect(createPaddleCheckout).not.toHaveBeenCalled()
   fireEvent.click(plan)
   await waitFor(() =>
     expect(createPaddleCheckout).toHaveBeenCalledWith(
@@ -46,6 +58,26 @@ it('requires consent and submits the explicit selected plan', async () => {
   )
   expect(openPaddleCheckout).toHaveBeenCalledOnce()
 })
+
+it.each([false, true])(
+  'does not create checkout when league eligibility is %s and billing is unavailable',
+  async (registrationEligible) => {
+    vi.mocked(loadPlanAvailability).mockResolvedValue({ aiBroadcasterEnabled: true })
+    vi.mocked(previewLeaguePayment).mockResolvedValue({
+      displayName: 'Unavailable league',
+      managerCount: 8,
+      registrationEligible,
+      checkoutReady: false,
+      validationMessage: registrationEligible ? null : 'Check league details.',
+    })
+    render(<LeagueCheckoutPage search="?fplLeagueId=42" onNavigate={vi.fn()} />)
+    await screen.findByText('Unavailable league')
+    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose Standard' }))
+    expect(createPaddleCheckout).not.toHaveBeenCalled()
+    expect(openPaddleCheckout).not.toHaveBeenCalled()
+  },
+)
 
 it('offers Standard only when AI is disabled', async () => {
   vi.mocked(loadPlanAvailability).mockResolvedValue({ aiBroadcasterEnabled: false })

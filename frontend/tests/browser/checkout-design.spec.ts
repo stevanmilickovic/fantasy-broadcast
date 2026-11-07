@@ -77,17 +77,19 @@ test('unavailable leagues show stable visible errors without hover movement or o
     await expect(page.getByRole('alert')).toBeVisible()
   }
   await checkConsent(page)
-  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: 'Choose Standard', exact: true }).click()
+  await expect(page.locator('.notification-host')).toContainText('Check your league ID')
   await expect(
     page.getByRole('button', { name: 'Choose AI Broadcaster', exact: true }),
-  ).toBeDisabled()
+  ).toBeEnabled()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath('unavailable-league.png'), fullPage: true })
   expect(errors).toEqual([])
   expect(unexpectedRequests).toEqual([])
 })
 
-test('closed registrations use customer-facing copy and keep checkout disabled after consent', async ({
+test('closed registrations explain unavailable checkout without creating a payment', async ({
   page,
 }, info) => {
   await mockApp(page)
@@ -107,10 +109,12 @@ test('closed registrations use customer-facing copy and keep checkout disabled a
   )
   await expect(page.getByLabel('League verified', { exact: true })).toBeVisible()
   await checkConsent(page)
-  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeEnabled()
   await expect(
     page.getByRole('button', { name: 'Choose AI Broadcaster', exact: true }),
-  ).toBeDisabled()
+  ).toBeEnabled()
+  await page.getByRole('button', { name: 'Choose Standard', exact: true }).click()
+  await expect(page.locator('.notification-host')).toContainText('temporarily unavailable')
   await expect(page.getByText(/sandbox credentials|payment testing|price IDs/)).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath('registrations-closed.png'), fullPage: true })

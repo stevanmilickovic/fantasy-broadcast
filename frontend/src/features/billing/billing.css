@@ -282,6 +282,19 @@
   accent-color: var(--pl-cyan);
   cursor: pointer;
 }
+.checkout-consent[data-required='true'] {
+  outline: 2px solid #ffb86b;
+  outline-offset: 10px;
+  border-radius: 2px;
+}
+.checkout-consent[data-required='true'] input {
+  box-shadow: 0 0 0 4px #ffb86b40;
+}
+#checkout-consent-error {
+  grid-column: 2;
+  color: #ffca92;
+  margin: 0;
+}
 .checkout-consent label {
   display: block;
   min-width: 0;

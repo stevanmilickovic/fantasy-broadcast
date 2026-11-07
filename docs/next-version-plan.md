@@ -1,6 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation authorized, based on repository inspection on 2026-11-07.
+Status: paused at the user's request after completing implementation steps 1–7.
+Twelve steps remain (8–19); resume with Paddle dismissal in step 8.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -52,7 +53,15 @@ receive unique suffixes, and manual names still require uniqueness.
   Pending text retains full contrast. Verification: lint/build, 12 layout/approval
   browser cases across six viewports plus six final style checks; phone tests include
   320/360/390px widths. Phone and desktop screenshots reviewed.
-- Remaining work: steps 7–19. Existing-name repair is omitted per the user's confirmation.
+- Step 7: available plan buttons respond before consent, guide to the highlighted checkbox
+  and explain missing league/billing prerequisites. The notification does not cover the
+  checkbox or label; accepting consent does not submit payment automatically. Unavailable
+  AI and pending submissions remain disabled. Verification: lint/build, 88 frontend unit
+  tests, five backend checkout/consent tests, 60 checkout browser cases and six existing
+  registration-entry cases across six viewport projects. Final consent geometry rechecked
+  after copy polish, and phone portrait/landscape screenshots reviewed.
+- Paused after step 7 as requested. Twelve steps remain: 8–19. Existing-name repair is
+  omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions
 

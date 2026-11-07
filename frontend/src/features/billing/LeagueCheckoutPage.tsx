@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, CircleAlert, CircleCheck } from 'lucide-react'
-import { useCallback, useState, type MouseEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react'
 import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
 import type { FplLeagueType } from '../../shared/fpl/types'
@@ -8,6 +8,7 @@ import { openPaddleCheckout } from '../billing/paddleCheckout'
 import { usePlanAvailability } from './usePlanAvailability'
 import { MAX_BROADCAST_VIEWERS } from '../broadcast/broadcastLimits'
 import { TERMS_VERSION } from '../public/policyVersions'
+import { useNotifications } from '../../shared/ui/notifications'
 export function LeagueCheckoutPage({
   search,
   onNavigate,
@@ -17,12 +18,32 @@ export function LeagueCheckoutPage({
 }) {
   const { aiBroadcasterEnabled, notice } = usePlanAvailability()
   const parameters = new URLSearchParams(search)
-  const selectedPlan = parameters.get('plan')
+  const [selectedPlan, setSelectedPlan] = useState(parameters.get('plan'))
   const [leagueId, setLeagueId] = useState(parameters.get('fplLeagueId') ?? '')
   const [leagueType, setLeagueType] = useState<FplLeagueType>(
     parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT',
   )
   const [acceptedPolicies, setAcceptedPolicies] = useState(false)
+  const [consentRequired, setConsentRequired] = useState(false)
+  const [attemptedCheckout, setAttemptedCheckout] = useState(false)
+  const policyInput = useRef<HTMLInputElement>(null)
+  const leagueInput = useRef<HTMLInputElement>(null)
+  const focusFrame = useRef<number | null>(null)
+  const { notify } = useNotifications()
+  useEffect(
+    () => () => {
+      if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current)
+    },
+    [],
+  )
+  const focusPrerequisite = (element: HTMLInputElement | null) => {
+    if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current)
+    focusFrame.current = window.requestAnimationFrame(() => {
+      focusFrame.current = null
+      element?.scrollIntoView({ block: 'center' })
+      element?.focus({ preventScroll: true })
+    })
+  }
   const normalizedLeagueId = leagueId.trim()
   const hasLeagueId = normalizedLeagueId.length > 0
   const validLeagueId =
@@ -40,7 +61,7 @@ export function LeagueCheckoutPage({
   const preview = previewQuery.data
   const checkout = useMutation()
   const leagueError =
-    hasLeagueId && !validLeagueId
+    (hasLeagueId || attemptedCheckout) && !validLeagueId
       ? 'Enter a valid, positive FPL league ID.'
       : (previewQuery.error ?? preview?.validationMessage)
   const leagueIsValid = preview?.registrationEligible === true
@@ -57,7 +78,6 @@ export function LeagueCheckoutPage({
       : validLeagueId && previewQuery.status === 'loading'
         ? 'Checking FPL data…'
         : 'Check the league ID and choose the matching league type.'
-  const canCheckout = leagueIsValid && preview?.checkoutReady && acceptedPolicies && !checkout.busy
   const navigatePolicy = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
       return
@@ -66,7 +86,32 @@ export function LeagueCheckoutPage({
   }
   const openCheckout = async (plan: 'STANDARD' | 'AI_BROADCASTER') => {
     if (plan === 'AI_BROADCASTER' && !aiBroadcasterEnabled) return
-    if (!acceptedPolicies || !preview?.checkoutReady || !leagueIsValid) return
+    if (checkout.busy) return
+    setSelectedPlan(plan)
+    setAttemptedCheckout(true)
+    if (!leagueIsValid) {
+      notify(
+        previewQuery.status === 'loading'
+          ? 'League details are still loading. Please try again shortly.'
+          : 'Check your league ID and league type to continue.',
+      )
+      if (previewQuery.status !== 'loading') focusPrerequisite(leagueInput.current)
+      return
+    }
+    if (!preview?.checkoutReady) {
+      notify('New league registrations are temporarily unavailable. Please try again later.')
+      return
+    }
+    if (!acceptedPolicies) {
+      setConsentRequired(true)
+      notify('Please accept the terms to continue.', { id: 'checkout-consent' })
+      focusPrerequisite(policyInput.current)
+      return
+    }
+    if (focusFrame.current !== null) {
+      window.cancelAnimationFrame(focusFrame.current)
+      focusFrame.current = null
+    }
     await checkout.run(async (signal) =>
       openPaddleCheckout(
         await createPaddleCheckout(
@@ -123,6 +168,7 @@ export function LeagueCheckoutPage({
             <label htmlFor="payment-league-id-professional">FPL league ID</label>
             <div className="checkout-id-field">
               <input
+                ref={leagueInput}
                 id="payment-league-id-professional"
                 inputMode="numeric"
                 aria-invalid={Boolean(leagueError)}
@@ -185,7 +231,7 @@ export function LeagueCheckoutPage({
             <button
               type="button"
               onClick={() => void openCheckout('STANDARD')}
-              disabled={!canCheckout}
+              disabled={checkout.busy}
             >
               Choose Standard
             </button>
@@ -218,7 +264,7 @@ export function LeagueCheckoutPage({
             <button
               type="button"
               onClick={() => void openCheckout('AI_BROADCASTER')}
-              disabled={!canCheckout || !aiBroadcasterEnabled}
+              disabled={checkout.busy || !aiBroadcasterEnabled}
             >
               {aiBroadcasterEnabled ? 'Choose AI Broadcaster' : 'Currently unavailable'}
             </button>
@@ -240,13 +286,21 @@ export function LeagueCheckoutPage({
           New league registrations are temporarily unavailable. Please try again later.
         </p>
       )}
-      <div className="checkout-consent">
+      <div className="checkout-consent" data-required={consentRequired && !acceptedPolicies}>
         <input
+          ref={policyInput}
           id="checkout-policy-consent"
           type="checkbox"
           disabled={checkout.busy}
           checked={acceptedPolicies}
-          onChange={(event) => setAcceptedPolicies(event.target.checked)}
+          aria-invalid={consentRequired && !acceptedPolicies}
+          aria-describedby={
+            consentRequired && !acceptedPolicies ? 'checkout-consent-error' : undefined
+          }
+          onChange={(event) => {
+            setAcceptedPolicies(event.target.checked)
+            setConsentRequired(false)
+          }}
         />
         <label htmlFor="checkout-policy-consent">
           By continuing, you agree to our{' '}
@@ -259,6 +313,11 @@ export function LeagueCheckoutPage({
           </a>
           .
         </label>
+        {consentRequired && !acceptedPolicies && (
+          <p id="checkout-consent-error">
+            Accept the Terms of Service and acknowledge the Privacy Policy before paying.
+          </p>
+        )}
       </div>
       <p className="checkout-security">
         Secure payment powered by Paddle · Your card details never reach Fantasy Broadcast · Final
