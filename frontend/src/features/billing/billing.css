@@ -216,6 +216,14 @@
   border-color: var(--pl-cyan);
   background: linear-gradient(145deg, #3d0050, #25002f);
 }
+.checkout-plan[data-selected='true'] {
+  border-color: #20e6ff;
+}
+.checkout-selected-plan {
+  display: block;
+  color: #20e6ff;
+  margin-top: 8px;
+}
 .checkout-plan.featured > button {
   background: var(--pl-cyan);
 }

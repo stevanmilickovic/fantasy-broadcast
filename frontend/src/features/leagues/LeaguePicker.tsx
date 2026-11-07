@@ -56,7 +56,13 @@ export function LeaguePicker({
           </a>
         ))}
       </div>
-      {!filtered.length && <p className="league-empty">No leagues match your search.</p>}
+      {!filtered.length && (
+        <p className="league-empty">
+          {leagues.length
+            ? 'No leagues match your search.'
+            : 'Find a league to follow, or register a league you manage.'}
+        </p>
+      )}
     </section>
   )
 }

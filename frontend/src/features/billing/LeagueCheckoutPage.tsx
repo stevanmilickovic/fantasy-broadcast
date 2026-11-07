@@ -17,6 +17,7 @@ export function LeagueCheckoutPage({
 }) {
   const { aiBroadcasterEnabled, notice } = usePlanAvailability()
   const parameters = new URLSearchParams(search)
+  const selectedPlan = parameters.get('plan')
   const [leagueId, setLeagueId] = useState(parameters.get('fplLeagueId') ?? '')
   const [leagueType, setLeagueType] = useState<FplLeagueType>(
     parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT',
@@ -163,8 +164,11 @@ export function LeagueCheckoutPage({
           </div>
         </aside>
         <section className="checkout-plans" aria-label="Broadcast plans">
-          <article className="checkout-plan">
+          <article className="checkout-plan" data-selected={selectedPlan === 'STANDARD'}>
             <span>Standard</span>
+            {selectedPlan === 'STANDARD' && (
+              <small className="checkout-selected-plan">Selected plan</small>
+            )}
             <h2>€6.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>
@@ -186,8 +190,15 @@ export function LeagueCheckoutPage({
               Choose Standard
             </button>
           </article>
-          <article className="checkout-plan featured" aria-disabled={!aiBroadcasterEnabled}>
+          <article
+            className="checkout-plan featured"
+            data-selected={selectedPlan === 'AI_BROADCASTER'}
+            aria-disabled={!aiBroadcasterEnabled}
+          >
             <span className="plan-badge">AI Broadcaster</span>
+            {selectedPlan === 'AI_BROADCASTER' && (
+              <small className="checkout-selected-plan">Selected plan</small>
+            )}
             <h2>€19.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>

@@ -14,7 +14,11 @@ export function PublicHeader({ onNavigate }: { onNavigate: Navigate }) {
         <button className="welcome-sign-in" type="button" onClick={() => onNavigate('/login')}>
           Sign in
         </button>
-        <button className="welcome-register" type="button" onClick={() => onNavigate('/register')}>
+        <button
+          className="welcome-register"
+          type="button"
+          onClick={() => onNavigate('/leagues/new')}
+        >
           Get started <ChevronRight size={17} />
         </button>
       </nav>

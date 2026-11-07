@@ -50,7 +50,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
             <li>Up to {MAX_BROADCAST_VIEWERS} simultaneous viewers</li>
             <li>League standings and teams</li>
           </ul>
-          <button onClick={() => onNavigate('/register')}>Get started</button>
+          <button onClick={() => onNavigate('/leagues/new?plan=STANDARD')}>Get started</button>
         </article>
         <article className="public-featured" aria-disabled={!aiBroadcasterEnabled}>
           <span>AI Broadcaster</span>
@@ -64,7 +64,10 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
             <li>League standings and teams</li>
             <li>AI voice commentary</li>
           </ul>
-          <button disabled={!aiBroadcasterEnabled} onClick={() => onNavigate('/register')}>
+          <button
+            disabled={!aiBroadcasterEnabled}
+            onClick={() => onNavigate('/leagues/new?plan=AI_BROADCASTER')}
+          >
             {aiBroadcasterEnabled ? 'Get started' : 'Currently unavailable'}
           </button>
         </article>

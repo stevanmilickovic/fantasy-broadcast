@@ -22,8 +22,9 @@ Broadcast league IDs must be positive safe integers; a global broadcast requires
 Backend authorization remains authoritative.
 
 `CustomerDashboard` queries the user's leagues and composes the picker, registration,
-detail, league management, checkout or account-deletion page. A successful league-list response redirects
-only list/detail routes; it must not displace checkout or account-deletion deep links.
+detail, league management, checkout or account-deletion page. A successful league-list response
+redirects inaccessible detail/management routes; it must not displace explicit list,
+checkout or account-deletion visits. The list has useful zero-, one- and many-league states.
 
 Discovery lives at `/leagues/find`; `/leagues/new` is a focused registration-by-ID form.
 Old registration URLs carrying search/page parameters redirect to discovery. The submitted

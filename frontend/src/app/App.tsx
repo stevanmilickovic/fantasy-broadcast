@@ -12,6 +12,7 @@ import { WelcomePage } from '../features/public/WelcomePage'
 import { resolveRoute } from './routes'
 import { useBrowserNavigation, type Navigate } from './useBrowserNavigation'
 import { NotificationProvider } from '../shared/ui/NotificationProvider'
+import { registrationDestination } from '../features/auth/registrationIntent'
 
 function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
   useEffect(() => navigate(to, true), [to, navigate])
@@ -59,7 +60,9 @@ function AppContent({
           key={route.pathname}
           pathname={route.pathname}
           search={location.search}
-          onAuthenticated={session.handleAuthenticated}
+          onAuthenticated={(result) =>
+            session.handleAuthenticated(result, registrationDestination(location.search))
+          }
           onNavigate={navigate}
         />
       )

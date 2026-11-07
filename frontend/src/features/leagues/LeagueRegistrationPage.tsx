@@ -5,7 +5,13 @@ import type { FplLeagueType } from '../../shared/fpl/types'
 import { loadLeagueRegistrationAccess } from './api'
 import { LeagueRegistrationForm } from './LeagueRegistrationForm'
 
-export function LeagueRegistrationPage({ navigate }: { navigate: Navigate }) {
+export function LeagueRegistrationPage({
+  navigate,
+  search,
+}: {
+  navigate: Navigate
+  search: string
+}) {
   const access = useQuery('registration-access', loadLeagueRegistrationAccess)
   const [leagueId, setLeagueId] = useState('')
   const [leagueType, setLeagueType] = useState<FplLeagueType>('DRAFT')
@@ -25,9 +31,10 @@ export function LeagueRegistrationPage({ navigate }: { navigate: Navigate }) {
           onLeagueTypeChange={setLeagueType}
           onSubmit={(event) => {
             event.preventDefault()
-            navigate(
-              `/leagues/checkout?${new URLSearchParams({ fplLeagueId: leagueId, leagueType })}`,
-            )
+            const params = new URLSearchParams({ fplLeagueId: leagueId, leagueType })
+            const plan = new URLSearchParams(search).get('plan')
+            if (plan === 'STANDARD' || plan === 'AI_BROADCASTER') params.set('plan', plan)
+            navigate(`/leagues/checkout?${params}`)
           }}
         />
       ) : (

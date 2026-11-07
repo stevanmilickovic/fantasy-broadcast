@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { loadCurrentUser, logout } from './api'
 import type { AuthResponse, AuthUser } from './types'
+import { consumeRegistrationIntent, type RegistrationDestination } from './registrationIntent'
 
 export function useAuthSession(navigate: Navigate) {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -11,7 +12,13 @@ export function useAuthSession(navigate: Navigate) {
     let isMounted = true
     loadCurrentUser()
       .then((currentUser) => {
-        if (isMounted) setUser(currentUser)
+        if (isMounted) {
+          setUser(currentUser)
+          if (currentUser && window.location.pathname === '/') {
+            const destination = consumeRegistrationIntent()
+            if (destination) navigate(destination, true)
+          }
+        }
       })
       .catch(() => {
         if (isMounted) setUser(null)
@@ -22,13 +29,14 @@ export function useAuthSession(navigate: Navigate) {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [navigate])
 
   const handleAuthenticated = useCallback(
-    async (result: AuthResponse) => {
+    async (result: AuthResponse, destination?: RegistrationDestination) => {
       setUser(result.user)
       const landingPath = result.user.role === 'ADMIN' ? '/administration' : '/leagues'
-      navigate(landingPath, true)
+      const savedDestination = consumeRegistrationIntent()
+      navigate(destination ?? savedDestination ?? landingPath, true)
     },
     [navigate],
   )

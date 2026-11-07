@@ -1,8 +1,10 @@
 import { Eye, EyeOff } from 'lucide-react'
+import { useEffect } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import type { AuthResponse } from './types'
 import { useAuthForm } from './useAuthForm'
+import { rememberRegistrationIntent } from './registrationIntent'
 
 type Props = {
   pathname: string
@@ -15,6 +17,9 @@ type AuthMode = 'login' | 'register' | 'forgot'
 const PASSWORD_MIN_LENGTH = 12
 
 export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Props) {
+  useEffect(() => {
+    if (pathname !== '/reset-password') rememberRegistrationIntent(search)
+  }, [pathname, search])
   const {
     mode,
     resettingPassword,

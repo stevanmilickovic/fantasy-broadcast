@@ -158,8 +158,11 @@ test('league queries show loading, errors and empty onboarding', async ({ page }
   await checkViewport(page)
   await page.route('**/api/customer/leagues', (route) => route.fulfill({ json: [] }))
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Register a league', exact: true })).toBeVisible()
-  await expect(page).toHaveURL('/leagues/new')
+  await expect(page.getByRole('heading', { name: 'Your leagues', exact: true })).toBeVisible()
+  await expect(page).toHaveURL('/leagues')
+  await expect(
+    page.getByText('Find a league to follow, or register a league you manage.'),
+  ).toBeVisible()
   expect(errors).toEqual([])
 })
 

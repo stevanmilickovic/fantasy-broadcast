@@ -61,10 +61,7 @@ export function CustomerDashboard({
   const selectedLeague = leagues?.find((league) => league.id === selectedId) ?? null
   useEffect(() => {
     if (!leagues) return
-    if (pathname === '/leagues') {
-      if (leagues.length === 0) onNavigate('/leagues/new', true)
-      else if (leagues.length === 1) onNavigate(`/league?leagueId=${leagues[0].id}`, true)
-    } else if ((pathname === '/league' || pathname === '/league/manage') && !selectedLeague)
+    if ((pathname === '/league' || pathname === '/league/manage') && !selectedLeague)
       onNavigate('/leagues', true)
     else if (
       pathname === '/league/manage' &&
@@ -91,7 +88,9 @@ export function CustomerDashboard({
       {query.status === 'loading' && (pathname === '/leagues' || pathname === '/league') && (
         <p>Loading leagues…</p>
       )}
-      {pathname === '/leagues/new' && <LeagueRegistrationPage navigate={onNavigate} />}
+      {pathname === '/leagues/new' && (
+        <LeagueRegistrationPage search={search} navigate={onNavigate} />
+      )}
       {pathname === '/leagues/find' && (
         <LeagueDiscoveryPage
           search={search}

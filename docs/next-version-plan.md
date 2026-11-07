@@ -40,7 +40,14 @@ receive unique suffixes, and manual names still require uniqueness.
   Verification: lint/build and 79 unit tests; 24 discovery/privacy browser cases across
   six viewports, with existing pagination/login/checkout workflows also checked on
   phone, short landscape and desktop. Clearing an in-flight search is covered.
-- Remaining work: steps 5–19. Existing-name repair is omitted per the user's confirmation.
+- Step 5: Get started enters registration, with validated registration/plan intent through
+  login, email verification and per-tab Google redirect/retry. Intent expires after 30
+  minutes and is consumed once; ordinary sign-in keeps role-based defaults. The leagues
+  list now stays accessible with zero/one/many leagues. Pricing selections reach checkout.
+  Verification: lint/build, 86 unit tests, 49 browser checks on phone, short landscape and
+  desktop, with two expected desktop-only skips. Provider redirects use mocked browser
+  responses here; configured real Google sign-in remains an integration release check.
+- Remaining work: steps 6–19. Existing-name repair is omitted per the user's confirmation.
 
 ## Product decisions
 

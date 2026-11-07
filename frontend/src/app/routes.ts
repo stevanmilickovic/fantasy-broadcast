@@ -1,4 +1,5 @@
 import type { AuthUser } from '../features/auth/types'
+import { registrationDestination } from '../features/auth/registrationIntent'
 
 export type PublicPageName = 'pricing' | 'privacy' | 'terms' | 'refunds'
 export type Route =
@@ -28,7 +29,19 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
     case '/refunds':
       return { page: 'public', name: pathname.slice(1) as PublicPageName }
   }
+  if (
+    pathname === '/leagues/new' &&
+    (new URLSearchParams(search).has('search') || new URLSearchParams(search).has('page'))
+  )
+    return { page: 'redirect', to: `/leagues/find${search}` }
   if (!user) {
+    if (pathname === '/leagues/new') {
+      const params = new URLSearchParams(search)
+      const next = new URLSearchParams({ next: 'register' })
+      if (params.get('plan') === 'STANDARD' || params.get('plan') === 'AI_BROADCASTER')
+        next.set('plan', params.get('plan') ?? '')
+      return { page: 'redirect', to: `/register?${next}` }
+    }
     if (pathname === '/') return { page: 'welcome' }
     if (pathname === '/login' || pathname === '/register') return { page: 'auth', pathname }
     return { page: 'redirect', to: '/login' }
@@ -41,11 +54,10 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
     return { page: 'broadcast', leagueId }
   }
   if (pathname === '/account') return { page: 'account' }
-  if (
-    pathname === '/leagues/new' &&
-    (new URLSearchParams(search).has('search') || new URLSearchParams(search).has('page'))
-  )
-    return { page: 'redirect', to: `/leagues/find${search}` }
+  if (pathname === '/register' || pathname === '/login') {
+    const destination = registrationDestination(search)
+    if (destination) return { page: 'redirect', to: destination }
+  }
   if (pathname === '/league/subscription')
     return { page: 'redirect', to: `/league/manage${search}` }
   if (pathname === '/administration' && user.role === 'ADMIN') return { page: 'administration' }
