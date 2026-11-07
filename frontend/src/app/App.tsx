@@ -11,6 +11,7 @@ import { PublicPage } from '../features/public/PublicPages'
 import { WelcomePage } from '../features/public/WelcomePage'
 import { resolveRoute } from './routes'
 import { useBrowserNavigation, type Navigate } from './useBrowserNavigation'
+import { NotificationProvider } from '../shared/ui/NotificationProvider'
 
 function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
   useEffect(() => navigate(to, true), [to, navigate])
@@ -20,6 +21,22 @@ function Redirect({ to, navigate }: { to: string; navigate: Navigate }) {
 export default function App() {
   const { location, navigate } = useBrowserNavigation()
   const session = useAuthSession(navigate)
+  return (
+    <NotificationProvider key={session.user?.id ?? 'guest'}>
+      <AppContent session={session} location={location} navigate={navigate} />
+    </NotificationProvider>
+  )
+}
+
+function AppContent({
+  session,
+  location,
+  navigate,
+}: {
+  session: ReturnType<typeof useAuthSession>
+  location: ReturnType<typeof useBrowserNavigation>['location']
+  navigate: Navigate
+}) {
   const route = resolveRoute(location.pathname, location.search, session.user)
   if (route.page === 'payment-link')
     return <PaymentLinkPage search={location.search} navigate={navigate} />

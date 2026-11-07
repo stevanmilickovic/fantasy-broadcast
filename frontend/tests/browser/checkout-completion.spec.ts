@@ -46,6 +46,12 @@ test('paid registration waits for confirmation and opens the purchased league', 
   confirmed = true
   await expect(page).toHaveURL(`/league?leagueId=${leagues[0].id}`)
   await expect(page.getByRole('heading', { name: leagues[0].displayName })).toBeVisible()
+  await expect(page.locator('.notification-host')).toContainText('League registered successfully.')
+  await page.reload()
+  await expect(page.locator('.notification-host')).toHaveCount(0)
+  await page.goto(successPath)
+  await expect(page).toHaveURL(`/league?leagueId=${leagues[0].id}`)
+  await expect(page.locator('.notification-host')).toHaveCount(0)
   expect(errors).toEqual([])
   expect(unexpectedRequests).toEqual([])
 })

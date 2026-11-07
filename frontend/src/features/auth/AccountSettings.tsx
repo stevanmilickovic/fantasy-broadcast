@@ -4,6 +4,7 @@ import type { Navigate } from '../../app/useBrowserNavigation'
 import { useMutation } from '../../shared/api/useMutation'
 import { updateProfile } from './api'
 import type { AuthUser } from './types'
+import { useNotifications } from '../../shared/ui/notifications'
 
 export function AccountSettings({
   user,
@@ -16,10 +17,15 @@ export function AccountSettings({
 }) {
   const [name, setName] = useState(user.displayName)
   const saving = useMutation()
+  const { notify } = useNotifications()
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     const result = await saving.run((signal) => updateProfile(name, signal))
-    if (result) onUpdated(result.data)
+    if (result) {
+      setName(result.data.displayName)
+      onUpdated(result.data)
+      notify('Username saved.', { kind: 'success' })
+    }
   }
   return (
     <main className="account-shell account-settings">
@@ -55,7 +61,6 @@ export function AccountSettings({
             {saving.error}
           </p>
         )}
-        {saving.status === 'success' && <p role="status">Username saved.</p>}
         <button disabled={saving.busy}>{saving.busy ? 'Saving…' : 'Save username'}</button>
       </form>
     </main>

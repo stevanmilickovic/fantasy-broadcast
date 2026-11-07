@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { positiveId } from '../../app/routes'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useQuery } from '../../shared/api/useQuery'
@@ -13,6 +13,7 @@ import { CustomerNavigation } from './CustomerNavigation'
 import { LeagueDetailPage } from './LeagueDetailPage'
 import { LeaguePicker } from './LeaguePicker'
 import { LeagueRegistrationPage } from './LeagueRegistrationPage'
+import { useNotifications } from '../../shared/ui/notifications'
 
 export function CustomerDashboard({
   user,
@@ -29,6 +30,8 @@ export function CustomerDashboard({
 }) {
   const query = useQuery(`leagues:${user.id}`, loadRegisteredLeagues)
   const refreshLeagues = query.refresh
+  const { notify } = useNotifications()
+  const confirmed = useRef(new Set<number>())
   const leagues = query.data
   const parameters = new URLSearchParams(search)
   const paymentLeagueId = positiveId(parameters.get('fplLeagueId'))
@@ -36,10 +39,22 @@ export function CustomerDashboard({
     parameters.get('payment') === 'completed' && paymentLeagueId !== undefined
   const paymentConfirmed = useCallback(
     (leagueId: number) => {
+      const key = `fb:registration-confirmed:${user.id}:${leagueId}`
+      if (!confirmed.current.has(leagueId)) {
+        confirmed.current.add(leagueId)
+        let seen = false
+        try {
+          seen = sessionStorage.getItem(key) === 'yes'
+          sessionStorage.setItem(key, 'yes')
+        } catch {
+          /* Storage can be disabled; the mounted workflow still deduplicates. */
+        }
+        if (!seen) notify('League registered successfully.', { kind: 'success', id: key })
+      }
       refreshLeagues()
       onNavigate(`/league?leagueId=${leagueId}`, true)
     },
-    [refreshLeagues, onNavigate],
+    [refreshLeagues, onNavigate, notify, user.id],
   )
   const selectedId = positiveId(parameters.get('leagueId'))
   const selectedLeague = leagues?.find((league) => league.id === selectedId) ?? null

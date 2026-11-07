@@ -83,6 +83,10 @@ it('opens only the active purchased league owned by this subscriber and cancels 
     await vi.advanceTimersByTimeAsync(2000)
   })
   expect(onConfirmed).toHaveBeenCalledWith(9)
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(10_000)
+  })
+  expect(onConfirmed).toHaveBeenCalledTimes(1)
   unmount()
   const checks = vi.mocked(loadRegisteredLeagues).mock.calls.length
   await act(async () => {

@@ -21,6 +21,32 @@ test('a username conflict preserves the draft and a subsequent save persists', a
   await name.fill('My unique username')
   await page.getByRole('button', { name: 'Save username' }).click()
   await expect(page.getByRole('status')).toContainText('Username saved')
+  const notice = page.locator('.notification-host')
+  const bounds = await notice.boundingBox()
+  expect(bounds?.y).toBeGreaterThan(page.viewportSize()!.height / 2)
+  await page.screenshot({ path: test.info().outputPath('username-notification.png') })
+  if (page.viewportSize()!.height > 500) {
+    await page.evaluate(() => {
+      if (!window.visualViewport) throw new Error('Missing visual viewport')
+      Object.defineProperty(window.visualViewport, 'height', { configurable: true, value: 360 })
+      window.visualViewport.dispatchEvent(new Event('resize'))
+    })
+    const keyboardBounds = await notice.boundingBox()
+    expect((keyboardBounds?.y ?? 0) + (keyboardBounds?.height ?? 0)).toBeLessThanOrEqual(360)
+    await page.evaluate(() => {
+      if (!window.visualViewport) return
+      Object.defineProperty(window.visualViewport, 'height', {
+        configurable: true,
+        value: window.innerHeight,
+      })
+      window.visualViewport.dispatchEvent(new Event('resize'))
+    })
+  }
+  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await expect(notice).toContainText('Username saved')
+  await page.getByRole('button', { name: 'Dismiss notification' }).click()
+  await expect(notice).toHaveCount(0)
+  await page.goto('/account')
   await page.reload()
   await expect(name).toHaveValue('My unique username')
 })

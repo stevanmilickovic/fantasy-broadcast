@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '../../shared/api/useQuery'
 import { loadRegisteredLeagues } from '../leagues/api'
 
@@ -19,6 +19,7 @@ export function LeaguePaymentConfirmation({
   onNavigate: (path: string) => void
 }) {
   const [attempt, setAttempt] = useState(0)
+  const confirmed = useRef(false)
   const query = useQuery(
     `payment:${userId}:${fplLeagueId}:${leagueType}:${attempt}`,
     loadRegisteredLeagues,
@@ -32,8 +33,12 @@ export function LeaguePaymentConfirmation({
   )
   const waiting = attempt < MAX_CHECKS - 1 && query.status !== 'error'
   useEffect(() => {
-    if (league) onConfirmed(league.id)
-    else if (query.status === 'success' && waiting) {
+    if (league) {
+      if (!confirmed.current) {
+        confirmed.current = true
+        onConfirmed(league.id)
+      }
+    } else if (query.status === 'success' && waiting) {
       const timeout = window.setTimeout(() => setAttempt((value) => value + 1), CHECK_INTERVAL_MS)
       return () => window.clearTimeout(timeout)
     }

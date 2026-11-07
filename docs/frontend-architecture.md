@@ -51,6 +51,14 @@ broadcast API actions, while broadcast scenes never own administration state.
 
 ## Requests and asynchronous state
 
+`shared/ui/NotificationProvider` owns bottom success/information/error messages above
+route content. `App` keys it by account ID, retaining notices across routes while clearing
+them on account changes. `useNotifications` emits bounded, deduplicated messages; success
+expires unless hovered/focused, errors require dismissal. The host uses `visualViewport`
+and exposes `--notification-space` for controls that need unobscured scrolling space.
+Registration notices follow server confirmation and consume a session-scoped completion
+marker so refreshing or revisiting the confirmation URL does not announce it again.
+
 `features/auth/AccountSettings` edits the existing account display name through `/api/auth/me`.
 The client refreshes its identity and the backend refreshes active session copies.
 Usernames are unique under Unicode NFKC normalization and locale-independent lowercase;

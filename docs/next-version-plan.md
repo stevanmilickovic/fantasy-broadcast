@@ -30,7 +30,12 @@ receive unique suffixes, and manual names still require uniqueness.
   generated suffixes across account creation paths, manual 409 conflicts and field feedback.
   Verification: 140 backend tests, four migration/concurrency cases on disposable MySQL
   8.4, two account component tests, build/lint and 12 browser cases across six viewports.
-- Remaining work: steps 3–19. Existing-name repair is omitted per the user's confirmation.
+- Step 3: shared accessible bottom notifications for saved usernames and backend-confirmed
+  registration, retained across navigation and reset across accounts. Messages are bounded,
+  deduplicated, dismissible and keyboard/safe-area aware; repeated completion links are consumed.
+  Verification: lint/build and 78 unit tests pass; 24 account/checkout browser checks pass
+  across six viewports, plus six keyboard-position cases. Phone/desktop screenshots reviewed.
+- Remaining work: steps 4–19. Existing-name repair is omitted per the user's confirmation.
 
 ## Product decisions
 
