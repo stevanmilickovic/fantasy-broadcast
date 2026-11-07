@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.4 - 2026-11-07
+
+- Persist verified Paddle webhook events before acknowledgment, process them in the background with durable retries, and recover unfinished work after restarts.
+- Keep saved checkout verification valid across API-key rotation, validate and record current terms acceptance, and reject mismatched sandbox/live billing configuration.
+- Display the four homepage preview club logos in matchups and standings using the existing emblem component and transitions, with graceful handling of missing images.
+- Add a preview-logo preparation command that reuses the upload image processor, include optimized PNGs in frontend builds, and include the utility source in Docker build tests.
+- Add PNG/ICO search favicons and a coherent homepage meta description, and exclude feature-card headings and demo fixtures from search snippets.
+- Expand webhook, checkout validation, image preparation and responsive preview regression coverage.
+
 ## 1.3.3 - 2026-11-06
 
 - Add server-side pagination to subscriptions and registered league discovery, with fixed ten-item pages and newest-first league ordering.
