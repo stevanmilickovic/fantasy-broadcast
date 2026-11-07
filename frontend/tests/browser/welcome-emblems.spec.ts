@@ -14,6 +14,26 @@ async function demoLogos(page: Page, missing?: string) {
   )
 }
 
+test('homepage opponents have distinct squads and Saka belongs only to North Bank', async ({
+  page,
+}) => {
+  const { errors, unexpectedRequests } = await mockApp(page, null)
+  await page.goto('/')
+  const preview = page.locator('.welcome-real-broadcast')
+  const home = preview.locator('.broadcast-squad[data-side="home"]')
+  const away = preview.locator('.broadcast-squad[data-side="away"]')
+  await expect(home.locator('.broadcast-player')).toHaveCount(15)
+  await expect(away.locator('.broadcast-player')).toHaveCount(15)
+  await expect(home.locator('[data-player-name="Saka"]')).toHaveCount(1)
+  await expect(away.locator('[data-player-name="Saka"]')).toHaveCount(0)
+  const names = await preview
+    .locator('.broadcast-player')
+    .evaluateAll((players) => players.map((player) => player.getAttribute('data-player-name')))
+  expect(new Set(names).size).toBe(30)
+  expect(errors).toEqual([])
+  expect(unexpectedRequests).toEqual([])
+})
+
 test('homepage preview uses static club logos in matchups and standings without a league API', async ({
   page,
 }) => {

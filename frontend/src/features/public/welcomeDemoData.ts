@@ -2,7 +2,6 @@ import type { LeagueDiscoveryState } from '../../shared/fpl/types'
 import type { TeamEmblemData } from '../leagues/teamEmblems'
 import type {
   FantasyEventView,
-  LiveStandingView,
   LiveStateResponse,
   MatchupView,
   PlayerView,
@@ -10,9 +9,9 @@ import type {
 } from '../broadcast/types'
 
 type DemoClub = { id: string; manager: string; club: string; shortName: string; color: string }
+type DemoPlayer = [name: string, premierLeagueClub: string]
 type DemoFrame = {
   matchupIndex: number
-  scores: [number, number, number, number]
   eventTeam: number
   eventPlayer: number
   delta: number
@@ -43,9 +42,8 @@ export const welcomeTeamEmblems: TeamEmblemData[] = clubs.map((club, index) => (
 export const welcomeDemoFrames: DemoFrame[] = [
   {
     matchupIndex: 0,
-    scores: [53, 49, 43, 45],
     eventTeam: 0,
-    eventPlayer: 9,
+    eventPlayer: 5,
     delta: 5,
     type: 'GOAL',
     commentary:
@@ -53,16 +51,14 @@ export const welcomeDemoFrames: DemoFrame[] = [
   },
   {
     matchupIndex: 1,
-    scores: [53, 49, 48, 45],
     eventTeam: 2,
     eventPlayer: 6,
     delta: 3,
     type: 'ASSIST',
-    commentary: 'Palmer creates the equaliser. No Fuchs Given edge ahead in the second contest.',
+    commentary: "Palmer's assist puts No Fuchs Given one point ahead in the second contest.",
   },
   {
     matchupIndex: 0,
-    scores: [53, 52, 46, 45],
     eventTeam: 1,
     eventPlayer: 5,
     delta: 3,
@@ -72,30 +68,37 @@ export const welcomeDemoFrames: DemoFrame[] = [
   },
   {
     matchupIndex: 1,
-    scores: [53, 52, 46, 51],
     eventTeam: 3,
     eventPlayer: 9,
-    delta: 6,
+    delta: 4,
     type: 'GOAL',
-    commentary: 'Watkins delivers a six-point swing and Bonus Point Wanderers surge into the lead.',
+    commentary:
+      'Haaland delivers a four-point swing and Bonus Point Wanderers surge into the lead.',
   },
 ]
 
 export const welcomeShirtCodes = [
   { name: 'Arsenal', shortName: 'ARS', code: 3 },
   { name: 'Aston Villa', shortName: 'AVL', code: 7 },
+  { name: 'Bournemouth', shortName: 'BOU', code: 91 },
   { name: 'Brentford', shortName: 'BRE', code: 94 },
+  { name: 'Brighton', shortName: 'BHA', code: 36 },
   { name: 'Chelsea', shortName: 'CHE', code: 8 },
+  { name: 'Coventry City', shortName: 'COV', code: 9 },
+  { name: 'Everton', shortName: 'EVE', code: 11 },
+  { name: 'Fulham', shortName: 'FUL', code: 54 },
+  { name: 'Ipswich Town', shortName: 'IPS', code: 40 },
+  { name: 'Leeds', shortName: 'LEE', code: 2 },
   { name: 'Liverpool', shortName: 'LIV', code: 14 },
   { name: 'Manchester City', shortName: 'MCI', code: 43 },
+  { name: 'Manchester United', shortName: 'MUN', code: 1 },
   { name: 'Newcastle United', shortName: 'NEW', code: 4 },
+  { name: 'Spurs', shortName: 'TOT', code: 6 },
 ]
 
 export function welcomeBroadcastState(frameIndex: number): LiveStateResponse {
   const frame = welcomeDemoFrames[frameIndex]
-  const teams = clubs.map((club, index) =>
-    demoTeam(club, frame.scores[index], index === frame.eventTeam ? frame : undefined),
-  )
+  const teams = clubs.map((club, index) => demoTeam(club, index, frameIndex))
   const eventTeam = teams[frame.eventTeam]
   const eventPlayer = eventTeam.activePlayers[frame.eventPlayer]
   const event: FantasyEventView = {
@@ -123,7 +126,10 @@ export function welcomeBroadcastState(frameIndex: number): LiveStateResponse {
     gameweek: 24,
     matchups,
     teams,
-    standings: welcomeLiveStandings,
+    standings: welcomeLiveStandings.map((standing, index) => ({
+      ...standing,
+      gameweekPoints: teams[index].score,
+    })),
     events: [event],
     commentary: [
       {
@@ -148,36 +154,47 @@ function matchup(id: string, home: TeamView, away: TeamView): MatchupView {
   }
 }
 
-function demoTeam(club: DemoClub, score: number, event?: DemoFrame): TeamView {
-  const activePlayers = playerNames.map((name, index) =>
-    demoPlayer(club.id, name, index, score, event),
-  )
+function demoTeam(club: DemoClub, clubIndex: number, frameIndex: number): TeamView {
+  const squad = squads[clubIndex]
+  const openingScore = openingScores[clubIndex]
+  const playedEvents = welcomeDemoFrames
+    .slice(0, frameIndex + 1)
+    .filter((event) => event.eventTeam === clubIndex)
+  const frame = welcomeDemoFrames[frameIndex]
+  const currentEvent = frame.eventTeam === clubIndex ? frame : undefined
+  const activePlayers = squad.starting.map((player, index) => {
+    const basePoints =
+      Math.floor(openingScore / squad.starting.length) +
+      (index < openingScore % squad.starting.length ? 1 : 0)
+    const earned = playedEvents
+      .filter((event) => event.eventPlayer === index)
+      .reduce((points, event) => points + event.delta, 0)
+    return demoPlayer(club.id, player, index, basePoints + earned, currentEvent)
+  })
   return {
     managerId: club.id,
     displayName: club.manager,
     clubName: club.club,
     shortName: club.shortName,
     color: club.color,
-    score,
+    score: activePlayers.reduce((total, player) => total + player.points, 0),
     activePlayers,
-    benchPlayers: benchNames.map((name, index) => demoBenchPlayer(club.id, name, index)),
+    benchPlayers: squad.bench.map((player, index) => demoBenchPlayer(club.id, player, index)),
   }
 }
 
 function demoPlayer(
   clubId: string,
-  name: string,
+  [name, premierLeagueClub]: DemoPlayer,
   index: number,
-  score: number,
+  points: number,
   event?: DemoFrame,
 ): PlayerView {
-  const basePoints = Math.max(1, Math.floor(score / 11) + (index % 3) - 1)
-  const points = event?.eventPlayer === index ? basePoints + event.delta : basePoints
   return {
     id: `${clubId}-player-${index}`,
     displayName: name,
     shortName: name,
-    premierLeagueClub: demoPremierLeagueClubs[index],
+    premierLeagueClub,
     position: positions[index],
     lineupSlot: String(index + 1),
     points,
@@ -187,58 +204,123 @@ function demoPlayer(
   }
 }
 
-function demoBenchPlayer(clubId: string, name: string, index: number): PlayerView {
+function demoBenchPlayer(
+  clubId: string,
+  [name, premierLeagueClub]: DemoPlayer,
+  index: number,
+): PlayerView {
   return {
     id: `${clubId}-bench-${index}`,
     displayName: name,
     shortName: name,
-    premierLeagueClub: demoPremierLeagueClubs[index + 2],
-    position: index === 0 ? 'GKP' : 'MID',
+    premierLeagueClub,
+    position: benchPositions[index],
     lineupSlot: `B${index + 1}`,
     points: index + 1,
-    minutes: 0,
+    minutes: 76,
     status: 'BENCH',
     recentDelta: 0,
   }
 }
 
-const playerNames = [
-  'Raya',
-  'Saliba',
-  'Gabriel',
-  'Gvardiol',
-  'Alexander-Arnold',
-  'Palmer',
-  'Mbeumo',
-  'Gordon',
-  'Salah',
-  'Saka',
-  'Watkins',
-]
-const benchNames = ['Pickford', 'Rogers', 'Wood', 'Robinson']
 const positions = ['GKP', 'DEF', 'DEF', 'DEF', 'DEF', 'MID', 'MID', 'MID', 'MID', 'FWD', 'FWD']
-const demoPremierLeagueClubs = [
-  'Arsenal',
-  'Arsenal',
-  'Arsenal',
-  'Man City',
-  'Liverpool',
-  'Chelsea',
-  'Brentford',
-  'Newcastle',
-  'Liverpool',
-  'Arsenal',
-  'Aston Villa',
+const benchPositions = ['GKP', 'DEF', 'MID', 'FWD']
+const openingScores = [48, 49, 43, 45]
+
+const squads: { starting: DemoPlayer[]; bench: DemoPlayer[] }[] = [
+  {
+    starting: [
+      ['Raya', 'Arsenal'],
+      ['Gabriel', 'Arsenal'],
+      ['Gvardiol', 'Man City'],
+      ['Virgil', 'Liverpool'],
+      ['Hall', 'Newcastle'],
+      ['Saka', 'Arsenal'],
+      ['Rice', 'Arsenal'],
+      ['Cherki', 'Man City'],
+      ['Gakpo', 'Liverpool'],
+      ['Havertz', 'Arsenal'],
+      ['Evanilson', 'Bournemouth'],
+    ],
+    bench: [
+      ['Pickford', 'Everton'],
+      ['Castagne', 'Fulham'],
+      ['Iwobi', 'Fulham'],
+      ['Thiago', 'Brentford'],
+    ],
+  },
+  {
+    starting: [
+      ['A.Becker', 'Liverpool'],
+      ['De Cuyper', 'Brighton'],
+      ['Tarkowski', 'Everton'],
+      ['Calafiori', 'Arsenal'],
+      ['Bogle', 'Leeds'],
+      ['Mbeumo', 'Man Utd'],
+      ['Tavernier', 'Bournemouth'],
+      ['Schade', 'Brentford'],
+      ['Cunha', 'Man Utd'],
+      ['Isak', 'Liverpool'],
+      ['Calvert-Lewin', 'Leeds'],
+    ],
+    bench: [
+      ['Leno', 'Fulham'],
+      ['Ajer', 'Brentford'],
+      ['Ayari', 'Brighton'],
+      ['Barry', 'Everton'],
+    ],
+  },
+  {
+    starting: [
+      ['Verbruggen', 'Brighton'],
+      ['Branthwaite', 'Everton'],
+      ['Mykolenko', 'Everton'],
+      ['White', 'Arsenal'],
+      ['Jacquet', 'Liverpool'],
+      ['Dewsbury-Hall', 'Everton'],
+      ['Palmer', 'Chelsea'],
+      ['Rogers', 'Chelsea'],
+      ['Neto', 'Chelsea'],
+      ['João Pedro', 'Chelsea'],
+      ['Kostoulas', 'Brighton'],
+    ],
+    bench: [
+      ['Kelleher', 'Brentford'],
+      ['Boscagli', 'Brighton'],
+      ['Lewis-Potter', 'Brentford'],
+      ['Solanke', 'Spurs'],
+    ],
+  },
+  {
+    starting: [
+      ['Donnarumma', 'Man City'],
+      ['Van Hecke', 'Spurs'],
+      ['Konsa', 'Arsenal'],
+      ['Justin', 'Leeds'],
+      ['Hill', 'Bournemouth'],
+      ['Barnes', 'Newcastle'],
+      ['Semenyo', 'Man City'],
+      ['Manzambi', 'Aston Villa'],
+      ['Enciso', 'Ipswich Town'],
+      ['Haaland', 'Man City'],
+      ['Marmoush', 'Spurs'],
+    ],
+    bench: [
+      ['Kinsky', 'Spurs'],
+      ['Dunk', 'Brighton'],
+      ['Rudoni', 'Coventry City'],
+      ['N.Jackson', 'Aston Villa'],
+    ],
+  },
 ]
 
-const welcomeLiveStandings: LiveStandingView[] = [
+const welcomeLiveStandings = [
   {
     teamId: 'north-bank',
     managerName: 'Alex',
     teamName: 'North Bank FC',
     position: 1,
     total: 42,
-    gameweekPoints: 53,
     pointsFor: 1284,
   },
   {
@@ -247,7 +329,6 @@ const welcomeLiveStandings: LiveStandingView[] = [
     teamName: 'Expected Toulouse',
     position: 2,
     total: 39,
-    gameweekPoints: 52,
     pointsFor: 1248,
   },
   {
@@ -256,7 +337,6 @@ const welcomeLiveStandings: LiveStandingView[] = [
     teamName: 'No Fuchs Given',
     position: 3,
     total: 36,
-    gameweekPoints: 46,
     pointsFor: 1219,
   },
   {
@@ -265,7 +345,6 @@ const welcomeLiveStandings: LiveStandingView[] = [
     teamName: 'Bonus Point Wanderers',
     position: 4,
     total: 34,
-    gameweekPoints: 51,
     pointsFor: 1201,
   },
 ]
@@ -307,7 +386,7 @@ export const welcomeLeagueDiscovery: LeagueDiscoveryState = {
         league_entry_1: 3,
         league_entry_2: 4,
         league_entry_1_points: 46,
-        league_entry_2_points: 51,
+        league_entry_2_points: 49,
         finished: false,
       },
     ],
