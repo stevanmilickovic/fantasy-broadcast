@@ -26,7 +26,11 @@ receive unique suffixes, and manual names still require uniqueness.
   desktop-only exclusions on phone. Playwright Chromium was installed for these checks.
 - The full frontend check stops at existing formatting violations across untouched
   files. Changed frontend files are formatted; no unrelated formatting sweep was made.
-- Remaining work: steps 2–19. Existing-name repair is omitted per the user's confirmation.
+- Step 2: database-enforced Unicode/case-normalized usernames, preserved existing names,
+  generated suffixes across account creation paths, manual 409 conflicts and field feedback.
+  Verification: 140 backend tests, four migration/concurrency cases on disposable MySQL
+  8.4, two account component tests, build/lint and 12 browser cases across six viewports.
+- Remaining work: steps 3–19. Existing-name repair is omitted per the user's confirmation.
 
 ## Product decisions
 

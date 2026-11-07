@@ -42,11 +42,19 @@ export function AccountSettings({
             saving.reset()
           }}
           required
-          maxLength={40}
+          maxLength={80}
+          aria-invalid={Boolean(saving.error)}
+          aria-describedby={saving.error ? 'profile-name-error' : 'profile-name-help'}
           autoComplete="nickname"
         />
-        <p>Your username identifies you in league chats. Your account email stays private.</p>
-        {saving.error && <p role="alert">{saving.error}</p>}
+        <p id="profile-name-help">
+          Choose a unique username, up to 40 characters. Your account email stays private.
+        </p>
+        {saving.error && (
+          <p id="profile-name-error" role="alert">
+            {saving.error}
+          </p>
+        )}
         {saving.status === 'success' && <p role="status">Username saved.</p>}
         <button disabled={saving.busy}>{saving.busy ? 'Saving…' : 'Save username'}</button>
       </form>

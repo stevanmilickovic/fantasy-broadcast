@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 019-add-username-key
+      author: codex
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: username_key
+                  type: VARBINARY(2048)
+  - changeSet:
+      id: 019-populate-username-keys
+      author: codex
+      changes:
+        - customChange:
+            class: com.fantasybroadcast.backend.customer.UsernameKeyMigration
+  - changeSet:
+      id: 019-enforce-unique-usernames
+      author: codex
+      changes:
+        - addNotNullConstraint:
+            tableName: app_user
+            columnName: username_key
+            columnDataType: VARBINARY(2048)
+        - addUniqueConstraint:
+            tableName: app_user
+            columnNames: username_key
+            constraintName: uq_app_user_username

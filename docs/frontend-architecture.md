@@ -52,8 +52,10 @@ broadcast API actions, while broadcast scenes never own administration state.
 ## Requests and asynchronous state
 
 `features/auth/AccountSettings` edits the existing account display name through `/api/auth/me`.
-The client refreshes its identity and the backend refreshes active session copies. Names
-can repeat; user IDs remain the identity used by chat and memberships.
+The client refreshes its identity and the backend refreshes active session copies.
+Usernames are unique under Unicode NFKC normalization and locale-independent lowercase;
+the database enforces a binary canonical key. Generated defaults get a suffix on conflict;
+manual conflicts return 409. User IDs remain the identity used by chat and memberships.
 
 Chat and membership DTOs expose usernames and IDs without account emails. Administrative
 user lists omit emails too; league/billing ownership labels use usernames and IDs.

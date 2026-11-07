@@ -25,7 +25,7 @@ class ExclusiveAdminTests {
 		var source = new JdbcDataSource();
 		source.setURL("jdbc:h2:mem:" + java.util.UUID.randomUUID() + ";MODE=MySQL;DB_CLOSE_DELAY=-1");
 		jdbc = new JdbcTemplate(source);
-		jdbc.execute("create table app_user (id bigint auto_increment primary key, email varchar(255) unique, display_name varchar(255), password_hash varchar(255), role varchar(20), created_at timestamp default current_timestamp, updated_at timestamp default current_timestamp)");
+		jdbc.execute("create table app_user (id bigint auto_increment primary key, email varchar(255) unique, display_name varchar(255), username_key varbinary(2048) unique, password_hash varchar(255), role varchar(20), created_at timestamp default current_timestamp, updated_at timestamp default current_timestamp)");
 		jdbc.execute("create table league (id bigint primary key, owner_user_id bigint)");
 		jdbc.execute("create table league_registration (user_id bigint, league_id bigint)");
 		properties = new BroadcastSecurityProperties();

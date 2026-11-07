@@ -118,8 +118,7 @@ public class AccountService {
 		}
 		var role = defaultRegistrationRole();
 		try {
-			jdbcTemplate.update("insert into app_user (email, display_name, password_hash, role) values (?, ?, ?, ?)",
-					registration.email(), registration.displayName(), registration.passwordHash(), role.name());
+			createAccount(registration.email(), registration.displayName(), registration.passwordHash(), role);
 		}
 		catch (DuplicateKeyException exception) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "An account already exists for this email.");
@@ -144,8 +143,10 @@ public class AccountService {
 		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where email = ?", this::mapUser, normalizedEmail);
 		if (!users.isEmpty()) return users.getFirst();
 		var role = defaultRegistrationRole();
-		jdbcTemplate.update("insert into app_user (email, display_name, password_hash, role) values (?, ?, null, ?)",
-				normalizedEmail, cleanDisplayName(displayName, normalizedEmail), role.name());
+		try { createAccount(normalizedEmail, cleanDisplayName(displayName, normalizedEmail), null, role); }
+		catch (DuplicateKeyException duplicate) {
+			if (!emailExists(normalizedEmail)) throw duplicate;
+		}
 		return findByEmail(normalizedEmail);
 	}
 
@@ -156,11 +157,15 @@ public class AccountService {
 	}
 
 	public CurrentUser updateDisplayName(CurrentUser user, String displayName) {
-		var name = displayName == null ? "" : displayName.strip();
+		var name = Usernames.normalize(displayName);
 		if (name.isBlank() || name.codePointCount(0, name.length()) > 40 || name.codePoints().anyMatch(Character::isISOControl))
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username must contain 1–40 characters without control characters.");
-		if (jdbcTemplate.update("update app_user set display_name = ?, updated_at = current_timestamp where id = ?", name, user.id()) == 0)
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account was not found.");
+		try {
+			if (jdbcTemplate.update("update app_user set display_name = ?, username_key = ?, updated_at = current_timestamp where id = ?", name, Usernames.key(name), user.id()) == 0)
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account was not found.");
+		} catch (DuplicateKeyException duplicate) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "That username is already taken. Choose another username.");
+		}
 		var updated = findByEmail(user.email());
 		sessionService.refreshUser(updated);
 		return updated;
@@ -242,8 +247,7 @@ public class AccountService {
 		}
 		var users = jdbcTemplate.query("select id, email, display_name, role from app_user where email = ?", this::mapUser, normalizedEmail);
 		if (users.isEmpty()) {
-			jdbcTemplate.update("insert into app_user (email, display_name, password_hash, role) values (?, ?, ?, 'ADMIN')",
-					normalizedEmail, displayName(normalizedEmail), passwordHasher.hash(password));
+			createAccount(normalizedEmail, displayName(normalizedEmail), passwordHasher.hash(password), UserRole.ADMIN);
 			return;
 		}
 		jdbcTemplate.update("update app_user set role = 'ADMIN', password_hash = ? where id = ?", passwordHasher.hash(password), users.getFirst().id());
@@ -280,6 +284,24 @@ public class AccountService {
 	private String cleanDisplayName(String displayName, String email) {
 		if (displayName == null || displayName.isBlank()) return displayName(email);
 		return displayName.trim();
+	}
+
+	private void createAccount(String email, String defaultName, String passwordHash, UserRole role) {
+		var base = Usernames.normalize(defaultName).replaceAll("\\p{Cc}", "");
+		if (base.isBlank() || base.contains("@")) base = "Manager";
+		base = Usernames.shorten(base, Usernames.MAX_LENGTH);
+		for (int attempt = 0; attempt < 10; attempt++) {
+			var suffix = attempt == 0 ? "" : "_" + randomToken().substring(0, 8);
+			var name = Usernames.shorten(base, Usernames.MAX_LENGTH - suffix.length()) + suffix;
+			try {
+				jdbcTemplate.update("insert into app_user (email, display_name, username_key, password_hash, role) values (?, ?, ?, ?, ?)",
+						email, name, Usernames.key(name), passwordHash, role.name());
+				return;
+			} catch (DuplicateKeyException duplicate) {
+				if (emailExists(email)) throw duplicate;
+			}
+		}
+		throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Could not assign a username. Please try again.");
 	}
 
 	private UserRole defaultRegistrationRole() {
