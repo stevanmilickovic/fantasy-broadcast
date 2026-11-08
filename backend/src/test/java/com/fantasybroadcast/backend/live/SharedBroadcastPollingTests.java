@@ -35,8 +35,8 @@ class SharedBroadcastPollingTests {
 	void setUp() throws Exception {
 		bootstrap = (ObjectNode) read("bootstrap-static.sample.json");
 		bootstrap.putArray("events").addObject().put("id", 1).put("is_current", true);
-		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
-		when(client.getDraftBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getCurrentFantasyBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getCurrentDraftBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getLeagueDetails(anyLong())).thenReturn(read("draft-league-details.sample.json"));
 		when(client.getEntryEvent(anyLong(), anyInt())).thenReturn(read("entry-event.sample.json"));
 		when(client.getFantasyEntryEvent(anyLong(), anyInt())).thenReturn(read("entry-event.sample.json"));

@@ -53,7 +53,7 @@ class CustomerLeagueControllerTests {
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Classic League", FplLeagueType.CLASSIC,
 				FplLeagueScoring.H2H, true, false, false, user.id(), false));
 		when(client.getClassicLeagueStandings(12345)).thenReturn(json.readTree("{\"standings\":{\"results\":[]}}"));
-		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getCurrentFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getFantasyEventLive(8)).thenReturn(json.readTree("{\"elements\":[]}"));
 		for (int event = 1; event <= 9; event++) {
 			when(client.getClassicLeagueMatches(12345, event)).thenReturn(json.readTree("""
@@ -98,14 +98,14 @@ class CustomerLeagueControllerTests {
 				FplLeagueScoring.H2H, true, false, false, user.id(), false));
 		when(client.getLeagueDetails(12345)).thenReturn(details);
 		when(client.getLeagueElementStatus(12345)).thenReturn(elementStatus);
-		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getCurrentFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(bootstrap.path("events")).thenReturn(events);
 		when(events.iterator()).thenReturn(java.util.List.of(currentEvent).iterator());
 		when(currentEvent.path("is_current")).thenReturn(current);
 		when(current.asBoolean(false)).thenReturn(true);
 		when(currentEvent.path("id")).thenReturn(gameweekId);
 		when(gameweekId.asInt()).thenReturn(2);
-		when(client.getDraftBootstrapStatic()).thenReturn(mock(JsonNode.class));
+		when(client.getCurrentDraftBootstrapStatic()).thenReturn(mock(JsonNode.class));
 		when(mapper.mapLeagueDetails(details)).thenReturn(new FplDraftLeague(
 				java.util.List.of(new FplDraftLeagueEntry(101, 9001, "Test League", "Viewer")), java.util.List.of(), java.util.List.of()));
 		when(mapper.mapEntryEvent(client.getEntryEvent(9001, 2))).thenReturn(mock(com.fantasybroadcast.backend.fpl.FplEntryEvent.class));
@@ -150,7 +150,7 @@ class CustomerLeagueControllerTests {
 				java.util.List.of(new FplLiveExplanation(55, java.util.List.of(new FplLivePointBreakdown("goals_scored", 4, 1, 0)))));
 		when(leagues.accessibleLeague(user, 41)).thenReturn(new RegisteredLeague(41, 12345, "Test League", FplLeagueType.CLASSIC,
 				FplLeagueScoring.H2H, true, false, false, user.id(), false));
-		when(client.getFantasyBootstrapStatic()).thenReturn(bootstrap);
+		when(client.getCurrentFantasyBootstrapStatic()).thenReturn(bootstrap);
 		when(client.getFantasyPlayerSummary(12)).thenReturn(summary);
 		when(client.getFantasyEventLive(3)).thenReturn(liveRoot);
 		var availability = new FplPlayer.Availability("d", 75, 50, "Knock");

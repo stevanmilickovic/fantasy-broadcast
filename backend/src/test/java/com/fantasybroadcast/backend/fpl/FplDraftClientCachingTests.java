@@ -56,20 +56,21 @@ class FplDraftClientCachingTests {
 	}
 
 	@Test
-	void allOrdinaryEndpointsAreCachedForAnHourIncludingLineupsAndPlayerPoints() {
-		List<Supplier<JsonNode>> calls = List.of(client::getDraftBootstrapStatic, client::getFantasyBootstrapStatic,
-				client::getFantasyFixtures, () -> client.getFantasyPlayerSummary(1), () -> client.getLeagueDetails(1),
-				() -> client.getLeagueElementStatus(1), () -> client.getLeagueTransactions(1), () -> client.getDraftChoices(1),
-				() -> client.getEntryEvent(1, 8), () -> client.getDraftEventLive(8), () -> client.getFantasyEventLive(8),
-				() -> client.getFantasyEntryEvent(1, 8), () -> client.getClassicLeagueStandings(1),
-				() -> client.getClassicPointsLeagueStandings(1), () -> client.getClassicLeagueMatches(1, 8));
-		calls.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(1));
-		clock.advance(3599);
-		calls.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(1));
+	void staticMetadataKeepsHourlyCachingWhileMutableDataRefreshesOnDemand() {
+		List<Supplier<JsonNode>> stable = List.of(client::getDraftBootstrapStatic, client::getFantasyBootstrapStatic,
+				() -> client.getFantasyPlayerSummary(1), () -> client.getDraftChoices(1), () -> client.getLeagueTransactions(1));
+		List<Supplier<JsonNode>> current = List.of(client::getCurrentFantasyBootstrapStatic, client::getCurrentDraftBootstrapStatic,
+				client::getFantasyFixtures, () -> client.getLeagueDetails(1), () -> client.getLeagueElementStatus(1),
+				() -> client.getEntryEvent(1,8), () -> client.getFantasyEntryEvent(1,8), () -> client.getClassicLeagueStandings(1),
+				() -> client.getClassicPointsLeagueStandings(1), () -> client.getClassicLeagueMatches(1,8));
+		current.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(1));
+		clock.advance(29);
+		current.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(1));
 		clock.advance(1);
-		calls.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(2));
-		assertThat(requests).hasSize(calls.size());
-		assertThat(requests.values()).allSatisfy(count -> assertThat(count.get()).isEqualTo(2));
+		current.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(2));
+		stable.forEach(Supplier::get);
+		clock.advance(3599);
+		stable.forEach(call -> assertThat(call.get().path("request").asInt()).isEqualTo(call == stable.get(0) || call == stable.get(1) ? 2 : 1));
 	}
 
 	@Test
@@ -100,9 +101,9 @@ class FplDraftClientCachingTests {
 		assertThat(client.getDraftEventLive(8).path("request").asInt()).isEqualTo(2);
 		clock.advance(10);
 		assertThat(client.getBroadcastDraftEventLive(8).path("request").asInt()).isEqualTo(3);
-		clock.advance(3599);
-		assertThat(client.getDraftEventLive(8).path("request").asInt()).isEqualTo(3);
-		assertThat(requests.get("/draft/event/8/live").get()).isEqualTo(3);
+		clock.advance(10);
+		assertThat(client.getDraftEventLive(8).path("request").asInt()).isEqualTo(4);
+		assertThat(requests.get("/draft/event/8/live").get()).isEqualTo(4);
 	}
 
 	@Test
@@ -122,7 +123,7 @@ class FplDraftClientCachingTests {
 	}
 
 	@Test
-	void failedFeedsAreRetriedOncePerTenSecondsWhileValidHourlyDataRemainsReadable() {
+	void failedFeedsAreRetriedOncePerTenSecondsAndNeverClaimOldPointsAreCurrent() {
 		client.getFantasyEventLive(8);
 		clock.advance(10);
 		status.set(503);
@@ -130,11 +131,26 @@ class FplDraftClientCachingTests {
 			assertThatThrownBy(() -> client.getBroadcastFantasyEventLive(8)).isInstanceOf(FplDraftClientException.class);
 		}
 		assertThat(requests.get("/classic/event/8/live/").get()).isEqualTo(2);
-		assertThat(client.getFantasyEventLive(8).path("request").asInt()).isEqualTo(1);
+		assertThatThrownBy(() -> client.getFantasyEventLive(8)).isInstanceOf(FplDraftClientException.class);
 		clock.advance(10);
 		status.set(200);
 		assertThat(client.getBroadcastFantasyEventLive(8).path("request").asInt()).isEqualTo(3);
 		assertThat(client.getFantasyEventLive(8).path("request").asInt()).isEqualTo(3);
+	}
+
+	@Test
+	void currentSnapshotsExposeActualFetchTimesAndDoNotPollWithoutDemand() {
+		var first = client.getCurrentPoints(FplLeagueType.CLASSIC, 8);
+		var fixtures = client.getCurrentFixtures();
+		clock.advance(9);
+		assertThat(client.getCurrentPoints(FplLeagueType.CLASSIC, 8).fetchedAt()).isEqualTo(first.fetchedAt());
+		clock.advance(1);
+		assertThat(client.getCurrentPoints(FplLeagueType.CLASSIC, 8).fetchedAt()).isEqualTo(first.fetchedAt().plusSeconds(10));
+		assertThat(client.getCurrentFixtures().fetchedAt()).isEqualTo(fixtures.fetchedAt());
+		clock.advance(20);
+		assertThat(client.getCurrentFixtures().fetchedAt()).isEqualTo(fixtures.fetchedAt().plusSeconds(30));
+		clock.advance(3600);
+		assertThat(requests.get("/classic/fixtures/").get()).isEqualTo(2);
 	}
 
 	@Test

@@ -1,0 +1,119 @@
+{
+  "sources": [
+    "https://fantasy.premierleague.com/api/bootstrap-static/",
+    "https://draft.premierleague.com/api/bootstrap-static",
+    "https://fantasy.premierleague.com/api/fixtures/"
+  ],
+  "capturedAt": "2026-11-08T11:20:41.860Z",
+  "draftPlayer": {
+    "id": 554,
+    "code": 439509,
+    "team": 1,
+    "first_name": "Christos",
+    "second_name": "Tzolis",
+    "web_name": "Tzolis",
+    "element_type": 3
+  },
+  "classicPlayer": {
+    "id": 557,
+    "code": 439509,
+    "team": 1,
+    "first_name": "Christos",
+    "second_name": "Tzolis",
+    "web_name": "Tzolis",
+    "element_type": 3
+  },
+  "draftClub": {
+    "code": 3,
+    "id": 1,
+    "name": "Arsenal",
+    "pulse_id": 1,
+    "short_name": "ARS"
+  },
+  "classicClub": {
+    "code": 3,
+    "draw": 0,
+    "form": null,
+    "id": 1,
+    "loss": 0,
+    "name": "Arsenal",
+    "played": 0,
+    "points": 0,
+    "position": 1,
+    "short_name": "ARS",
+    "strength": null,
+    "team_division": null,
+    "unavailable": false,
+    "win": 0,
+    "link_url": "",
+    "strength_overall_home": 4,
+    "strength_overall_away": 5,
+    "strength_attack_home": 0,
+    "strength_attack_away": 0,
+    "strength_defence_home": 0,
+    "strength_defence_away": 0,
+    "pulse_id": 1
+  },
+  "fixtures": [
+    {
+      "id": 1,
+      "event": 1,
+      "team_h": 1,
+      "team_a": 7,
+      "team_h_score": 3,
+      "team_a_score": 0,
+      "started": true,
+      "finished": true,
+      "finished_provisional": true,
+      "minutes": 90,
+      "kickoff_time": "2026-08-21T19:00:00Z",
+      "team_h_difficulty": 2,
+      "team_a_difficulty": 5
+    },
+    {
+      "id": 20,
+      "event": 2,
+      "team_h": 2,
+      "team_a": 1,
+      "team_h_score": 0,
+      "team_a_score": 1,
+      "started": true,
+      "finished": true,
+      "finished_provisional": true,
+      "minutes": 90,
+      "kickoff_time": "2026-08-31T19:00:00Z",
+      "team_h_difficulty": 4,
+      "team_a_difficulty": 3
+    },
+    {
+      "id": 29,
+      "event": 3,
+      "team_h": 1,
+      "team_a": 6,
+      "team_h_score": 2,
+      "team_a_score": 1,
+      "started": true,
+      "finished": true,
+      "finished_provisional": true,
+      "minutes": 90,
+      "kickoff_time": "2026-09-06T15:30:00Z",
+      "team_h_difficulty": 4,
+      "team_a_difficulty": 5
+    },
+    {
+      "id": 36,
+      "event": 4,
+      "team_h": 20,
+      "team_a": 1,
+      "team_h_score": 0,
+      "team_a_score": 2,
+      "started": true,
+      "finished": true,
+      "finished_provisional": true,
+      "minutes": 90,
+      "kickoff_time": "2026-09-12T19:00:00Z",
+      "team_h_difficulty": 4,
+      "team_a_difficulty": 3
+    }
+  ]
+}

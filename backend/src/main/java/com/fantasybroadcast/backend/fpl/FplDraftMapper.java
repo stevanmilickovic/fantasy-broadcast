@@ -38,6 +38,12 @@ public class FplDraftMapper {
 	}
 
 	public List<FplPlayer> mapDraftPlayers(JsonNode draft, JsonNode fantasy) {
+		var classicClubByCode = new HashMap<Integer, Integer>();
+		for (var club : fantasy.path("teams")) if (intValue(club, "code") > 0)
+			classicClubByCode.put(intValue(club, "code"), intValue(club, "id"));
+		var classicClubByDraftId = new HashMap<Integer, Integer>();
+		for (var club : draft.path("teams"))
+			classicClubByDraftId.put(intValue(club, "id"), classicClubByCode.getOrDefault(intValue(club, "code"), 0));
 		var seasonByCode = new HashMap<Integer, FplPlayer.SeasonStats>();
 		for (var element : fantasy.path("elements")) {
 			var season = seasonStats(element);
@@ -46,7 +52,7 @@ public class FplDraftMapper {
 		var codeById = new HashMap<Integer, Integer>();
 		for (var element : draft.path("elements")) codeById.put(intValue(element, "id"), intValue(element, "code"));
 		return mapPlayers(draft).stream().map(player -> new FplPlayer(player.id(), player.webName(), player.fullName(),
-				player.premierLeagueClub(), player.premierLeagueClubId(), player.position(),
+				player.premierLeagueClub(), classicClubByDraftId.getOrDefault(player.premierLeagueClubId(), 0), player.position(),
 				seasonByCode.getOrDefault(codeById.get(player.id()), player.season()), player.availability())).toList();
 	}
 
@@ -288,9 +294,13 @@ public class FplDraftMapper {
 					booleanValue(fixture, "finished"),
 					booleanValue(fixture, "finished_provisional"),
 					intValue(fixture, "minutes"),
-					text(fixture, "kickoff_time")));
+					fixture.path("kickoff_time").isTextual() ? fixture.path("kickoff_time").asText() : null,
+					difficulty(fixture.path("team_h_difficulty")), difficulty(fixture.path("team_a_difficulty"))));
 		}
 		return fixtures;
+	}
+	private Integer difficulty(JsonNode value) {
+		return value.isIntegralNumber() && value.asInt() >= 1 && value.asInt() <= 5 ? value.asInt() : null;
 	}
 
 	private List<FplDraftLeagueEntry> mapLeagueEntries(JsonNode entriesNode) {

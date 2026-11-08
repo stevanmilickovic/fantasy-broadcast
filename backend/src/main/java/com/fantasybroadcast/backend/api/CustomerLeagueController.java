@@ -130,7 +130,7 @@ public class CustomerLeagueController {
 			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
 					"This league has " + managerCount + " managers; the maximum is 50.");
 		}
-		var bootstrap = fplClient.getFantasyBootstrapStatic();
+		var bootstrap = fplClient.getCurrentFantasyBootstrapStatic();
 		var gameweek = currentGameweek(bootstrap);
 		var matches = league.scoringType() == FplLeagueScoring.H2H
 				? classicOverviewMatches(league.fplLeagueId(), standingsRoot, bootstrap, gameweek)
@@ -190,7 +190,7 @@ public class CustomerLeagueController {
 					"This overview is only available for Draft leagues.");
 		}
 		var details = fplClient.getLeagueDetails(league.fplLeagueId());
-		var bootstrap = fplClient.getFantasyBootstrapStatic();
+		var bootstrap = fplClient.getCurrentFantasyBootstrapStatic();
 		var gameweek = currentGameweek(bootstrap);
 		var entryEvents = new java.util.LinkedHashMap<Long, FplEntryEvent>();
 		for (var entry : fplMapper.mapLeagueDetails(details).entries()) {
@@ -199,13 +199,13 @@ public class CustomerLeagueController {
 		var livePlayers = fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players();
 		return new DraftLeagueDiscovery(gameweek, com.fantasybroadcast.backend.fpl.CustomerFplData.leagueDetails(details),
 				com.fantasybroadcast.backend.fpl.CustomerFplData.elementStatus(fplClient.getLeagueElementStatus(league.fplLeagueId())),
-				fplMapper.mapDraftPlayers(fplClient.getDraftBootstrapStatic(), bootstrap), entryEvents, livePlayers);
+				fplMapper.mapDraftPlayers(fplClient.getCurrentDraftBootstrapStatic(), bootstrap), entryEvents, livePlayers);
 	}
 
 	@GetMapping("/fpl/shirts")
 	public List<FplClubShirt> shirts(HttpServletRequest request) {
 		currentUser(request);
-		return fplMapper.mapClubShirts(fplClient.getFantasyBootstrapStatic());
+		return fplMapper.mapClubShirts(fplClient.getCurrentFantasyBootstrapStatic());
 	}
 
 	@GetMapping("/leagues/{leagueId}/players/{playerId}")
@@ -213,7 +213,7 @@ public class CustomerLeagueController {
 			@PathVariable @Positive int playerId, @RequestParam @Positive @Max(38) int gameweek) {
 		var league = leagueService.accessibleLeague(currentUser(request), leagueId);
 		var bootstrap = league.leagueType() == FplLeagueType.DRAFT
-				? fplClient.getDraftBootstrapStatic() : fplClient.getFantasyBootstrapStatic();
+				? fplClient.getCurrentDraftBootstrapStatic() : fplClient.getCurrentFantasyBootstrapStatic();
 		var player = fplMapper.mapPlayers(bootstrap).stream().filter(candidate -> candidate.id() == playerId).findFirst()
 				.orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Player not found."));
 		var playerCode = 0;
@@ -223,7 +223,7 @@ public class CustomerLeagueController {
 		var fantasyPlayerId = playerId;
 		if (league.leagueType() == FplLeagueType.DRAFT) {
 			fantasyPlayerId = 0;
-			for (var element : fplClient.getFantasyBootstrapStatic().path("elements")) {
+			for (var element : fplClient.getCurrentFantasyBootstrapStatic().path("elements")) {
 				if (playerCode > 0 && element.path("code").asInt() == playerCode) { fantasyPlayerId = element.path("id").asInt(); break; }
 			}
 		}

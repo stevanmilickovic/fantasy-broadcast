@@ -54,7 +54,7 @@ public class MockLiveStateService {
 
 	private static final long STREAM_TIMEOUT = Long.MAX_VALUE;
 	private static final long STEP_INTERVAL_SECONDS = 10L;
-	private static final long LEAGUE_REFRESH_SECONDS = 3600L;
+	private static final long LEAGUE_REFRESH_SECONDS = 30L;
 	// shortcut: slots are process-local; use a shared registry before running multiple backend instances.
 	private static final int MAX_BROADCAST_VIEWERS = 50;
 	private static final String[] TEAM_COLORS = { "#2684ff", "#f04770", "#ffb000", "#24c47e", "#9b59ff", "#ff7a45" };
@@ -253,18 +253,18 @@ public class MockLiveStateService {
 		return state;
 	}
 
-	/** League composition is hourly; each polling cycle shares live player data across its leagues. */
+	/** Refresh league composition around rollover; each cycle shares points across its leagues. */
 	private LeagueSnapshot loadLeagueSnapshot(long leagueId, FplLeagueType leagueType, FplLeagueScoring scoringType) {
 		if (leagueType == FplLeagueType.DRAFT) {
 			var league = fplMapper.mapLeagueDetails(fplClient.getLeagueDetails(leagueId));
-			var playersById = indexPlayers(fplMapper.mapPlayers(fplClient.getDraftBootstrapStatic()));
-			var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic(), league);
+			var playersById = indexPlayers(fplMapper.mapPlayers(fplClient.getCurrentDraftBootstrapStatic()));
+			var gameweek = currentGameweek(fplClient.getCurrentFantasyBootstrapStatic(), league);
 			var entryEvents = new HashMap<Long, FplEntryEvent>();
 			for (var entry : league.entries()) entryEvents.put((long) entry.entryId(), fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek)));
 			return new LeagueSnapshot(leagueType, scoringType, gameweek, playersById, league, List.of(), List.of(), entryEvents);
 		}
 
-		var fantasyBootstrap = fplClient.getFantasyBootstrapStatic();
+		var fantasyBootstrap = fplClient.getCurrentFantasyBootstrapStatic();
 		var gameweek = currentGameweek(fantasyBootstrap, null);
 		var playersById = indexPlayers(fplMapper.mapPlayers(fantasyBootstrap));
 		var classicLeague = scoringType == FplLeagueScoring.H2H
@@ -601,8 +601,8 @@ public class MockLiveStateService {
 
 	private LiveStateResponse fetchDraftState(long leagueId, Map<String, Integer> priorPoints, Map<Integer, FplLivePlayer> priorLivePlayers) {
 		FplDraftLeague league = fplMapper.mapLeagueDetails(fplClient.getLeagueDetails(leagueId));
-		var bootstrap = fplClient.getDraftBootstrapStatic();
-		var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic(), league);
+		var bootstrap = fplClient.getCurrentDraftBootstrapStatic();
+		var gameweek = currentGameweek(fplClient.getCurrentFantasyBootstrapStatic(), league);
 		var playersById = indexPlayers(fplMapper.mapPlayers(bootstrap));
 		var liveById = indexLivePlayers(fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players());
 		fetchedRealLivePlayers = liveById;
@@ -635,7 +635,7 @@ public class MockLiveStateService {
 
 	private LiveStateResponse fetchClassicState(long leagueId, Map<String, Integer> priorPoints,
 			Map<Integer, FplLivePlayer> priorLivePlayers) {
-		var fantasyBootstrap = fplClient.getFantasyBootstrapStatic();
+		var fantasyBootstrap = fplClient.getCurrentFantasyBootstrapStatic();
 		var gameweek = currentGameweek(fantasyBootstrap, null);
 		FplClassicLeague league = fplMapper.mapClassicLeague(
 				fplClient.getClassicLeagueStandings(leagueId), fplClient.getClassicLeagueMatches(leagueId, gameweek));
@@ -672,8 +672,8 @@ public class MockLiveStateService {
 	private LiveStateResponse fetchDraftPointsState(long leagueId, Map<String, Integer> priorPoints,
 			Map<Integer, FplLivePlayer> priorLivePlayers) {
 		FplDraftLeague league = fplMapper.mapLeagueDetails(fplClient.getLeagueDetails(leagueId));
-		var bootstrap = fplClient.getDraftBootstrapStatic();
-		var gameweek = currentGameweek(fplClient.getFantasyBootstrapStatic(), league);
+		var bootstrap = fplClient.getCurrentDraftBootstrapStatic();
+		var gameweek = currentGameweek(fplClient.getCurrentFantasyBootstrapStatic(), league);
 		var playersById = indexPlayers(fplMapper.mapPlayers(bootstrap));
 		var liveById = indexLivePlayers(fplMapper.mapDraftEventLive(fplClient.getDraftEventLive(gameweek)).players());
 		fetchedRealLivePlayers = liveById;
@@ -689,7 +689,7 @@ public class MockLiveStateService {
 
 	private LiveStateResponse fetchClassicPointsState(long leagueId, Map<String, Integer> priorPoints,
 			Map<Integer, FplLivePlayer> priorLivePlayers) {
-		var fantasyBootstrap = fplClient.getFantasyBootstrapStatic();
+		var fantasyBootstrap = fplClient.getCurrentFantasyBootstrapStatic();
 		var gameweek = currentGameweek(fantasyBootstrap, null);
 		var entries = fplMapper.mapClassicLeagueEntries(fplClient.getClassicPointsLeagueStandings(leagueId));
 		var playersById = indexPlayers(fplMapper.mapPlayers(fantasyBootstrap));

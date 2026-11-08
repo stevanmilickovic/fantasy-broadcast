@@ -48,7 +48,7 @@ public class FplDraftClient {
 	}
 
 	public JsonNode getFantasyFixtures() {
-		return getCachedJson(properties.getFantasyBaseUrl() + "/fixtures/");
+		return getCachedJson(properties.getFantasyBaseUrl() + "/fixtures/", 30);
 	}
 
 	public JsonNode getFantasyPlayerSummary(int playerId) {
@@ -56,11 +56,11 @@ public class FplDraftClient {
 	}
 
 	public JsonNode getLeagueDetails(long leagueId) {
-		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details");
+		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details", 30);
 	}
 
 	public JsonNode getLeagueElementStatus(long leagueId) {
-		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/element-status");
+		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/element-status", 30);
 	}
 
 	public JsonNode getLeagueTransactions(long leagueId) {
@@ -72,15 +72,15 @@ public class FplDraftClient {
 	}
 
 	public JsonNode getEntryEvent(long entryId, int eventId) {
-		return getCachedJson(properties.getDraftBaseUrl() + "/entry/" + entryId + "/event/" + eventId);
+		return getCachedJson(properties.getDraftBaseUrl() + "/entry/" + entryId + "/event/" + eventId, 30);
 	}
 
 	public JsonNode getDraftEventLive(int eventId) {
-		return getCachedJson(properties.getDraftBaseUrl() + "/event/" + eventId + "/live");
+		return getCachedJson(properties.getDraftBaseUrl() + "/event/" + eventId + "/live", LIVE_CACHE_SECONDS);
 	}
 
 	public JsonNode getFantasyEventLive(int eventId) {
-		return getCachedJson(properties.getFantasyBaseUrl() + "/event/" + eventId + "/live/");
+		return getCachedJson(properties.getFantasyBaseUrl() + "/event/" + eventId + "/live/", LIVE_CACHE_SECONDS);
 	}
 
 	public JsonNode getBroadcastDraftEventLive(int eventId) {
@@ -92,7 +92,7 @@ public class FplDraftClient {
 	}
 
 	public JsonNode getFantasyEntryEvent(long entryId, int eventId) {
-		return getCachedJson(properties.getFantasyBaseUrl() + "/entry/" + entryId + "/event/" + eventId + "/picks/");
+		return getCachedJson(properties.getFantasyBaseUrl() + "/entry/" + entryId + "/event/" + eventId + "/picks/", 30);
 	}
 
 	public JsonNode getClassicLeagueStandings(long leagueId) {
@@ -101,7 +101,7 @@ public class FplDraftClient {
 
 	public JsonNode getClassicLeagueStandings(long leagueId, int page) {
 		return getCachedJson(properties.getFantasyBaseUrl() + "/leagues-h2h/" + leagueId
-				+ "/standings/?page_new_entries=1&page_standings=" + page);
+				+ "/standings/?page_new_entries=1&page_standings=" + page, 30);
 	}
 
 	public JsonNode getClassicPointsLeagueStandings(long leagueId) {
@@ -110,12 +110,34 @@ public class FplDraftClient {
 
 	public JsonNode getClassicPointsLeagueStandings(long leagueId, int page) {
 		return getCachedJson(properties.getFantasyBaseUrl() + "/leagues-classic/" + leagueId
-				+ "/standings/?page_new_entries=1&page_standings=" + page);
+				+ "/standings/?page_new_entries=1&page_standings=" + page, 30);
 	}
 
 	public JsonNode getClassicLeagueMatches(long leagueId, int eventId) {
-		return getCachedJson(properties.getFantasyBaseUrl() + "/leagues-h2h-matches/league/" + leagueId + "/?event=" + eventId);
+		return getCachedJson(properties.getFantasyBaseUrl() + "/leagues-h2h-matches/league/" + leagueId + "/?event=" + eventId, 30);
 	}
+
+	public JsonNode getCurrentFantasyBootstrapStatic() {
+		return getCachedJson(properties.getFantasyBaseUrl() + "/bootstrap-static/", 30);
+	}
+
+	public JsonNode getCurrentDraftBootstrapStatic() {
+		return getCachedJson(properties.getDraftBaseUrl() + "/bootstrap-static", 30);
+	}
+
+	public SourceJson getCurrentPoints(FplLeagueType type, int gameweek) {
+		var url = type == FplLeagueType.DRAFT ? properties.getDraftBaseUrl() + "/event/" + gameweek + "/live"
+				: properties.getFantasyBaseUrl() + "/event/" + gameweek + "/live/";
+		var cached = getCachedSource(url, LIVE_CACHE_SECONDS);
+		return new SourceJson(cached.value().deepCopy(), cached.loadedAt());
+	}
+
+	public SourceJson getCurrentFixtures() {
+		var cached = getCachedSource(properties.getFantasyBaseUrl() + "/fixtures/", 30);
+		return new SourceJson(cached.value().deepCopy(), cached.loadedAt());
+	}
+
+	public record SourceJson(JsonNode value, Instant fetchedAt) { }
 
 	private JsonNode getJson(String url) {
 		var request = HttpRequest.newBuilder(URI.create(url))
@@ -153,6 +175,10 @@ public class FplDraftClient {
 	}
 
 	private JsonNode getCachedJson(String url, int maxAgeSeconds) {
+		return getCachedSource(url, maxAgeSeconds).value().deepCopy();
+	}
+
+	private CachedJson getCachedSource(String url, int maxAgeSeconds) {
 		var cached = cache.compute(url, (key, previous) -> {
 			var now = clock.instant();
 			if (fresh(previous, maxAgeSeconds, now)) return previous;
@@ -167,7 +193,7 @@ public class FplDraftClient {
 			}
 		});
 		if (cached.failure() != null && !fresh(cached, maxAgeSeconds, clock.instant())) throw cached.failure();
-		return cached.value().deepCopy();
+		return cached;
 	}
 
 	private boolean fresh(CachedJson cached, int maxAgeSeconds, Instant now) {

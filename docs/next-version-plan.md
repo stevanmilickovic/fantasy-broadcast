@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–12 are implemented.
-Seven steps remain (13–19); mobile native-selection verification remains a device gate.
+Status: implementation resumed at the user's request; steps 1–13 are implemented.
+Six steps remain (14–19); mobile native-selection verification remains a device gate.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -100,7 +100,13 @@ receive unique suffixes, and manual names still require uniqueness.
   Build passes. User identifies Android Chrome or Samsung Internet; exact device/version
   and native long-press handles/Copy behavior remain unverified without a physical phone.
   The original single-tap selection was not reproduced; this is not proof of its cause.
-- Steps 1–12 have separate commits. Seven steps remain: 13–19. Existing-name repair is
+- Step 13: shared ten-second points and thirty-second fixtures/current metadata/lineups,
+  real source fetch timestamps, normalized nullable fixture difficulty/time/scores and
+  an on-demand gameweek data boundary independent of broadcast/viewer/narration state.
+  Broadcast composition now refreshes around rollover instead of staying hourly.
+  Draft clubs map by verified code; a sanitized official distinct-player-ID/fixture
+  sample is recorded. Clock/coalescing/failure/rollover/partial-data tests cover freshness.
+- Steps 1–13 have separate commits. Six steps remain: 14–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions
