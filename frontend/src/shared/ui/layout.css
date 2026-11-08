@@ -60,3 +60,17 @@
     text-align: center;
   }
 }
+/* Keep native selection for readable content; control labels are tap targets. */
+button,
+summary {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

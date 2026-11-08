@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–11 are complete.
-Eight steps remain (12–19); next is mobile text selection.
+Status: implementation resumed at the user's request; steps 1–12 are implemented.
+Seven steps remain (13–19); mobile native-selection verification remains a device gate.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -92,7 +92,15 @@ receive unique suffixes, and manual names still require uniqueness.
   Deletion moved out of the footer; authenticated deep links use the account area without
   querying leagues. Verification: lint/build, 92 unit tests and 54 account/navigation
   browser checks across six viewports pass. SMTP delivery remains an integration check.
-- Steps 1–11 have separate commits. Eight steps remain: 12–19. Existing-name repair is
+- Step 12: inspection found no programmatic selection or broad touch/selection handler.
+  Native page/input selection remains enabled. Button/summary labels are non-selectable;
+  coarse-pointer links and controls suppress the browser tap overlay, retaining existing
+  pressed/focus styling. A real touch-emulation regression passes across My leagues,
+  discovery, league detail and account, including search activation and editable inputs.
+  Build passes. User identifies Android Chrome or Samsung Internet; exact device/version
+  and native long-press handles/Copy behavior remain unverified without a physical phone.
+  The original single-tap selection was not reproduced; this is not proof of its cause.
+- Steps 1–12 have separate commits. Seven steps remain: 13–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions
