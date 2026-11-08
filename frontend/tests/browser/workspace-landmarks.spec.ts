@@ -37,9 +37,8 @@ test('workspace landmarks distinguish collection discovery registration checkout
     'aria-current',
     'step',
   )
-  await expect(page.getByRole('list', { name: 'League registration progress' })).toContainText(
-    'Plan and consent',
-  )
+  await expect(page.getByRole('list', { name: 'League registration progress' })).toHaveCount(0)
+  await expect(page.getByText('Selected plan', { exact: true })).toHaveCount(0)
   await expect(page.getByRole('checkbox')).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('04-checkout.png'), fullPage: true })
   await page.getByLabel('Account menu').click()

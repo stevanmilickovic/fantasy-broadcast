@@ -3,15 +3,16 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { NotificationProvider } from './NotificationProvider'
 import { useNotifications } from './notifications'
 
-beforeEach(() =>
+beforeEach(() => {
+  vi.stubGlobal('matchMedia', () => ({ matches: false }))
   vi.stubGlobal(
     'ResizeObserver',
     class {
       observe() {}
       disconnect() {}
     },
-  ),
-)
+  )
+})
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
@@ -43,11 +44,14 @@ it('deduplicates pending notices, pauses expiry and retains errors until dismiss
   fireEvent.mouseLeave(notice)
   fireEvent.click(screen.getByText('Fail'))
   act(() => vi.advanceTimersByTime(6000))
+  expect(notice.querySelector('.notification')?.getAttribute('data-closing')).toBe('true')
+  act(() => vi.advanceTimersByTime(180))
   expect(screen.queryByRole('status')).toBeNull()
   expect(screen.getByRole('alert').textContent).toBe('Try again.')
   act(() => vi.advanceTimersByTime(60_000))
   expect(screen.getByRole('alert')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Dismiss notification' }))
+  act(() => vi.advanceTimersByTime(180))
   expect(screen.queryByRole('alert')).toBeNull()
   unmount()
   expect(document.documentElement.style.getPropertyValue('--notification-space')).toBe('')
@@ -71,5 +75,19 @@ it('retains messages on route-content changes and clears them at an account boun
       <Controls />
     </NotificationProvider>,
   )
+  expect(screen.queryByRole('status')).toBeNull()
+})
+
+it('dismisses without a motion delay when reduced motion is requested', () => {
+  vi.useFakeTimers()
+  vi.stubGlobal('matchMedia', () => ({ matches: true }))
+  render(
+    <NotificationProvider>
+      <Controls />
+    </NotificationProvider>,
+  )
+  fireEvent.click(screen.getByText('Save'))
+  fireEvent.click(screen.getByRole('button', { name: 'Dismiss notification' }))
+  act(() => vi.advanceTimersByTime(0))
   expect(screen.queryByRole('status')).toBeNull()
 })

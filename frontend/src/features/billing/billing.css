@@ -219,11 +219,6 @@
 .checkout-plan[data-selected='true'] {
   border-color: #20e6ff;
 }
-.checkout-selected-plan {
-  display: block;
-  color: #20e6ff;
-  margin-top: 8px;
-}
 .checkout-plan.featured > button {
   background: var(--pl-cyan);
 }

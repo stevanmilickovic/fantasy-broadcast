@@ -5,6 +5,7 @@ import { NotificationContext, type Notice, type Notify } from './notifications'
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notices, setNotices] = useState<Notice[]>([])
   const [paused, setPaused] = useState(false)
+  const [closing, setClosing] = useState(false)
   const host = useRef<HTMLDivElement>(null)
   const origin = useRef<HTMLElement | null>(null)
   const current = notices[0]
@@ -26,15 +27,27 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const dismiss = useCallback(() => {
     if (host.current?.contains(document.activeElement) && origin.current?.isConnected)
       origin.current.focus()
-    setNotices((previous) => previous.slice(1))
-    setPaused(false)
+    setClosing(true)
   }, [])
 
   useEffect(() => {
-    if (!current || current.kind === 'error' || paused) return
+    if (!closing) return
+    const timer = window.setTimeout(
+      () => {
+        setNotices((previous) => previous.slice(1))
+        setPaused(false)
+        setClosing(false)
+      },
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180,
+    )
+    return () => window.clearTimeout(timer)
+  }, [closing])
+
+  useEffect(() => {
+    if (!current || current.kind === 'error' || paused || closing) return
     const timer = window.setTimeout(dismiss, 6000)
     return () => window.clearTimeout(timer)
-  }, [current, paused, dismiss])
+  }, [current, paused, closing, dismiss])
 
   useLayoutEffect(() => {
     const element = host.current
@@ -80,7 +93,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false)
           }}
         >
-          <div className="notification" data-kind={current.kind}>
+          <div
+            key={current.id}
+            className="notification"
+            data-kind={current.kind}
+            data-closing={closing}
+          >
             <Icon size={20} aria-hidden="true" />
             <p role={current.kind === 'error' ? 'alert' : 'status'}>{current.message}</p>
             <button type="button" aria-label="Dismiss notification" onClick={dismiss}>

@@ -22,6 +22,9 @@ test('a username conflict preserves the draft and a subsequent save persists', a
   await page.getByRole('button', { name: 'Save username' }).click()
   await expect(page.getByRole('status')).toContainText('Username saved')
   const notice = page.locator('.notification-host')
+  expect(
+    await notice.locator('.notification').evaluate((node) => getComputedStyle(node).animationName),
+  ).toBe('notification-enter')
   const bounds = await notice.boundingBox()
   expect(bounds?.y).toBeGreaterThan(page.viewportSize()!.height / 2)
   await page.screenshot({ path: test.info().outputPath('username-notification.png') })

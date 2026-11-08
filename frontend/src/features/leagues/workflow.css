@@ -67,26 +67,6 @@
   display: block;
   color: var(--workflow-accent);
 }
-.checkout-progress {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 20px;
-  margin: 0 0 28px;
-  padding: 0;
-  list-style: none;
-  color: #c8becf;
-  font-size: 12px;
-}
-.checkout-progress li {
-  padding: 8px 0;
-  border-bottom: 2px solid transparent;
-}
-.checkout-progress [aria-current] {
-  border-color: var(--workflow-accent, #e7d5bb);
-  color: #fff;
-  font-weight: 750;
-}
 .customer-shell[data-workflow='league'] .league-identity {
   padding-bottom: 20px;
   border-bottom: 1px solid #ffffff20;

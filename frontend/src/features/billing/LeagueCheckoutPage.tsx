@@ -139,11 +139,6 @@ export function LeagueCheckoutPage({
           viewer.
         </p>
       </header>
-      <ol className="checkout-progress" aria-label="League registration progress">
-        <li>1 · League ID</li>
-        <li aria-current={!checkout.busy ? 'step' : undefined}>2 · Plan and consent</li>
-        <li aria-current={checkout.busy ? 'step' : undefined}>3 · Secure payment</li>
-      </ol>
       <section className="checkout-layout">
         <aside className="checkout-league-card">
           <div className="checkout-league-summary">
@@ -217,9 +212,6 @@ export function LeagueCheckoutPage({
         <section className="checkout-plans" aria-label="Broadcast plans">
           <article className="checkout-plan" data-selected={selectedPlan === 'STANDARD'}>
             <span>Standard</span>
-            {selectedPlan === 'STANDARD' && (
-              <small className="checkout-selected-plan">Selected plan</small>
-            )}
             <h2>€6.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>
@@ -247,9 +239,6 @@ export function LeagueCheckoutPage({
             aria-disabled={!aiBroadcasterEnabled}
           >
             <span className="plan-badge">AI Broadcaster</span>
-            {selectedPlan === 'AI_BROADCASTER' && (
-              <small className="checkout-selected-plan">Selected plan</small>
-            )}
             <h2>€19.99</h2>
             <p>Per league, per month · Renews monthly during the season</p>
             <ul>
