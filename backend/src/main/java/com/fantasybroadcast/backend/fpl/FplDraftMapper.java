@@ -170,7 +170,7 @@ public class FplDraftMapper {
 		}
 		return new FplEntryEvent(picks, automaticSubstitutions, text(root, "active_chip"),
 				intValue(root.path("entry_history"), "event_transfers_cost"),
-				intValue(root.path("entry_history"), "points"));
+				intValue(root.path("entry_history"), "points"), integerValue(root.path("entry_history"), "event_transfers"));
 	}
 
 	public FplDraftEventLive mapDraftEventLive(JsonNode root) {

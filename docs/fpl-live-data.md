@@ -29,3 +29,32 @@ metadata, source URLs and capture time. It demonstrates different Draft/Classic 
 for the same player code. Cache tests use a controlled clock and local HTTP server;
 projection tests must use recorded/synthetic gameweeks for corrections and DGWs.
 The FPL API is undocumented; fixtures and scoring remain provisional until reconciled.
+
+## Shared scoring and standings
+
+`LiveScoring` owns manager points, resolved lineups and standings arithmetic for real
+broadcasts and league overviews. Classic includes captain/vice, Triple Captain, Bench
+Boost and transfer deductions; Draft ignores Classic captain multipliers and chips.
+Missing picked players/points fail explicitly. Additional substitutions and captain
+fallback wait until all current-week fixtures are complete, including every DGW match.
+Recorded substitutions are not applied twice. Cards count as an appearance even with
+zero recorded minutes. Keeper/formation constraints and bench priority remain enforced.
+
+`FplStandingsBaseline` reconstructs a baseline through exactly the previous gameweek.
+It uses received manager-history totals and closed H2H schedules, never guesses whether
+an official live table has already counted this week. Current points are added once to
+that baseline; corrections replace values instead of accumulating deltas. History
+refreshes every thirty seconds; historical H2H schedules share the hourly cache. Custom
+league start rounds use phase history and the Classic phase-start transfer exemption.
+Classic points ties use transfer counts when available, excluding Wildcard/Free Hit;
+otherwise equal totals share rank. H2H ties use cumulative fantasy points.
+
+Missing start rounds, unsettled prior weeks, partial histories/schedules and knockout
+tables leave live standings unavailable with a reason. Broadcasts preserve the official
+table in that case. Average/bye opponents require a received schedule and known score;
+no opponent or population average is invented.
+
+Rules checked against the official [FPL rules](https://www.premierleague.com/en/news/4661029)
+and [league scoring overview](https://www.premierleague.com/en/news/2174934/fpl-basics-leagues-and-cups).
+API field contracts are supported by sanitized source fixtures; a live gameweek and
+official reconciliation remain integration checks in addition to deterministic tests.

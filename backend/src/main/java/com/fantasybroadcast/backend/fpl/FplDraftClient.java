@@ -54,6 +54,12 @@ public class FplDraftClient {
 	public JsonNode getFantasyPlayerSummary(int playerId) {
 		return getCachedJson(properties.getFantasyBaseUrl() + "/element-summary/" + playerId + "/");
 	}
+	public JsonNode getEntryHistory(FplLeagueType type, long entryId) {
+		return getCachedJson((type == FplLeagueType.DRAFT ? properties.getDraftBaseUrl() : properties.getFantasyBaseUrl()) + "/entry/" + entryId + "/history" + (type == FplLeagueType.CLASSIC ? "/" : ""), 30);
+	}
+	public JsonNode getHistoricalClassicLeagueMatches(long leagueId, int gameweek) {
+		return getCachedJson(properties.getFantasyBaseUrl() + "/leagues-h2h-matches/league/" + leagueId + "/?event=" + gameweek);
+	}
 
 	public JsonNode getLeagueDetails(long leagueId) {
 		return getCachedJson(properties.getDraftBaseUrl() + "/league/" + leagueId + "/details", 30);

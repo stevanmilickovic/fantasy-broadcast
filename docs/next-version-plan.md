@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–13 are implemented.
-Six steps remain (14–19); mobile native-selection verification remains a device gate.
+Status: implementation resumed at the user's request; steps 1–14 are implemented.
+Five steps remain (15–19); mobile native-selection verification remains a device gate.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -106,7 +106,15 @@ receive unique suffixes, and manual names still require uniqueness.
   Broadcast composition now refreshes around rollover instead of staying hourly.
   Draft clubs map by verified code; a sanitized official distinct-player-ID/fixture
   sample is recorded. Clock/coalescing/failure/rollover/partial-data tests cover freshness.
-- Steps 1–13 have separate commits. Six steps remain: 14–19. Existing-name repair is
+- Step 14: extracted deterministic manager/standings scoring from the broadcast owner.
+  Classic captain/chips/transfers and Draft rules are separate; missing data is not zero.
+  Substitutions/captain fallback wait for the full gameweek, respect formation/bench
+  order and preserve recorded substitutions. Closed-history baselines replace unsafe
+  official-current-week subtraction/addition, including restart and phase-start handling.
+  Unknown baselines/schedules retain official standings with a reason. Rules checked
+  against official FPL guidance. Verification: 163 backend tests pass, including all
+  four source/scoring formats, chips, DGW/blank, cards, corrections, ties and restarts.
+- Steps 1–14 have separate commits. Five steps remain: 15–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

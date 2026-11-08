@@ -40,8 +40,12 @@ class SharedBroadcastPollingTests {
 		when(client.getLeagueDetails(anyLong())).thenReturn(read("draft-league-details.sample.json"));
 		when(client.getEntryEvent(anyLong(), anyInt())).thenReturn(read("entry-event.sample.json"));
 		when(client.getFantasyEntryEvent(anyLong(), anyInt())).thenReturn(read("entry-event.sample.json"));
-		when(client.getBroadcastDraftEventLive(anyInt())).thenReturn(read("draft-event-live.sample.json"));
-		when(client.getBroadcastFantasyEventLive(anyInt())).thenReturn(read("event-live.sample.json"));
+		var draftPoints = (ObjectNode) read("draft-event-live.sample.json");
+		((ObjectNode)draftPoints.path("elements")).putObject("3").putObject("stats").put("minutes",0).put("total_points",0);
+		var classicPoints = (ObjectNode) read("event-live.sample.json");
+		((tools.jackson.databind.node.ArrayNode)classicPoints.path("elements")).addObject().put("id",3).putObject("stats").put("minutes",0).put("total_points",0);
+		when(client.getBroadcastDraftEventLive(anyInt())).thenReturn(draftPoints);
+		when(client.getBroadcastFantasyEventLive(anyInt())).thenReturn(classicPoints);
 		when(client.getFantasyFixtures()).thenReturn(json.readTree("[]"));
 		when(client.getClassicPointsLeagueStandings(anyLong())).thenReturn(read("classic-h2h-standings.sample.json"));
 		var beans = new StaticListableBeanFactory();
@@ -122,7 +126,7 @@ class SharedBroadcastPollingTests {
 	}
 
 	@Test
-	void hourlyCompositionRefreshHandlesANewGameweekWithoutInventingNegativePointChanges() {
+	void compositionRefreshHandlesANewGameweekWithoutInventingNegativePointChanges() {
 		start(1, FplLeagueType.DRAFT);
 		var sessions = ReflectionTestUtils.getField(service, "leagueSessions");
 		if (!(sessions instanceof Map<?, ?> map)) throw new AssertionError("Expected league sessions");
@@ -133,7 +137,7 @@ class SharedBroadcastPollingTests {
 
 		assertThat(service.currentState(1).gameweek()).isEqualTo(2);
 		assertThat(service.currentState(1).events()).isEmpty();
-		verify(client, times(2)).getLeagueDetails(101);
+		verify(client, times(4)).getLeagueDetails(101);
 		verify(client).getEntryEvent(9001, 2);
 		verify(client).getBroadcastDraftEventLive(2);
 	}
