@@ -14,6 +14,7 @@ import { LeaguePicker } from './LeaguePicker'
 import { LeagueRegistrationPage } from './LeagueRegistrationPage'
 import { LeagueDiscoveryPage } from './LeagueDiscoveryPage'
 import { useNotifications } from '../../shared/ui/notifications'
+import { LeagueWorkspaceNavigation } from './LeagueWorkspaceNavigation'
 
 export function CustomerDashboard({
   user,
@@ -71,7 +72,20 @@ export function CustomerDashboard({
       onNavigate(`/league?leagueId=${selectedLeague.id}`, true)
   }, [leagues, pathname, selectedLeague, onNavigate, user.id, user.role])
   return (
-    <main className="customer-shell">
+    <main
+      className="customer-shell"
+      data-workflow={
+        pathname === '/leagues/find'
+          ? 'find'
+          : pathname === '/leagues/new'
+            ? 'register'
+            : pathname === '/leagues/checkout'
+              ? 'checkout'
+              : pathname === '/leagues'
+                ? 'collection'
+                : 'league'
+      }
+    >
       <CustomerNavigation
         leagues={leagues ?? []}
         selectedLeague={selectedLeague}
@@ -79,6 +93,7 @@ export function CustomerDashboard({
         onNavigate={onNavigate}
         onSignOut={onSignOut}
       />
+      <LeagueWorkspaceNavigation pathname={pathname} navigate={onNavigate} />
       {query.error && (
         <p className="discovery-error" role="alert">
           {query.error}

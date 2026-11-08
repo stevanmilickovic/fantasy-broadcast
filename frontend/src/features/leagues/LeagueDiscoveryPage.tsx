@@ -63,7 +63,7 @@ export function LeagueDiscoveryPage({
     } else navigate(`/league?leagueId=${league.id}`)
   }
   return (
-    <section className="customer-empty league-onboarding league-discovery">
+    <section className="customer-empty league-onboarding customer-league-discovery">
       <LeagueSearchCard
         busy={following.busy || results.status === 'loading' || !followedLeagues}
         message={following.error ?? results.error ?? null}

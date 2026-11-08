@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–17 are implemented.
-Two steps remain (18–19); mobile native-selection verification remains a device gate.
+Status: implementation resumed at the user's request; steps 1–18 are implemented.
+One step remains (19): integrated verification and testing handoff, without a version bump.
 The user confirms 1.4 is intended but explicitly defers its version-update commit until
 after their testing. Keep version 1.3.5 throughout the remaining work.
 Current version: 1.3.5. This document changes no application behavior.
@@ -140,7 +140,14 @@ receive unique suffixes, and manual names still require uniqueness.
   data preserve progress. Verification: 169 backend tests, frontend lint/build and 93
   unit tests; 48 six-viewport progress/availability/presentation browser checks pass.
   Phone screenshots reviewed; queued snapshot tests preserve prior fixture state.
-- Steps 1–17 have separate commits. Two steps remain: 18–19. Existing-name repair is
+- Step 18: visible workspace navigation marks collection/discovery/registration paths;
+  compact saved cards, search-first discovery, a narrower registration form, named
+  checkout progression and quiet account sections provide distinct landmarks. Restrained
+  neutral/blue/lilac surfaces support text and composition while retaining the plum brand
+  and status colors. A customer/admin discovery class collision was removed. Verification:
+  frontend lint/build and 93 unit tests; six-viewport walkthrough screenshots plus consent
+  and removal regressions pass. Broadcast geometry remains unchanged.
+- Steps 1–18 have separate commits. One step remains: 19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

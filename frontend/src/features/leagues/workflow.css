@@ -1,0 +1,108 @@
+.customer-shell[data-workflow='collection'] {
+  --workflow-accent: #d2bedf;
+}
+.customer-shell[data-workflow='find'] {
+  --workflow-accent: #a4d7f0;
+}
+.customer-shell[data-workflow='register'] {
+  --workflow-accent: #cbb8ef;
+}
+.customer-shell[data-workflow='checkout'] {
+  --workflow-accent: #e7d5bb;
+}
+.league-workspace-navigation {
+  display: flex;
+  gap: 8px;
+  width: min(1200px, calc(100% - 32px));
+  margin: 12px auto 0;
+  border-bottom: 1px solid #ffffff14;
+}
+.league-workspace-navigation a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-bottom: 2px solid transparent;
+  color: #d8c9df;
+  font-size: 13px;
+  text-decoration: none;
+}
+.league-workspace-navigation a[aria-current] {
+  border-bottom-color: var(--workflow-accent, #a4d7f0);
+  background: #ffffff09;
+  color: #fff;
+  font-weight: 750;
+}
+.customer-shell[data-workflow='collection'] .league-card {
+  min-height: 170px;
+  padding: 20px;
+  gap: 8px;
+  background: #ffffff04;
+  border-top: 3px solid #c3accd44;
+}
+.customer-shell[data-workflow='collection'] .league-card strong {
+  font-size: 22px;
+}
+.customer-shell[data-workflow='collection'] .league-picker .kicker {
+  color: var(--workflow-accent);
+}
+.customer-shell[data-workflow='find'] .find-league-card {
+  background: #21172d;
+  border-inline-start: 3px solid var(--workflow-accent);
+}
+.customer-shell[data-workflow='find'] .find-league-card .kicker {
+  color: var(--workflow-accent);
+}
+.customer-shell[data-workflow='register'] .league-onboarding {
+  max-width: 640px;
+}
+.customer-shell[data-workflow='register'] .register-league-card {
+  background: #2b1735;
+  border-top: 3px solid var(--workflow-accent);
+}
+.customer-shell[data-workflow='register'] .register-league-card .kicker {
+  color: var(--workflow-accent);
+}
+.customer-shell[data-workflow='checkout'] .checkout-heading .kicker {
+  display: block;
+  color: var(--workflow-accent);
+}
+.checkout-progress {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  margin: 0 0 28px;
+  padding: 0;
+  list-style: none;
+  color: #c8becf;
+  font-size: 12px;
+}
+.checkout-progress li {
+  padding: 8px 0;
+  border-bottom: 2px solid transparent;
+}
+.checkout-progress [aria-current] {
+  border-color: var(--workflow-accent, #e7d5bb);
+  color: #fff;
+  font-weight: 750;
+}
+.customer-shell[data-workflow='league'] .league-identity {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ffffff20;
+}
+.account-settings .account-card {
+  background: #26162e;
+  border-top: 1px solid #ffffff30;
+}
+.account-settings .account-card h2 {
+  color: #e7dcef;
+}
+@media (max-width: 360px) {
+  .league-workspace-navigation {
+    gap: 4px;
+  }
+  .league-workspace-navigation a {
+    padding-inline: 8px;
+  }
+}

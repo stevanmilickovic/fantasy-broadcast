@@ -27,6 +27,11 @@ redirects inaccessible detail/management routes; it must not displace explicit l
 checkout visits. The list has useful zero-, one- and many-league states.
 Account settings and the authenticated `/account-deletion` deep link are owned by
 the account feature and do not query leagues. The shared legal footer has no deletion action.
+`LeagueWorkspaceNavigation` keeps My leagues, Find leagues and Register visible with
+an accessible current-page/location indicator. Route-owned workflow accents support
+distinct collection/search/form/checkout compositions; headings and active navigation
+carry the meaning without relying on color. Account sections use quiet form surfaces.
+Customer discovery uses its own class so administration card styles cannot leak into it.
 
 Discovery lives at `/leagues/find`; `/leagues/new` is a focused registration-by-ID form.
 Old registration URLs carrying search/page parameters redirect to discovery. The submitted

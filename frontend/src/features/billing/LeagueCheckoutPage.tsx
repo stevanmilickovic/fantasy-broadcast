@@ -131,7 +131,7 @@ export function LeagueCheckoutPage({
         <ArrowLeft size={17} /> Back to league ID
       </button>
       <header className="checkout-heading">
-        <span className="kicker">Fantasy Broadcast</span>
+        <span className="kicker">Checkout</span>
         <h1>Bring your league to the broadcast.</h1>
         <p>
           Choose a monthly plan for this league. Each plan includes up to {MAX_BROADCAST_VIEWERS}{' '}
@@ -139,6 +139,11 @@ export function LeagueCheckoutPage({
           viewer.
         </p>
       </header>
+      <ol className="checkout-progress" aria-label="League registration progress">
+        <li>1 · League ID</li>
+        <li aria-current={!checkout.busy ? 'step' : undefined}>2 · Plan and consent</li>
+        <li aria-current={checkout.busy ? 'step' : undefined}>3 · Secure payment</li>
+      </ol>
       <section className="checkout-layout">
         <aside className="checkout-league-card">
           <div className="checkout-league-summary">

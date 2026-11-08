@@ -343,3 +343,19 @@ public site's identity and existing backend behavior. Capture and inspect each c
 before continuing. If a desired label requires unavailable data, omit it or use an honest empty
 state; do not invent metrics or expand the backend to decorate the interface. Report intentional
 interaction changes and validation results with the completed work.
+
+# Implemented navigation landmarks (next version, unreleased)
+
+My leagues uses a compact saved collection and count. Find leagues leads with search
+and flat result actions on a cool plum surface. Register has a focused, narrower ID
+form with a lilac edge. Checkout names its purpose and shows the league-ID → plan/
+consent → secure-payment progression with a restrained neutral accent. League detail
+leads with identity and tabs; account settings has quiet, separated form sections.
+
+A persistent League workspace navigation marks the current page/location. Plum,
+typography, logo and established success/error/availability colors remain consistent;
+workflow meaning is carried by text/composition as well as supporting surface accents.
+The cinematic broadcast layout is unchanged. Customer discovery avoids the admin
+`league-discovery` class so the administrative card surface does not nest around search.
+Responsive walkthrough screenshots cover phone, short landscape, tablet, laptop,
+desktop and TV, with consent and removal workflows rechecked after the design changes.

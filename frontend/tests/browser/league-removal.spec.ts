@@ -17,7 +17,7 @@ test('removal requires confirmation and preserves membership on failure', async 
     return route.fulfill({ status: 204 })
   })
   await page.goto(`/league?leagueId=${league.id}`)
-  await expect(page.getByRole('link', { name: 'My leagues', exact: true })).toBeVisible()
+  await expect(page.locator('.league-back')).toHaveText('My leagues')
   const open = async () => {
     await page.getByLabel('League actions').click()
     await page.getByRole('button', { name: 'Remove from my leagues' }).click()

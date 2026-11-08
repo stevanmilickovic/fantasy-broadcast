@@ -23,7 +23,10 @@ export function LeaguePicker({
         <div>
           <span className="kicker">Welcome back, {user.displayName}</span>
           <h1>My leagues</h1>
-          <p>Explore your standings, teams and matchups.</p>
+          <p>
+            {leagues.length} saved {leagues.length === 1 ? 'league' : 'leagues'} · Standings, teams
+            and matchups.
+          </p>
         </div>
         <div className="league-picker-actions">
           <button className="add-league-card" onClick={() => onNavigate('/leagues/find')}>
