@@ -77,7 +77,22 @@ export function LeagueDetailPage({
   const showingChat = new URLSearchParams(search).get('view') === 'chat'
   return (
     <section className="selected-league-page">
-      <a className="league-back" href="/leagues">
+      <a
+        className="league-back"
+        href="/leagues"
+        onClick={(event) => {
+          if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          )
+            return
+          event.preventDefault()
+          navigate('/leagues')
+        }}
+      >
         <ArrowLeft size={16} /> My leagues
       </a>
       <header className="league-identity">

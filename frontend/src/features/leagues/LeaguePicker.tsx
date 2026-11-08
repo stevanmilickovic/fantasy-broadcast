@@ -45,7 +45,23 @@ export function LeaguePicker({
       )}
       <div className="league-cards">
         {filtered.map((league) => (
-          <a className="league-card" key={league.id} href={`/league?leagueId=${league.id}`}>
+          <a
+            className="league-card"
+            key={league.id}
+            href={`/league?leagueId=${league.id}`}
+            onClick={(event) => {
+              if (
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              )
+                return
+              event.preventDefault()
+              onNavigate(`/league?leagueId=${league.id}`)
+            }}
+          >
             <span>
               {league.leagueType === 'DRAFT' ? 'Draft' : 'Classic'} ·{' '}
               {scoringLabel(league.scoringType)}
