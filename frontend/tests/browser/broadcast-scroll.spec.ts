@@ -6,6 +6,8 @@ for (const totalPoints of [false, true]) {
     page,
   }) => {
     await mockBroadcast(page, totalPoints, (state) => {
+      // Scoring notifications change chip widths; this check isolates scroll timing.
+      state.events = []
       if (totalPoints)
         state.teams = Array.from({ length: 32 }, (_, i) => ({
           ...state.teams[i % state.teams.length],
@@ -17,7 +19,9 @@ for (const totalPoints of [false, true]) {
           id: `match-${i}`,
         }))
     })
-    await page.clock.install()
+    const clockStart = new Date('2026-11-08T12:00:00Z')
+    await page.clock.install({ time: clockStart })
+    await page.clock.pauseAt(new Date(clockStart.getTime() + 60_000))
     await page.goto('/broadcast?leagueId=1')
     const track = page.locator('.match-chip-track')
     await expect(track).toBeVisible()

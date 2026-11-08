@@ -60,7 +60,7 @@ test('account settings places Back above the form and stays usable with long acc
   })
   await page.goto('/account')
   const back = page.getByRole('button', { name: 'Back', exact: true })
-  const form = page.locator('.account-card')
+  const form = page.locator('form.account-card')
   await expect(back).toBeVisible()
   const backBounds = await back.boundingBox()
   expect(backBounds?.y).toBeLessThan(64)

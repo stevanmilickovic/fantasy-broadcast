@@ -1,0 +1,77 @@
+# Next-version testing handoff
+
+The requested changes are implemented. The intended release is 1.4; **all version
+files remain 1.3.5 at the user's request**. No release tag, production deployment or
+version-update commit was made. The local rebuilt application is available at
+<http://localhost:5173>.
+
+## Automated and integrated evidence
+
+Verification performed on 2026-11-08 with Node 22.12.0 and MySQL 8.4:
+
+- Backend: 169 tests pass, including the default Docker build's test/package gate.
+- Frontend: `npm run check` passes formatting, lint, 93 unit tests and production build.
+  Existing formatting violations were normalized to make the full required gate pass.
+- Full responsive browser suite: **679 passed, 41 intentional skips, no failures**.
+  The suite uses a fresh production build and six projects: phone portrait, short phone
+  landscape, tablet, laptop, desktop and TV, with additional narrow-phone cases.
+- Rebuilt the existing local testing stack without replacing its database volume.
+  All three migration-019 changes applied successfully and services became healthy.
+- Started a separate fresh database and integrated stack. Registration verification
+  and password mail were captured by a local SMTP sink, with no external delivery.
+  Verified generic recovery responses, trusted-Origin rejection, current-password
+  validation, change/reset, consumed and revoked reset links, old-password rejection,
+  cookie clearing and invalidation of multiple existing sessions.
+- Verified real authenticated private-league request/approval, concealed access before
+  approval and after removal, requesting access again, account-deletion requests, and
+  absence of the customer's email from other-account/chat/league DTOs.
+- Read the official FPL source through the integrated backend: Draft league 4,
+  gameweek 10, 14 managers, `PROVISIONAL` status, with scores and standings available.
+  Player details returned the current fixture and five upcoming gameweek groups.
+  This checks real source mapping and response contracts; it does not establish
+  correctness during an actively changing match.
+- Restored the pre-upgrade local database dump into a separate disposable database.
+  Account identity count and digest matched the upgraded database; the restored copy
+  lacked migration 019 while the fresh and upgraded active databases had all three
+  changes. No existing account names were changed.
+
+Transient logs and sanitized integration summaries are under ignored `backend/target/`;
+the pre-upgrade local dump is `backend/target/curation/fantasy-broadcast-before-next.sql`.
+It contains private data and must remain outside source control. The disposable stack
+and SMTP sink are removed after verification; the normal testing stack remains running.
+
+## Checks to complete before release
+
+1. On physical Android Chrome and Samsung Internet, check ordinary taps versus
+   long-press selection in My leagues, league views and inputs. The reported selection
+   problem was not reproduced; touch emulation alone cannot prove native behavior.
+   Check notifications and the highlighted consent checkbox with the keyboard open,
+   browser chrome visible and the phone rotated.
+2. On those browsers, dismiss Paddle checkout with its X, reopen it, use browser Back
+   and return from internal checkout steps. Real Paddle sandbox SDK X-close/reopen
+   passed twice on both phone touch emulation and desktop during step 8; its unpaid
+   transaction was canceled. Complete a sandbox payment and delayed-webhook smoke test
+   against the configured deployment before release. No live charge was made here.
+3. Verify registration, recovery and change notifications with the deployed SMTP
+   provider, including spam-folder/delivery behavior. Local SMTP capture proves the
+   application flow, not external delivery. Exercise a configured Google-only account;
+   provider-aware behavior is covered by automated tests, not a real OAuth sign-in here.
+4. During an active FPL match, compare player points, calculated manager totals,
+   current matchups and optional live standings with the source, then check final
+   reconciliation. Deterministic tests cover late updates, corrections, Classic/Draft,
+   captaincy/chips, substitutions, transfer hits, custom starts, doubles, blanks and
+   incomplete baselines. Live values remain provisional until FPL settles the week.
+5. Follow the [coordinated rollout and recovery procedure](production-deployment.md#coordinating-the-next-username-migration)
+   against a recent production backup. Only after user acceptance, select and commit
+   the coordinated version update, then perform the normal release process.
+
+## Suggested user walkthrough
+
+Start signed out with Get started, sign in or register, and continue to registration.
+Check My leagues, discovery with a long result name, clear its search and refresh,
+request a private league and approve it from its owner account. Save a username and
+check the notification; send chat messages and inspect the response for email fields.
+Open a league, confirm/cancel removal, switch official/live standings and open player
+fixtures. Check upcoming/live/completed players in a broadcast, including injury colors
+and reduced motion. Finish with account settings, password change, sign-in recovery and
+the account-deletion request screen. Use sandbox billing for checkout checks.

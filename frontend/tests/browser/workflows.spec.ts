@@ -201,7 +201,10 @@ test('registration verifies email and password reset confirms completion', async
   await page.getByLabel('New password', { exact: true }).fill('another-password-123')
   await page.getByLabel('Confirm password', { exact: true }).fill('another-password-123')
   await page.getByRole('button', { name: 'Set new password', exact: true }).click()
-  await expect(page.getByText('Your password has been changed. You can now sign in.')).toBeVisible()
+  await expect(page).toHaveURL('/login')
+  await expect(page.locator('.notification-host')).toContainText(
+    'Password changed. Please sign in again.',
+  )
   await checkViewport(page)
   expect(errors).toEqual([])
 })

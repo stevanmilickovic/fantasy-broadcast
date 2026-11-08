@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- Enforce unique usernames, assign available defaults, preserve existing names, and remove other accounts' email addresses from chat and customer responses.
+- Add reusable bottom notifications for saved usernames, completed registration and errors.
+- Separate league discovery from registration, preserve cleared searches, guide Get started through registration, and keep mobile result actions beside wrapping names.
+- Guide checkout consent from either plan button and restore checkout state and focus after Paddle dismissal.
+- Confirm league removal, use My leagues consistently, and distinguish discovery, registration, checkout and account navigation.
+- Add current-password changes and provider-aware recovery with single-use links, attempt limits and session invalidation; centralize account deletion in settings.
+- Preserve native long-press text selection while suppressing tap highlights on touch controls.
+- Share fresh FPL points and fixtures across league and broadcast views; calculate current matchups and optional provisional standings from closed historical baselines.
+- Show player fixtures, kickoff times, scores and FPL difficulty, including double and blank gameweeks; distinguish upcoming, live and completed broadcast players.
+- Expand security, scoring and responsive regression coverage and document migration, compatibility and remaining device/provider checks.
+
+The intended release is 1.4. The version remains 1.3.5 until user testing is complete.
+
 ## 1.3.5 - 2026-11-07
 
 - Give homepage broadcast preview clubs distinct squads, including substitutes, and keep scoring events, commentary and totals consistent across frames.

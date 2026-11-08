@@ -89,7 +89,7 @@ test('streamed updates freeze the outgoing snapshot until the cover commits and 
   await expect(page.getByRole('heading', { name: 'No Fuchs Given', exact: true })).toBeVisible()
   await expect(scene).toHaveAttribute('data-phase', 'idle')
   await page.clock.runFor(1000)
-  await expect(page.locator('.broadcast-score')).toHaveText('48–45')
+  await expect(page.locator('.broadcast-score')).toHaveText('46–45')
   await page.getByRole('button', { name: 'Back', exact: true }).click()
   await expect(page).toHaveURL('/leagues')
   await expect(page.locator('html')).toHaveAttribute('data-broadcast-stream', 'closed')

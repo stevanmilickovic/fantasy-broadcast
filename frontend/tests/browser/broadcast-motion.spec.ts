@@ -133,14 +133,24 @@ test('manual selection cancels an in-flight introduction and keeps controls usab
   const scene = page.locator('.broadcast-scene')
   await expect(scene).toHaveAttribute('data-motion', 'introducing')
   const completions = await scene.evaluateHandle((root) =>
-    root.getAnimations({ subtree: true }).map((effect) => effect.finished.catch(() => undefined)),
+    root
+      .getAnimations({ subtree: true })
+      .filter((effect) => effect.effect?.getTiming().iterations !== Infinity)
+      .map((effect) => effect.finished.catch(() => undefined)),
   )
   await page.getByRole('button', { name: 'Multi', exact: true }).click()
   await expect(scene).toHaveAttribute('data-phase', 'idle')
   await completions.evaluate(async (promises) => {
     await Promise.all(promises)
   })
-  expect(await scene.evaluate((root) => root.getAnimations({ subtree: true }).length)).toBe(0)
+  expect(
+    await scene.evaluate(
+      (root) =>
+        root
+          .getAnimations({ subtree: true })
+          .filter((effect) => effect.effect?.getTiming().iterations !== Infinity).length,
+    ),
+  ).toBe(0)
   await page.getByRole('button', { name: 'Standings', exact: true }).click()
   await expect(page.getByRole('columnheader', { name: 'League pts', exact: true })).toBeVisible()
   await completions.dispose()

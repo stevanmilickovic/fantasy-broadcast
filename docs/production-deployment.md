@@ -29,3 +29,33 @@ Before going live:
 - Verify Liquibase migration against a database backup and confirm backup/restore procedures.
 - Confirm persistent MySQL and narration-audio storage, central log collection, and host firewall rules.
 - Create a verified account, register or follow a league, open an active broadcast, and verify narration and audio access.
+
+## Coordinating the next username migration
+
+The next changes remain unreleased at version 1.3.5 while user testing takes place.
+Do not publish another image under the existing immutable release tag. See the
+[verification handoff](next-version-verification.md) before selecting the release version.
+
+Migration 019 adds a canonical, case-normalized Unicode username key and enforces
+uniqueness. It preserves existing display names and fails on a conflicting existing
+name; it never silently renames an account. Rehearse it against a recent restored
+MySQL backup before production rollout. Resolve any reported conflict explicitly
+before retrying, rather than bypassing its validation.
+
+1. Stop every application writer, including old replicas and background workers,
+   and keep the site in maintenance until the coordinated rollout completes.
+2. Take a consistent database backup and retain the previous application images and
+   host configuration. Restore the backup into an isolated database and verify account
+   identities and migration history before relying on it for recovery.
+3. Start the new backend against the production database with only the new application
+   writing. Check Liquibase completion, username uniqueness, authentication and health;
+   deploy the matching frontend and smoke-test chat privacy and private-league access.
+4. Reopen traffic after the checks pass. Keep the backup through the release observation
+   period and monitor failed authentication, upstream requests and webhook processing.
+
+Old application versions do not maintain `username_key`; a rolling deployment with
+old writers can reject account creation or leave stale keys after renaming. Do not
+restore an old writer against the migrated schema. Recovery requires a compatible
+application or maintenance-mode restoration of the verified pre-migration backup and
+matching old images. Restoring a backup discards subsequent writes, so assess those
+writes, including payment webhook records, before choosing that recovery path.

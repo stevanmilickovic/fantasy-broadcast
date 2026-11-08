@@ -74,13 +74,13 @@ export async function mockBroadcast(
     if (/\/players\/\d+$/.test(path))
       return route.fulfill({
         json: {
-          id: 1,
+          id: Number(path.split('/').at(-1)),
           name: 'Player details in this league',
           shortName: 'Player',
           club: 'Arsenal',
           position: 'MID',
           photoCode: 0,
-          gameweek: 24,
+          gameweek: Number(new URL(route.request().url()).searchParams.get('gameweek') ?? 24),
           points: 5,
           changes: [],
           history: [],

@@ -1,10 +1,11 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–18 are implemented.
-One step remains (19): integrated verification and testing handoff, without a version bump.
+Status: steps 1–19 are implemented and the integrated testing handoff is complete.
+No implementation steps remain. Physical-device and provider release checks are recorded
+in [the verification handoff](next-version-verification.md) for acceptance testing.
 The user confirms 1.4 is intended but explicitly defers its version-update commit until
 after their testing. Keep version 1.3.5 throughout the remaining work.
-Current version: 1.3.5. This document changes no application behavior.
+Current version: 1.3.5. No version-update commit, release tag or production deployment.
 
 Each numbered step below represents one implementation commit, including its relevant
 tests and documentation. Commit messages are suggested titles. Apply Ponytail in full
@@ -20,6 +21,18 @@ receive unique suffixes, and manual names still require uniqueness.
 
 ## Implementation progress
 
+- Step 19: rebuilt the local stack, verified fresh and upgraded MySQL migrations,
+  restored the pre-upgrade backup into a disposable database and confirmed existing
+  account identities were preserved. Local SMTP capture verified registration,
+  password change/recovery, reset-token consumption and all-session invalidation.
+  Authenticated checks verified private approval/removal, chat email privacy and real
+  FPL gameweek-10 provisional projections for 14 managers plus player fixture schedules.
+  Final gates: 169 backend tests; frontend formatting, lint, 93 unit tests and build;
+  679 browser checks pass across six viewports with 41 intentional skips. Existing
+  formatting violations were normalized, superseding the early-step formatting limit
+  recorded below. Physical Android Chrome/Samsung Internet, deployed mail/Google OAuth,
+  paid sandbox/delayed webhooks and active-match reconciliation remain explicit release
+  checks. Version 1.3.5 is held for user testing; see the linked handoff for evidence.
 - Preparation: committed plan and the existing plain imperative commit-title convention.
 - Step 1: removed cross-account emails from chat/membership/admin/billing responses,
   replaced admin labels with usernames and IDs, allowlisted customer FPL payloads and
