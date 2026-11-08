@@ -5,7 +5,42 @@ files remain 1.3.5 at the user's request**. No release tag, production deploymen
 version-update commit was made. The local rebuilt application is available at
 <http://localhost:5173>.
 
-## Automated and integrated evidence
+## Acceptance-test follow-up
+
+The user's first testing pass is addressed without a version bump:
+
+- Removed Selected plan labels and the checkout step list. Bottom notices animate in
+  and out while preserving checkbox clearance, keyboard positioning and reduced motion.
+- Split player details into current gameweek, upcoming fixtures and history tabs.
+  Each current result sits immediately above its point breakdown, with scheduled
+  dashes/status and home/away ordering. Removed schedule explanations and fixture times.
+- Live form includes the provisional current result and follows score corrections;
+  ordinary FPL form continues to show completed results.
+- League views reuse active broadcast calculations through a separate membership-only
+  SSE feed. No broadcast is opened and no paid viewer slot is used. Stopping the
+  broadcast, losing the connection or receiving an incomplete projection restores
+  cached polling. Hidden/unmounted views stop their transports.
+- Opening a saved league and returning to My leagues preserves the document and app
+  navigation; modified clicks still support opening links in another tab.
+
+Checks: 171 backend tests (also passed during Docker packaging), frontend formatting,
+lint, 98 unit tests and production build. The isolated integrated stack verified real
+FPL gameweek-10 updates for 14 managers, equality with broadcast scores, REST snapshot
+reuse, a subsequent poll update, stream shutdown and cached fallback after schedule
+removal. It sent no external mail and made no payments. The final full responsive browser
+suite passed **685 checks, with 41 intentional skips and no failures** across six
+viewports. The earlier run exposed animation timing sensitivity under concurrent Docker
+build load; the immediate cleanup assertion now waits for asynchronous cleanup, and the
+complete repeat passed. Phone and desktop screenshots were inspected. Physical-phone
+and production-provider checks below remain acceptance checks. The normal rebuilt stack
+is healthy at localhost:5173; the disposable verification stack and volume were removed.
+
+The final acceptance corrections remove the password-session helper paragraph and give
+player details one scrolling tab panel, a taller viewport-bounded dialog and background
+scroll locking. Frontend checks pass; 48 affected browser checks pass across six viewports,
+including long histories, narrow phones, short landscape and focus/scroll restoration.
+
+## Initial implementation evidence
 
 Verification performed on 2026-11-08 with Node 22.12.0 and MySQL 8.4:
 

@@ -1,7 +1,8 @@
 .player-details-modal {
   --dialog-backdrop: rgba(12, 0, 20, 0.78);
   width: min(560px, calc(100vw - 32px));
-  max-height: min(720px, calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
   padding: 0;
   border: 0;
   outline: 0;
@@ -9,10 +10,21 @@
   color: #fff;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
 }
+.player-details-modal[open] {
+  display: flex;
+  flex-direction: column;
+}
+html:has(.player-details-modal[open]),
+body:has(.player-details-modal[open]) {
+  overflow: hidden;
+}
 .player-details-content {
   position: relative;
-  overflow-y: auto;
-  max-height: inherit;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 .player-details-close {
   position: absolute;
@@ -37,6 +49,7 @@
   outline-offset: 2px;
 }
 .player-details-header {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr) 60px;
   align-items: end;
@@ -91,6 +104,7 @@
   object-fit: contain;
 }
 .player-details-tabs {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-bottom: 1px solid rgba(32, 230, 255, 0.25);
@@ -111,7 +125,12 @@
   color: #20e6ff;
 }
 .player-details-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 10px 24px 24px;
+  scrollbar-color: #20e6ff rgba(255, 255, 255, 0.08);
+  scrollbar-width: thin;
 }
 .player-details-total {
   display: flex;
@@ -124,12 +143,6 @@
 .player-details-total strong {
   color: #00ff85;
   white-space: nowrap;
-}
-.player-details-history {
-  max-height: min(380px, 45dvh);
-  overflow-y: auto;
-  scrollbar-color: #20e6ff rgba(255, 255, 255, 0.08);
-  scrollbar-width: thin;
 }
 .player-details-list > p {
   margin: 18px 24px;
@@ -181,6 +194,28 @@
   background: var(--player-availability-color, #ffffff0d);
   color: var(--player-availability-text, #fff);
   overflow-wrap: anywhere;
+}
+.player-details-list > .player-availability {
+  margin-inline: 0;
+}
+@media (max-height: 560px) {
+  .player-details-header {
+    grid-template-columns: 60px minmax(0, 1fr) 42px;
+    min-height: 0;
+    padding: 48px 16px 12px;
+    gap: 12px;
+  }
+  .player-details-photo {
+    width: 60px;
+    height: 76px;
+  }
+  .player-details-heading h2 {
+    font-size: 1.25rem;
+  }
+  .player-details-shirt {
+    width: 42px;
+    max-height: 50px;
+  }
 }
 .player-availability p {
   margin-top: 6px;

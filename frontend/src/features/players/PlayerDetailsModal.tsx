@@ -1,4 +1,4 @@
-﻿import { useDialogMotion } from '../../shared/ui/useDialogMotion'
+import { useDialogMotion } from '../../shared/ui/useDialogMotion'
 import { useEffect, useId, useReducer, useState } from 'react'
 import { X } from 'lucide-react'
 import { loadPlayerDetails } from './api'
@@ -136,24 +136,6 @@ export function PlayerDetailsModal({
             />
           )}
         </header>
-        {details?.availability && (
-          <section
-            className="player-availability"
-            data-availability={availability.severity}
-            aria-label="Current availability"
-          >
-            <strong>{availability.label}</strong>
-            {availability.chance !== null && (
-              <p>
-                {availability.chance}% chance of playing {availability.round} gameweek
-              </p>
-            )}
-            {availability.chance === null && availability.severity && (
-              <p>Playing percentage not provided by FPL.</p>
-            )}
-            {details.availability.news && <p>{details.availability.news}</p>}
-          </section>
-        )}
         <div className="player-details-tabs" role="tablist" aria-label="Player points">
           {tabs.map((item, index) => (
             <button
@@ -187,50 +169,53 @@ export function PlayerDetailsModal({
             </button>
           ))}
         </div>
-        {error && (
-          <p className="player-details-message" role="alert">
-            {details && 'Update failed. Showing last received details. '}
-            {error}{' '}
-            <button type="button" onClick={retry}>
-              Retry player details
-            </button>
-          </p>
-        )}
-        {!details && !error && (
-          <p className="player-details-message">
-            {leagueId
-              ? 'Loading player points…'
-              : 'Detailed points and fixtures are available in registered league views.'}
-          </p>
-        )}
-        {details && tab === 'current' && (
-          <div
-            className="player-details-list"
-            role="tabpanel"
-            id={`${tabId}-panel`}
-            aria-labelledby={`${tabId}-current`}
-          >
-            <PlayerGameweek details={details} />
-          </div>
-        )}
-        {details && tab === 'fixtures' && (
-          <div
-            className="player-details-list"
-            role="tabpanel"
-            id={`${tabId}-panel`}
-            aria-labelledby={`${tabId}-fixtures`}
-          >
-            <PlayerFixtures schedule={details.fixtureSchedule} />
-          </div>
-        )}
-        {details && tab === 'history' && (
-          <div
-            className="player-details-list player-details-history"
-            role="tabpanel"
-            id={`${tabId}-panel`}
-            aria-labelledby={`${tabId}-history`}
-          >
-            {details.history.length === 0 ? (
+        <div
+          key={tab}
+          className={`player-details-list${tab === 'history' ? ' player-details-history' : ''}`}
+          role="tabpanel"
+          id={`${tabId}-panel`}
+          aria-labelledby={`${tabId}-${tab}`}
+          tabIndex={0}
+        >
+          {details?.availability && (
+            <section
+              className="player-availability"
+              data-availability={availability.severity}
+              aria-label="Current availability"
+            >
+              <strong>{availability.label}</strong>
+              {availability.chance !== null && (
+                <p>
+                  {availability.chance}% chance of playing {availability.round} gameweek
+                </p>
+              )}
+              {availability.chance === null && availability.severity && (
+                <p>Playing percentage not provided by FPL.</p>
+              )}
+              {details.availability.news && <p>{details.availability.news}</p>}
+            </section>
+          )}
+          {error && (
+            <p className="player-details-message" role="alert">
+              {details && 'Update failed. Showing last received details. '}
+              {error}{' '}
+              <button type="button" onClick={retry}>
+                Retry player details
+              </button>
+            </p>
+          )}
+          {!details && !error && (
+            <p className="player-details-message">
+              {leagueId
+                ? 'Loading player points…'
+                : 'Detailed points and fixtures are available in registered league views.'}
+            </p>
+          )}
+          {details && tab === 'current' && <PlayerGameweek details={details} />}
+          {details && tab === 'fixtures' && <PlayerFixtures schedule={details.fixtureSchedule} />}
+          {details &&
+            tab === 'history' &&
+            (details.history.length === 0 ? (
               <p>No previous gameweek points yet.</p>
             ) : (
               [...details.history].reverse().map((week) => (
@@ -239,9 +224,8 @@ export function PlayerDetailsModal({
                   <strong>{week.points} pts</strong>
                 </div>
               ))
-            )}
-          </div>
-        )}
+            ))}
+        </div>
       </div>
     </dialog>
   )

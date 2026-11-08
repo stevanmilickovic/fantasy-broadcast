@@ -67,10 +67,11 @@ The live engine should consume mapped records, not endpoint-specific JSON.
 
 ## Shared caching and broadcast polling
 
-All successful FPL responses are cached by URL for one hour by default
-(`FPL_CACHE_TTL_SECONDS=3600`). This includes league standings and matchups, ownership,
-entry lineups, bootstrap data, fixtures, live player points used outside broadcasts,
-and individual player histories. Reading a league or opening another player dialog
+Successful FPL responses are cached by URL for one hour by default
+(`FPL_CACHE_TTL_SECONDS=3600`), including individual player summaries and closed historical
+matchups. Current points use ten seconds; current fixtures, bootstrap metadata, league
+composition, lineups and entry history use thirty seconds. Static bootstrap accessors
+retain their hourly cache policy. Reading a league or opening another player dialog
 reuses those responses until they expire; cache expiry itself does not start a request.
 Concurrent readers of the same URL share one upstream request and receive independent
 JSON copies. Failed requests share a ten-second retry window so concurrent callers
@@ -85,17 +86,23 @@ another request. The admin broadcast path also uses this shared cache. Polling w
 ten seconds between completed cycles and stops when the customer sessions are stopped;
 new viewers join existing sessions rather than creating new upstream pollers.
 
-League composition is refreshed hourly during a long-running broadcast. A change of
+League composition is refreshed every thirty seconds during a long-running broadcast. A change of
 gameweek resets the point-change baseline, preventing the new week's totals from being
 interpreted as negative corrections to the old week. Narration retains its independent
 per-league publication gate.
 
-Draft live responses include fixture status. Classic fixture responses follow the
-hourly cache rule, so fixture-dependent automatic substitutions can lag even while
-player points refresh every ten seconds. Initial loading still requires each league's
+Draft live responses include fixture status. Classic fixtures share the thirty-second
+fixture cache. Initial loading still requires each league's
 own metadata and lineups; only the recurring player feeds are shared across leagues.
 
 Caches and broadcast sessions belong to the running backend process and reset on restart.
+
+League views can subscribe to `/api/customer/leagues/{id}/live/stream`. Active broadcasts
+publish their already-calculated league scores and standings through this separate,
+membership-protected feed; subscribers do not open broadcasts or consume viewer slots.
+The ordinary `/live` endpoint also reuses a complete active snapshot. Unsupported or
+incomplete broadcast snapshots fall back to the independent cached league calculation.
+Without a broadcast, the browser retains its visible-page ten-second polling interval.
 
 ## Manual Checks
 

@@ -143,14 +143,16 @@ test('manual selection cancels an in-flight introduction and keeps controls usab
   await completions.evaluate(async (promises) => {
     await Promise.all(promises)
   })
-  expect(
-    await scene.evaluate(
-      (root) =>
-        root
-          .getAnimations({ subtree: true })
-          .filter((effect) => effect.effect?.getTiming().iterations !== Infinity).length,
-    ),
-  ).toBe(0)
+  await expect
+    .poll(() =>
+      scene.evaluate(
+        (root) =>
+          root
+            .getAnimations({ subtree: true })
+            .filter((effect) => effect.effect?.getTiming().iterations !== Infinity).length,
+      ),
+    )
+    .toBe(0)
   await page.getByRole('button', { name: 'Standings', exact: true }).click()
   await expect(page.getByRole('columnheader', { name: 'League pts', exact: true })).toBeVisible()
   await completions.dispose()

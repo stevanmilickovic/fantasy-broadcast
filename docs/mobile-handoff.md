@@ -85,6 +85,17 @@ Private leagues require approval before league-scoped reads. Owners use `PATCH /
 
 ### Broadcast and audio
 
+For league-only updates, `GET /api/customer/leagues/{leagueId}/live/stream` returns SSE
+events `league-live` (the same projection schema as `/live`), `broadcast-stopped` and
+`broadcast-error`. It requires ordinary league membership, rechecks access on every
+event and never opens a broadcast or consumes its viewer slots. Pause REST polling
+while complete broadcast projections arrive; resume the existing cached interval when
+the broadcast stops, its projection is incomplete or the connection fails. Keep the
+last received data visibly stale on upstream errors. Close the stream when hidden or
+leaving and discard data after access denial. Streams have a sixty-second lifetime and
+support reconnection. The server caps concurrent league-only streams at 100 per league;
+a busy stream can fall back to `/live` without affecting broadcast capacity.
+
 | Method/path | Access | Request → result |
 | --- | --- | --- |
 | `GET /api/customer/broadcast-schedules/active` | User | `[{ id, startsAt, endsAt }]` for currently active schedules |

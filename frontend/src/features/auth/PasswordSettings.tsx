@@ -51,9 +51,6 @@ export function PasswordSettings({ onChanged }: { onChanged: () => void }) {
       )}
       {capability.data?.hasPassword === true && (
         <form className="account-password-form" onSubmit={(event) => void submit(event)}>
-          <p>
-            Changing your password signs out all existing sessions. You will need to sign in again.
-          </p>
           <PasswordInput
             label="Current password"
             value={current}

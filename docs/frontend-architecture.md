@@ -70,6 +70,8 @@ route content. `App` keys it by account ID, retaining notices across routes whil
 them on account changes. `useNotifications` emits bounded, deduplicated messages; success
 expires unless hovered/focused, errors require dismissal. The host uses `visualViewport`
 and exposes `--notification-space` for controls that need unobscured scrolling space.
+Notices slide/fade in and out; dismissal retains the reserved space through the exit,
+and reduced motion removes the animation and delay.
 Registration notices follow server confirmation and consume a session-scoped completion
 marker so refreshing or revisiting the confirmation URL does not announce it again.
 
@@ -311,6 +313,19 @@ changes remount the detail page and clear local filters. Club links in standings
 matchups use the existing app navigation for ordinary clicks, preserving the loaded league
 data. Their anchor URLs still support copying links and opening another tab. `LeagueStandingsTable`,
 `LeagueTeamsView` and `LeagueMatchupsView` own their presentation independently.
+Saved-league cards and the return-to-My-leagues link also use app navigation for ordinary
+clicks, preserving the document and shared workspace; modified clicks retain native links.
+
+`useLiveLeague` connects to the membership-protected `/leagues/{id}/live/stream` feed.
+An active customer broadcast supplies league-only scores/standings from its existing
+poller, without another upstream fetch, broadcast opening or paid viewer slot. The feed
+is independent of narration publication delays and contains no audio or squad details.
+While updates arrive the hook stops its own API polling. Broadcast shutdown, connection
+loss or an unsupported/incomplete broadcast snapshot restores the existing ten-second,
+visible-page polling; reconnection or the next valid broadcast update stops it again.
+Hiding/leaving closes the feed and aborts requests; access denial clears data. Each
+server event rechecks the session and league membership. Streams reconnect after a
+bounded lifetime, including when no broadcast is running.
 
 `LeagueInsightsView` adds the URL-addressable Insights tab. `leagueInsights.ts` derives
 unique owned-player leaderboards, raw squad output after recorded substitutions and
@@ -336,6 +351,18 @@ Missing live player data shows unavailable points rather than a confirmed zero. 
 navigate only returned gameweeks; final status requires the supplied finished flag.
 Classic matchups include the current gameweek and the five latest finished gameweeks;
 their final status comes from the bootstrap event's finished flag. H2H standings show
-up to five completed results in a separate Form column, oldest to newest, excluding unfinished
-matchups and unavailable scores. Player dialogs remain shared with
+up to five completed results in a separate Form column, oldest to newest. Selecting live
+standings includes the current live/provisional result with a dashed outline and an
+accessible provisional label; score corrections update its outcome. Upcoming and
+unavailable matchups stay excluded. Player dialogs remain shared with
 broadcasts; league-specific visual changes are scoped beneath the customer shell.
+
+Player details use three keyboard-accessible tabs: the current gameweek, upcoming
+fixtures and previous gameweeks. The current tab places each home/away result directly
+above its own point breakdown, preserving doubles and unassigned point changes. Scheduled
+scores use dashes and retain their status. Upcoming fixtures retain grouped blank/double
+gameweeks and numeric difficulty. Fixture timestamps and explanatory schedule copy are
+omitted from the presentation; timestamps remain available in the API contract.
+The modal can grow to the viewport height with safe margins. Its header/tabs stay outside
+one scrolling tab panel; the dialog, wrapper and background page do not add scrollbars.
+Availability/error messages live inside that panel, and changing tabs resets its scroll.

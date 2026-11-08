@@ -19,6 +19,9 @@ test('password change returns to sign-in and deletion stays in the account area'
     page.locator('.legal-footer').getByRole('button', { name: 'Delete account' }),
   ).toHaveCount(0)
   await page.goto('/account')
+  await expect(
+    page.getByText('Changing your password signs out all existing sessions.', { exact: false }),
+  ).toHaveCount(0)
   await page.getByLabel('Current password', { exact: true }).fill('old-password-123')
   await page.getByLabel('New password', { exact: true }).fill('new-password-123')
   await page.getByLabel('Confirm new password', { exact: true }).fill('new-password-123')
