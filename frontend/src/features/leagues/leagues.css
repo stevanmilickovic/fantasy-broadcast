@@ -436,6 +436,10 @@
 .league-form-bubble.result-w {
   background: #00ff85;
 }
+.league-form-bubble[data-provisional='true'] {
+  outline: 1px dashed currentColor;
+  outline-offset: 2px;
+}
 .league-form-bubble.result-l {
   background: #ff6b85;
 }

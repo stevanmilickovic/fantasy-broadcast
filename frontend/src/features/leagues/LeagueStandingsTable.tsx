@@ -17,11 +17,13 @@ export function LeagueStandingsTable({
   scoringType,
   teamLink,
   navigate,
+  liveForm = false,
 }: {
   discovery: LeagueDiscoveryState
   scoringType: FplLeagueScoring
   teamLink: (id: number) => string
   navigate: Navigate
+  liveForm?: boolean
 }) {
   const [search, setSearch] = useState('')
   const entries = discovery.details.league_entries
@@ -51,7 +53,7 @@ export function LeagueStandingsTable({
           <h2>League standings</h2>
           <p>
             {h2h
-              ? 'League points decide rank. Fantasy points are cumulative player points. Form shows the last five completed matchups, newest on the right.'
+              ? `League points decide rank. Fantasy points are cumulative player points. Form shows the last five ${liveForm ? 'matchups, including the provisional result' : 'completed matchups'}, newest on the right.`
               : 'Ranked by total fantasy points.'}
           </p>
         </div>
@@ -93,7 +95,7 @@ export function LeagueStandingsTable({
           {rows.map(({ standing, entry }) => {
             const last = standingLastRank(standing)
             const form = h2h
-              ? recentMatchResults(discovery.details.matches, standingEntryId(standing))
+              ? recentMatchResults(discovery.details.matches, standingEntryId(standing), liveForm)
               : []
             const delta = last ? last - standing.rank : null
             const Icon = delta === null || delta === 0 ? Minus : delta > 0 ? ArrowUp : ArrowDown
@@ -142,11 +144,12 @@ export function LeagueStandingsTable({
                         form.map((match) => {
                           const outcome =
                             match.result === 'W' ? 'Win' : match.result === 'L' ? 'Loss' : 'Draw'
-                          const label = `Gameweek ${match.event}: ${outcome}, ${match.points}–${match.opponentPoints}`
+                          const label = `${match.provisional ? 'Provisional · ' : ''}Gameweek ${match.event}: ${outcome}, ${match.points}–${match.opponentPoints}`
                           return (
                             <span
                               key={match.id}
                               className={`league-form-bubble result-${match.result.toLowerCase()}`}
+                              data-provisional={match.provisional}
                               role="img"
                               aria-label={label}
                               title={label}

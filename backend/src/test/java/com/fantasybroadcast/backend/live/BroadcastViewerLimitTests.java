@@ -50,7 +50,7 @@ class BroadcastViewerLimitTests {
 		var beans = new StaticListableBeanFactory();
 		service = spy(new MockLiveStateService(new ObjectMapper(), mock(FplDraftClient.class), new FplDraftMapper(),
 				beans.getBeanProvider(NarrationJobService.class), beans.getBeanProvider(BroadcastNarrationRepository.class),
-				beans.getBeanProvider(NarrationProperties.class), beans.getBeanProvider(BroadcastNotificationRepository.class)));
+				beans.getBeanProvider(NarrationProperties.class), beans.getBeanProvider(BroadcastNotificationRepository.class), new LeagueLiveUpdates()));
 		doReturn(service.currentState()).when(service).currentState(anyLong());
 		var sessions = new SessionService();
 		session = new Cookie(SessionService.COOKIE_NAME, sessions.create(new CurrentUser(1, "test@example.com", "Viewer", UserRole.ADMIN)));

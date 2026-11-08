@@ -79,6 +79,9 @@ test('live standings preserve URL choice and current matchups retain scores on s
   )
   await page.getByRole('button', { name: 'Live', exact: true }).click()
   await expect(page.locator('.league-table tbody tr').first()).toContainText(two.entry_name)
+  await expect(
+    page.getByRole('img', { name: 'Provisional · Gameweek 24: Win, 72–34' }),
+  ).toBeVisible()
   await page.goBack()
   await expect(page.getByRole('button', { name: 'FPL', exact: true })).toHaveAttribute(
     'aria-pressed',

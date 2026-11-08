@@ -29,6 +29,7 @@ class SharedBroadcastPollingTests {
 	private final ObjectMapper json = new ObjectMapper();
 	private final FplDraftClient client = mock(FplDraftClient.class);
 	private MockLiveStateService service;
+    private final LeagueLiveUpdates updates = new LeagueLiveUpdates();
 	private ObjectNode bootstrap;
 
 	@BeforeEach
@@ -44,14 +45,14 @@ class SharedBroadcastPollingTests {
 		((ObjectNode)draftPoints.path("elements")).putObject("3").putObject("stats").put("minutes",0).put("total_points",0);
 		var classicPoints = (ObjectNode) read("event-live.sample.json");
 		((tools.jackson.databind.node.ArrayNode)classicPoints.path("elements")).addObject().put("id",3).putObject("stats").put("minutes",0).put("total_points",0);
-		when(client.getBroadcastDraftEventLive(anyInt())).thenReturn(draftPoints);
-		when(client.getBroadcastFantasyEventLive(anyInt())).thenReturn(classicPoints);
-		when(client.getFantasyFixtures()).thenReturn(json.readTree("[]"));
+		when(client.getCurrentPoints(eq(FplLeagueType.DRAFT), anyInt())).thenReturn(new FplDraftClient.SourceJson(draftPoints, Instant.now()));
+		when(client.getCurrentPoints(eq(FplLeagueType.CLASSIC), anyInt())).thenReturn(new FplDraftClient.SourceJson(classicPoints, Instant.now()));
+		when(client.getCurrentFixtures()).thenReturn(new FplDraftClient.SourceJson(json.readTree("[]"), Instant.now()));
 		when(client.getClassicPointsLeagueStandings(anyLong())).thenReturn(read("classic-h2h-standings.sample.json"));
 		var beans = new StaticListableBeanFactory();
 		service = new MockLiveStateService(json, client, new FplDraftMapper(),
 				beans.getBeanProvider(NarrationJobService.class), beans.getBeanProvider(BroadcastNarrationRepository.class),
-				beans.getBeanProvider(NarrationProperties.class), beans.getBeanProvider(BroadcastNotificationRepository.class));
+				beans.getBeanProvider(NarrationProperties.class), beans.getBeanProvider(BroadcastNotificationRepository.class), updates);
 	}
 
 	@AfterEach
@@ -67,14 +68,14 @@ class SharedBroadcastPollingTests {
 		start(3, FplLeagueType.CLASSIC);
 		start(4, FplLeagueType.CLASSIC);
 		assertThat(ReflectionTestUtils.getField(service, "leaguePollTask")).isSameAs(poller);
-		verify(client, times(1)).getBroadcastDraftEventLive(1);
-		verify(client, times(1)).getBroadcastFantasyEventLive(1);
+		verify(client, times(1)).getCurrentPoints(FplLeagueType.DRAFT, 1);
+		verify(client, times(1)).getCurrentPoints(FplLeagueType.CLASSIC, 1);
 		clearInvocations(client);
 
 		ReflectionTestUtils.invokeMethod(service, "pollLeagueSessions");
 
-		verify(client, times(1)).getBroadcastDraftEventLive(1);
-		verify(client, times(1)).getBroadcastFantasyEventLive(1);
+		verify(client, times(1)).getCurrentPoints(FplLeagueType.DRAFT, 1);
+		verify(client, times(1)).getCurrentPoints(FplLeagueType.CLASSIC, 1);
 		verify(client, never()).getLeagueDetails(anyLong());
 		verify(client, never()).getEntryEvent(anyLong(), anyInt());
 		verify(client, never()).getFantasyEntryEvent(anyLong(), anyInt());
@@ -84,10 +85,14 @@ class SharedBroadcastPollingTests {
 	@Test
 	void joiningViewersAndStoppingBroadcastsDoNotCreateAdditionalRequests() {
 		start(1, FplLeagueType.DRAFT);
+		assertThat(updates.current(1).gameweek()).isEqualTo(service.currentState(1).gameweek());
+		assertThat(updates.current(1).scoresUnavailableReason()).contains("complete current-gameweek lineups");
+		assertThat(updates.current(1).managerScores()).isEmpty();
 		clearInvocations(client);
 		start(1, FplLeagueType.DRAFT);
 		verifyNoInteractions(client);
 		service.stopLeagueSessions();
+		assertThat(updates.current(1)).isNull();
 		ReflectionTestUtils.invokeMethod(service, "pollLeagueSessions");
 		verifyNoInteractions(client);
 		assertThat(ReflectionTestUtils.getField(service, "leaguePollTask")).isNull();
@@ -116,7 +121,7 @@ class SharedBroadcastPollingTests {
 		assertThat(ReflectionTestUtils.getField(service, "leaguePollTask")).isSameAs(poller);
 		clearInvocations(client);
 		ReflectionTestUtils.invokeMethod(service, "pollLeagueSessions");
-		verify(client, times(1)).getBroadcastDraftEventLive(1);
+		verify(client, times(1)).getCurrentPoints(FplLeagueType.DRAFT, 1);
 		assertThat(service.currentState(2).sequence().currentStep()).isEqualTo(1);
 		service.updateLeagueEntitlement(2, false, false);
 		assertThat(ReflectionTestUtils.getField(service, "leaguePollTask")).isNull();
@@ -139,14 +144,14 @@ class SharedBroadcastPollingTests {
 		assertThat(service.currentState(1).events()).isEmpty();
 		verify(client, times(4)).getLeagueDetails(101);
 		verify(client).getEntryEvent(9001, 2);
-		verify(client).getBroadcastDraftEventLive(2);
+		verify(client).getCurrentPoints(FplLeagueType.DRAFT, 2);
 	}
 
 	@Test
 	void aFailedDraftFeedDoesNotStopClassicLeaguesOrFutureCycles() {
 		start(1, FplLeagueType.DRAFT);
 		start(2, FplLeagueType.CLASSIC);
-		when(client.getBroadcastDraftEventLive(1)).thenThrow(new IllegalStateException("Upstream unavailable"));
+		when(client.getCurrentPoints(FplLeagueType.DRAFT, 1)).thenThrow(new IllegalStateException("Upstream unavailable"));
 		ReflectionTestUtils.invokeMethod(service, "pollLeagueSessions");
 		assertThat(service.currentState(1).status().message()).contains("failed");
 		assertThat(service.currentState(2).sequence().currentStep()).isEqualTo(1);

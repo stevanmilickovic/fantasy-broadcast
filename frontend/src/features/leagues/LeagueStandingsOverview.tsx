@@ -173,6 +173,7 @@ export function LeagueStandingsOverview({
         )}
         {mode === 'standings' && discovery && (
           <LeagueStandingsTable
+            liveForm={Boolean(showingLive)}
             discovery={displayed ?? discovery}
             scoringType={scoringType}
             teamLink={(id) => link('teams', id)}

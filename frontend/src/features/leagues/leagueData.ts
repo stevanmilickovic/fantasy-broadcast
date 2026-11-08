@@ -114,11 +114,13 @@ export function standingLastRank(standing: FplStanding) {
 export function recentMatchResults(
   matches: LeagueDiscoveryState['details']['matches'],
   entryId: number,
+  includeLive = false,
 ) {
   return matches
     .filter(
       (match) =>
-        match.finished &&
+        (match.finished ||
+          (includeLive && ['LIVE', 'PROVISIONAL'].includes(match.liveStatus ?? ''))) &&
         (match.league_entry_1 ?? match.firstLeagueEntryId) !== undefined &&
         (match.league_entry_2 ?? match.secondLeagueEntryId) !== undefined &&
         ((match.league_entry_1 ?? match.firstLeagueEntryId) === entryId ||
@@ -135,7 +137,14 @@ export function recentMatchResults(
       const points = first ? firstPoints : secondPoints
       const opponentPoints = first ? secondPoints : firstPoints
       const result = points > opponentPoints ? 'W' : points < opponentPoints ? 'L' : 'D'
-      return { id: match.id, event: match.event, points, opponentPoints, result }
+      return {
+        id: match.id,
+        event: match.event,
+        points,
+        opponentPoints,
+        result,
+        provisional: !match.finished,
+      }
     })
 }
 

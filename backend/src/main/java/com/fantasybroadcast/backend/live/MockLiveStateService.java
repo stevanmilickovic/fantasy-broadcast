@@ -68,6 +68,7 @@ public class MockLiveStateService {
 	private final BroadcastNarrationRepository narrationRepository;
 	private final NarrationProperties narrationProperties;
 	private final BroadcastNotificationRepository notificationRepository;
+	private final LeagueLiveUpdates leagueUpdates;
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 	private final ScheduledExecutorService sequenceExecutor = Executors.newSingleThreadScheduledExecutor();
 	private int currentIndex;
@@ -95,13 +96,14 @@ public class MockLiveStateService {
 			ObjectProvider<NarrationJobService> narrationJobService,
 			ObjectProvider<BroadcastNarrationRepository> narrationRepository,
 			ObjectProvider<NarrationProperties> narrationProperties,
-			ObjectProvider<BroadcastNotificationRepository> notificationRepository) {
+			ObjectProvider<BroadcastNotificationRepository> notificationRepository, LeagueLiveUpdates leagueUpdates) {
 		this.fplClient = fplClient;
 		this.fplMapper = fplMapper;
 		this.narrationJobService = narrationJobService.getIfAvailable();
 		this.narrationRepository = narrationRepository.getIfAvailable();
 		this.narrationProperties = narrationProperties.getIfAvailable();
 		this.notificationRepository = notificationRepository.getIfAvailable();
+		this.leagueUpdates = leagueUpdates;
 		try {
 			var resource = new ClassPathResource("mock/live-sequence.json");
 			this.snapshots = objectMapper.readValue(resource.getInputStream(), MockLiveSequence.class).snapshots();
@@ -143,6 +145,7 @@ public class MockLiveStateService {
 		session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType).withVoiceNarrationEnabled(voiceNarrationEnabled);
 		log.info("Initial FPL state loaded: leagueKey={}, gameweek={}, matchups={}", leagueKey, session.state.gameweek(), session.state.matchups().size());
 		leagueSessions.put(leagueKey, session);
+		leagueUpdates.publish(leagueKey, session.leagueProjection);
 		publishLeagueState(leagueKey, session, session.state);
 		if (leaguePollTask == null || leaguePollTask.isDone()) {
 			leaguePollTask = sequenceExecutor.scheduleWithFixedDelay(this::pollLeagueSessions,
@@ -166,6 +169,7 @@ public class MockLiveStateService {
 		if (leaguePollTask != null) leaguePollTask.cancel(false);
 		leaguePollTask = null;
 		leagueSessions.values().forEach(this::cancelNarrationWait);
+		leagueSessions.keySet().forEach(leagueUpdates::stopped);
 		leagueSessions.clear();
 		livePlayerCaches.clear();
 		leagueEmitters.values().forEach(listeners -> listeners.forEach(SseEmitter::complete));
@@ -186,6 +190,7 @@ public class MockLiveStateService {
 		if (!enabled) {
 			cancelNarrationWait(session);
 			leagueSessions.remove(leagueKey);
+			leagueUpdates.stopped(leagueKey);
 			var listeners = leagueEmitters.remove(leagueKey);
 			if (listeners != null) listeners.forEach(SseEmitter::complete);
 			if (leagueSessions.isEmpty()) stopLeagueSessions();
@@ -207,10 +212,12 @@ public class MockLiveStateService {
 			if (Instant.now().isBefore(session.nextPollAt)) return;
 			try {
 				session.state = fetchSessionState(session, fplLeagueId, leagueType, scoringType);
+				leagueUpdates.publish(leagueKey, session.leagueProjection);
 				log.info("FPL poll succeeded: leagueKey={}, poll={}, gameweek={}, matchups={}, events={}", leagueKey, session.pollCount, session.state.gameweek(), session.state.matchups().size(), session.state.events().size());
 				publishOrStageLeagueState(leagueKey, session, session.state);
 			}
 			catch (RuntimeException exception) {
+				leagueUpdates.failed(leagueKey);
 				log.error("FPL poll failed: leagueKey={}, fplLeagueId={}, type={}, scoring={}", leagueKey, fplLeagueId, leagueType, scoringType, exception);
 				session.state = new LiveStateResponse(new LiveStatus("REAL", Instant.now().toString(), "FPL poll failed; retrying in 10 seconds."), session.state.sequence(), session.state.gameweek(), session.state.matchups(), session.state.teams(), session.state.standings(), List.of(), session.state.commentary()); publishLeagueState(leagueKey, session, session.state);
 			}
@@ -249,6 +256,7 @@ public class MockLiveStateService {
 		state = new LiveStateResponse(state.status(), state.sequence(), state.gameweek(), state.matchups(), state.teams(), state.standings(), events, state.commentary());
 		session.previousPoints = playerPoints(state);
 		session.previousLivePlayers = fetchedRealLivePlayers;
+		session.leagueProjection = leagueProjection(session.snapshot, state);
 		return state;
 	}
 
@@ -257,25 +265,31 @@ public class MockLiveStateService {
 		if (leagueType == FplLeagueType.DRAFT) {
 			var league = fplMapper.mapLeagueDetails(fplClient.getLeagueDetails(leagueId));
 			var playersById = indexPlayers(fplMapper.mapPlayers(fplClient.getCurrentDraftBootstrapStatic()));
-			var gameweek = currentGameweek(fplClient.getCurrentFantasyBootstrapStatic(), league);
+			var bootstrap = fplClient.getCurrentFantasyBootstrapStatic();
+			var gameweek = currentGameweek(bootstrap, league);
 			var entryEvents = new HashMap<Long, FplEntryEvent>();
 			for (var entry : league.entries()) entryEvents.put((long) entry.entryId(), fplMapper.mapEntryEvent(fplClient.getEntryEvent(entry.entryId(), gameweek)));
-			return new LeagueSnapshot(leagueType, scoringType, gameweek, playersById, league, List.of(), List.of(), entryEvents, new FplStandingsBaseline(fplClient).load(leagueType, scoringType, leagueId, gameweek, league.entries().stream().map(e -> new FplStandingsBaseline.Manager(String.valueOf(e.leagueEntryId()), e.entryId())).toList(), entryEvents));
+			return new LeagueSnapshot(leagueType, scoringType, gameweek, playersById, league, List.of(), List.of(), entryEvents, new FplStandingsBaseline(fplClient).load(leagueType, scoringType, leagueId, gameweek, league.entries().stream().map(e -> new FplStandingsBaseline.Manager(String.valueOf(e.leagueEntryId()), e.entryId())).toList(), entryEvents), bootstrap, true, false);
 		}
 
 		var fantasyBootstrap = fplClient.getCurrentFantasyBootstrapStatic();
 		var gameweek = currentGameweek(fantasyBootstrap, null);
 		var playersById = indexPlayers(fplMapper.mapPlayers(fantasyBootstrap));
+		var leagueSource = scoringType == FplLeagueScoring.H2H ? fplClient.getClassicLeagueStandings(leagueId) : fplClient.getClassicPointsLeagueStandings(leagueId);
+		var schedule = scoringType == FplLeagueScoring.H2H ? fplClient.getClassicLeagueMatches(leagueId, gameweek) : null;
+		boolean complete = !leagueSource.path("standings").path("has_next").asBoolean() && (schedule == null || !schedule.path("has_next").asBoolean());
+		boolean knockout = false;
+		if (schedule != null) for (var match : schedule.path("results")) if (match.path("is_knockout").asBoolean()) knockout = true;
 		var classicLeague = scoringType == FplLeagueScoring.H2H
-				? fplMapper.mapClassicLeague(fplClient.getClassicLeagueStandings(leagueId), fplClient.getClassicLeagueMatches(leagueId, gameweek))
+				? fplMapper.mapClassicLeague(leagueSource, schedule)
 				: null;
 		var entries = classicLeague == null
-				? fplMapper.mapClassicLeagueEntries(fplClient.getClassicPointsLeagueStandings(leagueId))
+				? fplMapper.mapClassicLeagueEntries(leagueSource)
 				: classicLeague.entries();
 		var entryEvents = new HashMap<Long, FplEntryEvent>();
 		for (var entry : entries) entryEvents.put(entry.entryId(), fplMapper.mapEntryEvent(fplClient.getFantasyEntryEvent(entry.entryId(), gameweek)));
 		return new LeagueSnapshot(leagueType, scoringType, gameweek, playersById, null, entries,
-				classicLeague == null ? List.of() : classicLeague.matches(), entryEvents, new FplStandingsBaseline(fplClient).load(leagueType, scoringType, leagueId, gameweek, entries.stream().map(e -> new FplStandingsBaseline.Manager(String.valueOf(e.entryId()), e.entryId())).toList(), entryEvents));
+				classicLeague == null ? List.of() : classicLeague.matches(), entryEvents, new FplStandingsBaseline(fplClient).load(leagueType, scoringType, leagueId, gameweek, entries.stream().map(e -> new FplStandingsBaseline.Manager(String.valueOf(e.entryId()), e.entryId())).toList(), entryEvents), fantasyBootstrap, complete, knockout);
 	}
 
 	private Map<Integer, FplLivePlayer> loadLivePlayers(LeagueSnapshot snapshot) {
@@ -287,17 +301,52 @@ public class MockLiveStateService {
 			return cached.players();
 		}
 		Map<Integer, FplLivePlayer> players;
+		var points = fplClient.getCurrentPoints(snapshot.leagueType(), snapshot.gameweek());
+		var fixturesFetchedAt = points.fetchedAt();
 		if (snapshot.leagueType() == FplLeagueType.DRAFT) {
-			var live = fplMapper.mapDraftEventLive(fplClient.getBroadcastDraftEventLive(snapshot.gameweek()));
+			var live = fplMapper.mapDraftEventLive(points.value());
 			players = indexLivePlayers(live.players());
 			fetchedFixtures = indexFixtures(live.fixtures());
 		}
 		else {
-			players = indexLivePlayers(fplMapper.mapLivePlayers(fplClient.getBroadcastFantasyEventLive(snapshot.gameweek())));
-			fetchedFixtures = indexFixtures(fplMapper.mapFixtures(fplClient.getFantasyFixtures()));
+			players = indexLivePlayers(fplMapper.mapLivePlayers(points.value()));
+			var fixtures = fplClient.getCurrentFixtures();
+			fixturesFetchedAt = fixtures.fetchedAt();
+			fetchedFixtures = indexFixtures(fplMapper.mapFixtures(fixtures.value()));
 		}
-		livePlayerCaches.put(cacheKey, new LivePlayerCache(Instant.now(), players, fetchedFixtures));
+		livePlayerCaches.put(cacheKey, new LivePlayerCache(Instant.now(), players, fetchedFixtures, points.fetchedAt(), fixturesFetchedAt));
 		return players;
+	}
+
+	private LeagueLiveProjection.Projection leagueProjection(LeagueSnapshot snapshot, LiveStateResponse state) {
+		var cache = livePlayerCaches.get(snapshot.leagueType() + "-" + snapshot.gameweek());
+		var status = LeagueLiveProjection.status(snapshot.bootstrap(), snapshot.gameweek(),
+				cache.fixtures().values().stream().filter(f -> f.event() == snapshot.gameweek()).toList());
+		var scores = new HashMap<String, Integer>();
+		for (var team : teams(state)) if (Long.parseLong(team.managerId()) > 0) scores.put(team.managerId(), team.score());
+		long managerCount = snapshot.leagueType() == FplLeagueType.DRAFT ? snapshot.draftLeague().entries().stream().filter(e -> e.entryId() > 0).count() : snapshot.classicEntries().size();
+		if (!snapshot.complete() || scores.isEmpty() || scores.size() != managerCount || scores.size() > 50 || snapshot.entryEvents().values().stream().anyMatch(picks ->
+				picks.picks().size() != 15 || snapshot.leagueType() == FplLeagueType.CLASSIC && picks.picks().stream().noneMatch(FplEntryPick::captain))) {
+			var reason = "Live scores require complete current-gameweek lineups and a complete league of up to 50 managers.";
+			return new LeagueLiveProjection.Projection(snapshot.leagueType(), snapshot.gameweek(), cache.pointsFetchedAt(), cache.fixturesFetchedAt(),
+					status, snapshot.gameweek()-1, Map.of(), List.of(), List.of(), reason, reason);
+		}
+		var matches = new ArrayList<LeagueLiveProjection.CurrentMatch>();
+		if (snapshot.scoringType() == FplLeagueScoring.H2H) {
+			if (snapshot.leagueType() == FplLeagueType.DRAFT) {
+				for (var match : snapshot.draftLeague().matches()) if (match.event() == snapshot.gameweek())
+					matches.add(new LeagueLiveProjection.CurrentMatch(match.id(), match.event(), String.valueOf(match.firstLeagueEntryId()),
+							String.valueOf(match.secondLeagueEntryId()), scores.get(String.valueOf(match.firstLeagueEntryId())), scores.get(String.valueOf(match.secondLeagueEntryId())), status));
+			} else {
+				for (var match : snapshot.classicMatches()) matches.add(new LeagueLiveProjection.CurrentMatch(matches.size()+1, snapshot.gameweek(),
+						String.valueOf(match.firstEntryId()), String.valueOf(match.secondEntryId()), scores.get(String.valueOf(match.firstEntryId())), scores.get(String.valueOf(match.secondEntryId())), status));
+			}
+		}
+		var reason = snapshotStandings(snapshot, teams(state), state.matchups()).reason();
+		if (snapshot.knockout()) reason = "Live standings require non-knockout pairings.";
+		if (matches.stream().anyMatch(m -> m.firstPoints() == null || m.secondPoints() == null)) reason = "FPL's current average opponent score is not settled.";
+		return new LeagueLiveProjection.Projection(snapshot.leagueType(), snapshot.gameweek(), cache.pointsFetchedAt(), cache.fixturesFetchedAt(),
+				status, snapshot.gameweek()-1, scores, matches, reason == null ? state.standings() : List.of(), null, reason);
 	}
 
 	private LiveStateResponse buildSnapshotState(LeagueSnapshot snapshot, Map<Integer, FplLivePlayer> liveById,
@@ -416,6 +465,7 @@ public class MockLiveStateService {
 		long leagueId;
 		LiveStateResponse state;
 		LiveStateResponse publishedState;
+		LeagueLiveProjection.Projection leagueProjection;
 		LeagueSnapshot snapshot;
 		Instant snapshotLoadedAt = Instant.EPOCH;
 		Map<String, Integer> previousPoints = Map.of();
@@ -433,10 +483,10 @@ public class MockLiveStateService {
 	private record LeagueSnapshot(FplLeagueType leagueType, FplLeagueScoring scoringType, int gameweek,
 			Map<Integer, FplPlayer> playersById, FplDraftLeague draftLeague,
 			List<FplClassicLeagueEntry> classicEntries, List<FplClassicMatch> classicMatches,
-			Map<Long, FplEntryEvent> entryEvents, FplStandingsBaseline.Result baselines) {
+			Map<Long, FplEntryEvent> entryEvents, FplStandingsBaseline.Result baselines, tools.jackson.databind.JsonNode bootstrap, boolean complete, boolean knockout) {
 	}
 
-	private record LivePlayerCache(Instant loadedAt, Map<Integer, FplLivePlayer> players, Map<Integer, FplFixture> fixtures) {
+	private record LivePlayerCache(Instant loadedAt, Map<Integer, FplLivePlayer> players, Map<Integer, FplFixture> fixtures, Instant pointsFetchedAt, Instant fixturesFetchedAt) {
 	}
 
 	public synchronized SseEmitter connectStream() {

@@ -45,8 +45,10 @@ export function useLiveLeague(leagueId: number, enabled: boolean) {
     let timer: ReturnType<typeof setTimeout> | undefined
     let stopped = false
     let denied = false
+    let broadcast = false
+    let stream: EventSource | undefined
     const poll = async () => {
-      if (stopped || denied || document.hidden || active) return
+      if (stopped || denied || broadcast || document.hidden || active) return
       clearTimeout(timer)
       const controller = new AbortController()
       active = controller
@@ -59,6 +61,10 @@ export function useLiveLeague(leagueId: number, enabled: boolean) {
       } catch (error) {
         if (!controller.signal.aborted) {
           denied = error instanceof HttpError && [401, 403, 404].includes(error.status)
+          if (denied) {
+            stream?.close()
+            stream = undefined
+          }
           setSnapshot((previous) => ({
             leagueId,
             data: denied ? undefined : previous?.leagueId === leagueId ? previous.data : undefined,
@@ -69,30 +75,94 @@ export function useLiveLeague(leagueId: number, enabled: boolean) {
       } finally {
         if (active === controller) {
           active = null
-          if (!stopped && !denied && !document.hidden) timer = setTimeout(() => void poll(), 10_000)
+          if (!stopped && !denied && !broadcast && !document.hidden)
+            timer = setTimeout(() => void poll(), 10_000)
         }
       }
+    }
+    const connect = () => {
+      if (stream || stopped || denied || document.hidden) return
+      const events = new EventSource(`/api/customer/leagues/${leagueId}/live/stream`)
+      stream = events
+      const current = () => !stopped && !document.hidden && stream === events
+      events.addEventListener('league-live', (event) => {
+        if (!current()) return
+        try {
+          const data: LiveLeagueProjection = JSON.parse(event.data)
+          if (
+            !data.gameweek ||
+            !data.managerScores ||
+            !Array.isArray(data.matchups) ||
+            !Array.isArray(data.standings)
+          )
+            throw new Error('Invalid league update')
+          if (data.scoresUnavailableReason) {
+            broadcast = false
+            void poll()
+            return
+          }
+          broadcast = true
+          clearTimeout(timer)
+          active?.abort()
+          active = null
+          setSnapshot({ leagueId, data, checkedAt: Date.now() })
+        } catch {
+          broadcast = false
+          void poll()
+        }
+      })
+      events.addEventListener('broadcast-stopped', () => {
+        if (!current()) return
+        broadcast = false
+        void poll()
+      })
+      events.addEventListener('broadcast-error', () => {
+        if (!current()) return
+        setSnapshot((previous) => ({
+          leagueId,
+          data: previous?.leagueId === leagueId ? previous.data : undefined,
+          error: 'FPL update failed. Showing last received values.',
+          checkedAt: Date.now(),
+        }))
+      })
+      events.addEventListener('error', () => {
+        if (!current()) return
+        broadcast = false
+        void poll()
+      })
     }
     const update = () => {
       clearTimeout(timer)
       if (document.hidden) {
         active?.abort()
         active = null
-      } else void poll()
+        stream?.close()
+        stream = undefined
+        broadcast = false
+      } else {
+        connect()
+        void poll()
+      }
     }
     retry.current = () => {
       active?.abort()
       active = null
       denied = false
+      broadcast = false
+      stream?.close()
+      stream = undefined
+      connect()
       void poll()
     }
-    void poll()
+    connect()
+    timer = setTimeout(() => void poll(), 200)
     window.addEventListener('focus', update)
     document.addEventListener('visibilitychange', update)
     return () => {
       stopped = true
       clearTimeout(timer)
       active?.abort()
+      stream?.close()
       retry.current = () => {}
       window.removeEventListener('focus', update)
       document.removeEventListener('visibilitychange', update)

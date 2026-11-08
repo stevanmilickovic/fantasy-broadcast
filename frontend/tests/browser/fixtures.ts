@@ -68,6 +68,11 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
     (url) => url.pathname.startsWith('/api/'),
     async (route) => {
       const path = new URL(route.request().url()).pathname
+      if (/\/leagues\/\d+\/live\/stream$/.test(path))
+        return route.fulfill({
+          contentType: 'text/event-stream',
+          body: 'event: broadcast-stopped\ndata: \n\n',
+        })
       if (path === '/api/paddle/plans')
         return route.fulfill({ json: { aiBroadcasterEnabled: true } })
       if (path === '/api/auth/me')

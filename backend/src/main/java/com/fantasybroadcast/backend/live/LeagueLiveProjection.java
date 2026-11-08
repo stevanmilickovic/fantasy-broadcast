@@ -91,7 +91,7 @@ public class LeagueLiveProjection {
 	private Projection unavailable(FplGameweekData.Snapshot source,String status,String reason) {
 		return new Projection(source.source(),source.gameweek(),source.pointsFetchedAt(),source.fixturesFetchedAt(),status,source.gameweek()-1,Map.of(),List.of(),List.of(),reason,reason);
 	}
-	private String status(JsonNode bootstrap,int gameweek,List<FplFixture> fixtures) {
+	static String status(JsonNode bootstrap,int gameweek,List<FplFixture> fixtures) {
 		for(var event : bootstrap.path("events")) if(event.path("id").asInt()==gameweek && event.path("finished").asBoolean() && event.path("data_checked").asBoolean()) return "FINAL";
 		if(fixtures.stream().anyMatch(f -> f.started() && !f.finished() && !f.finishedProvisional())) return "LIVE";
 		if(fixtures.stream().anyMatch(FplFixture::started)) return "PROVISIONAL";
