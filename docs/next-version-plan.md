@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: paused at the user's request after completing implementation steps 1–8.
-Eleven steps remain (9–19); resume with league-removal confirmation in step 9.
+Status: implementation resumed at the user's request; steps 1–9 are complete.
+Ten steps remain (10–19); next is provider-aware password security.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -71,7 +71,12 @@ receive unique suffixes, and manual names still require uniqueness.
   phone touch emulation and desktop, using one unpaid transaction canceled afterward.
   The reported physical-phone failure was not reproduced; actual device testing and
   paid sandbox/internal-step checks remain release checks. No live payment was made.
-- Paused after step 8 as requested. Eleven steps remain: 9–19. Existing-name repair is
+- Step 9: native removal confirmation names the league and explains chat/private-access
+  consequences, starts on Cancel, supports Escape/focus recovery and keeps retryable
+  failures in the dialog. Owner/admin management remains available. Destination labels
+  consistently use My leagues. Verification: lint/build, 91 unit tests and 54 browser
+  removal/approval/registration checks across six viewports pass.
+- Steps 1–9 have separate commits. Ten steps remain: 10–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

@@ -49,7 +49,7 @@ export function LeaguePaymentConfirmation({
       <p role="status">
         {waiting
           ? 'Waiting for payment confirmation. Your league will open automatically when it is ready.'
-          : 'Payment confirmation is taking longer than expected. You can check again or return to your leagues. Please do not pay again.'}
+          : 'Payment confirmation is taking longer than expected. You can check again or return to My leagues. Please do not pay again.'}
       </p>
       {query.error && <p role="alert">{query.error}</p>}
       {!waiting && (
@@ -64,7 +64,7 @@ export function LeaguePaymentConfirmation({
             Check again
           </button>
           <button type="button" className="secondary-action" onClick={() => onNavigate('/leagues')}>
-            Go to your leagues
+            Go to My leagues
           </button>
         </div>
       )}

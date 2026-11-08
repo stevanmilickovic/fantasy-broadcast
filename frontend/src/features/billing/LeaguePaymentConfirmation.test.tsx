@@ -21,15 +21,15 @@ it('stops polling after a minute and lets the subscriber check again', async () 
     />,
   )
   await act(async () => {})
-  expect(screen.queryByRole('button', { name: 'Go to your leagues' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Go to My leagues' })).toBeNull()
   for (let i = 0; i < 29; i++) {
-    expect(screen.queryByRole('button', { name: 'Go to your leagues' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Go to My leagues' })).toBeNull()
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000)
     })
   }
   expect(screen.getByRole('button', { name: 'Check again' })).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: 'Go to your leagues' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Go to My leagues' }))
   expect(onNavigate).toHaveBeenCalledWith('/leagues')
   const checks = vi.mocked(loadRegisteredLeagues).mock.calls.length
   await act(async () => {
@@ -41,7 +41,7 @@ it('stops polling after a minute and lets the subscriber check again', async () 
     fireEvent.click(screen.getByRole('button', { name: 'Check again' }))
   })
   expect(screen.getByRole('status').textContent).toContain('Waiting for payment confirmation')
-  expect(screen.queryByRole('button', { name: 'Go to your leagues' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Go to My leagues' })).toBeNull()
   expect(loadRegisteredLeagues).toHaveBeenCalledTimes(checks + 1)
 })
 

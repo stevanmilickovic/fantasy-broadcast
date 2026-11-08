@@ -1,7 +1,9 @@
 import { ArrowLeft, Ellipsis, Radio } from 'lucide-react'
 import { TeamEmblemProvider } from './TeamEmblemProvider'
 import { useDismissibleMenus } from './useDismissibleMenus'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
+import { useDialogMotion } from '../../shared/ui/useDialogMotion'
+import { useNotifications } from '../../shared/ui/notifications'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useMutation } from '../../shared/api/useMutation'
 import { useQuery } from '../../shared/api/useQuery'
@@ -47,8 +49,21 @@ export function LeagueDetailPage({
   const schedules = useQuery('active-broadcasts', loadActiveBroadcastSchedules)
   const opening = useMutation()
   const unfollowing = useMutation()
+  const {
+    dialog: removalDialog,
+    closing: removalClosing,
+    close: closeRemoval,
+    show: showRemoval,
+    onClose: onRemovalClose,
+  } = useDialogMotion()
+  const cancelRemoval = useRef<HTMLButtonElement>(null)
+  const { notify } = useNotifications()
+  const dismissRemoval = () => {
+    if (!unfollowing.busy) closeRemoval(() => menuRef.current?.querySelector('summary')?.focus())
+  }
   const unfollow = async () => {
     if (await unfollowing.run((signal) => unfollowLeague(league.id, signal))) {
+      notify('League removed from My leagues.', { kind: 'success' })
       onChanged()
       navigate('/leagues')
     }
@@ -63,7 +78,7 @@ export function LeagueDetailPage({
   return (
     <section className="selected-league-page">
       <a className="league-back" href="/leagues">
-        <ArrowLeft size={16} /> Your leagues
+        <ArrowLeft size={16} /> My leagues
       </a>
       <header className="league-identity">
         <div>
@@ -99,9 +114,14 @@ export function LeagueDetailPage({
               <div>
                 <button
                   disabled={unfollowing.busy}
-                  onClick={() =>
-                    canManage ? navigate(`/league/manage?leagueId=${league.id}`) : void unfollow()
-                  }
+                  onClick={() => {
+                    if (canManage) navigate(`/league/manage?leagueId=${league.id}`)
+                    else {
+                      unfollowing.reset()
+                      showRemoval()
+                      cancelRemoval.current?.focus()
+                    }
+                  }}
                 >
                   {canManage ? 'League management' : 'Remove from my leagues'}
                 </button>
@@ -110,6 +130,39 @@ export function LeagueDetailPage({
           </div>
         </div>
       </header>
+      <dialog
+        ref={removalDialog}
+        className="league-removal-dialog dialog-motion"
+        data-closing={removalClosing}
+        aria-labelledby="league-removal-title"
+        aria-describedby="league-removal-description"
+        onClose={onRemovalClose}
+        onCancel={(event) => {
+          event.preventDefault()
+          dismissRemoval()
+        }}
+      >
+        <h2 id="league-removal-title">Remove {league.displayName}?</h2>
+        <p id="league-removal-description">
+          You will stop following this league and lose access to its chat. The league and its
+          subscription will stay active.
+          {league.privateLeague && ' Following again will require the owner’s approval.'}
+        </p>
+        {unfollowing.error && <p role="alert">{unfollowing.error}</p>}
+        <footer>
+          <button
+            ref={cancelRemoval}
+            type="button"
+            disabled={unfollowing.busy}
+            onClick={dismissRemoval}
+          >
+            Cancel
+          </button>
+          <button type="button" disabled={unfollowing.busy} onClick={() => void unfollow()}>
+            {unfollowing.busy ? 'Removing…' : 'Remove league'}
+          </button>
+        </footer>
+      </dialog>
       <aside className={`league-broadcast-status ${active ? 'available' : ''}`}>
         <Radio size={14} />
         {schedules.status === 'loading' ? (
@@ -124,9 +177,9 @@ export function LeagueDetailPage({
           'No broadcast available now'
         )}
       </aside>
-      {(opening.error || unfollowing.error) && (
+      {opening.error && (
         <p role="alert" className="discovery-error">
-          {opening.error ?? unfollowing.error}
+          {opening.error}
         </p>
       )}
       {!showingChat && discovery.status === 'loading' && (

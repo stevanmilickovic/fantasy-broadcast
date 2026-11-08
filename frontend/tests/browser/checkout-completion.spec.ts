@@ -41,7 +41,7 @@ test('paid registration waits for confirmation and opens the purchased league', 
   await page.evaluate(() => Reflect.get(window, 'completePayment')())
   await expect(page).toHaveURL(successPath)
   await expect(page.getByRole('status')).toContainText('Waiting for payment confirmation')
-  await expect(page.getByRole('button', { name: 'Go to your leagues' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Go to My leagues' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Choose Standard' })).toHaveCount(0)
   confirmed = true
   await expect(page).toHaveURL(`/league?leagueId=${leagues[0].id}`)
@@ -65,7 +65,7 @@ test('payment confirmation failures can retry without another payment', async ({
     `/leagues/checkout?fplLeagueId=${leagues[0].fplLeagueId}&leagueType=DRAFT&payment=completed`,
   )
   await expect(page.getByRole('button', { name: 'Check again' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Go to your leagues' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Go to My leagues' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Please do not pay again')
   await page.unroute('**/api/customer/leagues')
   await page.getByRole('button', { name: 'Check again' }).click()

@@ -1008,6 +1008,7 @@
   background: #31003a;
   border-color: #20e6ff66;
 }
+.league-removal-dialog,
 .league-select-dialog {
   --dialog-backdrop: #100014b3;
   width: min(440px, calc(100vw - 32px));
@@ -1020,6 +1021,33 @@
   background: #25002c;
   color: #fff;
   box-shadow: 0 24px 80px #0008;
+}
+.league-removal-dialog {
+  padding: 24px;
+  overflow-wrap: anywhere;
+}
+.league-removal-dialog h2 {
+  margin: 0 0 16px;
+}
+.league-removal-dialog p {
+  line-height: 1.6;
+}
+.league-removal-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.league-removal-dialog button {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid #ffffff40;
+  border-radius: 6px;
+  background: #ffffff12;
+  color: #fff;
+}
+.league-removal-dialog button:last-child {
+  background: #90254d;
 }
 .league-select-dialog[open] {
   display: flex;

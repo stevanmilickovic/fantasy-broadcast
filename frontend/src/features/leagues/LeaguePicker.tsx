@@ -22,7 +22,7 @@ export function LeaguePicker({
       <header>
         <div>
           <span className="kicker">Welcome back, {user.displayName}</span>
-          <h1>Your leagues</h1>
+          <h1>My leagues</h1>
           <p>Explore your standings, teams and matchups.</p>
         </div>
         <div className="league-picker-actions">

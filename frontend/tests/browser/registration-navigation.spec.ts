@@ -87,7 +87,7 @@ for (const count of [0, 1, 2])
       route.fulfill({ json: leagues.slice(0, count) }),
     )
     await page.goto('/leagues')
-    await expect(page.getByRole('heading', { name: 'Your leagues', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'My leagues', exact: true })).toBeVisible()
     await expect(page).toHaveURL('/leagues')
     if (!count)
       await expect(
