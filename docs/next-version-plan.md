@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–10 are complete.
-Nine steps remain (11–19); next is account settings and recovery presentation.
+Status: implementation resumed at the user's request; steps 1–11 are complete.
+Eight steps remain (12–19); next is mobile text selection.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -85,7 +85,14 @@ receive unique suffixes, and manual names still require uniqueness.
   Verification: 147 backend tests pass, including seven new endpoint/transaction/security
   tests for origin/session checks, races, expiry, mail failure, provider policy and limits.
   Recovery is queued in-process: restarts can drop undelivered requests; users can retry.
-- Steps 1–10 have separate commits. Nine steps remain: 11–19. Existing-name repair is
+- Step 11: account settings groups username, sign-in/password security and deletion.
+  Local-password users have current/new/confirmation fields and password-manager/show
+  controls; Google-only users receive provider guidance. Change/reset returns to sign-in
+  with a bottom notification. Recovery retains registration intent and login says Email.
+  Deletion moved out of the footer; authenticated deep links use the account area without
+  querying leagues. Verification: lint/build, 92 unit tests and 54 account/navigation
+  browser checks across six viewports pass. SMTP delivery remains an integration check.
+- Steps 1–11 have separate commits. Eight steps remain: 12–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

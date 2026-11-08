@@ -39,7 +39,7 @@ test('public navigation, login and password recovery remain usable', async ({ pa
   await page.getByRole('button', { name: 'Send reset link' }).click()
   await expect(page.getByText('Check your email.', { exact: true })).toBeVisible()
   await page.goto('/login')
-  await page.getByLabel('Email or username').fill(viewer.email)
+  await page.getByLabel('Email').fill(viewer.email)
   await page.getByLabel('Password', { exact: true }).fill('test-password-123')
   await page.locator('.account-card').getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'My leagues' })).toBeVisible()

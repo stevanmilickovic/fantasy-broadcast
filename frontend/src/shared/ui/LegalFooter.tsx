@@ -23,9 +23,6 @@ export function LegalFooter({
         <button type="button" onClick={() => onNavigate('/refunds')}>
           Refunds
         </button>
-        <button type="button" onClick={() => onNavigate('/account-deletion')}>
-          Delete account
-        </button>
       </div>
     </footer>
   )

@@ -3,7 +3,6 @@ import { positiveId } from '../../app/routes'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useQuery } from '../../shared/api/useQuery'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
-import { AccountDeletionPage } from '../auth/AccountDeletionPage'
 import type { AuthUser } from '../auth/types'
 import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
 import { LeaguePaymentConfirmation } from '../billing/LeaguePaymentConfirmation'
@@ -136,7 +135,6 @@ export function CustomerDashboard({
             onChanged={query.refresh}
           />
         )}
-      {pathname === '/account-deletion' && <AccountDeletionPage />}
       <LegalFooter onNavigate={onNavigate} className="customer-legal-footer" />
     </main>
   )

@@ -55,6 +55,8 @@ describe('route ownership', () => {
       })
   })
   it('protects private pages and preserves password reset links', () => {
+    expect(resolveRoute('/account-deletion', '', user)).toEqual({ page: 'account-deletion' })
+    expect(resolveRoute('/account-deletion', '', null)).toEqual({ page: 'redirect', to: '/login' })
     expect(resolveRoute('/league', '?leagueId=42', null)).toEqual({
       page: 'redirect',
       to: '/login',

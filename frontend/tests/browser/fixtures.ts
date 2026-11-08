@@ -77,6 +77,8 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
         return route.fulfill({ contentType: 'text/event-stream', body: ': connected\n\n' })
       if (path === '/api/auth/options')
         return route.fulfill({ json: { googleSignInEnabled: false } })
+      if (path === '/api/auth/password/capability')
+        return route.fulfill({ json: { hasPassword: true } })
       if (path === '/api/auth/login') {
         session = viewer
         return route.fulfill({ json: { user: viewer } })

@@ -20,6 +20,7 @@ export function useAuthForm(
   pathname: string,
   search: string,
   onAuthenticated: (result: AuthResponse) => void | Promise<void>,
+  onPasswordReset?: () => void,
 ) {
   const [flow, setFlow] = useState<AuthFlow>(() =>
     pathname === '/reset-password'
@@ -71,9 +72,7 @@ export function useAuthForm(
       return
     }
     if (['login', 'register', 'forgot'].includes(flow.step) && !email.trim()) {
-      setValidationError(
-        flow.step === 'login' ? 'Enter your email or username.' : 'Enter your email address.',
-      )
+      setValidationError('Enter your email address.')
       return
     }
     if (flow.step === 'login' && !password) {
@@ -86,6 +85,7 @@ export function useAuthForm(
         if (result) {
           clearPasswords()
           setMessage('Your password has been changed. You can now sign in.')
+          onPasswordReset?.()
         }
         break
       }

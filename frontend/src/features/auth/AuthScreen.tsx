@@ -1,22 +1,35 @@
-import { Eye, EyeOff } from 'lucide-react'
+import { PasswordInput } from './PasswordInput'
 import { useEffect } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import type { AuthResponse } from './types'
 import { useAuthForm } from './useAuthForm'
 import { rememberRegistrationIntent } from './registrationIntent'
+import { useNotifications } from '../../shared/ui/notifications'
 
 type Props = {
   pathname: string
   search: string
   onAuthenticated: (result: AuthResponse) => void
   onNavigate: Navigate
+  onPasswordReset?: () => void
 }
 type AuthMode = 'login' | 'register' | 'forgot'
 
-const PASSWORD_MIN_LENGTH = 12
-
-export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Props) {
+export function AuthScreen({
+  pathname,
+  search,
+  onAuthenticated,
+  onNavigate,
+  onPasswordReset,
+}: Props) {
+  const { notify } = useNotifications()
+  useEffect(() => {
+    if (pathname === '/login' && new URLSearchParams(search).get('password') === 'changed') {
+      notify('Password changed. Please sign in again.', { kind: 'success', id: 'password-changed' })
+      onNavigate('/login', true)
+    }
+  }, [pathname, search, notify, onNavigate])
   useEffect(() => {
     if (pathname !== '/reset-password') rememberRegistrationIntent(search)
   }, [pathname, search])
@@ -41,7 +54,7 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
     googleSignInEnabled,
     submit,
     switchMode,
-  } = useAuthForm(pathname, search, onAuthenticated)
+  } = useAuthForm(pathname, search, onAuthenticated, onPasswordReset)
   const title = resettingPassword
     ? 'Choose a new password'
     : verifyingRegistration
@@ -67,9 +80,15 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
         <span className="kicker">Fantasy Broadcast</span>
         <h1>{title}</h1>
         <p>{description}</p>
+        {mode === 'forgot' && (
+          <p>
+            If you signed up only with Google, use Google sign-in or{' '}
+            <a href="https://accounts.google.com/signin/recovery">Google account recovery</a>.
+          </p>
+        )}
         {!resettingPassword && !verifyingRegistration && (
           <>
-            <label htmlFor="auth-email">{mode === 'login' ? 'Email or username' : 'Email'}</label>
+            <label htmlFor="auth-email">Email</label>
             <input
               id="auth-email"
               type="email"
@@ -171,48 +190,6 @@ export function AuthScreen({ pathname, search, onAuthenticated, onNavigate }: Pr
       </form>
       <LegalFooter onNavigate={onNavigate} className="account-legal-footer" />
     </main>
-  )
-}
-
-function PasswordInput({
-  label,
-  value,
-  showPassword,
-  autoComplete,
-  onChange,
-  onToggle,
-}: {
-  label: string
-  value: string
-  showPassword: boolean
-  autoComplete: 'current-password' | 'new-password'
-  onChange: (value: string) => void
-  onToggle: () => void
-}) {
-  const id = label.toLowerCase().replaceAll(' ', '-')
-  return (
-    <>
-      <label htmlFor={id}>{label}</label>
-      <div className="password-field">
-        <input
-          id={id}
-          type={showPassword ? 'text' : 'password'}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          required
-          minLength={autoComplete === 'new-password' ? PASSWORD_MIN_LENGTH : 5}
-          autoComplete={autoComplete}
-        />
-        <button
-          type="button"
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
-          title={showPassword ? 'Hide password' : 'Show password'}
-          onClick={onToggle}
-        >
-          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      </div>
-    </>
   )
 }
 

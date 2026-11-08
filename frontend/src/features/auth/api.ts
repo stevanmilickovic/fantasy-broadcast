@@ -1,5 +1,21 @@
 import { request } from '../../shared/api/http'
 import type { AuthOptions, AuthResponse, AuthUser, PendingRegistrationResponse } from './types'
+export const loadPasswordCapability = async (
+  signal?: AbortSignal,
+): Promise<{ hasPassword: boolean }> =>
+  (await request('/api/auth/password/capability', { signal })).json()
+
+export const changePassword = async (
+  currentPassword: string,
+  password: string,
+  signal?: AbortSignal,
+): Promise<void> => {
+  await request('/api/auth/password/change', {
+    method: 'POST',
+    signal,
+    body: JSON.stringify({ currentPassword, password }),
+  })
+}
 export const updateProfile = async (displayName: string, signal?: AbortSignal): Promise<AuthUser> =>
   (
     await request('/api/auth/me', {

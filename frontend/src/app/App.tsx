@@ -3,6 +3,7 @@ import './styles.css'
 import { AdministrationPage } from '../features/administration/AdministrationPage'
 import { AuthScreen } from '../features/auth/AuthScreen'
 import { AccountSettings } from '../features/auth/AccountSettings'
+import { AccountDeletionPage } from '../features/auth/AccountDeletionPage'
 import { useAuthSession } from '../features/auth/useAuthSession'
 import { BroadcastPage } from '../features/broadcast/BroadcastPage'
 import { PaymentLinkPage } from '../features/billing/PaymentLinkPage'
@@ -39,6 +40,10 @@ function AppContent({
   navigate: Navigate
 }) {
   const route = resolveRoute(location.pathname, location.search, session.user)
+  const passwordChanged = () => {
+    session.updateUser(null)
+    navigate('/login?password=changed', true)
+  }
   if (route.page === 'payment-link')
     return <PaymentLinkPage search={location.search} navigate={navigate} />
   if (session.isLoading)
@@ -64,6 +69,7 @@ function AppContent({
             session.handleAuthenticated(result, registrationDestination(location.search))
           }
           onNavigate={navigate}
+          onPasswordReset={passwordChanged}
         />
       )
   }
@@ -71,7 +77,21 @@ function AppContent({
   switch (route.page) {
     case 'account':
       return (
-        <AccountSettings user={session.user} onUpdated={session.updateUser} navigate={navigate} />
+        <AccountSettings
+          user={session.user}
+          onUpdated={session.updateUser}
+          navigate={navigate}
+          onPasswordChanged={passwordChanged}
+        />
+      )
+    case 'account-deletion':
+      return (
+        <main className="account-shell account-settings">
+          <button type="button" className="checkout-back" onClick={() => navigate('/account')}>
+            Back to account settings
+          </button>
+          <AccountDeletionPage />
+        </main>
       )
     case 'administration':
       return (

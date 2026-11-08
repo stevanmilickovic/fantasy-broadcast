@@ -10,6 +10,7 @@ export type Route =
   | { page: 'leagues'; pathname: string }
   | { page: 'administration' }
   | { page: 'account' }
+  | { page: 'account-deletion' }
   | { page: 'broadcast'; leagueId?: number }
   | { page: 'redirect'; to: string }
 
@@ -54,6 +55,7 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
     return { page: 'broadcast', leagueId }
   }
   if (pathname === '/account') return { page: 'account' }
+  if (pathname === '/account-deletion') return { page: 'account-deletion' }
   if (pathname === '/register' || pathname === '/login') {
     const destination = registrationDestination(search)
     if (destination) return { page: 'redirect', to: destination }
@@ -69,7 +71,6 @@ export function resolveRoute(pathname: string, search: string, user: AuthUser | 
       '/leagues/new',
       '/leagues/find',
       '/leagues/checkout',
-      '/account-deletion',
     ].includes(pathname)
   ) {
     return { page: 'leagues', pathname }

@@ -44,7 +44,7 @@ test('guest registration intent survives switching to login and refreshing', asy
   await expect(page).toHaveURL('/register?next=register')
   await page.reload()
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
-  await page.getByLabel('Email or username').fill(viewer.email)
+  await page.getByLabel('Email').fill(viewer.email)
   await page.getByLabel('Password', { exact: true }).fill('test-password-123')
   await page.locator('.account-card').getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL('/leagues/new')

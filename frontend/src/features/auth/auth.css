@@ -220,3 +220,16 @@
 .account-settings p {
   overflow-wrap: anywhere;
 }
+.account-password-form {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.account-settings .account-card h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.account-settings a {
+  color: #a4eaff;
+  text-underline-offset: 3px;
+}

@@ -22,9 +22,11 @@ Broadcast league IDs must be positive safe integers; a global broadcast requires
 Backend authorization remains authoritative.
 
 `CustomerDashboard` queries the user's leagues and composes the picker, registration,
-detail, league management, checkout or account-deletion page. A successful league-list response
+detail, league management or checkout page. A successful league-list response
 redirects inaccessible detail/management routes; it must not displace explicit list,
-checkout or account-deletion visits. The list has useful zero-, one- and many-league states.
+checkout visits. The list has useful zero-, one- and many-league states.
+Account settings and the authenticated `/account-deletion` deep link are owned by
+the account feature and do not query leagues. The shared legal footer has no deletion action.
 
 Discovery lives at `/leagues/find`; `/leagues/new` is a focused registration-by-ID form.
 Old registration URLs carrying search/page parameters redirect to discovery. The submitted
@@ -71,6 +73,12 @@ The client refreshes its identity and the backend refreshes active session copie
 Usernames are unique under Unicode NFKC normalization and locale-independent lowercase;
 the database enforces a binary canonical key. Generated defaults get a suffix on conflict;
 manual conflicts return 409. User IDs remain the identity used by chat and memberships.
+`PasswordSettings` loads the authenticated database-backed password capability and uses
+the shared password input for current/new/confirmation fields. Google-only accounts
+receive provider security guidance. Change/reset clears client identity and returns to
+sign-in with a one-time bottom notice, preserving the server's session invalidation.
+The recovery screen explains Google recovery generally without identifying the provider
+for an entered email. See [password security](password-security.md) for server limits.
 
 Chat and membership DTOs expose usernames and IDs without account emails. Administrative
 user lists omit emails too; league/billing ownership labels use usernames and IDs.

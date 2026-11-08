@@ -38,7 +38,7 @@ it('redirects followers away from owner-only league management', async () => {
   expect(screen.queryByRole('heading', { name: 'League management' })).toBeNull()
 })
 
-it.each(['/account-deletion', '/leagues/checkout'])(
+it.each(['/leagues/checkout'])(
   'preserves a direct link to %s when the league list loads',
   async (pathname) => {
     vi.mocked(loadRegisteredLeagues).mockResolvedValue([])
@@ -53,12 +53,7 @@ it.each(['/account-deletion', '/leagues/checkout'])(
       />,
     )
     await waitFor(() => expect(loadRegisteredLeagues).toHaveBeenCalled())
-    expect(
-      screen.getByText(
-        pathname === '/account-deletion' ? 'Request account deletion' : 'Checkout page',
-        { selector: pathname === '/account-deletion' ? 'h1' : 'p' },
-      ),
-    ).toBeTruthy()
+    expect(screen.getByText('Checkout page', { selector: 'p' })).toBeTruthy()
     expect(navigate).not.toHaveBeenCalled()
   },
 )

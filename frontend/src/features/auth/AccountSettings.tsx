@@ -5,15 +5,18 @@ import { useMutation } from '../../shared/api/useMutation'
 import { updateProfile } from './api'
 import type { AuthUser } from './types'
 import { useNotifications } from '../../shared/ui/notifications'
+import { PasswordSettings } from './PasswordSettings'
 
 export function AccountSettings({
   user,
   onUpdated,
   navigate,
+  onPasswordChanged,
 }: {
   user: AuthUser
   onUpdated: (user: AuthUser) => void
   navigate: Navigate
+  onPasswordChanged: () => void
 }) {
   const [name, setName] = useState(user.displayName)
   const saving = useMutation()
@@ -63,6 +66,21 @@ export function AccountSettings({
         )}
         <button disabled={saving.busy}>{saving.busy ? 'Saving…' : 'Save username'}</button>
       </form>
+      <PasswordSettings onChanged={onPasswordChanged} />
+      <section className="account-card" aria-labelledby="account-deletion-title">
+        <h2 id="account-deletion-title">Account deletion</h2>
+        <p>
+          Request a review of your account and data for deletion. Active subscriptions must be
+          canceled first.
+        </p>
+        <button
+          type="button"
+          className="secondary-action"
+          onClick={() => navigate('/account-deletion')}
+        >
+          Delete account
+        </button>
+      </section>
     </main>
   )
 }
