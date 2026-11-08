@@ -84,3 +84,12 @@ is FPL's nullable side-specific 1–5 rating. Local kickoff text includes the ti
 scores are presented relative to the selected player's club. These are club schedules,
 not a guarantee of a player's appearance. Visible dialogs refresh every thirty seconds,
 abort on hide/unmount and retain labeled last details on failures with a retry action.
+
+Broadcast `PlayerView.fixtureProgress` derives from the club's fixture IDs in its
+displayed source snapshot, independently of minutes/points or injury probability.
+Live club fixtures take precedence over remaining fixtures; a DGW gap preserves earned
+points as BETWEEN. Complete, upcoming, blank, TBD and unknown states stay distinct.
+Unknown is the backward-compatible default for legacy payloads. Substitution copies,
+queued notifications and scene transitions preserve the snapshot's progress. Upcoming
+surfaces soften availability hues without fading text/focus/events. Live markers say
+“Team playing now”; the metadata pattern becomes static under reduced motion.

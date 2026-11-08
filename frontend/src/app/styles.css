@@ -4,6 +4,7 @@
 @import '../shared/ui/dialog-motion.css';
 @import '../shared/ui/players.css';
 @import '../features/broadcast/broadcast.css';
+@import '../features/broadcast/fixture-progress.css';
 @import '../features/administration/administration.css';
 @import '../features/auth/auth.css';
 @import '../features/leagues/leagues.css';

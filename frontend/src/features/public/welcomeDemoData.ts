@@ -199,6 +199,7 @@ function demoPlayer(
     lineupSlot: String(index + 1),
     points,
     minutes: 76,
+    fixtureProgress: 'LIVE',
     status: 'ACTIVE',
     recentDelta: event?.eventPlayer === index ? event.delta : 0,
   }
@@ -218,6 +219,7 @@ function demoBenchPlayer(
     lineupSlot: `B${index + 1}`,
     points: index + 1,
     minutes: 76,
+    fixtureProgress: 'COMPLETE',
     status: 'BENCH',
     recentDelta: 0,
   }

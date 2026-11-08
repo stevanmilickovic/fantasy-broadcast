@@ -69,7 +69,7 @@ final class TotalPointsMockLiveSequence {
 			var delta = changes.stream().filter(change -> change.playerId().equals(player.id())).mapToInt(MockEvent::delta).sum();
 			// The player token resolves its official shirt from this club name.  A league-wide
 			// label here cannot be matched to a shirt code, so the mock must use a real club.
-			var view = new PlayerView(player.id(), player.displayName(), player.shortName(), "Arsenal", player.position(), player.slot(), points.get(player.id()), 0, "AVAILABLE", delta);
+			var view = new PlayerView(player.id(), player.displayName(), player.shortName(), "Arsenal", player.position(), player.slot(), points.get(player.id()), 0, "AVAILABLE", delta,false,null,FixtureProgress.LIVE);
 			if (player.bench()) bench.add(view); else active.add(view);
 		}
 		return new TeamView(seed.id(), seed.manager(), seed.club(), seed.shortName(), seed.color(), active.stream().mapToInt(PlayerView::points).sum(), 0, active, bench);

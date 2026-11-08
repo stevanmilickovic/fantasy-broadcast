@@ -30,15 +30,21 @@ it('keeps outgoing data until covered, freezes the captured target, and rejects 
   const { result, rerender } = renderHook(useBroadcastPresentation, { initialProps: first })
   act(() => result.current.settled(result.current.transitionId))
   const next = options(1)
+  if (first.liveState && next.liveState) {
+    first.liveState.teams[0].activePlayers[0].fixtureProgress = 'LIVE'
+    next.liveState.teams[0].activePlayers[0].fixtureProgress = 'COMPLETE'
+  }
   rerender(next)
   expect(result.current.phase).toBe('covering')
   expect(result.current.holdingPendingUpdates).toBe(false)
   expect(result.current.liveState).toBe(first.liveState)
+  expect(result.current.liveState?.teams[0].activePlayers[0].fixtureProgress).toBe('LIVE')
   const id = result.current.transitionId
   act(() => result.current.covered(id - 1))
   expect(result.current.liveState).toBe(first.liveState)
   act(() => result.current.covered(id))
   expect(result.current.liveState).toBe(next.liveState)
+  expect(result.current.liveState?.teams[0].activePlayers[0].fixtureProgress).toBe('COMPLETE')
   const latest = options(3)
   rerender(latest)
   expect(result.current.liveState).toBe(next.liveState)

@@ -1,7 +1,9 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–16 are implemented.
-Three steps remain (17–19); mobile native-selection verification remains a device gate.
+Status: implementation resumed at the user's request; steps 1–17 are implemented.
+Two steps remain (18–19); mobile native-selection verification remains a device gate.
+The user confirms 1.4 is intended but explicitly defers its version-update commit until
+after their testing. Keep version 1.3.5 throughout the remaining work.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -130,7 +132,15 @@ receive unique suffixes, and manual names still require uniqueness.
   Verification: 167 backend tests, frontend lint/build and 93 unit tests; 24 player
   fixture/dialog browser checks across six viewports including Tokyo day rollover,
   long opponents, missing data, reduced motion and focus recovery pass.
-- Steps 1–16 have separate commits. Three steps remain: 17–19. Existing-name repair is
+- Step 17: fixture progress is independent of availability and derives from club/fixture
+  identity in the displayed snapshot. Upcoming players have quieter shirts/surfaces;
+  warning hues and readable text remain. Team-live players have a labeled marker and
+  restrained metadata-edge pattern, static under reduced motion. DGW-between players
+  retain earned points; complete players retain their design. Copies, mocks and demo
+  data preserve progress. Verification: 169 backend tests, frontend lint/build and 93
+  unit tests; 48 six-viewport progress/availability/presentation browser checks pass.
+  Phone screenshots reviewed; queued snapshot tests preserve prior fixture state.
+- Steps 1–17 have separate commits. Two steps remain: 18–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

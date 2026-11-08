@@ -149,7 +149,7 @@ final class ComprehensiveMockLiveSequence {
 		for (var player : playersFor(seed)) {
 			var delta = changes.stream().filter(change -> change.playerId().equals(player.id())).mapToInt(MockEvent::delta).sum();
 			var view = new PlayerView(player.id(), player.displayName(), player.shortName(), seed.premierLeagueClub(), player.position(),
-					player.lineupSlot(), points.get(player.id()), 0, "AVAILABLE", delta);
+					player.lineupSlot(), points.get(player.id()), 0, "AVAILABLE", delta,false,null,FixtureProgress.LIVE);
 			if (player.bench()) bench.add(view); else active.add(view);
 		}
 		var score = active.stream().mapToInt(PlayerView::points).sum();

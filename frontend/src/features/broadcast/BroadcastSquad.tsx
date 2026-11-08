@@ -1,5 +1,5 @@
 import { Shirt } from 'lucide-react'
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { shirtCodeFor, shirtUrlFor } from '../../shared/fpl/shirts'
 import type { FplClubShirt } from '../../shared/fpl/types'
 import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
@@ -124,11 +124,29 @@ function BroadcastPlayer({
 }) {
   const [failedImage, setFailedImage] = useState<string>()
   const availability = playerAvailability(player.availability)
+  const descriptionId = useId()
+  const progress = player.fixtureProgress ?? 'UNKNOWN'
+  const progressLabel = {
+    UPCOMING: 'Team yet to play this gameweek',
+    LIVE: 'Team playing now',
+    BETWEEN: 'Another club fixture remains this gameweek',
+    COMPLETE: 'Club fixtures complete this gameweek',
+    BLANK: 'No club fixture scheduled this gameweek',
+    TBD: 'Club fixture schedule to be confirmed',
+    UNKNOWN: 'Club fixture progress unavailable',
+  }[progress]
   const { pointsToRender, notificationEventId, activeEvents, notificationLeaving } =
     usePlayerNotification(player.points, events, pendingDelta)
   const delta = activeEvents.reduce((sum, event) => sum + event.pointDelta, 0)
   const eventLabel = activeEvents.map((event) => event.type.replaceAll('_', ' ')).join(', ')
-  const points = pointsToRender === 0 && (player.minutes ?? 0) === 0 ? '–' : pointsToRender
+  const points =
+    pointsToRender === 0 &&
+    (player.minutes ?? 0) === 0 &&
+    progress !== 'COMPLETE' &&
+    progress !== 'BETWEEN' &&
+    progress !== 'LIVE'
+      ? '–'
+      : pointsToRender
   return (
     <button
       type="button"
@@ -136,6 +154,8 @@ function BroadcastPlayer({
       style={style}
       aria-label={`View ${player.displayName} points${availability.severity ? ` — ${availability.label}` : ''}`}
       data-availability={availability.severity}
+      data-fixture-progress={progress}
+      aria-describedby={descriptionId}
       data-player-id={player.id}
       data-manager-id={managerId}
       data-player-name={player.displayName}
@@ -148,6 +168,12 @@ function BroadcastPlayer({
         ) : (
           <Shirt />
         )}
+        {(progress === 'LIVE' || progress === 'BETWEEN') && (
+          <span className="broadcast-fixture-marker">{progress === 'LIVE' ? 'LIVE' : 'DGW'}</span>
+        )}
+      </span>
+      <span id={descriptionId} className="broadcast-fixture-description">
+        {progressLabel}
       </span>
       <span className="broadcast-player-main">
         <span className="broadcast-player-name">{player.shortName ?? player.displayName}</span>

@@ -26,6 +26,7 @@ export type PlayerView = {
   recentDelta: number
   autoSubstituted?: boolean
   availability?: PlayerAvailability | null
+  fixtureProgress?: 'UPCOMING' | 'LIVE' | 'BETWEEN' | 'COMPLETE' | 'BLANK' | 'TBD' | 'UNKNOWN'
 }
 
 export type TeamView = {

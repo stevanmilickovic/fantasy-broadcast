@@ -1,0 +1,74 @@
+.broadcast-player:is(
+    [data-fixture-progress='UPCOMING'],
+    [data-fixture-progress='TBD'],
+    [data-fixture-progress='BLANK']
+  ):not(.has-event)
+  :is(.broadcast-player-name, .broadcast-player-points, .broadcast-player-status) {
+  background: #1d1425;
+  color: #ded3e5;
+  box-shadow: none;
+}
+.broadcast-player[data-availability]:is(
+    [data-fixture-progress='UPCOMING'],
+    [data-fixture-progress='TBD'],
+    [data-fixture-progress='BLANK']
+  ):not(.has-event)
+  :is(.broadcast-player-name, .broadcast-player-points, .broadcast-player-status) {
+  background: color-mix(in srgb, var(--player-availability-color) 50%, #c6bacb 50%);
+  color: #241027;
+}
+.broadcast-player:is(
+    [data-fixture-progress='UPCOMING'],
+    [data-fixture-progress='TBD'],
+    [data-fixture-progress='BLANK']
+  ):not(.has-event)
+  .broadcast-shirt
+  > :is(img, svg) {
+  opacity: 0.62;
+}
+.broadcast-player[data-fixture-progress='LIVE'] .broadcast-player-main::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #a4eaff 0 6px, transparent 6px 12px);
+  animation: broadcast-fixture-live 2s linear infinite;
+}
+.broadcast-fixture-marker {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  padding: 2px 3px;
+  border: 1px solid #a4eaff66;
+  border-radius: 3px;
+  background: #1c1324eb;
+  color: #a4eaff;
+  font-size: clamp(7px, 0.55vw, 10px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+.broadcast-player[data-fixture-progress='BETWEEN'] .broadcast-fixture-marker {
+  color: #e6d9ef;
+  border-color: #e6d9ef66;
+}
+.broadcast-fixture-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@keyframes broadcast-fixture-live {
+  to {
+    background-position: 24px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .broadcast-player[data-fixture-progress='LIVE'] .broadcast-player-main::before {
+    animation: none;
+  }
+}

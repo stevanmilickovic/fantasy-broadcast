@@ -22,7 +22,7 @@ public final class LiveScoring {
 			var player = players.get(pick.element()); var live = points.get(pick.element());
 			if (player == null || live == null) throw new IllegalStateException("FPL player points or identities are incomplete.");
 			var view = new PlayerView(String.valueOf(player.id()), player.fullName(), player.webName(), player.premierLeagueClub(),
-					player.position(), String.valueOf(pick.position()), live.totalPoints(), live.stats().minutes(), "AVAILABLE", 0, recordedIn.contains(player.id()), player.availability());
+					player.position(), String.valueOf(pick.position()), live.totalPoints(), live.stats().minutes(), "AVAILABLE", 0, recordedIn.contains(player.id()), player.availability(),FixtureProgress.forClub(player.premierLeagueClubId(),gameweek,fixtures));
 			(pick.starter() ? active : bench).add(view);
 		}
 		var currentFixtures = fixtures.stream().filter(f -> f.event() == gameweek).toList();
@@ -70,7 +70,7 @@ public final class LiveScoring {
 	}
 	public static PlayerView markSubstituted(PlayerView player) {
 		return new PlayerView(player.id(), player.displayName(), player.shortName(), player.premierLeagueClub(), player.position(), player.lineupSlot(),
-				player.points(), player.minutes(), player.status(), player.recentDelta(), true, player.availability());
+				player.points(), player.minutes(), player.status(), player.recentDelta(), true, player.availability(),player.fixtureProgress());
 	}
 
 	public static List<LiveStandingView> standings(List<TeamView> teams, List<Baseline> baselines, List<MatchupView> matchups, boolean h2h, int gameweek) {
