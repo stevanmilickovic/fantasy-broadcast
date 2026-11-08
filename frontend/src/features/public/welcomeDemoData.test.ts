@@ -3,6 +3,22 @@ import { shirtCodeFor } from '../../shared/fpl/shirts'
 import { welcomeBroadcastState, welcomeDemoFrames, welcomeShirtCodes } from './welcomeDemoData'
 
 describe('homepage broadcast demo', () => {
+  it('keeps roughly half the players live and uses consistent fixture progress for each club', () => {
+    for (let frame = 0; frame < welcomeDemoFrames.length; frame++) {
+      const teams = welcomeBroadcastState(frame).teams
+      const starters = teams.flatMap((team) => team.activePlayers)
+      const players = teams.flatMap((team) => [...team.activePlayers, ...team.benchPlayers])
+      expect(starters.filter((player) => player.fixtureProgress === 'LIVE')).toHaveLength(23)
+      expect(starters.filter((player) => player.fixtureProgress === 'COMPLETE')).toHaveLength(21)
+      expect(players.filter((player) => player.fixtureProgress === 'LIVE')).toHaveLength(27)
+      const clubProgress = new Map<string, string | undefined>()
+      for (const player of players) {
+        const previous = clubProgress.get(player.premierLeagueClub)
+        if (previous) expect(player.fixtureProgress).toBe(previous)
+        clubProgress.set(player.premierLeagueClub, player.fixtureProgress)
+      }
+    }
+  })
   it('gives each draft club a complete squad without sharing players', () => {
     const { teams } = welcomeBroadcastState(0)
     const allNames: string[] = []
@@ -31,6 +47,7 @@ describe('homepage broadcast demo', () => {
       const owner = state.teams.find((team) => team.managerId === event.managerId)
       const player = owner?.activePlayers.find((candidate) => candidate.id === event.playerId)
       expect(player?.displayName).toBe(name)
+      expect(player?.fixtureProgress).toBe('LIVE')
       expect(player?.recentDelta).toBe(event.pointDelta)
       expect(
         state.teams.flatMap((team) => team.activePlayers).filter((p) => p.recentDelta),

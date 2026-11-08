@@ -26,15 +26,38 @@
   > :is(img, svg) {
   opacity: 0.62;
 }
-.broadcast-player[data-fixture-progress='LIVE'] .broadcast-player-main::before {
-  content: '';
+.broadcast-live-outline {
   position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
+  top: -1px;
+  left: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% - var(--broadcast-player-event-space) + 2px);
   z-index: 1;
   pointer-events: none;
-  background: repeating-linear-gradient(90deg, #a4eaff 0 6px, transparent 6px 12px);
-  animation: broadcast-fixture-live 2s linear infinite;
+  overflow: visible;
+  transition: height 180ms ease;
+}
+.broadcast-player.has-event:not(.is-leaving) .broadcast-live-outline {
+  height: calc(100% + var(--broadcast-live-event-overhang) + 2px);
+}
+.broadcast-live-outline rect {
+  x: 1px;
+  y: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  rx: 3px;
+  fill: none;
+  stroke: var(--pl-green);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.broadcast-live-track {
+  stroke-opacity: 0.14;
+}
+.broadcast-live-trail {
+  stroke-opacity: 0.65;
+  stroke-dasharray: 18 82;
+  animation: broadcast-fixture-live 5s linear infinite;
 }
 .broadcast-fixture-marker {
   position: absolute;
@@ -64,11 +87,16 @@
 }
 @keyframes broadcast-fixture-live {
   to {
-    background-position: 24px 0;
+    stroke-dashoffset: -100;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .broadcast-player[data-fixture-progress='LIVE'] .broadcast-player-main::before {
+  .broadcast-live-outline {
+    transition: none;
+  }
+  .broadcast-live-trail {
     animation: none;
+    stroke-dasharray: none;
+    stroke-opacity: 0.45;
   }
 }

@@ -141,6 +141,9 @@
   background: #705b79;
 }
 
+.welcome-real-broadcast .broadcast-live-outline {
+  display: none;
+}
 .welcome-real-broadcast {
   position: relative;
   z-index: 1;

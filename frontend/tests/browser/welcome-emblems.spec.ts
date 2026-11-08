@@ -25,7 +25,36 @@ test('homepage opponents have distinct squads and Saka belongs only to North Ban
   await expect(home.locator('.broadcast-player')).toHaveCount(15)
   await expect(away.locator('.broadcast-player')).toHaveCount(15)
   await expect(home.locator('[data-player-name="Saka"]')).toHaveCount(1)
+  await expect(home.locator('[data-player-name="Saka"]')).toHaveAttribute(
+    'data-fixture-progress',
+    'LIVE',
+  )
+  await expect(preview.locator('.broadcast-player[data-fixture-progress="LIVE"]')).toHaveCount(15)
+  await expect(preview.locator('.broadcast-player[data-fixture-progress="COMPLETE"]')).toHaveCount(
+    15,
+  )
   await expect(away.locator('[data-player-name="Saka"]')).toHaveCount(0)
+  expect(
+    await preview
+      .locator('.broadcast-live-outline')
+      .evaluateAll(
+        (outlines) =>
+          outlines.length > 0 &&
+          outlines.every((outline) => getComputedStyle(outline).display === 'none'),
+      ),
+  ).toBe(true)
+  expect(
+    await preview.evaluate(
+      (root) =>
+        root
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              animation instanceof CSSAnimation &&
+              animation.animationName === 'broadcast-fixture-live',
+          ).length,
+    ),
+  ).toBe(0)
   const names = await preview
     .locator('.broadcast-player')
     .evaluateAll((players) => players.map((player) => player.getAttribute('data-player-name')))

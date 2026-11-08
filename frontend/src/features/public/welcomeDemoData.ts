@@ -19,6 +19,15 @@ type DemoFrame = {
   commentary: string
 }
 
+const livePreviewClubs = new Set([
+  'Arsenal',
+  'Bournemouth',
+  'Brentford',
+  'Chelsea',
+  'Man City',
+  'Man Utd',
+])
+
 const clubs: DemoClub[] = [
   { id: 'north-bank', manager: 'Alex', club: 'North Bank FC', shortName: 'NB', color: '#20e6ff' },
   { id: 'toulouse', manager: 'Mia', club: 'Expected Toulouse', shortName: 'ET', color: '#9b6bff' },
@@ -199,7 +208,7 @@ function demoPlayer(
     lineupSlot: String(index + 1),
     points,
     minutes: 76,
-    fixtureProgress: 'LIVE',
+    fixtureProgress: livePreviewClubs.has(premierLeagueClub) ? 'LIVE' : 'COMPLETE',
     status: 'ACTIVE',
     recentDelta: event?.eventPlayer === index ? event.delta : 0,
   }
@@ -219,7 +228,7 @@ function demoBenchPlayer(
     lineupSlot: `B${index + 1}`,
     points: index + 1,
     minutes: 76,
-    fixtureProgress: 'COMPLETE',
+    fixtureProgress: livePreviewClubs.has(premierLeagueClub) ? 'LIVE' : 'COMPLETE',
     status: 'BENCH',
     recentDelta: 0,
   }

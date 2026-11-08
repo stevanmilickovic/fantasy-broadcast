@@ -168,14 +168,18 @@ function BroadcastPlayer({
         ) : (
           <Shirt />
         )}
-        {(progress === 'LIVE' || progress === 'BETWEEN') && (
-          <span className="broadcast-fixture-marker">{progress === 'LIVE' ? 'LIVE' : 'DGW'}</span>
-        )}
+        {progress === 'BETWEEN' && <span className="broadcast-fixture-marker">DGW</span>}
       </span>
       <span id={descriptionId} className="broadcast-fixture-description">
         {progressLabel}
       </span>
       <span className="broadcast-player-main">
+        {progress === 'LIVE' && (
+          <svg className="broadcast-live-outline" aria-hidden="true" focusable="false">
+            <rect className="broadcast-live-track" pathLength="100" />
+            <rect className="broadcast-live-trail" pathLength="100" />
+          </svg>
+        )}
         <span className="broadcast-player-name">{player.shortName ?? player.displayName}</span>
         <span className="broadcast-player-status">
           {bench ? 'B' : player.autoSubstituted ? 'SUB' : player.position}
