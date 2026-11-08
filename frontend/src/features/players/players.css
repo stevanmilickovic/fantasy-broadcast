@@ -186,3 +186,81 @@
   font-size: 14px;
   line-height: 1.5;
 }
+.player-fixtures {
+  padding: 8px 0 20px;
+  border-bottom: 1px solid #ffffff26;
+}
+.player-fixtures h3,
+.player-breakdown-fixture {
+  margin: 18px 0 10px;
+  font-size: 1rem;
+}
+.player-fixtures .player-fixtures-help {
+  color: #cabbcf;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.player-fixture-week {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+.player-fixture-week h4 {
+  margin: 14px 0;
+  font-size: 0.78rem;
+  color: #cabbcf;
+}
+.player-fixture-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+.player-fixture-row strong {
+  display: block;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.player-fixture-row small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #cabbcf;
+}
+.player-fixture-row[data-status='LIVE'] strong {
+  color: #a4eaff;
+}
+.fixture-difficulty {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 28px;
+  border-radius: 4px;
+  background: #ffffff20;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.fixture-difficulty[data-difficulty='1'] {
+  background: #5be5a1;
+  color: #062b18;
+}
+.fixture-difficulty[data-difficulty='2'] {
+  background: #a8dfbf;
+  color: #062b18;
+}
+.fixture-difficulty[data-difficulty='3'] {
+  background: #e1dfd6;
+  color: #302d20;
+}
+.fixture-difficulty[data-difficulty='4'] {
+  background: #f49ba8;
+  color: #440c19;
+}
+.fixture-difficulty[data-difficulty='5'] {
+  background: #8b1235;
+  color: #fff;
+}

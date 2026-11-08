@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–15 are implemented.
-Four steps remain (16–19); mobile native-selection verification remains a device gate.
+Status: implementation resumed at the user's request; steps 1–16 are implemented.
+Three steps remain (17–19); mobile native-selection verification remains a device gate.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -122,7 +122,15 @@ receive unique suffixes, and manual names still require uniqueness.
   clears denied data and refreshes the official overview at rollover. Verification:
   frontend lint/build and 93 unit tests; 18 browser live/form checks across six viewports.
   Backend membership and score-projection checks are included in the full suite.
-- Steps 1–15 have separate commits. Four steps remain: 16–19. Existing-name repair is
+- Step 16: shared player details shows all selected-week club fixtures with local
+  timezone, home/away, score/status and FPL difficulty, plus the next five gameweeks
+  with doubles/blanks and a separate unscheduled list. Mapping/source failures are
+  explicit; missing points stay unknown. DGW point changes receive fixture labels.
+  Open dialogs refresh while visible, retain stale details on failure and offer retry.
+  Verification: 167 backend tests, frontend lint/build and 93 unit tests; 24 player
+  fixture/dialog browser checks across six viewports including Tokyo day rollover,
+  long opponents, missing data, reduced motion and focus recovery pass.
+- Steps 1–16 have separate commits. Three steps remain: 17–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

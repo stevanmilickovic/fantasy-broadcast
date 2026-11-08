@@ -242,15 +242,18 @@ public class CustomerLeagueController {
 		if (livePlayer != null) for (var explanation : livePlayer.explain()) for (var stat : explanation.stats()) {
 			if (stat.points() != 0) changes.add(new PlayerPointChange(stat.identifier(), stat.value(), stat.points(), explanation.fixture()));
 		}
+		var fixtureSchedule = com.fantasybroadcast.backend.fpl.PlayerFixtureSchedule.load(fplClient,fplMapper,
+				league.leagueType()==FplLeagueType.CLASSIC ? bootstrap : fplClient.getCurrentFantasyBootstrapStatic(),fantasyPlayerId,gameweek);
 		return new PlayerDetails(player.id(), player.fullName(), player.webName(), player.premierLeagueClub(),
-				player.position(), playerCode, gameweek, livePlayer == null ? 0 : livePlayer.totalPoints(), changes,
-				history.entrySet().stream().map(entry -> new PlayerGameweekPoints(entry.getKey(), entry.getValue())).toList(), player.availability());
+				player.position(), playerCode, gameweek, livePlayer == null ? null : livePlayer.totalPoints(), changes,
+				history.entrySet().stream().map(entry -> new PlayerGameweekPoints(entry.getKey(), entry.getValue())).toList(), player.availability(),fixtureSchedule);
 	}
 
 	public record PlayerPointChange(String stat, int value, int points, int fixture) { }
 	public record PlayerGameweekPoints(int gameweek, int points) { }
 	public record PlayerDetails(int id, String name, String shortName, String club, String position, int photoCode,
-			int gameweek, int points, List<PlayerPointChange> changes, List<PlayerGameweekPoints> history, FplPlayer.Availability availability) { }
+			int gameweek, Integer points, List<PlayerPointChange> changes, List<PlayerGameweekPoints> history, FplPlayer.Availability availability,
+			com.fantasybroadcast.backend.fpl.PlayerFixtureSchedule.Schedule fixtureSchedule) { }
 
 	public record LeagueRegistrationAccess(boolean canRegisterLeague) {
 	}

@@ -1,9 +1,10 @@
 import { useDialogMotion } from '../../shared/ui/useDialogMotion'
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { X } from 'lucide-react'
 import { loadPlayerDetails } from './api'
 import type { PlayerDetails } from './types'
 import { playerAvailability } from '../../shared/fpl/availability'
+import { PlayerFixtures } from './PlayerFixtures'
 
 export type SelectedPlayer = {
   id: number | string
@@ -24,8 +25,11 @@ export function PlayerDetailsModal({
   onClose: () => void
 }) {
   const { dialog: dialogRef, closing, close, show, onClose: handleNativeClose } = useDialogMotion()
-  const [details, setDetails] = useState<PlayerDetails | null>(null)
+  const [snapshot, setDetails] = useState<PlayerDetails | null>(null)
+  const details =
+    snapshot?.id === Number(player.id) && snapshot.gameweek === gameweek ? snapshot : null
   const [error, setError] = useState<string | null>(null)
+  const [revision, retry] = useReducer((value) => value + 1, 0)
   const [tab, setTab] = useState<'current' | 'history'>('current')
 
   useEffect(() => {
@@ -35,16 +39,40 @@ export function PlayerDetailsModal({
 
   useEffect(() => {
     if (!leagueId || !Number.isSafeInteger(Number(player.id)) || Number(player.id) <= 0) return
-    const controller = new AbortController()
-    void loadPlayerDetails(leagueId, Number(player.id), gameweek, controller.signal)
-      .then((result) => {
-        if (!controller.signal.aborted) setDetails(result)
-      })
-      .catch((reason: Error) => {
-        if (!controller.signal.aborted) setError(reason.message)
-      })
-    return () => controller.abort()
-  }, [leagueId, player.id, gameweek])
+    let controller: AbortController | null = null
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let stopped = false
+    const load = () => {
+      clearTimeout(timer)
+      controller?.abort()
+      if (document.hidden || stopped) return
+      const request = new AbortController()
+      controller = request
+      void loadPlayerDetails(leagueId, Number(player.id), gameweek, request.signal)
+        .then((result) => {
+          if (!request.signal.aborted) {
+            setDetails(result)
+            setError(null)
+          }
+        })
+        .catch((reason: Error) => {
+          if (!request.signal.aborted) setError(reason.message)
+        })
+        .finally(() => {
+          if (!request.signal.aborted && !stopped) timer = setTimeout(load, 30_000)
+        })
+    }
+    load()
+    document.addEventListener('visibilitychange', load)
+    window.addEventListener('focus', load)
+    return () => {
+      stopped = true
+      clearTimeout(timer)
+      controller?.abort()
+      document.removeEventListener('visibilitychange', load)
+      window.removeEventListener('focus', load)
+    }
+  }, [leagueId, player.id, gameweek, revision])
 
   const photoUrl = details?.photoCode
     ? `https://resources.premierleague.com/premierleague/photos/players/110x140/p${details.photoCode}.png`
@@ -139,36 +167,57 @@ export function PlayerDetailsModal({
             Previous gameweeks
           </button>
         </div>
-        {error && <p className="player-details-message">{error}</p>}
+        {error && (
+          <p className="player-details-message" role="alert">
+            {details && 'Update failed. Showing last received details. '}
+            {error}{' '}
+            <button type="button" onClick={retry}>
+              Retry player details
+            </button>
+          </p>
+        )}
         {!details && !error && (
           <p className="player-details-message">
             {leagueId
               ? 'Loading player points…'
-              : 'Detailed point history is available for registered league broadcasts.'}
+              : 'Detailed points and fixtures are available in registered league views.'}
           </p>
         )}
         {details && tab === 'current' && (
           <div className="player-details-list" role="tabpanel">
             <div className="player-details-total">
               <span>Total</span>
-              <strong>{details.points} pts</strong>
+              <strong>{details.points === null ? '—' : `${details.points} pts`}</strong>
             </div>
+            <PlayerFixtures
+              schedule={details.fixtureSchedule}
+              gameweek={gameweek}
+              club={details.club}
+            />
             {details.changes.length === 0 ? (
               <p>No point changes recorded this gameweek.</p>
             ) : (
               details.changes.map((change, index) => (
-                <div
-                  className="player-details-row"
-                  key={`${change.fixture}-${change.stat}-${index}`}
-                >
-                  <span>
-                    {pointLabel(change.stat)}
-                    {change.value > 1 ? ` × ${change.value}` : ''}
-                  </span>
-                  <strong>
-                    {change.points > 0 ? '+' : ''}
-                    {change.points}
-                  </strong>
+                <div key={`${change.fixture}-${change.stat}-${index}`}>
+                  {details.fixtureSchedule &&
+                    details.fixtureSchedule.current.length > 1 &&
+                    (index === 0 || details.changes[index - 1].fixture !== change.fixture) && (
+                      <h3 className="player-breakdown-fixture">
+                        {details.fixtureSchedule.current.find(
+                          (fixture) => fixture.id === change.fixture,
+                        )?.opponent ?? `Fixture ${change.fixture}`}
+                      </h3>
+                    )}
+                  <div className="player-details-row">
+                    <span>
+                      {pointLabel(change.stat)}
+                      {change.value > 1 ? ` × ${change.value}` : ''}
+                    </span>
+                    <strong>
+                      {change.points > 0 ? '+' : ''}
+                      {change.points}
+                    </strong>
+                  </div>
                 </div>
               ))
             )}

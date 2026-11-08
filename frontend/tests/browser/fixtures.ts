@@ -178,16 +178,23 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
       if (/\/players\/\d+$/.test(path))
         return route.fulfill({
           json: {
-            id: 1,
+            id: Number(path.split('/').at(-1)),
             name: players[0].displayName,
             shortName: players[0].shortName,
             club: 'Arsenal',
             position: players[0].position,
             photoCode: 0,
-            gameweek: 24,
+            gameweek: Number(new URL(route.request().url()).searchParams.get('gameweek') ?? 24),
             points: 0,
             changes: [],
             history: [],
+            fixtureSchedule: {
+              current: [],
+              upcoming: [],
+              unscheduled: [],
+              unavailableReason: null,
+              fetchedAt: new Date().toISOString(),
+            },
           },
         })
       unexpectedRequests.push(path)

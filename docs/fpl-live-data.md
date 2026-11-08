@@ -75,3 +75,12 @@ focus, retains last valid values on network failure and labels them stale. A den
 membership clears live data and stops polling. Rollover refreshes the official overview
 before combining data from another gameweek. Missing live standings retain a clearly
 labeled FPL table and a retry action.
+
+Player details uses the same fixture cache. Draft player codes locate the Classic
+player and its club before fixture lookup; missing mappings are reported explicitly.
+The selected week includes every club fixture, and the next five gameweeks preserve
+blank/double rounds. Event `0` fixtures appear separately as gameweek TBD. Difficulty
+is FPL's nullable side-specific 1–5 rating. Local kickoff text includes the timezone;
+scores are presented relative to the selected player's club. These are club schedules,
+not a guarantee of a player's appearance. Visible dialogs refresh every thirty seconds,
+abort on hide/unmount and retain labeled last details on failures with a retry action.
