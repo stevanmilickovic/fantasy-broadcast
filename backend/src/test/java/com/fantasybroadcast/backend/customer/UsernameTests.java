@@ -2,7 +2,6 @@ package com.fantasybroadcast.backend.customer;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import com.fantasybroadcast.backend.email.BroadcastEmailProperties;
 import com.fantasybroadcast.backend.email.BroadcastEmailService;
 import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import java.sql.Timestamp;
@@ -33,7 +32,7 @@ class UsernameTests {
 		jdbc.execute("drop table if exists pending_user_registration");
 		jdbc.execute("create table app_user (id bigint auto_increment primary key, email varchar(320) unique, display_name varchar(160), password_hash varchar(512), role varchar(20), updated_at timestamp default current_timestamp)");
 		jdbc.execute("create table pending_user_registration (email varchar(320) primary key, display_name varchar(160), password_hash varchar(512), verification_code_hash varchar(512), expires_at timestamp)");
-		accounts = new AccountService(jdbc, passwords, mock(BroadcastEmailService.class), new BroadcastEmailProperties(), new SessionService(), new BroadcastSecurityProperties());
+		accounts = new AccountService(jdbc, passwords, mock(BroadcastEmailService.class), new SessionService(), new BroadcastSecurityProperties());
 	}
 
 	private void migrate() throws Exception {
@@ -68,7 +67,7 @@ class UsernameTests {
 		jdbc.update("insert into pending_user_registration values (?,?,?,?,?)", "three@example.test", "Same", passwords.hash("password-1234"), passwords.hash("123456"), Timestamp.from(Instant.now().plusSeconds(600)));
 		assertThat(accounts.verifyRegistration("three@example.test", "123456").displayName()).startsWith("Same_");
 		var config = new BroadcastSecurityProperties(); config.setExclusiveInitialAdmin(true);
-		var bootstrap = new AccountService(jdbc, passwords, mock(BroadcastEmailService.class), new BroadcastEmailProperties(), new SessionService(), config);
+		var bootstrap = new AccountService(jdbc, passwords, mock(BroadcastEmailService.class), new SessionService(), config);
 		bootstrap.ensureInitialAdmin("same@example.test", "password-1234");
 		assertThat(accounts.findByEmail("same@example.test").displayName()).startsWith("same_");
 		assertThat(accounts.findByEmail(google.email()).displayName()).isEqualTo("Same");

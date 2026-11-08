@@ -2,7 +2,8 @@ package com.fantasybroadcast.backend.api;
 
 import com.fantasybroadcast.backend.customer.AccountService;
 import com.fantasybroadcast.backend.customer.AccountService.PendingRegistration;
-import com.fantasybroadcast.backend.customer.AccountService.PasswordResetRequest;
+import com.fantasybroadcast.backend.customer.PasswordSecurityService;
+import com.fantasybroadcast.backend.customer.PasswordSecurityService.PasswordResetRequest;
 import com.fantasybroadcast.backend.customer.AccountService.AccountDeletionRequest;
 import com.fantasybroadcast.backend.customer.CurrentUser;
 import com.fantasybroadcast.backend.customer.SessionService;
@@ -31,15 +32,20 @@ public class AuthController {
 
 	private final AccountService accountService;
 	private final SessionService sessionService;
+	private final PasswordSecurityService passwords;
+	private final String allowedOrigin;
 	private final BroadcastSecurityProperties securityProperties;
 	private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository;
 
 	public AuthController(AccountService accountService, SessionService sessionService, BroadcastSecurityProperties securityProperties,
-			ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository) {
+			ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository, PasswordSecurityService passwords,
+			@org.springframework.beans.factory.annotation.Value("${BROADCAST_ALLOWED_ORIGIN:http://localhost:5173}") String allowedOrigin) {
 		this.accountService = accountService;
 		this.sessionService = sessionService;
 		this.securityProperties = securityProperties;
 		this.clientRegistrationRepository = clientRegistrationRepository;
+		this.passwords = passwords;
+		this.allowedOrigin = allowedOrigin;
 	}
 
 	@GetMapping("/options")
@@ -63,13 +69,38 @@ public class AuthController {
 	}
 
 	@PostMapping("/password/forgot")
-	public PasswordResetRequest forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-		return accountService.requestPasswordReset(request.email());
+	public PasswordResetRequest forgotPassword(@Valid @RequestBody ForgotPasswordRequest input, HttpServletRequest request) {
+		requirePasswordOrigin(request);
+		return passwords.forgot(input.email(), request.getRemoteAddr());
 	}
 
 	@PostMapping("/password/reset")
-	public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-		accountService.resetPassword(request.token(), request.password());
+	public void resetPassword(@Valid @RequestBody ResetPasswordRequest input, HttpServletRequest request, HttpServletResponse response) {
+		requirePasswordOrigin(request);
+		passwords.reset(input.token(), input.password(), request.getRemoteAddr());
+		response.addHeader("Set-Cookie", cookie("").maxAge(0).build().toString());
+	}
+
+	@GetMapping("/password/capability")
+	public PasswordSecurityService.Capability passwordCapability(HttpServletRequest request) {
+		return passwords.capability(sessionService.require(request));
+	}
+
+	@PostMapping("/password/change")
+	public void changePassword(@Valid @RequestBody ChangePasswordRequest input, HttpServletRequest request, HttpServletResponse response) {
+		requirePasswordOrigin(request);
+		passwords.change(sessionService.require(request), input.currentPassword(), input.password());
+		response.addHeader("Set-Cookie", cookie("").maxAge(0).build().toString());
+	}
+
+	private void requirePasswordOrigin(HttpServletRequest request) {
+		var origin = request.getHeader("Origin");
+		var requestOrigin = java.net.URI.create(request.getRequestURL().toString()).resolve("/").toString();
+		var publicOrigin = securityProperties.getPublicBaseUrl();
+		if (publicOrigin.isBlank()) publicOrigin = allowedOrigin;
+		publicOrigin = java.net.URI.create(publicOrigin).resolve("/").toString();
+		if (origin == null || !(origin.concat("/").equals(publicOrigin) || origin.concat("/").equals(requestOrigin)))
+			throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "A trusted browser origin is required.");
 	}
 
 	@PostMapping("/logout")
@@ -117,6 +148,8 @@ public class AuthController {
 	public record ResetPasswordRequest(@NotBlank @Size(max = 200) String token,
 			@NotBlank @Size(min = 12, max = 200) String password) {
 	}
+	public record ChangePasswordRequest(@NotBlank @Size(max = 200) String currentPassword,
+			@NotBlank @Size(min = 12, max = 200) String password) { }
 
 	/** Existing accounts keep their configured passwords; new registrations require the stronger minimum. */
 	public record LoginCredentials(@NotBlank @Size(max = 320) String email, @NotBlank @Size(min = 5, max = 200) String password) {

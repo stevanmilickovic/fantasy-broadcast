@@ -1,7 +1,5 @@
 package com.fantasybroadcast.backend.customer;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,11 +7,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
-import com.fantasybroadcast.backend.email.BroadcastEmailProperties;
 import com.fantasybroadcast.backend.email.BroadcastEmailService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DuplicateKeyException;
@@ -21,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -31,52 +26,17 @@ public class AccountService {
 	private final JdbcTemplate jdbcTemplate;
 	private final PasswordHasher passwordHasher;
 	private final BroadcastEmailService emailService;
-	private final BroadcastEmailProperties emailProperties;
 	private final SessionService sessionService;
 	private final BroadcastSecurityProperties securityProperties;
 	private final SecureRandom secureRandom = new SecureRandom();
 
 	public AccountService(JdbcTemplate jdbcTemplate, PasswordHasher passwordHasher, BroadcastEmailService emailService,
-			BroadcastEmailProperties emailProperties, SessionService sessionService, BroadcastSecurityProperties securityProperties) {
+			SessionService sessionService, BroadcastSecurityProperties securityProperties) {
 		this.jdbcTemplate = jdbcTemplate;
 		this.passwordHasher = passwordHasher;
 		this.emailService = emailService;
-		this.emailProperties = emailProperties;
 		this.sessionService = sessionService;
 		this.securityProperties = securityProperties;
-	}
-
-	public PasswordResetRequest requestPasswordReset(String email) {
-		var normalizedEmail = normalizeEmail(email);
-		var users = jdbcTemplate.queryForList("select id from app_user where email = ?", Long.class, normalizedEmail);
-		if (!users.isEmpty()) {
-			var userId = users.getFirst();
-			var token = randomToken();
-			var expiresAt = Instant.now().plus(Duration.ofMinutes(30));
-			jdbcTemplate.update("delete from password_reset_token where user_id = ?", userId);
-			jdbcTemplate.update("insert into password_reset_token (user_id, token_hash, expires_at) values (?, ?, ?)",
-					userId, tokenHash(token), Timestamp.from(expiresAt));
-			try {
-				emailService.send(normalizedEmail, "Reset your Fantasy Broadcast password", passwordResetEmail(token));
-			}
-			catch (RuntimeException exception) {
-				jdbcTemplate.update("delete from password_reset_token where user_id = ?", userId);
-				throw exception;
-			}
-		}
-		return new PasswordResetRequest("If an account exists for that email, a password reset link has been sent.");
-	}
-
-	@Transactional
-	public void resetPassword(String token, String password) {
-		jdbcTemplate.update("delete from password_reset_token where expires_at < ?", Timestamp.from(Instant.now()));
-		var userIds = jdbcTemplate.queryForList("select user_id from password_reset_token where token_hash = ? and expires_at >= ? for update",
-				Long.class, tokenHash(token), Timestamp.from(Instant.now()));
-		if (userIds.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This password reset link is invalid or has expired.");
-		var userId = userIds.getFirst();
-		jdbcTemplate.update("delete from password_reset_token where user_id = ?", userId);
-		jdbcTemplate.update("update app_user set password_hash = ?, updated_at = current_timestamp where id = ?", passwordHasher.hash(password), userId);
-		sessionService.removeForUser(userId);
 	}
 
 	public PendingRegistration register(String email, String password) {
@@ -348,22 +308,6 @@ public class AccountService {
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
 	}
 
-	private String tokenHash(String token) {
-		try {
-			return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-		}
-		catch (NoSuchAlgorithmException exception) {
-			throw new IllegalStateException("SHA-256 is not available", exception);
-		}
-	}
-
-	private String passwordResetEmail(String token) {
-		var resetUrl = UriComponentsBuilder.fromUriString(emailProperties.getPublicBaseUrl())
-				.replacePath("/reset-password").replaceQuery(null).queryParam("token", token).build().toUriString();
-		return "Open this link to choose a new Fantasy Broadcast password:\n\n" + resetUrl
-				+ "\n\nThis link expires in 30 minutes and can only be used once. If you did not request this, you can ignore this email.";
-	}
-
 	private record LoginRow(CurrentUser user, String passwordHash) {
 	}
 
@@ -374,9 +318,6 @@ public class AccountService {
 	}
 
 	public record AccountDeletionRequest(String message) {
-	}
-
-	public record PasswordResetRequest(String message) {
 	}
 
 	public record AdminUser(long id, String displayName, UserRole role, String createdAt, long registeredLeagueCount,

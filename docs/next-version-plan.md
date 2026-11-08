@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–9 are complete.
-Ten steps remain (10–19); next is provider-aware password security.
+Status: implementation resumed at the user's request; steps 1–10 are complete.
+Nine steps remain (11–19); next is account settings and recovery presentation.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -76,7 +76,16 @@ receive unique suffixes, and manual names still require uniqueness.
   failures in the dialog. Owner/admin management remains available. Destination labels
   consistently use My leagues. Verification: lint/build, 91 unit tests and 54 browser
   removal/approval/registration checks across six viewports pass.
-- Steps 1–9 have separate commits. Ten steps remain: 10–19. Existing-name repair is
+- Step 10: password capability is read from the database at `/api/auth/password/capability`.
+  Changes require the current password and 12–200-character replacement; change/reset
+  consume outstanding links, invalidate sessions and notify without exposing credentials.
+  Google-only accounts cannot acquire local passwords through legacy reset tokens.
+  Password writes require a trusted browser Origin. Bounded per-user/email/IP attempt
+  limits and a bounded recovery queue keep forgot responses generic despite mail failures.
+  Verification: 147 backend tests pass, including seven new endpoint/transaction/security
+  tests for origin/session checks, races, expiry, mail failure, provider policy and limits.
+  Recovery is queued in-process: restarts can drop undelivered requests; users can retry.
+- Steps 1–10 have separate commits. Nine steps remain: 11–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

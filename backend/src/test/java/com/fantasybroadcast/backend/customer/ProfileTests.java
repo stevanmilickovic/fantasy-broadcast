@@ -3,7 +3,6 @@ package com.fantasybroadcast.backend.customer;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-import com.fantasybroadcast.backend.email.BroadcastEmailProperties;
 import com.fantasybroadcast.backend.email.BroadcastEmailService;
 import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import jakarta.servlet.http.Cookie;
@@ -23,7 +22,7 @@ class ProfileTests {
 		jdbc.update("insert into app_user (id,email,display_name,role) values (1,'a@example.com','A','USER'),(2,'b@example.com','Same','USER')");
 		jdbc.update("update app_user set username_key = ? where id = 2", Usernames.key("Same"));
 		var sessions = new SessionService();
-		var accounts = new AccountService(jdbc, new PasswordHasher(), mock(BroadcastEmailService.class), new BroadcastEmailProperties(), sessions, new BroadcastSecurityProperties());
+		var accounts = new AccountService(jdbc, new PasswordHasher(), mock(BroadcastEmailService.class), sessions, new BroadcastSecurityProperties());
 		var user = accounts.findByEmail("a@example.com");
 		var first = new MockHttpServletRequest();
 		first.setCookies(new Cookie(SessionService.COOKIE_NAME, sessions.create(user)));

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-import com.fantasybroadcast.backend.email.BroadcastEmailProperties;
 import com.fantasybroadcast.backend.email.BroadcastEmailService;
 import com.fantasybroadcast.backend.security.BroadcastSecurityProperties;
 import org.h2.jdbcx.JdbcDataSource;
@@ -31,7 +30,7 @@ class ExclusiveAdminTests {
 		properties = new BroadcastSecurityProperties();
 		properties.setExclusiveInitialAdmin(true);
 		properties.setInitialAdminEmail(ADMIN_EMAIL);
-		accounts = new AccountService(jdbc, passwords, mock(BroadcastEmailService.class), new BroadcastEmailProperties(), new SessionService(), properties);
+		accounts = new AccountService(jdbc, passwords, mock(BroadcastEmailService.class), new SessionService(), properties);
 	}
 
 	@Test
