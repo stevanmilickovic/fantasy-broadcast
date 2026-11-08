@@ -19,6 +19,7 @@ export type FplLeagueMatch = {
   firstPoints?: number
   secondPoints?: number
   finished: boolean
+  liveStatus?: string
 }
 
 export type FplStanding = {

@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: implementation resumed at the user's request; steps 1–14 are implemented.
-Five steps remain (15–19); mobile native-selection verification remains a device gate.
+Status: implementation resumed at the user's request; steps 1–15 are implemented.
+Four steps remain (16–19); mobile native-selection verification remains a device gate.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -114,7 +114,15 @@ receive unique suffixes, and manual names still require uniqueness.
   Unknown baselines/schedules retain official standings with a reason. Rules checked
   against official FPL guidance. Verification: 163 backend tests pass, including all
   four source/scoring formats, chips, DGW/blank, cards, corrections, ties and restarts.
-- Steps 1–14 have separate commits. Five steps remain: 15–19. Existing-name repair is
+- Step 15: authenticated membership-only live projection API shares the scorer and
+  baseline with broadcasts without payment/viewer/narration requirements. Current
+  matchups overlay known scores; standings default to FPL with a URL-persistent Live
+  choice. Timestamps/status/reasons distinguish provisional, unavailable and stale data.
+  Visibility/focus refresh aborts on hide/unmount, retains values on network failures,
+  clears denied data and refreshes the official overview at rollover. Verification:
+  frontend lint/build and 93 unit tests; 18 browser live/form checks across six viewports.
+  Backend membership and score-projection checks are included in the full suite.
+- Steps 1–15 have separate commits. Four steps remain: 16–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

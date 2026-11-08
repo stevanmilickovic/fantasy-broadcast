@@ -78,6 +78,19 @@ export function LeagueMatchupsView({
             const upcoming = !match.finished && week.event > (discovery.gameweek ?? week.event)
             return (
               <article className="league-matchup-card" key={match.id}>
+                {match.liveStatus && (
+                  <span className="league-matchup-state">
+                    {match.liveStatus === 'LIVE'
+                      ? 'Live'
+                      : match.liveStatus === 'FINAL'
+                        ? 'Final'
+                        : match.liveStatus === 'UPCOMING'
+                          ? 'Upcoming'
+                          : match.liveStatus === 'UNAVAILABLE'
+                            ? 'Awaiting FPL scores'
+                            : 'Provisional'}
+                  </span>
+                )}
                 <div className="league-matchup-scoreboard">
                   {ids.map((id, side) => {
                     const entry = discovery.details.league_entries.find(
@@ -95,7 +108,7 @@ export function LeagueMatchupsView({
                         key={side}
                       >
                         <div>
-                          {entry ? (
+                          {entry && entry.entry_id > 0 ? (
                             <LeagueTeamLink
                               entryId={entry.entry_id}
                               href={teamLink(entry.entry_id)}
@@ -103,7 +116,10 @@ export function LeagueMatchupsView({
                               navigate={navigate}
                             />
                           ) : (
-                            `Entry ${id ?? 'unavailable'}`
+                            (entry?.entry_name ??
+                            (id !== undefined && id <= 0
+                              ? 'Average'
+                              : `Entry ${id ?? 'unavailable'}`))
                           )}
                           <small>
                             {entry && managerName(entry.player_first_name, entry.player_last_name)}

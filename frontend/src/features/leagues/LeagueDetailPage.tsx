@@ -202,6 +202,7 @@ export function LeagueDetailPage({
           scoringType={league.scoringType}
           search={search}
           navigate={navigate}
+          onRefresh={discovery.refresh}
         />
       </TeamEmblemProvider>
     </section>

@@ -58,3 +58,20 @@ Rules checked against the official [FPL rules](https://www.premierleague.com/en/
 and [league scoring overview](https://www.premierleague.com/en/news/2174934/fpl-basics-leagues-and-cups).
 API field contracts are supported by sanitized source fixtures; a live gameweek and
 official reconciliation remain integration checks in addition to deterministic tests.
+
+## League display
+
+Authenticated members can read `/api/customer/leagues/{id}/live` without broadcast
+entitlement, viewer allocation or narration. The DTO contains normalized current
+pairings/scores, provisional standings, source fetch times, baseline gameweek and
+separate reasons when scores or standings are unavailable. Pairings come from FPL;
+average opponents use a received settled score rather than a guessed population mean.
+
+Current matchups overlay received calculated scores automatically. Standings default
+to FPL; an explicit FPL/Live control stores the choice in the league URL through tabs
+and history. Historical/future rounds retain their original scores/schedules. A
+visibility-aware ten-second refresh stops and aborts on hide/unmount, refreshes on
+focus, retains last valid values on network failure and labels them stale. A denied
+membership clears live data and stops polling. Rollover refreshes the official overview
+before combining data from another gameweek. Missing live standings retain a clearly
+labeled FPL table and a retry action.

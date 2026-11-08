@@ -109,6 +109,22 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
           json: { items: leagues, page: 0, size: 10, totalItems: leagues.length },
         })
       if (path === '/api/customer/leagues') return route.fulfill({ json: leagues })
+      if (/^\/api\/customer\/leagues\/\d+\/live$/.test(path))
+        return route.fulfill({
+          json: {
+            source: 'DRAFT',
+            gameweek: 24,
+            pointsFetchedAt: new Date().toISOString(),
+            fixturesFetchedAt: new Date().toISOString(),
+            status: 'PROVISIONAL',
+            baselineGameweek: 23,
+            managerScores: {},
+            matchups: [],
+            standings: [],
+            scoresUnavailableReason: 'Live source data is not available in this fixture.',
+            standingsUnavailableReason: 'Live standings are not available in this fixture.',
+          },
+        })
       if (path === '/api/customer/league-registration')
         return route.fulfill({ json: { canRegisterLeague: true } })
       if (path.endsWith('/draft-overview')) return route.fulfill({ json: discovery })

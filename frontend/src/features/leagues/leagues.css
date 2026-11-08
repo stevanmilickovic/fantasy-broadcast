@@ -1596,3 +1596,38 @@
 .league-onboarding > .register-league-card > form {
   max-width: 560px;
 }
+.league-live-status {
+  margin: 16px 0;
+  padding: 14px 16px;
+  border: 1px solid #ffffff26;
+  background: #ffffff08;
+  color: #e0d5e4;
+}
+.league-live-status p {
+  margin: 8px 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.league-live-status [role='group'] {
+  display: flex;
+  gap: 8px;
+}
+.league-live-status button {
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid #ffffff40;
+  border-radius: 6px;
+  color: #fff;
+  background: transparent;
+}
+.league-live-status button[aria-pressed='true'] {
+  background: #ffffff25;
+  border-color: #a4eaff;
+}
+.league-matchup-state {
+  display: inline-block;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #a4eaff;
+}
