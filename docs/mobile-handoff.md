@@ -1,6 +1,6 @@
 # Mobile client handoff (current implementation)
 
-This is the starting point for a native mobile client. It describes the implemented service at version 1.4.0. See the [testing handoff](next-version-verification.md). The source of truth is the backend controllers in `backend/src/main/java/com/fantasybroadcast/backend/api/`; the web client's request and response types are in `frontend/src/features/*/api.ts`, feature `types.ts` files and `frontend/src/shared/fpl/types.ts`. Update this guide when changing those contracts. The product architecture and FPL ingestion are described in [Fantasy Broadcast Service](../Fantasy%20Broadcast%20Service.md), [FPL discovery](fpl-discovery.md), and [narration](narration.md).
+This is the starting point for a native mobile client. It describes the implemented service at version 1.4.1. See the [testing handoff](next-version-verification.md). The source of truth is the backend controllers in `backend/src/main/java/com/fantasybroadcast/backend/api/`; the web client's request and response types are in `frontend/src/features/*/api.ts`, feature `types.ts` files and `frontend/src/shared/fpl/types.ts`. Update this guide when changing those contracts. The product architecture and FPL ingestion are described in [Fantasy Broadcast Service](../Fantasy%20Broadcast%20Service.md), [FPL discovery](fpl-discovery.md), and [narration](narration.md).
 
 ## What runs where
 

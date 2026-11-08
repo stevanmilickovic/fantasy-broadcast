@@ -4,7 +4,8 @@ Status: steps 1–19 are implemented and the integrated testing handoff is compl
 No implementation steps remain. Physical-device and provider release checks are recorded
 in [the verification handoff](next-version-verification.md) for acceptance testing.
 After testing, the user authorized a separate coordinated version-update commit to 1.4.0.
-Current version: 1.4.0. No release tag or production deployment.
+Current version: 1.4.1, including the subsequent user-authorized preview/live-outline hotfix.
+No release tag or production deployment.
 
 Each numbered step below represents one implementation commit, including its relevant
 tests and documentation. Commit messages are suggested titles. Apply Ponytail in full

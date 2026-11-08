@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 - 2026-11-08
+
+- Use a subtle green live outline around player names and points, expanding with scoring updates and remaining static under reduced motion.
+- Keep roughly half the homepage preview players live, including all scoring players, and disable the circling outline in that preview.
+- Add responsive mock-broadcast coverage for live outlines, expansion, reduced motion and homepage behavior.
+
 ## 1.4.0 - 2026-11-08
 
 - Enforce unique usernames, assign available defaults, preserve existing names, and remove other accounts' email addresses from chat and customer responses.

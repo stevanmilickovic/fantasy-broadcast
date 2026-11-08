@@ -1,9 +1,15 @@
 # Next-version testing handoff
 
 The requested changes are implemented. Following user acceptance, the coordinated
-version is **1.4.0**. No release tag or production deployment was made. The implementation
+version is **1.4.1**, including the preview/live-outline hotfix. No release tag or production deployment was made. The implementation
 and acceptance checks below ran before the version-only update. The local rebuilt application is available at
 <http://localhost:5173>.
+
+The 1.4.1 hotfix keeps a balanced mix of live/completed preview players and disables the
+circling effect on the homepage. Broadcast outlines follow the name/points panel and
+expanded updates, with reduced-motion support. Frontend checks pass with 99 unit tests;
+the final 48 affected browser checks pass across six viewports, following 84 passing
+outline-expansion/presentation checks. Physical-phone appearance remains unverified.
 
 ## Acceptance-test follow-up
 
