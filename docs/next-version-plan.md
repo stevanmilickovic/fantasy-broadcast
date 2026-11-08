@@ -3,9 +3,8 @@
 Status: steps 1–19 are implemented and the integrated testing handoff is complete.
 No implementation steps remain. Physical-device and provider release checks are recorded
 in [the verification handoff](next-version-verification.md) for acceptance testing.
-The user confirms 1.4 is intended but explicitly defers its version-update commit until
-after their testing. Keep version 1.3.5 throughout the remaining work.
-Current version: 1.3.5. No version-update commit, release tag or production deployment.
+After testing, the user authorized a separate coordinated version-update commit to 1.4.0.
+Current version: 1.4.0. No release tag or production deployment.
 
 Each numbered step below represents one implementation commit, including its relevant
 tests and documentation. Commit messages are suggested titles. Apply Ponytail in full
@@ -32,7 +31,8 @@ receive unique suffixes, and manual names still require uniqueness.
   formatting violations were normalized, superseding the early-step formatting limit
   recorded below. Physical Android Chrome/Samsung Internet, deployed mail/Google OAuth,
   paid sandbox/delayed webhooks and active-match reconciliation remain explicit release
-  checks. Version 1.3.5 is held for user testing; see the linked handoff for evidence.
+  checks. Verification ran at version 1.3.5 before the user-authorized 1.4.0 version
+  update; see the linked handoff for evidence.
 - Preparation: committed plan and the existing plain imperative commit-title convention.
 - Step 1: removed cross-account emails from chat/membership/admin/billing responses,
   replaced admin labels with usernames and IDs, allowlisted customer FPL payloads and

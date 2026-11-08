@@ -16,7 +16,7 @@ workflow** for the desired branch or tag when responsive verification is needed.
 
 Deploy from the directory that contains `compose.production.yaml`. Create `data/backend/application.env` and `data/backend/application.yaml` there. They are host-managed configuration files and must never be committed.
 
-`application.env` supplies MySQL credentials, `DB_URL`, provider keys, initial-admin credentials, the Cloudflare Tunnel token, and image variables such as `IMAGE_REGISTRY=ghcr.io/your-account` and `IMAGE_TAG=1.3.5`. `application.yaml` holds non-secret application configuration such as the email sender and public URL.
+`application.env` supplies MySQL credentials, `DB_URL`, provider keys, initial-admin credentials, the Cloudflare Tunnel token, and image variables such as `IMAGE_REGISTRY=ghcr.io/your-account` and `IMAGE_TAG=1.4.0`. `application.yaml` holds non-secret application configuration such as the email sender and public URL.
 
 To deploy a released image, run `bash scripts/deploy-production.sh`. The script validates the host-managed configuration files, pulls the configured image tags, starts the services, and checks backend health. MySQL, the backend, and the web service are private to the Compose network. The Cloudflare Tunnel container reaches the web service at `http://web:8080`; configure that service URL when creating the tunnel's published application. No HTTP or HTTPS port is published on the VPS.
 
@@ -32,9 +32,9 @@ Before going live:
 
 ## Coordinating the next username migration
 
-The next changes remain unreleased at version 1.3.5 while user testing takes place.
-Do not publish another image under the existing immutable release tag. See the
-[verification handoff](next-version-verification.md) before selecting the release version.
+Version 1.4.0 includes the username migration. Do not publish its images under an
+earlier immutable release tag. See the [verification handoff](next-version-verification.md)
+before deployment; the version-update commit does not deploy or publish the application.
 
 Migration 019 adds a canonical, case-normalized Unicode username key and enforces
 uniqueness. It preserves existing display names and fails on a conflicting existing

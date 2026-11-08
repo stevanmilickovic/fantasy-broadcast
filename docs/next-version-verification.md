@@ -1,8 +1,8 @@
 # Next-version testing handoff
 
-The requested changes are implemented. The intended release is 1.4; **all version
-files remain 1.3.5 at the user's request**. No release tag, production deployment or
-version-update commit was made. The local rebuilt application is available at
+The requested changes are implemented. Following user acceptance, the coordinated
+version is **1.4.0**. No release tag or production deployment was made. The implementation
+and acceptance checks below ran before the version-only update. The local rebuilt application is available at
 <http://localhost:5173>.
 
 ## Acceptance-test follow-up
@@ -97,8 +97,8 @@ and SMTP sink are removed after verification; the normal testing stack remains r
    captaincy/chips, substitutions, transfer hits, custom starts, doubles, blanks and
    incomplete baselines. Live values remain provisional until FPL settles the week.
 5. Follow the [coordinated rollout and recovery procedure](production-deployment.md#coordinating-the-next-username-migration)
-   against a recent production backup. Only after user acceptance, select and commit
-   the coordinated version update, then perform the normal release process.
+   against a recent production backup. The user has authorized the coordinated 1.4.0
+   version update; tagging, publishing and deployment remain separate release actions.
 
 ## Suggested user walkthrough
 

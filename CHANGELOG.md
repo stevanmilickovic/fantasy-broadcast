@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 - 2026-11-08
 
 - Enforce unique usernames, assign available defaults, preserve existing names, and remove other accounts' email addresses from chat and customer responses.
 - Add reusable animated bottom notifications for saved usernames, completed registration and errors, respecting reduced motion.
@@ -12,8 +12,6 @@
 - Share fresh FPL points and fixtures across league and broadcast views; calculate current matchups and optional provisional standings/form from closed historical baselines. Reuse active broadcast calculations through a membership-protected league feed, retaining cached polling when unavailable.
 - Show current player results beside their point breakdowns, with separate upcoming-fixture and history tabs and FPL difficulty, including double and blank gameweeks; distinguish upcoming, live and completed broadcast players.
 - Expand security, scoring and responsive regression coverage and document migration, compatibility and remaining device/provider checks.
-
-The intended release is 1.4. The version remains 1.3.5 until user testing is complete.
 
 ## 1.3.5 - 2026-11-07
 
