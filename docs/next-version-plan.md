@@ -1,7 +1,7 @@
 # Next version: identity, navigation and live league information
 
-Status: paused at the user's request after completing implementation steps 1–7.
-Twelve steps remain (8–19); resume with Paddle dismissal in step 8.
+Status: paused at the user's request after completing implementation steps 1–8.
+Eleven steps remain (9–19); resume with league-removal confirmation in step 9.
 Current version: 1.3.5. This document changes no application behavior.
 
 Each numbered step below represents one implementation commit, including its relevant
@@ -60,7 +60,18 @@ receive unique suffixes, and manual names still require uniqueness.
   tests, five backend checkout/consent tests, 60 checkout browser cases and six existing
   registration-entry cases across six viewport projects. Final consent geometry rechecked
   after copy polish, and phone portrait/landscape screenshots reviewed.
-- Paused after step 7 as requested. Twelve steps remain: 8–19. Existing-name repair is
+- Step 8: purchase checkout remains pending until Paddle closes, completes or errors.
+  X dismissal preserves league/type/plan/consent, restores focus after controls re-enable
+  and permits reopening. Aborts, route exits and browser Back close the overlay and
+  unsubscribe; late events cannot complete an abandoned checkout. Completion still
+  waits for backend confirmation, and automatic payment-link flows remain independent.
+  The existing backend reuses a valid pending transaction for the same plan and consent.
+  Verification: lint/build and 91 frontend unit tests; 60 checkout/payment-link browser
+  checks across six viewports. Real sandbox SDK X-close/reopen passed twice each on
+  phone touch emulation and desktop, using one unpaid transaction canceled afterward.
+  The reported physical-phone failure was not reproduced; actual device testing and
+  paid sandbox/internal-step checks remain release checks. No live payment was made.
+- Paused after step 8 as requested. Eleven steps remain: 9–19. Existing-name repair is
   omitted per the user's confirmation. All completed changes have separate commits.
 
 ## Product decisions

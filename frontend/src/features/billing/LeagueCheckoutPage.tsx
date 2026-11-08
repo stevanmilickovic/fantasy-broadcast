@@ -26,24 +26,21 @@ export function LeagueCheckoutPage({
   const [acceptedPolicies, setAcceptedPolicies] = useState(false)
   const [consentRequired, setConsentRequired] = useState(false)
   const [attemptedCheckout, setAttemptedCheckout] = useState(false)
+  const [paddleOpened, setPaddleOpened] = useState(false)
   const policyInput = useRef<HTMLInputElement>(null)
   const leagueInput = useRef<HTMLInputElement>(null)
-  const focusFrame = useRef<number | null>(null)
+  const [focusTarget, setFocusTarget] = useState<{ element: HTMLElement | null } | null>(null)
+  const checkout = useMutation()
   const { notify } = useNotifications()
-  useEffect(
-    () => () => {
-      if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current)
-    },
-    [],
-  )
-  const focusPrerequisite = (element: HTMLInputElement | null) => {
-    if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current)
-    focusFrame.current = window.requestAnimationFrame(() => {
-      focusFrame.current = null
-      element?.scrollIntoView({ block: 'center' })
-      element?.focus({ preventScroll: true })
+  useEffect(() => {
+    if (!focusTarget || checkout.busy) return
+    const frame = window.requestAnimationFrame(() => {
+      focusTarget.element?.scrollIntoView({ block: 'center' })
+      focusTarget.element?.focus({ preventScroll: true })
     })
-  }
+    return () => window.cancelAnimationFrame(frame)
+  }, [focusTarget, checkout.busy])
+  const focusPrerequisite = (element: HTMLElement | null) => setFocusTarget({ element })
   const normalizedLeagueId = leagueId.trim()
   const hasLeagueId = normalizedLeagueId.length > 0
   const validLeagueId =
@@ -59,7 +56,6 @@ export function LeagueCheckoutPage({
   )
   const previewQuery = useQuery(leagueId + ':' + leagueType, loadPreview)
   const preview = previewQuery.data
-  const checkout = useMutation()
   const leagueError =
     (hasLeagueId || attemptedCheckout) && !validLeagueId
       ? 'Enter a valid, positive FPL league ID.'
@@ -84,7 +80,7 @@ export function LeagueCheckoutPage({
     event.preventDefault()
     onNavigate(event.currentTarget.pathname)
   }
-  const openCheckout = async (plan: 'STANDARD' | 'AI_BROADCASTER') => {
+  const openCheckout = async (plan: 'STANDARD' | 'AI_BROADCASTER', trigger: HTMLElement) => {
     if (plan === 'AI_BROADCASTER' && !aiBroadcasterEnabled) return
     if (checkout.busy) return
     setSelectedPlan(plan)
@@ -108,11 +104,9 @@ export function LeagueCheckoutPage({
       focusPrerequisite(policyInput.current)
       return
     }
-    if (focusFrame.current !== null) {
-      window.cancelAnimationFrame(focusFrame.current)
-      focusFrame.current = null
-    }
-    await checkout.run(async (signal) =>
+    setFocusTarget(null)
+    setPaddleOpened(false)
+    const result = await checkout.run(async (signal) =>
       openPaddleCheckout(
         await createPaddleCheckout(
           normalizedLeagueId,
@@ -122,8 +116,14 @@ export function LeagueCheckoutPage({
           signal,
         ),
         signal,
+        () => setPaddleOpened(true),
       ),
     )
+    if (result?.data?.status === 'completed') onNavigate(result.data.successPath)
+    else if (result?.data?.status === 'closed') {
+      notify('Checkout closed. Your selections have been kept.')
+      focusPrerequisite(trigger)
+    }
   }
   return (
     <section className="league-checkout-page">
@@ -230,7 +230,7 @@ export function LeagueCheckoutPage({
             </ul>
             <button
               type="button"
-              onClick={() => void openCheckout('STANDARD')}
+              onClick={(event) => void openCheckout('STANDARD', event.currentTarget)}
               disabled={checkout.busy}
             >
               Choose Standard
@@ -263,7 +263,7 @@ export function LeagueCheckoutPage({
             </ul>
             <button
               type="button"
-              onClick={() => void openCheckout('AI_BROADCASTER')}
+              onClick={(event) => void openCheckout('AI_BROADCASTER', event.currentTarget)}
               disabled={checkout.busy || !aiBroadcasterEnabled}
             >
               {aiBroadcasterEnabled ? 'Choose AI Broadcaster' : 'Currently unavailable'}
@@ -279,6 +279,13 @@ export function LeagueCheckoutPage({
       {checkout.error && (
         <p className="checkout-notice checkout-payment-error" role="alert">
           {checkout.error}
+        </p>
+      )}
+      {checkout.busy && (
+        <p className="checkout-notice" role="status">
+          {paddleOpened
+            ? 'Complete or close the secure Paddle window to return to these plans.'
+            : 'Opening secure checkout…'}
         </p>
       )}
       {leagueIsValid && !preview?.checkoutReady && (

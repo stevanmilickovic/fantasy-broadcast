@@ -1,5 +1,6 @@
 import type { PaddleCheckout } from './types'
-export type PaddleEvent = { name: string }
+export type PaddleEvent = { name: string; data?: { transaction_id?: string } }
+export type PurchaseOutcome = { status: 'closed' } | { status: 'completed'; successPath: string }
 type PaddleEventListener = (event: PaddleEvent) => void
 type PaddleApi = {
   Environment: { set: (environment: 'sandbox' | 'production') => void }
@@ -74,10 +75,14 @@ export async function initializePaddle(clientSideToken: string, signal?: AbortSi
   return paddle
 }
 
-let stopPurchaseEvents: (() => void) | null = null
-export const openPaddleCheckout = async (checkout: PaddleCheckout, signal?: AbortSignal) => {
-  if (!checkout.transactionId)
-    throw new Error('A payment reference is required. Please refresh checkout.')
+let cancelPurchase: (() => void) | null = null
+export const openPaddleCheckout = async (
+  checkout: PaddleCheckout,
+  signal?: AbortSignal,
+  onOpened?: () => void,
+): Promise<PurchaseOutcome> => {
+  const transactionId = checkout.transactionId
+  if (!transactionId) throw new Error('A payment reference is required. Please refresh checkout.')
   const paddle = await initializePaddle(checkout.clientSideToken, signal)
   signal?.throwIfAborted()
   const successPath = `/leagues/checkout?${new URLSearchParams({
@@ -85,20 +90,56 @@ export const openPaddleCheckout = async (checkout: PaddleCheckout, signal?: Abor
     leagueType: checkout.leagueType,
     payment: 'completed',
   })}`
-  stopPurchaseEvents?.()
-  stopPurchaseEvents = onPaddleEvent((event) => {
-    if (event.name === 'checkout.completed') {
-      stopPurchaseEvents?.()
-      stopPurchaseEvents = null
-      paddle.Checkout.close()
-      window.location.assign(successPath)
-    } else if (event.name === 'checkout.closed') {
-      stopPurchaseEvents?.()
-      stopPurchaseEvents = null
+  cancelPurchase?.()
+  return new Promise<PurchaseOutcome>((resolve, reject) => {
+    let settled = false
+    const cleanup = () => {
+      unsubscribe()
+      signal?.removeEventListener('abort', abort)
+      window.removeEventListener('popstate', cancel)
+      if (cancelPurchase === cancel) cancelPurchase = null
     }
-  })
-  paddle.Checkout.open({
-    transactionId: checkout.transactionId,
-    settings: { successUrl: `${window.location.origin}${successPath}` },
+    const finish = (outcome: PurchaseOutcome, close: boolean) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      if (close) paddle.Checkout.close()
+      resolve(outcome)
+    }
+    const cancel = () => finish({ status: 'closed' }, true)
+    const abort = () => {
+      if (settled) return
+      settled = true
+      cleanup()
+      paddle.Checkout.close()
+      reject(signal?.reason ?? new DOMException('Checkout abandoned', 'AbortError'))
+    }
+    const unsubscribe = onPaddleEvent((event) => {
+      if (event.data?.transaction_id && event.data.transaction_id !== transactionId) return
+      if (event.name === 'checkout.loaded') onOpened?.()
+      else if (event.name === 'checkout.completed')
+        finish({ status: 'completed', successPath }, true)
+      else if (event.name === 'checkout.closed') finish({ status: 'closed' }, false)
+      else if (event.name === 'checkout.error') {
+        if (settled) return
+        settled = true
+        cleanup()
+        paddle.Checkout.close()
+        reject(new Error('Secure checkout could not be opened. Please try again.'))
+      }
+    })
+    signal?.addEventListener('abort', abort, { once: true })
+    window.addEventListener('popstate', cancel)
+    cancelPurchase = cancel
+    try {
+      paddle.Checkout.open({
+        transactionId,
+        settings: { successUrl: `${window.location.origin}${successPath}` },
+      })
+    } catch (error) {
+      settled = true
+      cleanup()
+      reject(error)
+    }
   })
 }

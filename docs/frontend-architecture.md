@@ -110,6 +110,13 @@ league data, checkout readiness and policy consent. Plan buttons remain actionab
 before consent and guide to missing prerequisites. Consent guidance highlights/focuses
 the checkbox and reserves clear space above the bottom notification. Accepting consent
 does not automatically create a payment. The payment SDK belongs to billing.
+Purchase submission remains pending until the SDK reports closure, completion or an
+opening error. Closing preserves the form and restores focus after controls re-enable;
+route exit, browser Back and abort close the overlay and remove event subscriptions.
+Transaction event filtering and one-shot settlement prevent abandoned or close-after-
+completion events from overriding the current purchase. Existing backend reservations
+reuse valid pending transactions. Automatic `/pay?_ptxn=…` links retain their separate
+provider-driven opening flow.
 Successful registration checkout returns to a confirmation view with the purchased FPL
 league ID and type. It polls the authenticated league list for up to a minute, then
 opens that league once server-side payment confirmation enables it. Delayed confirmation
