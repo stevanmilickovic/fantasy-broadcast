@@ -4,7 +4,7 @@ import { mockApp } from './fixtures'
 test.use({ timezoneId: 'Asia/Tokyo' })
 
 for (const unavailable of [false, true]) {
-  test(`player fixtures preserve local times, DGWs, blanks and ${unavailable ? 'missing data' : 'difficulty'}`, async ({
+  test(`player fixtures separate current scores and points from upcoming DGWs, blanks and ${unavailable ? 'missing data' : 'difficulty'}`, async ({
     page,
   }) => {
     await mockApp(page)
@@ -49,6 +49,14 @@ for (const unavailable of [false, true]) {
                     home: false,
                     status: 'LIVE',
                     difficulty: 4,
+                  },
+                  {
+                    ...fixture,
+                    id: 505,
+                    opponent: 'Fulham',
+                    status: 'SCHEDULED',
+                    teamScore: null,
+                    opponentScore: null,
                   },
                 ],
             upcoming: unavailable
@@ -112,18 +120,35 @@ for (const unavailable of [false, true]) {
       await expect(modal).toContainText('FPL fixtures are temporarily unavailable.')
       await expect(modal.locator('.player-details-total')).toContainText('—')
     } else {
-      await expect(modal.getByRole('heading', { name: 'Gameweek 24 fixtures' })).toBeVisible()
-      await expect(modal).toContainText('Liverpool · Home')
-      await expect(modal).toContainText('Tottenham · Away')
-      await expect(modal).toContainText('Oct 2')
-      await expect(modal).toContainText('GMT+9')
+      await expect(modal.getByRole('tab', { name: 'Gameweek 24' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      )
+      const liverpool = modal.getByRole('region', { name: 'Arsenal vs Liverpool' })
+      await expect(liverpool).toContainText('2–1')
+      await expect(liverpool).toContainText('Goals Scored')
+      await expect(liverpool).toContainText('+5')
+      const scheduled = modal.getByRole('region', { name: 'Arsenal vs Fulham' })
+      await expect(scheduled).toContainText('—–—')
+      await expect(scheduled).toContainText('Scheduled')
+      await expect(modal.getByRole('region', { name: 'Arsenal vs Tottenham' })).toContainText(
+        'Minutes × 60',
+      )
+      await expect(modal).not.toContainText('Chelsea')
+      await expect(modal.locator('time')).toHaveCount(0)
+      await expect(modal).not.toContainText('Club schedule')
       await expect(modal).toContainText('2–1')
+      await page.screenshot({ path: test.info().outputPath('player-current-points.png') })
+      await modal.getByRole('tab', { name: 'Upcoming fixtures', exact: true }).click()
+      await expect(modal).not.toContainText('Goals Scored')
+      await expect(modal).toContainText('Chelsea · Home')
+      await expect(modal).toContainText('Scheduled')
       await expect(modal.getByLabel('Difficulty 5 of 5')).toHaveCount(1)
       await expect(modal.getByLabel('Difficulty unavailable')).toHaveCount(1)
       await expect(
         modal.locator('.player-fixture-week').filter({ hasText: 'GW 26' }),
       ).toContainText('No scheduled fixture')
-      await expect(modal).toContainText('Kickoff TBD')
+      await expect(modal.locator('time')).toHaveCount(0)
       await expect(modal).toContainText('Gameweek TBD')
       expect(await modal.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
       await page.screenshot({ path: test.info().outputPath('player-fixtures.png') })

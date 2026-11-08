@@ -1,10 +1,11 @@
-import { useDialogMotion } from '../../shared/ui/useDialogMotion'
-import { useEffect, useReducer, useState } from 'react'
+﻿import { useDialogMotion } from '../../shared/ui/useDialogMotion'
+import { useEffect, useId, useReducer, useState } from 'react'
 import { X } from 'lucide-react'
 import { loadPlayerDetails } from './api'
 import type { PlayerDetails } from './types'
 import { playerAvailability } from '../../shared/fpl/availability'
 import { PlayerFixtures } from './PlayerFixtures'
+import { PlayerGameweek } from './PlayerGameweek'
 
 export type SelectedPlayer = {
   id: number | string
@@ -30,7 +31,13 @@ export function PlayerDetailsModal({
     snapshot?.id === Number(player.id) && snapshot.gameweek === gameweek ? snapshot : null
   const [error, setError] = useState<string | null>(null)
   const [revision, retry] = useReducer((value) => value + 1, 0)
-  const [tab, setTab] = useState<'current' | 'history'>('current')
+  const [tab, setTab] = useState<'current' | 'fixtures' | 'history'>('current')
+  const tabId = useId()
+  const tabs = [
+    { id: 'current', label: `Gameweek ${gameweek}` },
+    { id: 'fixtures', label: 'Upcoming fixtures' },
+    { id: 'history', label: 'Previous gameweeks' },
+  ] as const
 
   useEffect(() => {
     show()
@@ -148,24 +155,37 @@ export function PlayerDetailsModal({
           </section>
         )}
         <div className="player-details-tabs" role="tablist" aria-label="Player points">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'current'}
-            className={tab === 'current' ? 'selected' : ''}
-            onClick={() => setTab('current')}
-          >
-            Gameweek {gameweek}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'history'}
-            className={tab === 'history' ? 'selected' : ''}
-            onClick={() => setTab('history')}
-          >
-            Previous gameweeks
-          </button>
+          {tabs.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              id={`${tabId}-${item.id}`}
+              aria-controls={`${tabId}-panel`}
+              aria-selected={tab === item.id}
+              tabIndex={tab === item.id ? 0 : -1}
+              className={tab === item.id ? 'selected' : ''}
+              onClick={() => setTab(item.id)}
+              onKeyDown={(event) => {
+                const next =
+                  event.key === 'ArrowRight'
+                    ? (index + 1) % tabs.length
+                    : event.key === 'ArrowLeft'
+                      ? (index + tabs.length - 1) % tabs.length
+                      : event.key === 'Home'
+                        ? 0
+                        : event.key === 'End'
+                          ? tabs.length - 1
+                          : undefined
+                if (next === undefined) return
+                event.preventDefault()
+                setTab(tabs[next].id)
+                document.getElementById(`${tabId}-${tabs[next].id}`)?.focus()
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
         {error && (
           <p className="player-details-message" role="alert">
@@ -184,47 +204,32 @@ export function PlayerDetailsModal({
           </p>
         )}
         {details && tab === 'current' && (
-          <div className="player-details-list" role="tabpanel">
-            <div className="player-details-total">
-              <span>Total</span>
-              <strong>{details.points === null ? '—' : `${details.points} pts`}</strong>
-            </div>
-            <PlayerFixtures
-              schedule={details.fixtureSchedule}
-              gameweek={gameweek}
-              club={details.club}
-            />
-            {details.changes.length === 0 ? (
-              <p>No point changes recorded this gameweek.</p>
-            ) : (
-              details.changes.map((change, index) => (
-                <div key={`${change.fixture}-${change.stat}-${index}`}>
-                  {details.fixtureSchedule &&
-                    details.fixtureSchedule.current.length > 1 &&
-                    (index === 0 || details.changes[index - 1].fixture !== change.fixture) && (
-                      <h3 className="player-breakdown-fixture">
-                        {details.fixtureSchedule.current.find(
-                          (fixture) => fixture.id === change.fixture,
-                        )?.opponent ?? `Fixture ${change.fixture}`}
-                      </h3>
-                    )}
-                  <div className="player-details-row">
-                    <span>
-                      {pointLabel(change.stat)}
-                      {change.value > 1 ? ` × ${change.value}` : ''}
-                    </span>
-                    <strong>
-                      {change.points > 0 ? '+' : ''}
-                      {change.points}
-                    </strong>
-                  </div>
-                </div>
-              ))
-            )}
+          <div
+            className="player-details-list"
+            role="tabpanel"
+            id={`${tabId}-panel`}
+            aria-labelledby={`${tabId}-current`}
+          >
+            <PlayerGameweek details={details} />
+          </div>
+        )}
+        {details && tab === 'fixtures' && (
+          <div
+            className="player-details-list"
+            role="tabpanel"
+            id={`${tabId}-panel`}
+            aria-labelledby={`${tabId}-fixtures`}
+          >
+            <PlayerFixtures schedule={details.fixtureSchedule} />
           </div>
         )}
         {details && tab === 'history' && (
-          <div className="player-details-list player-details-history" role="tabpanel">
+          <div
+            className="player-details-list player-details-history"
+            role="tabpanel"
+            id={`${tabId}-panel`}
+            aria-labelledby={`${tabId}-history`}
+          >
             {details.history.length === 0 ? (
               <p>No previous gameweek points yet.</p>
             ) : (
@@ -240,8 +245,4 @@ export function PlayerDetailsModal({
       </div>
     </dialog>
   )
-}
-
-function pointLabel(stat: string) {
-  return stat.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }

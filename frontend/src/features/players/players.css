@@ -92,10 +92,11 @@
 }
 .player-details-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border-bottom: 1px solid rgba(32, 230, 255, 0.25);
 }
 .player-details-tabs button {
+  padding: 10px 8px;
   min-height: 50px;
   border: 0;
   border-bottom: 3px solid transparent;
@@ -187,18 +188,46 @@
   line-height: 1.5;
 }
 .player-fixtures {
-  padding: 8px 0 20px;
-  border-bottom: 1px solid #ffffff26;
+  padding: 8px 0;
 }
-.player-fixtures h3,
-.player-breakdown-fixture {
+.player-fixtures h3 {
   margin: 18px 0 10px;
   font-size: 1rem;
 }
-.player-fixtures .player-fixtures-help {
+.player-fixture-points {
+  margin-top: 16px;
+}
+.player-fixture-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px 12px;
+  padding: 14px 12px;
+  border-radius: 6px;
+  background: #ffffff0a;
+  text-align: center;
+}
+.player-fixture-result > span {
+  font-size: 0.85rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.player-fixture-result > strong {
+  font-size: 1.3rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.player-fixture-result > strong > span {
+  padding-inline: 0.2em;
+}
+.player-fixture-result > small {
+  grid-column: 1 / -1;
   color: #cabbcf;
-  font-size: 0.78rem;
-  line-height: 1.5;
+  font-size: 0.72rem;
+}
+.player-fixture-result[data-status='LIVE'] > strong,
+.player-fixture-result[data-status='LIVE'] > small {
+  color: #20e6ff;
 }
 .player-fixture-week {
   display: grid;

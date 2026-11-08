@@ -1,117 +1,75 @@
-import type { PlayerFixture, PlayerFixtureSchedule } from './types'
+﻿import type { PlayerFixture, PlayerFixtureSchedule } from './types'
 
-export function PlayerFixtures({
-  schedule,
-  gameweek,
-  club,
-}: {
-  schedule?: PlayerFixtureSchedule
-  gameweek: number
-  club: string
-}) {
+export function PlayerFixtures({ schedule }: { schedule?: PlayerFixtureSchedule }) {
+  if (!schedule || schedule.unavailableReason)
+    return <p>{schedule?.unavailableReason ?? 'Fixture details are unavailable.'}</p>
   return (
-    <section className="player-fixtures" aria-label="Club fixtures">
-      <h3>Gameweek {gameweek} fixtures</h3>
-      <p className="player-fixtures-help">Club schedule; appearances depend on team selection.</p>
-      {!schedule || schedule.unavailableReason ? (
-        <p>{schedule?.unavailableReason ?? 'Fixture details are unavailable.'}</p>
+    <section className="player-fixtures" aria-label="Upcoming fixtures">
+      {schedule.upcoming.length ? (
+        schedule.upcoming.map((week) => (
+          <div className="player-fixture-week" key={week.gameweek}>
+            <h4>GW {week.gameweek}</h4>
+            <div>
+              {week.fixtures.length ? (
+                week.fixtures.map((fixture) => <FixtureRow key={fixture.id} fixture={fixture} />)
+              ) : (
+                <p>No scheduled fixture</p>
+              )}
+            </div>
+          </div>
+        ))
       ) : (
+        <p>No further gameweeks this season.</p>
+      )}
+      {schedule.unscheduled.length > 0 && (
         <>
-          {schedule.current.length ? (
-            schedule.current.map((fixture) => (
-              <FixtureRow key={fixture.id} fixture={fixture} club={club} />
-            ))
-          ) : (
-            <p>No scheduled club fixture this gameweek.</p>
-          )}
-          <h3>Upcoming fixtures</h3>
-          <p className="player-fixtures-help">FPL difficulty: 1 easiest · 5 hardest.</p>
-          {schedule.upcoming.length ? (
-            schedule.upcoming.map((week) => (
-              <div className="player-fixture-week" key={week.gameweek}>
-                <h4>GW {week.gameweek}</h4>
-                <div>
-                  {week.fixtures.length ? (
-                    week.fixtures.map((fixture) => (
-                      <FixtureRow key={fixture.id} fixture={fixture} club={club} />
-                    ))
-                  ) : (
-                    <p>No scheduled fixture</p>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No further gameweeks this season.</p>
-          )}
-          {schedule.unscheduled.length > 0 && (
-            <>
-              <h3>Gameweek TBD</h3>
-              {schedule.unscheduled.map((fixture) => (
-                <FixtureRow key={fixture.id} fixture={fixture} club={club} />
-              ))}
-            </>
-          )}
-          {schedule.fetchedAt && (
-            <p className="player-fixtures-help">
-              Fixtures received{' '}
-              <time dateTime={schedule.fetchedAt}>
-                {new Date(schedule.fetchedAt).toLocaleTimeString()}
-              </time>
-              .
-            </p>
-          )}
+          <h3>Gameweek TBD</h3>
+          {schedule.unscheduled.map((fixture) => (
+            <FixtureRow key={fixture.id} fixture={fixture} />
+          ))}
         </>
       )}
     </section>
   )
 }
 
-function FixtureRow({ fixture, club }: { fixture: PlayerFixture; club: string }) {
-  const date = fixture.kickoffTime ? new Date(fixture.kickoffTime) : null
-  const kickoff =
-    date && Number.isFinite(date.getTime())
-      ? new Intl.DateTimeFormat(undefined, {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZoneName: 'short',
-        }).format(date)
-      : 'Kickoff TBD'
-  const status =
-    fixture.status === 'LIVE'
-      ? 'Live'
-      : fixture.status === 'FINAL'
-        ? 'Final'
-        : fixture.status === 'TBD'
-          ? 'TBD'
-          : 'Scheduled'
-  const scored = fixture.teamScore !== null && fixture.opponentScore !== null
+const fixtureStatus = (fixture: PlayerFixture) =>
+  fixture.status === 'LIVE'
+    ? 'Live'
+    : fixture.status === 'FINAL'
+      ? 'Final'
+      : fixture.status === 'TBD'
+        ? 'TBD'
+        : 'Scheduled'
+
+export function PlayerFixtureResult({ fixture, club }: { fixture: PlayerFixture; club: string }) {
+  const home = fixture.home ? club : fixture.opponent
+  const away = fixture.home ? fixture.opponent : club
+  const scored = fixture.status === 'LIVE' || fixture.status === 'FINAL'
+  const homeScore = scored ? (fixture.home ? fixture.teamScore : fixture.opponentScore) : null
+  const awayScore = scored ? (fixture.home ? fixture.opponentScore : fixture.teamScore) : null
+  return (
+    <header className="player-fixture-result" data-status={fixture.status}>
+      <span>{home}</span>
+      <strong aria-label={`${home} ${homeScore ?? '—'}, ${away} ${awayScore ?? '—'}`}>
+        {homeScore ?? '—'}
+        <span aria-hidden="true">–</span>
+        {awayScore ?? '—'}
+      </strong>
+      <span>{away}</span>
+      <small>{fixtureStatus(fixture)}</small>
+    </header>
+  )
+}
+
+function FixtureRow({ fixture }: { fixture: PlayerFixture }) {
   return (
     <div className="player-fixture-row" data-status={fixture.status}>
       <div>
         <strong>
           {fixture.opponent} · {fixture.home ? 'Home' : 'Away'}
         </strong>
-        <small>
-          <time dateTime={fixture.kickoffTime ?? undefined}>{kickoff}</time>
-        </small>
-        <small>
-          {status}
-          {scored && (
-            <>
-              {' '}
-              ·{' '}
-              <span
-                aria-label={`${club} ${fixture.teamScore}, ${fixture.opponent} ${fixture.opponentScore}`}
-              >
-                {fixture.teamScore}–{fixture.opponentScore}
-              </span>
-            </>
-          )}
-        </small>
+        <small>{fixtureStatus(fixture)}</small>
       </div>
       <span
         className="fixture-difficulty"
