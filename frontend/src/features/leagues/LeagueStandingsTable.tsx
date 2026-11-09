@@ -1,4 +1,6 @@
 import type { Navigate } from '../../app/useBrowserNavigation'
+import { ImageButton } from './images/ImageButton'
+import type { ImageRequest } from './images/imageData'
 import { LeagueTeamLink } from './LeagueTeamLink'
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { useState } from 'react'
@@ -18,12 +20,14 @@ export function LeagueStandingsTable({
   teamLink,
   navigate,
   liveForm = false,
+  onImage,
 }: {
   discovery: LeagueDiscoveryState
   scoringType: FplLeagueScoring
   teamLink: (id: number) => string
   navigate: Navigate
   liveForm?: boolean
+  onImage: (request: ImageRequest) => void
 }) {
   const [search, setSearch] = useState('')
   const entries = discovery.details.league_entries
@@ -67,6 +71,11 @@ export function LeagueStandingsTable({
             />
           </label>
         )}
+        <ImageButton
+          label="Create standings image"
+          disabled={!standings.length || !discovery.gameweek}
+          onClick={() => onImage({ kind: 'standings' })}
+        />
       </header>
       <table className={`league-table${h2h ? ' league-h2h-table' : ''}`}>
         <thead>
@@ -122,19 +131,28 @@ export function LeagueStandingsTable({
                   <span className="league-mobile-detail">{movement}</span>
                 </td>
                 <td>
-                  {entry ? (
-                    <LeagueTeamLink
-                      entryId={entry.entry_id}
-                      href={teamLink(entry.entry_id)}
-                      name={entry.entry_name}
-                      navigate={navigate}
+                  <div className="league-club-image-action">
+                    <div>
+                      {entry ? (
+                        <LeagueTeamLink
+                          entryId={entry.entry_id}
+                          href={teamLink(entry.entry_id)}
+                          name={entry.entry_name}
+                          navigate={navigate}
+                        />
+                      ) : (
+                        `Entry ${standingEntryId(standing)}`
+                      )}
+                      <small>
+                        {entry && managerName(entry.player_first_name, entry.player_last_name)}
+                      </small>
+                    </div>
+                    <ImageButton
+                      label={`Create club image for ${entry?.entry_name ?? 'club'}`}
+                      disabled={!discovery.gameweek}
+                      onClick={() => onImage({ kind: 'club', id: standingEntryId(standing) })}
                     />
-                  ) : (
-                    `Entry ${standingEntryId(standing)}`
-                  )}
-                  <small>
-                    {entry && managerName(entry.player_first_name, entry.player_last_name)}
-                  </small>
+                  </div>
                 </td>
                 <td className="league-desktop-column">{movement}</td>
                 {h2h && (

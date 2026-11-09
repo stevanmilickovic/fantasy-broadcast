@@ -212,6 +212,7 @@ export function LeagueDetailPage({
       )}
       <TeamEmblemProvider leagueId={league.id}>
         <LeagueStandingsOverview
+          leagueName={league.displayName}
           leagueId={league.id}
           discovery={discovery.data}
           scoringType={league.scoringType}

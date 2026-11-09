@@ -1,0 +1,828 @@
+.customer-shell .league-image-button {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #d7c8df;
+  background: #ffffff06;
+  border: 1px solid #ffffff24;
+  border-radius: 8px;
+}
+.customer-shell .league-image-button:hover {
+  color: #20e6ff;
+  background: #20e6ff12;
+  border-color: #20e6ff88;
+}
+.league-table-panel .league-panel-heading {
+  gap: 12px;
+}
+.league-club-image-action {
+  display: flex;
+  align-items: start;
+  gap: 6px;
+}
+.league-club-image-action > div {
+  min-width: 0;
+  flex: 1;
+}
+.customer-shell .league-club-image-action > .league-image-button {
+  width: 44px;
+}
+.league-matchups-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.league-matchup-card:has(> .league-image-button) {
+  padding-top: 28px;
+}
+.league-matchup-card > .league-image-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+}
+.league-image-dialog {
+  width: min(680px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  padding: 20px;
+  border: 1px solid #ffffff30;
+  border-radius: 16px;
+  color: #fff;
+  background: #1b0825;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.league-image-dialog > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.league-image-dialog h2 {
+  margin: 4px 0 0;
+}
+.league-image-dialog button,
+.league-image-dialog select {
+  min-height: 44px;
+  border: 1px solid #ffffff30;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  background: #ffffff08;
+  font: inherit;
+}
+.league-image-dialog button[aria-pressed='true'] {
+  border-color: #20e6ff;
+  background: #20e6ff15;
+}
+.league-image-dialog button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.league-image-dialog header > button {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+}
+.league-image-controls,
+.league-image-controls [role='group'],
+.league-image-export-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.league-image-controls {
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.league-image-preview {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #17051f;
+}
+.league-image-scaled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+}
+.league-image-dialog > footer {
+  padding-top: 16px;
+}
+.league-image-export-status {
+  color: #c4b3cc;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.league-image-export-actions button {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.league-image-export-actions button:first-child {
+  background: #20e6ff;
+  color: #17051f;
+  font-weight: 700;
+}
+/* Artwork uses export pixels; only its preview wrapper scales with the viewport. */
+.league-art {
+  box-sizing: border-box;
+  width: 1080px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  padding: 56px;
+  color: #faf5ff;
+  background:
+    radial-gradient(ellipse at 105% 0%, #59245e 0%, transparent 55%),
+    radial-gradient(ellipse at 0% 100%, #163746 0%, transparent 50%), #17051f;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 24px;
+  line-height: 1.25;
+  text-align: left;
+}
+.league-art *,
+.league-art *::before,
+.league-art *::after {
+  box-sizing: border-box;
+}
+.league-art[data-format='story'] {
+  height: 1920px;
+  padding: 96px 64px;
+}
+.league-art .art-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  margin: 0 0 44px;
+}
+.league-art .art-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 18px;
+  letter-spacing: 3px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.league-art .art-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #20e6ff;
+  color: #17051f;
+  font-size: 25px;
+  letter-spacing: -2px;
+}
+.league-art .art-edition {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 55%;
+}
+.league-art .art-edition b {
+  font-size: 32px;
+}
+.league-art .art-edition span {
+  color: #cab9d3;
+  font-size: 18px;
+}
+.league-art .art-heading {
+  margin-bottom: 24px;
+}
+.league-art .art-heading > span {
+  color: #20e6ff;
+  font-size: 18px;
+  letter-spacing: 4px;
+  font-weight: 700;
+}
+.league-art .art-heading h1 {
+  font-size: 46px;
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  font-weight: 800;
+  margin: 12px 0 22px;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.league-art .art-rule {
+  height: 3px;
+  background: linear-gradient(90deg, #20e6ff 0%, #20e6ff 12%, #ffffff20 12%, #ffffff20 100%);
+}
+.league-art .art-content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.league-art .art-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  padding-top: 24px;
+  margin-top: 20px;
+  border-top: 1px solid #ffffff26;
+}
+.league-art .art-footer > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.league-art .art-footer span {
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #20e6ff;
+}
+.league-art .art-footer small {
+  font-size: 16px;
+  color: #cab9d3;
+}
+.league-art .art-footer > b {
+  font-size: 24px;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
+}
+.league-art .art-footer > b span {
+  font-size: 28px;
+}
+.league-art .art-standings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.league-art .art-table-heading,
+.league-art .art-standing {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 65px 115px;
+  gap: 12px;
+  align-items: center;
+}
+.league-art .art-table-heading .art-numeric-heading {
+  text-align: right;
+  white-space: nowrap;
+}
+.league-art[data-scoring='H2H'] .art-table-heading,
+.league-art[data-scoring='H2H'] .art-standing {
+  grid-template-columns: 42px minmax(0, 1fr) 60px 108px 75px 82px;
+}
+.league-art .art-table-heading {
+  color: #bca8c6;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 12px 12px;
+}
+.league-art .art-standing {
+  flex: 1;
+  min-height: 43px;
+  max-height: 112px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #ffffff14;
+}
+.league-art .art-standing:nth-child(2) {
+  background: linear-gradient(90deg, #20e6ff16, transparent);
+  border-radius: 10px;
+}
+.league-art .art-rank {
+  font-size: 25px;
+  color: #bca8c6;
+}
+.league-art .art-standing:nth-child(2) .art-rank {
+  color: #20e6ff;
+}
+.league-art .art-identity {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  --identity-emblem-slot: 42px;
+}
+.league-art .art-emblem-slot {
+  position: relative;
+  width: var(--identity-emblem-slot);
+  height: var(--identity-emblem-slot);
+  flex: 0 0 var(--identity-emblem-slot);
+}
+.league-art .art-emblem-slot > .art-emblem,
+.league-art .art-emblem-slot > .art-monogram {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--identity-emblem-slot);
+  height: var(--identity-emblem-slot);
+  transform: translate(-50%, -50%);
+}
+.league-art .art-emblem-slot > .art-emblem {
+  width: calc(var(--identity-emblem-slot) * 1.4);
+  height: calc(var(--identity-emblem-slot) * 1.4);
+}
+.league-art .art-identity > div {
+  min-width: 0;
+}
+.league-art .art-identity b {
+  font-size: 23px;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.league-art .art-identity small {
+  display: block;
+  font-size: 17px;
+  color: #cab9d3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.league-art .art-emblem,
+.league-art .art-monogram {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  object-fit: contain;
+}
+.league-art .art-monogram {
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffffff30;
+  border-radius: 12px;
+  color: #c9adcf;
+  background: #ffffff06;
+  font-weight: 700;
+}
+.league-art .art-movement {
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  color: #cab9d3;
+}
+.league-art .art-movement[data-direction='up'] {
+  color: #5bffb2;
+}
+.league-art .art-movement[data-direction='down'] {
+  color: #ff8fa8;
+}
+.league-art .art-points {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.league-art .art-secondary-points {
+  font-size: 22px;
+  color: #cab9d3;
+  text-align: right;
+}
+.league-art .art-form {
+  display: flex;
+  gap: 4px;
+}
+.league-art .art-form > span {
+  font-size: 13px;
+  width: 18px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  background: #ffffff14;
+  border-radius: 4px;
+}
+.league-art .art-form > span[data-result='W'] {
+  color: #5bffb2;
+  background: #5bffb222;
+}
+.league-art .art-form > span[data-result='L'] {
+  color: #ff8fa8;
+  background: #ff8fa822;
+}
+.league-art .art-form > span[data-provisional='true'] {
+  border: 1px dashed currentColor;
+}
+.league-art .art-club {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  gap: 22px;
+}
+.league-art .art-club > .art-emblem,
+.league-art .art-club > .art-monogram {
+  width: 148px;
+  height: 148px;
+  flex-basis: 148px;
+  font-size: 72px;
+}
+.league-art .art-club h2 {
+  font-size: 58px;
+  line-height: 1.1;
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.league-art .art-club > p {
+  font-size: 28px;
+  color: #cab9d3;
+  margin: 0;
+}
+.league-art .art-club-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid #ffffff24;
+  border-radius: 20px;
+  background: #ffffff04;
+  padding: 24px;
+}
+.league-art .art-club-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.league-art .art-club-stats > div + div {
+  border-left: 1px solid #ffffff24;
+}
+.league-art .art-club-stats span {
+  color: #cab9d3;
+  font-size: 22px;
+}
+.league-art .art-club-stats strong {
+  color: #fff;
+  font-size: 88px;
+  line-height: 1;
+  letter-spacing: -4px;
+}
+.league-art .art-club-stats small {
+  color: #cab9d3;
+  font-size: 20px;
+}
+.league-art .art-club-form {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #cab9d3;
+  font-size: 20px;
+}
+.league-art .art-club-form .art-form > span {
+  width: 30px;
+  height: 32px;
+  font-size: 18px;
+}
+.league-art .art-match-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  max-height: 100%;
+  min-height: 0;
+  margin-block: auto;
+}
+.league-art .art-match {
+  --match-padding: 24px;
+  --match-emblem-size: 176px;
+  position: relative;
+  min-height: 0;
+  padding: 28px var(--match-padding) 16px;
+  overflow: hidden;
+  border: 1px solid #ffffff22;
+  border-radius: 6px;
+  background: #25002c;
+  display: grid;
+  align-items: center;
+}
+.league-art .art-match-meta {
+  position: absolute;
+  top: 7px;
+  left: 12px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  color: #bca8c6;
+  font-size: 16px;
+}
+.league-art .art-match-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: stretch;
+  min-height: 0;
+}
+.league-art .art-match-team {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+}
+.league-art .art-match-team::before {
+  content: '';
+  position: absolute;
+  inset: -24px -14px;
+  z-index: -2;
+  background: radial-gradient(
+    ellipse at var(--match-gradient-origin, right),
+    var(--match-result-tint, transparent),
+    transparent 75%
+  );
+}
+.league-art .art-match-team > .art-emblem,
+.league-art .art-match-team > .art-monogram {
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--match-padding));
+  transform: translate(-50%, -50%);
+  width: var(--match-emblem-size);
+  height: var(--match-emblem-size);
+  opacity: 0.4;
+  z-index: -1;
+  pointer-events: none;
+  font-size: 64px;
+}
+.league-art .art-match-team > .art-monogram {
+  border: 0;
+  background: transparent;
+  font-size: calc(var(--match-emblem-size) * 0.75);
+  opacity: 0.15;
+}
+.league-art .art-match-identity {
+  min-width: 0;
+}
+.league-art .art-match-identity > b {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 28px;
+}
+.league-art .art-match-identity > small {
+  display: block;
+  margin-top: 4px;
+  font-size: 20px;
+  color: #cab9d3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.league-art .art-match-team > strong {
+  font-size: 48px;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.league-art .art-match-team:nth-child(2) {
+  --match-gradient-origin: left;
+  grid-template-columns: auto minmax(0, 1fr);
+  text-align: right;
+}
+.league-art .art-match-team:nth-child(2) > .art-match-identity {
+  grid-column: 2;
+  grid-row: 1;
+}
+.league-art .art-match-team:nth-child(2) > strong {
+  grid-column: 1;
+  grid-row: 1;
+}
+.league-art .art-match-team:nth-child(2) > .art-emblem,
+.league-art .art-match-team:nth-child(2) > .art-monogram {
+  left: auto;
+  right: calc(-1 * var(--match-padding));
+  transform: translate(50%, -50%);
+}
+.league-art .art-match-team[data-winner='true'] {
+  --match-result-tint: #5bffb233;
+}
+.league-art .art-match-team[data-loser='true'] {
+  --match-result-tint: #ff8fa833;
+}
+.league-art[data-format='square'][data-dense='true'] .art-match-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.league-art[data-dense='true'] .art-match {
+  --match-padding: 16px;
+  --match-emblem-size: 136px;
+  padding-bottom: 12px;
+}
+.league-art[data-format='square'][data-dense='true'] .art-match-team {
+  gap: 8px;
+}
+.league-art[data-dense='true'] .art-match-meta {
+  font-size: 14px;
+}
+.league-art[data-dense='true'] .art-match-identity > b {
+  font-size: 20px;
+}
+.league-art[data-dense='true'] .art-match-identity > small {
+  font-size: 15px;
+}
+.league-art[data-dense='true'] .art-match-team > strong {
+  font-size: 32px;
+}
+.league-art[data-format='square'][data-dense='true'] .art-match-identity > b {
+  font-size: 18px;
+}
+.league-art[data-format='story'] .art-heading {
+  margin-top: 60px;
+  margin-bottom: 44px;
+}
+.league-art[data-format='story'] .art-heading h1 {
+  font-size: 64px;
+}
+.league-art[data-format='story'] .art-standing {
+  max-height: none;
+  padding-block: 18px;
+}
+.league-art[data-format='story'] .art-identity b {
+  font-size: 28px;
+}
+.league-art[data-format='story'] .art-identity small {
+  font-size: 22px;
+}
+.league-art[data-format='story'] .art-footer {
+  margin-top: 44px;
+}
+.league-art[data-format='story'] .art-club {
+  gap: 40px;
+}
+.league-art[data-format='story'] .art-club > .art-emblem,
+.league-art[data-format='story'] .art-club > .art-monogram {
+  width: 240px;
+  height: 240px;
+  flex-basis: 240px;
+}
+.league-art[data-format='story'] .art-club h2 {
+  font-size: 78px;
+}
+.league-art[data-format='story'] .art-club-stats {
+  padding: 48px 24px;
+}
+@media (max-width: 639px) {
+  .league-image-dialog {
+    padding: 14px;
+  }
+  .league-club-image-action {
+    flex-wrap: wrap;
+  }
+}
+
+.league-art[data-format='square'][data-many-clubs='true'] .art-standing {
+  padding-block: 1px;
+}
+.league-art[data-format='square'][data-many-clubs='true'] .art-identity b {
+  font-size: 20px;
+  -webkit-line-clamp: 1;
+}
+.league-art[data-format='square'][data-many-clubs='true'] .art-identity small {
+  font-size: 15px;
+}
+.league-art[data-format='square'][data-many-clubs='true'] .art-identity {
+  --identity-emblem-slot: 34px;
+}
+
+.league-art[data-format='story'][data-few-clubs='true'] .art-identity b {
+  font-size: 38px;
+}
+.league-art[data-format='story'][data-few-clubs='true'] .art-identity small {
+  font-size: 24px;
+}
+.league-art[data-format='story'][data-few-clubs='true'] .art-identity {
+  --identity-emblem-slot: 56px;
+}
+.league-art[data-format='story'][data-few-clubs='true'] .art-points {
+  font-size: 40px;
+}
+
+.league-art[data-format='story'] .art-club > .art-emblem {
+  width: 400px;
+  height: 400px;
+  flex-basis: 400px;
+}
+.league-art .art-featured-match {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  align-items: center;
+}
+.league-art .art-featured-emblem {
+  position: absolute;
+  left: -56px;
+  top: 50%;
+  width: 600px;
+  height: 600px;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: -1;
+}
+.league-art .art-featured-emblem[data-side='1'] {
+  left: auto;
+  right: -56px;
+  transform: translate(50%, -50%);
+}
+.league-art[data-format='story'] .art-featured-emblem {
+  left: -64px;
+}
+.league-art[data-format='story'] .art-featured-emblem[data-side='1'] {
+  left: auto;
+  right: -64px;
+}
+.league-art .art-featured-emblem > .art-emblem,
+.league-art .art-featured-emblem > .art-monogram {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  font-size: 360px;
+}
+.league-art .art-featured-meta {
+  color: #cab9d3;
+  font-size: 22px;
+  text-align: center;
+  margin: 0 0 32px;
+}
+.league-art .art-featured-scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+.league-art .art-featured-team {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  min-width: 0;
+}
+.league-art .art-featured-team > div {
+  min-width: 0;
+}
+.league-art .art-featured-team b {
+  font-size: 36px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.league-art .art-featured-team small {
+  display: block;
+  color: #cab9d3;
+  font-size: 24px;
+  margin-top: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.league-art .art-featured-team strong,
+.league-art .art-featured-dash {
+  color: #fff;
+  font-size: 100px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.league-art .art-featured-dash {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: center;
+  font-size: 60px;
+}
+.league-art .art-featured-team[data-side='1'] {
+  grid-column: 3;
+  grid-row: 1;
+  grid-template-columns: auto minmax(0, 1fr);
+  text-align: right;
+}
+.league-art .art-featured-team[data-side='1'] > div {
+  grid-column: 2;
+  grid-row: 1;
+}
+.league-art .art-featured-team[data-side='1'] > strong {
+  grid-column: 1;
+  grid-row: 1;
+}

@@ -73,3 +73,28 @@ above. Ordinary branch pushes and pull requests do not trigger these workflows.
 
 If branch protection previously required the removed `Frontend checks` job, update
 that GitHub setting to match this tag-only release policy.
+
+## League result images
+
+Square image-plus buttons on standings headings, club rows, matchup headings and
+individual matchup cards open the image preview. It creates a fixed snapshot of
+the selected FPL/Live source and gameweek, supports Square (1080 × 1080) and Story
+(1080 × 1920), and downloads PNGs. Native file sharing appears when supported.
+Every image carries `fantasybroadcast.net` in its bottom-right corner. Collections
+show the top 12 clubs or up to ten matchups per numbered image.
+
+Artwork and export code live in `src/features/leagues/images/`. Emblems are fetched
+with the existing session and embedded before preview/export; broken emblems use
+monograms. The PNG exporter is loaded on demand. No image is uploaded or stored.
+
+The image tests also run in Firefox and WebKit:
+
+```bash
+npx playwright install --with-deps firefox webkit
+npm run build
+npm run test:browser -- --config=playwright.images.config.ts
+```
+
+These tests check real PNG dimensions, artwork bounds, all categories and formats,
+pagination, source snapshots, broken images, retries and a simulated share sheet.
+WebKit coverage does not replace checking actual iPhone save/share behavior.

@@ -318,6 +318,25 @@ and `matchups` URL parameters. FPL is the default; Live reuses the server's exis
 points and automatic-substitution projection for the current gameweek. Historical
 and future matchups retain their FPL data. Matchup card identity uses gameweek and
 pairing because upstream match IDs may be absent or repeated.
+`features/leagues/images` owns four share-image templates: standings, individual
+club, selected-gameweek matchups and individual matchup. Contextual square buttons
+open a native preview dialog owned by `LeagueStandingsOverview`. Its snapshot freezes
+the displayed source, selected week and emblem metadata; later live updates do not
+change an open image. The artwork embeds authenticated emblems before rendering and
+uses a lazy-loaded PNG exporter for exact 1080 × 1080 / 1080 × 1920 output. Broken
+emblems become monograms. Collections contain up to ten matchups per numbered image;
+standings include the first 12 ranked clubs regardless of the table search. Every
+export includes `fantasybroadcast.net`. Artwork standings keep fixed emblem slots
+with larger painted logos, blank unchanged movement and aligned two-line points
+headings that share the rows' grid columns. Matchup collection images use compact
+rows, white central scores and large half-cropped emblems at the box edges.
+Individual matchup images have no box: large emblems are cropped at the full
+image edges around a central white scoreline with a dash and both club identities.
+Club Story images use a larger featured emblem.
+Generated files remain in the browser and
+object URLs are released on regeneration or dismissal. Native file sharing is
+capability-detected and uses an already prepared PNG within the click gesture.
+
 Saved-league cards and the return-to-My-leagues link also use app navigation for ordinary
 clicks, preserving the document and shared workspace; modified clicks retain native links.
 

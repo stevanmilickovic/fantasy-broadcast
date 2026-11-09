@@ -5,7 +5,10 @@ import { LeagueTeamsView } from './LeagueTeamsView'
 import { LeagueMatchupsView } from './LeagueMatchupsView'
 import { LeagueInsightsView } from './LeagueInsightsView'
 import { LeagueChat } from '../chat/LeagueChat'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTeamEmblems } from './teamEmblems'
+import { createLeagueImage, type ImageRequest, type LeagueImage } from './images/imageData'
+import { LeagueImageDialog } from './images/LeagueImageDialog'
 import { useLiveLeague } from './useLiveLeague'
 import { withLiveLeague } from './liveLeagueData'
 
@@ -13,6 +16,7 @@ export function LeagueStandingsOverview({
   discovery,
   scoringType,
   leagueId,
+  leagueName,
   search,
   navigate,
   onRefresh,
@@ -20,10 +24,13 @@ export function LeagueStandingsOverview({
   discovery?: LeagueDiscoveryState
   scoringType: FplLeagueScoring
   leagueId: number
+  leagueName: string
   search: string
   navigate: Navigate
   onRefresh?: () => void
 }) {
+  const [image, setImage] = useState<LeagueImage>()
+  const emblems = useTeamEmblems()
   const params = new URLSearchParams(search)
   const tabs =
     scoringType === 'H2H'
@@ -52,6 +59,21 @@ export function LeagueStandingsOverview({
       (live.checkedAt - Date.parse(live.data.pointsFetchedAt) > 30_000 ||
         live.checkedAt - Date.parse(live.data.fixturesFetchedAt) > 60_000)),
   )
+  const openImage = (request: ImageRequest) => {
+    if (!displayed?.gameweek) return
+    setImage(
+      createLeagueImage({
+        request,
+        discovery: displayed,
+        league: leagueName,
+        scoring: scoringType,
+        emblems: emblems.teams,
+        live: live.data,
+        liveSelected: liveResults,
+        stale,
+      }),
+    )
+  }
   useEffect(() => {
     if (live.data && discovery?.gameweek && live.data.gameweek !== discovery.gameweek) {
       const key = `${live.data.gameweek}:${live.data.pointsFetchedAt}`
@@ -185,6 +207,7 @@ export function LeagueStandingsOverview({
         )}
         {mode === 'standings' && discovery && (
           <LeagueStandingsTable
+            onImage={openImage}
             liveForm={Boolean(showingLive)}
             discovery={displayed ?? discovery}
             scoringType={scoringType}
@@ -202,6 +225,7 @@ export function LeagueStandingsOverview({
         )}
         {mode === 'matchups' && discovery && (
           <LeagueMatchupsView
+            onImage={openImage}
             discovery={displayed ?? discovery}
             selectedWeek={Number(params.get('week'))}
             onSelectWeek={(week) => navigate(link('matchups', undefined, week))}
@@ -210,6 +234,7 @@ export function LeagueStandingsOverview({
           />
         )}
       </div>
+      {image && <LeagueImageDialog image={image} onDismiss={() => setImage(undefined)} />}
     </section>
   )
 }

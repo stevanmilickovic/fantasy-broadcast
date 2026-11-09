@@ -1,3 +1,5 @@
+import { ImageButton } from './images/ImageButton'
+import type { ImageRequest } from './images/imageData'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LeagueTeamLink } from './LeagueTeamLink'
 import { LeagueSelect } from './LeagueSelect'
@@ -7,12 +9,14 @@ import { groupedMatches, managerName } from './leagueData'
 
 export function LeagueMatchupsView({
   discovery,
+  onImage,
   selectedWeek,
   onSelectWeek,
   teamLink,
   navigate,
 }: {
   discovery: LeagueDiscoveryState
+  onImage: (request: ImageRequest) => void
   selectedWeek: number
   onSelectWeek: (week: number) => void
   teamLink: (id: number) => string
@@ -29,9 +33,16 @@ export function LeagueMatchupsView({
   return (
     <section className="league-matchups-view">
       <div className="league-week-control">
-        <div>
-          <span className="kicker">The matchday</span>
-          <h2>Head-to-head matchups</h2>
+        <div className="league-matchups-heading">
+          <div>
+            <span className="kicker">The matchday</span>
+            <h2>Head-to-head matchups</h2>
+          </div>
+          <ImageButton
+            label="Create gameweek matchups image"
+            disabled={!discovery.gameweek}
+            onClick={() => onImage({ kind: 'matchups', week: week.event, matches: week.matches })}
+          />
         </div>
         <div>
           <button
@@ -80,6 +91,11 @@ export function LeagueMatchupsView({
               (!match.finished && week.event > (discovery.gameweek ?? week.event))
             return (
               <article className="league-matchup-card" key={`${week.event}:${ids[0]}:${ids[1]}`}>
+                <ImageButton
+                  disabled={!discovery.gameweek}
+                  label={`Create matchup image for ${ids.map((id) => discovery.details.league_entries.find((entry) => entry.id === id)?.entry_name ?? 'Average').join(' vs ')}`}
+                  onClick={() => onImage({ kind: 'matchup', week: week.event, matches: [match] })}
+                />
                 {match.liveStatus && (
                   <span className="league-matchup-state">
                     {match.liveStatus === 'LIVE'
