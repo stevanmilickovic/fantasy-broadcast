@@ -15,8 +15,8 @@ test('live standings preserve URL choice and current matchups retain scores on s
       event: 24,
       league_entry_1: one.id,
       league_entry_2: two.id,
-      league_entry_1_points: 0,
-      league_entry_2_points: 0,
+      league_entry_1_points: 20,
+      league_entry_2_points: 40,
       finished: false,
     },
   ]
@@ -33,7 +33,7 @@ test('live standings preserve URL choice and current matchups retain scores on s
         gameweek: 24,
         pointsFetchedAt: new Date().toISOString(),
         fixturesFetchedAt: new Date().toISOString(),
-        status: 'LIVE',
+        status: 'PROVISIONAL',
         baselineGameweek: 23,
         managerScores: { [one.id]: 72, [two.id]: 34 },
         matchups: [
@@ -44,7 +44,7 @@ test('live standings preserve URL choice and current matchups retain scores on s
             secondManagerId: String(two.id),
             firstPoints: 72,
             secondPoints: 34,
-            status: 'LIVE',
+            status: 'PROVISIONAL',
           },
         ],
         standings: [
@@ -90,8 +90,44 @@ test('live standings preserve URL choice and current matchups retain scores on s
   await page.getByRole('button', { name: 'Live', exact: true }).click()
   await page.getByRole('tab', { name: 'Matchups', exact: true }).click()
   await expect(page).toHaveURL(new RegExp('view=matchups&standings=live'))
+  const source = page.getByRole('group', { name: 'Matchups source' })
+  await expect(source.getByRole('button', { name: 'FPL', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.locator('.league-matchup-club strong')).toHaveText(['20', '40'])
+  await expect(page.locator('.second-club')).toHaveClass(/winner/)
+  await source.getByRole('button', { name: 'Live', exact: true }).click()
+  await expect(page).toHaveURL(/matchups=live/)
+  await expect(page.locator('.first-club')).toHaveClass(/winner/)
+  await expect(page.locator('.second-club')).toHaveClass(/loser/)
+  await page.goBack()
+  await expect(page.locator('.league-matchup-club strong')).toHaveText(['20', '40'])
+  await page.goForward()
+  await page.reload()
+  await expect(source.getByRole('button', { name: 'Live', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
   await expect(page.locator('.league-matchup-card')).toContainText('72')
   await expect(page.locator('.league-matchup-card')).toContainText('34')
+  const badgeLayout = await page.locator('.league-matchup-state').evaluate((badge) => {
+    const card = badge.closest('.league-matchup-card')
+    if (!card) throw new Error('Missing matchup card')
+    const label = badge.getBoundingClientRect()
+    const box = card.getBoundingClientRect()
+    const position = getComputedStyle(badge).position
+    badge.setAttribute('hidden', '')
+    const heightWithoutBadge = card.getBoundingClientRect().height
+    badge.removeAttribute('hidden')
+    return {
+      position,
+      heightUnchanged: box.height === heightWithoutBadge,
+      top: label.top - box.top,
+      left: label.left - box.left,
+    }
+  })
+  expect(badgeLayout).toEqual({ position: 'absolute', heightUnchanged: true, top: 1, left: 1 })
   await page.screenshot({ path: test.info().outputPath('live-matchups.png'), fullPage: true })
   fail = true
   await page.clock.fastForward(11_000)

@@ -140,7 +140,8 @@ test('matchup cards keep clubs on opposite sides of centered scores', async ({ p
   await expect(cards.locator('header')).toHaveCount(0)
   await expect(cards.locator('small').filter({ hasText: 'Winner' })).toHaveCount(0)
   await expect(cards.nth(2).locator('.winner, .loser')).toHaveCount(0)
-  await expect(cards.nth(3).locator('.winner, .loser')).toHaveCount(0)
+  await expect(cards.nth(3).locator('.winner strong')).toHaveText('45')
+  await expect(cards.nth(3).locator('.loser strong')).toHaveText('20')
   for (const card of await cards.all()) {
     const positions = await card.evaluate((element) => {
       const bounds = (selector: string) => {

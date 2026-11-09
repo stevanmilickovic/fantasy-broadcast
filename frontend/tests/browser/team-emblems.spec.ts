@@ -116,6 +116,9 @@ test('matchup emblems sit at the outer edges and center against the full club bo
       const image = club.querySelector('.team-emblem')?.getBoundingClientRect()
       if (!image) throw new Error('Missing matchup emblem')
       const box = club.getBoundingClientRect()
+      const identity = club.querySelector(':scope > div')?.getBoundingClientRect()
+      const score = club.querySelector(':scope > strong')?.getBoundingClientRect()
+      if (!identity || !score) throw new Error('Missing matchup identity or score')
       const card = club.closest('.league-matchup-card')?.getBoundingClientRect()
       if (!card) throw new Error('Missing matchup card')
       const cropped = matchMedia(
@@ -126,6 +129,7 @@ test('matchup emblems sit at the outer edges and center against the full club bo
         cropped,
         width: image.width,
         centered: Math.abs(image.top + image.height / 2 - box.top - box.height / 2),
+        scoreCentered: Math.abs(score.top + score.height / 2 - identity.top - identity.height / 2),
         edge: cropped
           ? Math.abs(image.left + image.width / 2 - (first ? card.left + 1 : card.right - 1))
           : first
@@ -135,11 +139,25 @@ test('matchup emblems sit at the outer edges and center against the full club bo
     })
     expect(layout.width).toBeGreaterThanOrEqual(layout.cropped ? 120 : 44)
     expect(layout.centered).toBeLessThan(1)
+    expect(layout.scoreCentered).toBeLessThan(1)
     expect(layout.edge).toBeLessThan(1)
   }
   await expect(card.locator('a .team-emblem')).toHaveCount(2)
   await fits(page)
   await page.screenshot({ path: test.info().outputPath('emblem-matchups.png'), fullPage: true })
+  const sizeWithEmblems = await card.boundingBox()
+  const urls = data.map((team) => team.url)
+  data.forEach((team) => {
+    team.url = null
+  })
+  await page.reload()
+  await expect(card.locator('.team-emblem')).toHaveCount(0)
+  if (['phone', 'phone-landscape'].includes(test.info().project.name)) {
+    expect((await card.boundingBox())?.height).toBe(sizeWithEmblems?.height)
+  }
+  data.forEach((team, index) => {
+    team.url = urls[index]
+  })
   data[0].url = null
   await page.reload()
   await expect(card.locator('.first-club .team-emblem')).toHaveCount(0)

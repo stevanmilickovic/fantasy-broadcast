@@ -711,6 +711,7 @@
   gap: 20px;
 }
 .league-matchup-card {
+  position: relative;
   display: grid;
   padding: 24px;
   background: #25002c;
@@ -789,7 +790,6 @@
 }
 .league-matchup-club:has(.team-emblem) {
   --matchup-emblem-size: clamp(44px, 5vw, 76px);
-  min-height: calc(var(--matchup-emblem-size) + 40px);
   padding-left: calc(var(--matchup-emblem-size) + 12px);
 }
 .league-matchup-club .team-emblem {
@@ -1360,21 +1360,6 @@
     flex: 1 1 160px;
   }
 }
-@media (max-width: 399px) {
-  .league-matchup-club {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .league-matchup-club > strong {
-    align-self: flex-end;
-  }
-  .league-matchup-club.second-club > strong {
-    align-self: flex-start;
-  }
-}
 @media (max-width: 600px), (max-width: 900px) and (max-height: 480px) {
   .league-matchup-card {
     padding-inline: 16px;
@@ -1383,13 +1368,7 @@
   .league-matchup-club:has(.team-emblem),
   .league-matchup-club.second-club:has(.team-emblem) {
     --matchup-emblem-size: clamp(120px, 32vw, 160px);
-    min-height: var(--matchup-emblem-size);
     padding-inline: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: space-between;
-    gap: 12px;
   }
   .league-matchup-club .team-emblem {
     left: -16px;
@@ -1402,12 +1381,6 @@
     left: auto;
     right: -16px;
     transform: translate(50%, -50%);
-  }
-  .league-matchup-club:has(.team-emblem) > strong {
-    align-self: flex-end;
-  }
-  .league-matchup-club.second-club:has(.team-emblem) > strong {
-    align-self: flex-start;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1616,7 +1589,11 @@
   border-color: #a4eaff;
 }
 .league-matchup-state {
-  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
   padding: 8px 12px;
   font-size: 0.8rem;
   font-weight: 700;

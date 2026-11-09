@@ -75,9 +75,11 @@ export function LeagueMatchupsView({
               match.league_entry_1_points ?? match.firstPoints,
               match.league_entry_2_points ?? match.secondPoints,
             ]
-            const upcoming = !match.finished && week.event > (discovery.gameweek ?? week.event)
+            const upcoming =
+              match.liveStatus === 'UPCOMING' ||
+              (!match.finished && week.event > (discovery.gameweek ?? week.event))
             return (
-              <article className="league-matchup-card" key={match.id}>
+              <article className="league-matchup-card" key={`${week.event}:${ids[0]}:${ids[1]}`}>
                 {match.liveStatus && (
                   <span className="league-matchup-state">
                     {match.liveStatus === 'LIVE'
@@ -99,7 +101,10 @@ export function LeagueMatchupsView({
                     const score = points[side]
                     const opponentScore = points[1 - side]
                     const decided =
-                      match.finished && score !== undefined && opponentScore !== undefined
+                      !upcoming &&
+                      match.liveStatus !== 'UNAVAILABLE' &&
+                      typeof score === 'number' &&
+                      typeof opponentScore === 'number'
                     const winner = decided && score > opponentScore
                     const loser = decided && score < opponentScore
                     return (

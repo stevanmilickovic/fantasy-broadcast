@@ -6,10 +6,11 @@ export function withLiveLeague(
   discovery: LeagueDiscoveryState,
   live: LiveLeagueProjection | undefined,
   liveStandings: boolean,
+  liveMatchups = liveStandings,
 ): LeagueDiscoveryState {
   if (!live || live.gameweek !== discovery.gameweek) return discovery
   const matches =
-    live.scoresUnavailableReason || !live.matchups.length
+    !liveMatchups || live.scoresUnavailableReason || !live.matchups.length
       ? discovery.details.matches
       : [
           ...discovery.details.matches.filter((match) => match.event !== live.gameweek),

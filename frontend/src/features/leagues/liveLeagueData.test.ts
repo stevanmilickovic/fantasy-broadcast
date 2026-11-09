@@ -37,17 +37,44 @@ const live: LiveLeagueProjection = {
   scoresUnavailableReason: null,
   standingsUnavailableReason: null,
 }
-test('matchups overlay automatically while live standings remain an explicit choice', () => {
+test('standings and matchups use live scores only when independently selected', () => {
   const discovery = { ...structuredClone(welcomeLeagueDiscovery), gameweek: 24 }
   const official = withLiveLeague(discovery, live, false)
   expect(official.details.standings).toEqual(discovery.details.standings)
-  expect(official.details.matches.find((match) => match.id === 900)?.league_entry_1_points).toBe(72)
+  expect(official.details.matches).toEqual(discovery.details.matches)
+  const matchups = withLiveLeague(discovery, live, false, true)
+  expect(matchups.details.matches.find((match) => match.id === 900)?.league_entry_1_points).toBe(72)
+  expect(matchups.details.standings).toEqual(discovery.details.standings)
+  expect(withLiveLeague(discovery, live, true, false).details.matches).toEqual(
+    discovery.details.matches,
+  )
   expect(withLiveLeague(discovery, live, true).details.standings[0].total).toBe(30)
   expect(
     withLiveLeague(discovery, { ...live, standingsUnavailableReason: 'History missing.' }, true)
       .details.standings,
   ).toEqual(discovery.details.standings)
   expect(withLiveLeague(discovery, { ...live, gameweek: 25 }, true)).toBe(discovery)
+})
+
+test('live matchups retain historical and future FPL weeks and fall back when unavailable', () => {
+  const discovery = { ...structuredClone(welcomeLeagueDiscovery), gameweek: 24 }
+  discovery.details.matches.push(
+    { ...discovery.details.matches[0], event: 23, finished: true },
+    { ...discovery.details.matches[1], event: 25 },
+  )
+  const projected = withLiveLeague(discovery, live, false, true)
+  expect(projected.details.matches.filter((match) => match.event !== 24)).toEqual(
+    discovery.details.matches.filter((match) => match.event !== 24),
+  )
+  expect(projected.details.matches.filter((match) => match.event === 24)).toHaveLength(1)
+  expect(
+    withLiveLeague(
+      discovery,
+      { ...live, scoresUnavailableReason: 'Points unavailable.' },
+      false,
+      true,
+    ).details.matches,
+  ).toEqual(discovery.details.matches)
 })
 
 test('live form follows corrected current scores without changing completed-only form', () => {

@@ -313,6 +313,11 @@ changes remount the detail page and clear local filters. Club links in standings
 matchups use the existing app navigation for ordinary clicks, preserving the loaded league
 data. Their anchor URLs still support copying links and opening another tab. `LeagueStandingsTable`,
 `LeagueTeamsView` and `LeagueMatchupsView` own their presentation independently.
+Standings and matchups have independent FPL/Live choices, preserved by the `standings`
+and `matchups` URL parameters. FPL is the default; Live reuses the server's existing
+points and automatic-substitution projection for the current gameweek. Historical
+and future matchups retain their FPL data. Matchup card identity uses gameweek and
+pairing because upstream match IDs may be absent or repeated.
 Saved-league cards and the return-to-My-leagues link also use app navigation for ordinary
 clicks, preserving the document and shared workspace; modified clicks retain native links.
 
@@ -349,6 +354,10 @@ views, including cancellation when a modal unmounts. This keeps selection panels
 in browser mobile emulation as well as narrow and short screens.
 Missing live player data shows unavailable points rather than a confirmed zero. Matchups
 navigate only returned gameweeks; final status requires the supplied finished flag.
+Result colors follow available scores, including provisional results, while upcoming
+and unavailable results remain uncolored. The status label overlays the card's top-left
+corner. Emblems keep their existing size without imposing a minimum card height;
+phone scores stay beside and vertically centered on the club and manager identity.
 Classic matchups include the current gameweek and the five latest finished gameweeks;
 their final status comes from the bootstrap event's finished flag. H2H standings show
 up to five completed results in a separate Form column, oldest to newest. Selecting live
