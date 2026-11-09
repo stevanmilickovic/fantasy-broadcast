@@ -86,13 +86,7 @@ export function CustomerDashboard({
                 : 'league'
       }
     >
-      <CustomerNavigation
-        leagues={leagues ?? []}
-        selectedLeague={selectedLeague}
-        user={user}
-        onNavigate={onNavigate}
-        onSignOut={onSignOut}
-      />
+      <CustomerNavigation user={user} onNavigate={onNavigate} onSignOut={onSignOut} />
       <LeagueWorkspaceNavigation pathname={pathname} navigate={onNavigate} />
       {query.error && (
         <p className="discovery-error" role="alert">

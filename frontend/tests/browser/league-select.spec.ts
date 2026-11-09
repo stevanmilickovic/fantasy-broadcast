@@ -74,13 +74,13 @@ test('club and gameweek pickers remain inside mobile emulation and support selec
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
-test('league picker finishes its exit before dismissing and respects reduced motion', async ({
+test('gameweek picker finishes its exit before dismissing and respects reduced motion', async ({
   page,
 }) => {
   await mockApp(page)
-  await page.goto('/league?leagueId=1')
-  await page.getByRole('button', { name: 'League', exact: true }).click()
-  const dialog = page.getByRole('dialog', { name: 'League', exact: true })
+  await page.goto('/league?leagueId=1&view=matchups')
+  await page.getByRole('button', { name: 'Gameweek', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Gameweek', exact: true })
   await expect(dialog).toBeVisible()
   const exiting = await dialog.evaluate((element: HTMLDialogElement) => {
     element.dispatchEvent(new Event('cancel', { cancelable: true }))
@@ -91,15 +91,15 @@ test('league picker finishes its exit before dismissing and respects reduced mot
   })
   expect(exiting).toEqual({ open: true, animating: true })
   await expect(dialog).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'League', exact: true })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Gameweek', exact: true })).toBeFocused()
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.getByRole('button', { name: 'League', exact: true }).click()
+  await page.getByRole('button', { name: 'Gameweek', exact: true }).click()
   const stillOpen = await dialog.evaluate((element: HTMLDialogElement) => {
     element.dispatchEvent(new Event('cancel', { cancelable: true }))
     return element.open
   })
   expect(stillOpen).toBe(false)
-  await page.getByRole('button', { name: 'League', exact: true }).click()
-  await dialog.getByRole('button', { name: /Midweek League/ }).click()
-  await expect(page).toHaveURL('/league?leagueId=2')
+  await page.getByRole('button', { name: 'Gameweek', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Gameweek 24', exact: true }).click()
+  await expect(page).toHaveURL(/week=24/)
 })

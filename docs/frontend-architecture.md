@@ -341,7 +341,7 @@ There are no predicted win probabilities or claims of expected league points.
 Standings keep all supplied ranks in one table, with separate H2H league/fantasy totals.
 Teams select the first ranked valid club by default, without implying ownership; narrow
 screens use a club picker and player roster instead of compressed shirt grids.
-League/club/gameweek pickers share `LeagueSelect`, a native dialog with viewport-bounded height,
+Club/gameweek pickers share `LeagueSelect`, a native dialog with viewport-bounded height,
 internal scrolling and keyboard navigation. Opening and closing animate together with the
 backdrop; selection waits for the exit to finish, and reduced-motion mode closes immediately. `shared/ui/useDialogMotion` and
 `dialog-motion.css` provide the same behavior for player details in league and broadcast

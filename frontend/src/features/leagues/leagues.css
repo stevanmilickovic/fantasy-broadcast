@@ -1174,10 +1174,6 @@
   .account-label {
     display: none;
   }
-  .league-switcher {
-    order: 3;
-    width: 100%;
-  }
 
   .customer-navigation .customer-brand {
     font-size: 21px;
@@ -1445,17 +1441,8 @@
   }
 }
 
-.league-switcher {
-  min-width: 0;
-  max-width: 360px;
-}
 .customer-shell .discovery-error {
   color: #ff6b85;
-}
-@media (max-width: 639px) {
-  .league-switcher {
-    max-width: none;
-  }
 }
 .league-management-page {
   width: min(1120px, 100%);
