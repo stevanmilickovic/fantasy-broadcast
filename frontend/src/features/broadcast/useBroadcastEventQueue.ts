@@ -9,11 +9,14 @@ type BroadcastEventGroup = {
   events: FantasyEventView[]
   totalChange: number
   liveState: LiveStateResponse
+  revision: number
 }
 
 type EventQueue = {
   active: BroadcastEventGroup | null
   pending: BroadcastEventGroup[]
+  revision: number
+  latestStarted: Pick<BroadcastEventGroup, 'liveState' | 'revision'> | null
 }
 
 const eventGroupId = (state: LiveStateResponse, event: FantasyEventView) =>
@@ -24,7 +27,8 @@ const eventGroupId = (state: LiveStateResponse, event: FantasyEventView) =>
 const groupEvents = (
   state: LiveStateResponse,
   events: FantasyEventView[],
-  currentGroups: BroadcastEventGroup[] = [],
+  currentGroups: BroadcastEventGroup[],
+  revision: number,
 ) => {
   const groups = new Map(currentGroups.map((group) => [group.id, group]))
   for (const event of events) {
@@ -37,6 +41,7 @@ const groupEvents = (
       ),
       totalChange: group.totalChange + Math.abs(event.pointDelta),
       liveState: state,
+      revision,
     })
   }
 
@@ -57,12 +62,24 @@ type QueueAction =
 
 function queueReducer(queue: EventQueue, action: QueueAction): EventQueue {
   switch (action.type) {
-    case 'receive':
-      return { ...queue, pending: groupEvents(action.liveState, action.events, queue.pending) }
+    case 'receive': {
+      const revision = queue.revision + 1
+      return {
+        ...queue,
+        revision,
+        pending: groupEvents(action.liveState, action.events, queue.pending, revision),
+      }
+    }
     case 'start': {
       if (queue.active) return queue
-      const [active, ...pending] = queue.pending
-      return { active: active ?? null, pending }
+      const [next, ...pending] = queue.pending
+      if (!next) return queue
+      // Older queued events keep their labels without reverting an already presented score.
+      const latestStarted =
+        !queue.latestStarted || next.revision > queue.latestStarted.revision
+          ? { liveState: next.liveState, revision: next.revision }
+          : queue.latestStarted
+      return { ...queue, active: { ...next, ...latestStarted }, pending, latestStarted }
     }
     case 'finish':
       return { ...queue, active: null }
@@ -73,7 +90,12 @@ export function useBroadcastEventQueue(
   liveState: LiveStateResponse | null,
   deferNotificationStart = false,
 ) {
-  const [queue, dispatch] = useReducer(queueReducer, { active: null, pending: [] })
+  const [queue, dispatch] = useReducer(queueReducer, {
+    active: null,
+    pending: [],
+    revision: 0,
+    latestStarted: null,
+  })
   const receivedEventIdsRef = useRef(new Set<string>())
   useEffect(() => {
     if (!liveState) return

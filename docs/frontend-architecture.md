@@ -169,7 +169,10 @@ The live pipeline has separate owners:
 2. `useBroadcastEventQueue` deduplicates event IDs for the mounted session, groups them
    by matchup (H2H) or manager (total-points), ranks pending groups by absolute point
    change, and retains at most three pending groups. An active group keeps its own
-   immutable live-state snapshot for ten seconds. Scene transitions defer the next
+   immutable score snapshot for ten seconds. Local receive revisions prevent older
+   queued groups from replacing a newer score snapshot that has already started;
+   their own event labels are retained. Future snapshots remain gated until their
+   group starts, and newer point deductions still apply normally. Scene transitions defer the next
    group's start. Voice narration suppresses groups containing only AUTO_SUB events.
 3. `useBroadcastFocus` resolves manual selection or event-driven focus. In Multi mode,
    inactivity rotates least-recently-shown scenes and periodically shows the leaderboard.
