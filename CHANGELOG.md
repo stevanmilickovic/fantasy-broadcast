@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 - 2026-11-09
+
+- Remove the obsolete quick league selector in favor of the league workspace tabs.
+- Give matchups independent FPL/Live result selection, replace cards correctly when changing gameweeks, color provisional results and keep mobile scores aligned beside club identities.
+- Add branded image creation for league standings, club spotlights, gameweek matchups and individual matchups, with Square/Story previews, PNG downloads and native sharing where supported.
+- Capture the selected source and gameweek in fixed image snapshots, show up to 12 clubs and paginate matchup collections, and include club emblems and fantasybroadcast.net branding.
+- Prevent older queued broadcast notifications from reverting announced team and player scores while preserving notification priority, future-update gating and genuine point deductions.
+- Add regression coverage for image exports, standings alignment, responsive matchup layouts and broadcast score persistence.
+
 ## 1.4.1 - 2026-11-08
 
 - Use a subtle green live outline around player names and points, expanding with scoring updates and remaining static under reduced motion.

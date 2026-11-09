@@ -1,9 +1,17 @@
 # Next-version testing handoff
 
 The requested changes are implemented. Following user acceptance, the coordinated
-version is **1.4.1**, including the preview/live-outline hotfix. No release tag or production deployment was made. The implementation
+version is **1.5.0**, including league image creation, matchup improvements and broadcast score persistence. No release tag or production deployment was made. The implementation
 and acceptance checks below ran before the version-only update. The local rebuilt application is available at
 <http://localhost:5173>.
+
+The 1.5.0 changes were verified before the version-only update: frontend formatting,
+lint, 108 unit tests and the production build passed. Broadcast checks passed 123
+browser tests across six viewports (three expected viewport skips). Image checks
+passed 36 Chrome tests across six viewports and 12 Firefox/WebKit tests. The local
+stack was rebuilt and all services were healthy. These checks use controlled API
+updates; actual iPhone image saving/native sharing and live-provider acceptance
+remain manual checks. The backend API and database schema are unchanged by 1.5.0.
 
 The 1.4.1 hotfix keeps a balanced mix of live/completed preview players and disables the
 circling effect on the homepage. Broadcast outlines follow the name/points panel and

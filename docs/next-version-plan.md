@@ -4,7 +4,7 @@ Status: steps 1–19 are implemented and the integrated testing handoff is compl
 No implementation steps remain. Physical-device and provider release checks are recorded
 in [the verification handoff](next-version-verification.md) for acceptance testing.
 After testing, the user authorized a separate coordinated version-update commit to 1.4.0.
-Current version: 1.4.1, including the subsequent user-authorized preview/live-outline hotfix.
+Current version: 1.5.0, including league image creation, matchup improvements and the broadcast score-persistence fix.
 No release tag or production deployment.
 
 Each numbered step below represents one implementation commit, including its relevant
