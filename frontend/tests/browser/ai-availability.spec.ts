@@ -16,11 +16,13 @@ test('disabled AI leaves Standard available on pricing, checkout and subscriptio
   await page.screenshot({ path: info.outputPath('standard-only-pricing.png'), fullPage: true })
 
   await page.goto('/leagues/checkout?fplLeagueId=42&leagueType=DRAFT')
-  await expect(page.getByRole('status')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Currently unavailable' })).toBeDisabled()
+  await expect(
+    page.getByRole('radio', { name: /AI Broadcaster.*Currently unavailable/ }),
+  ).toBeDisabled()
+  await page.getByRole('radio', { name: /Standard/ }).check()
   await page.getByRole('checkbox').check()
-  await expect(page.getByRole('button', { name: 'Choose Standard' })).toBeEnabled()
-  await expect(page.locator('.checkout-plans article')).toHaveCount(2)
+  await expect(page.getByRole('button', { name: 'Continue to payment' })).toBeEnabled()
+  await expect(page.getByRole('radio')).toHaveCount(2)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath('standard-only-checkout.png'), fullPage: true })
 
@@ -60,7 +62,10 @@ test('availability errors keep AI disabled without blocking Standard', async ({ 
   await expect(page.getByRole('status')).toHaveText(
     'AI plan availability could not be checked. Standard remains available.',
   )
-  await expect(page.getByRole('button', { name: 'Currently unavailable' })).toBeDisabled()
+  await expect(
+    page.getByRole('radio', { name: /AI Broadcaster.*Currently unavailable/ }),
+  ).toBeDisabled()
+  await page.getByRole('radio', { name: /Standard/ }).check()
   await page.getByRole('checkbox').check()
-  await expect(page.getByRole('button', { name: 'Choose Standard' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Continue to payment' })).toBeEnabled()
 })

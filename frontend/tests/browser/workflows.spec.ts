@@ -90,30 +90,27 @@ test('league selection, standings, matchups and team views remain usable', async
   expect(unexpectedRequests).toEqual([])
 })
 
-test('registration opens checkout and both plans require policy consent', async ({ page }) => {
+test('registration opens checkout and both plans update the subscription review', async ({
+  page,
+}) => {
   const { errors, unexpectedRequests } = await mockApp(page)
   await page.goto('/leagues/new')
   await expect(page.getByRole('heading', { name: 'Register a league' })).toBeVisible()
   await checkViewport(page)
   await screenshot(page, 'registration')
   await page.getByLabel('League ID', { exact: true }).fill('24024')
-  await page.getByRole('button', { name: 'Register my league' }).click()
-  await expect(
-    page.getByRole('heading', { name: 'Bring your league to the broadcast.' }),
-  ).toBeVisible()
-  const standard = page.getByRole('button', { name: 'Choose Standard' })
-  const ai = page.getByRole('button', { name: 'Choose AI Broadcaster' })
-  await expect(
-    page.locator('.checkout-plan li').filter({ hasText: '50 simultaneous viewers' }),
-  ).toHaveCount(2)
-  await expect(page.locator('.checkout-heading')).toContainText(
-    'Each open broadcast tab or device counts as one viewer.',
-  )
-  await expect(standard).toBeEnabled()
-  await expect(ai).toBeEnabled()
-  await page.getByRole('checkbox').check()
-  await expect(standard).toBeEnabled()
-  await expect(ai).toBeEnabled()
+  await page.getByRole('button', { name: 'Verify league' }).click()
+  await page.getByRole('button', { name: 'Continue to review' }).click()
+  await expect(page.getByRole('heading', { name: 'Review your subscription' })).toBeVisible()
+  const pay = page.getByRole('button', { name: 'Continue to payment' })
+  await expect(pay).toBeDisabled()
+  await page.getByRole('radio', { name: /Standard/ }).check()
+  await expect(page.locator('.checkout-totals')).toContainText('€6.99')
+  await expect(page.getByText(/Each open broadcast tab or device/)).toBeVisible()
+  await page.getByRole('radio', { name: /AI Broadcaster/ }).check()
+  await expect(page.locator('.checkout-totals')).toContainText('€19.99')
+  await expect(page.getByRole('checkbox')).not.toBeChecked()
+  await expect(pay).toBeEnabled()
   await checkViewport(page)
   await screenshot(page, 'checkout')
   expect(errors).toEqual([])

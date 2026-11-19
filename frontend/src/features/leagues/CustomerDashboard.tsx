@@ -4,6 +4,7 @@ import type { Navigate } from '../../app/useBrowserNavigation'
 import { useQuery } from '../../shared/api/useQuery'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import type { AuthUser } from '../auth/types'
+import { readBillingPlan } from '../billing/billingPlans'
 import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
 import { LeaguePaymentConfirmation } from '../billing/LeaguePaymentConfirmation'
 import { LeagueManagementPage } from './LeagueManagementPage'
@@ -35,6 +36,8 @@ export function CustomerDashboard({
   const confirmed = useRef(new Set<number>())
   const leagues = query.data
   const parameters = new URLSearchParams(search)
+  const leagueId = parameters.get('fplLeagueId')?.trim() ?? ''
+  const leagueType = parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT'
   const paymentLeagueId = positiveId(parameters.get('fplLeagueId'))
   const confirmingPayment =
     parameters.get('payment') === 'completed' && paymentLeagueId !== undefined
@@ -113,13 +116,19 @@ export function CustomerDashboard({
           <LeaguePaymentConfirmation
             key={search}
             fplLeagueId={paymentLeagueId}
-            leagueType={parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT'}
+            leagueType={leagueType}
             userId={user.id}
             onConfirmed={paymentConfirmed}
             onNavigate={onNavigate}
           />
         ) : (
-          <LeagueCheckoutPage key={search} search={search} onNavigate={onNavigate} />
+          <LeagueCheckoutPage
+            key={`${leagueId}:${leagueType}`}
+            leagueId={leagueId}
+            leagueType={leagueType}
+            selectedPlan={readBillingPlan(parameters.get('plan'))}
+            onNavigate={onNavigate}
+          />
         ))}
       {pathname === '/leagues' && leagues && (
         <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />

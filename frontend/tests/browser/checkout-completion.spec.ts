@@ -32,8 +32,9 @@ test('paid registration waits for confirmation and opens the purchased league', 
     }),
   )
   await page.goto(`/leagues/checkout?fplLeagueId=${leagues[0].fplLeagueId}&leagueType=DRAFT`)
+  await page.getByRole('radio', { name: /Standard/ }).check()
   await page.getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Choose Standard' }).click()
+  await page.getByRole('button', { name: 'Continue to payment' }).click()
   const successPath = `/leagues/checkout?fplLeagueId=${leagues[0].fplLeagueId}&leagueType=DRAFT&payment=completed`
   await expect
     .poll(() => page.evaluate(() => Reflect.get(window, 'paymentSuccessUrl')))
@@ -42,7 +43,7 @@ test('paid registration waits for confirmation and opens the purchased league', 
   await expect(page).toHaveURL(successPath)
   await expect(page.getByRole('status')).toContainText('Waiting for payment confirmation')
   await expect(page.getByRole('button', { name: 'Go to My leagues' })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Choose Standard' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Continue to payment' })).toHaveCount(0)
   confirmed = true
   await expect(page).toHaveURL(`/league?leagueId=${leagues[0].id}`)
   await expect(page.getByRole('heading', { name: leagues[0].displayName })).toBeVisible()

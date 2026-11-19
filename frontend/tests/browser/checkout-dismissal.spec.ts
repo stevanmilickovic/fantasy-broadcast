@@ -48,12 +48,13 @@ test('checkout X restores the selected plan and permits reopening without a dupl
 }) => {
   const requests = await mockCheckout(page)
   await page.goto('/leagues/checkout?fplLeagueId=42&leagueType=DRAFT')
+  await page.getByRole('radio', { name: /Standard/ }).check()
   await page.getByRole('checkbox').check()
-  const plan = page.getByRole('button', { name: 'Choose Standard', exact: true })
+  const plan = page.getByRole('button', { name: 'Continue to payment', exact: true })
   for (let attempt = 1; attempt <= 2; attempt++) {
     await plan.click()
     await expect(plan).toBeDisabled()
-    await expect(page.getByLabel('FPL league ID', { exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Edit league' })).toBeDisabled()
     await expect(page.locator('.league-checkout-page').getByRole('status')).toContainText(
       'Complete or close',
     )
@@ -66,9 +67,11 @@ test('checkout X restores the selected plan and permits reopening without a dupl
     await expect(plan).toBeEnabled()
     await expect(plan).toBeFocused()
     await expect(page.getByRole('checkbox')).toBeChecked()
-    await expect(page.getByLabel('FPL league ID', { exact: true })).toHaveValue('42')
-    await expect(page.locator('.notification-host')).toContainText('selections have been kept')
-    await expect(page).toHaveURL('/leagues/checkout?fplLeagueId=42&leagueType=DRAFT')
+    await expect(page.getByRole('region', { name: 'Your league' })).toContainText(
+      'Draft league #42',
+    )
+    await expect(page.getByRole('status')).toContainText('selections have been kept')
+    await expect(page).toHaveURL('/leagues/checkout?fplLeagueId=42&leagueType=DRAFT&plan=STANDARD')
   }
 })
 
@@ -76,13 +79,15 @@ test('leaving registration closes the overlay and ignores late completion', asyn
   await mockCheckout(page)
   await page.goto('/leagues/new')
   await page.getByLabel('League ID', { exact: true }).fill('42')
-  await page.getByRole('button', { name: 'Register my league' }).click()
+  await page.getByRole('button', { name: 'Verify league' }).click()
+  await page.getByRole('button', { name: 'Continue to review' }).click()
+  await page.getByRole('radio', { name: /Standard/ }).check()
   await page.getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Choose Standard', exact: true }).click()
+  await page.getByRole('button', { name: 'Continue to payment', exact: true }).click()
   await expect(page.locator('iframe')).toHaveCount(1)
   await page.goBack()
-  await expect(page).toHaveURL('/leagues/new')
+  await expect(page).toHaveURL('/leagues/new?fplLeagueId=42&leagueType=DRAFT')
   await expect(page.locator('iframe')).toHaveCount(0)
   await page.evaluate(() => Reflect.get(window, 'paddleEvent')('checkout.completed'))
-  await expect(page).toHaveURL('/leagues/new')
+  await expect(page).toHaveURL('/leagues/new?fplLeagueId=42&leagueType=DRAFT')
 })

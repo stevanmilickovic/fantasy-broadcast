@@ -1,10 +1,11 @@
 .league-checkout-page {
-  width: min(1040px, calc(100% - 32px));
-  min-height: calc(100vh - 72px);
+  width: min(700px, calc(100% - 32px));
+  min-height: calc(100svh - 72px);
   margin: 0 auto;
-  padding: 46px 0 64px;
+  padding: clamp(24px, 4vw, 46px) 0 48px;
   color: #fff;
 }
+
 .checkout-back {
   display: inline-flex;
   align-items: center;
@@ -18,372 +19,217 @@
 .checkout-back:hover {
   color: var(--pl-cyan);
 }
-.checkout-heading {
-  max-width: 650px;
-  margin: 46px auto 32px;
-  text-align: center;
+
+@media (max-width: 700px) {
+  .checkout-back {
+    min-height: 40px;
+  }
 }
+
+.checkout-heading {
+  margin: 0 0 24px;
+}
+
 .checkout-heading h1 {
-  margin: 10px 0;
-  font-size: clamp(2.1rem, 5vw, 3.8rem);
-  line-height: 0.98;
+  margin: 8px 0 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.05;
   letter-spacing: -0.045em;
 }
-.checkout-heading p {
-  margin: 0;
-  color: #c8c3dd;
-  font-size: 1.05rem;
-  line-height: 1.55;
-}
-.checkout-heading .kicker {
-  display: none;
-}
-.checkout-layout {
+
+.checkout-layout,
+.checkout-review {
   display: grid;
-  gap: 18px;
-  align-items: start;
+  gap: 16px;
 }
-.checkout-league-card {
+
+.checkout-league-card,
+.checkout-plan-heading {
   display: flex;
-  flex-direction: row-reverse;
   align-items: center;
   justify-content: space-between;
-  gap: 22px;
-  padding: 0 12px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  flex-wrap: wrap;
+  gap: 4px 16px;
 }
+
+.checkout-league-card {
+  padding: 0 0 16px;
+  border-bottom: 1px solid #ffffff33;
+}
+
 .checkout-league-summary {
   display: grid;
-  flex: 1;
-  gap: 8px;
-  align-content: center;
+  flex: 1 1 200px;
+  gap: 6px;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
+
+.checkout-eyebrow {
+  color: var(--pl-cyan);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .checkout-league-name {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-.checkout-league-name > svg {
-  flex: 0 0 23px;
-}
-.league-verified {
-  color: var(--pl-green);
-}
-.checkout-league-warning {
-  color: #ff91a5;
-}
-.checkout-league-error {
-  color: #ffb5c2;
-  font-size: 0.86rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-.checkout-retry {
-  justify-self: start;
-  min-height: 44px;
-  padding: 8px 0;
-  border: 0;
-  color: var(--pl-cyan);
-  background: none;
-  font: inherit;
-  text-decoration: underline;
-}
-.checkout-eyebrow,
-.checkout-plan > span {
-  color: var(--pl-cyan);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.checkout-league-card strong {
-  min-width: 0;
+  gap: 10px;
   font-size: 1.35rem;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-.checkout-league-summary > span:not(.checkout-eyebrow) {
-  color: #c8c3dd;
-  font-size: 0.86rem;
-}
-.checkout-league-controls {
-  display: grid;
-  flex: 0 1 347px;
-  min-width: 0;
-  grid-template-columns: minmax(0, 190px) minmax(0, 150px);
-  gap: 7px;
-}
-.checkout-league-card label {
-  grid-column: 1 / -1;
-  color: #c8c3dd;
-  font-size: 0.76rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-.checkout-plan {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #31003a;
-  box-shadow: 0 18px 45px rgba(10, 0, 20, 0.24);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 365px;
-  padding: 28px;
-}
-.checkout-id-field {
-  display: flex;
-  background: #1b0021;
-}
-.checkout-id-field input {
-  min-width: 0;
-  border: 0;
-  color: #fff;
-  background: transparent;
-}
-.checkout-id-field button {
-  border: 0;
-  color: var(--pl-purple);
-  background: var(--pl-cyan);
-  cursor: pointer;
-  font-weight: 900;
-}
-.checkout-league-types {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-}
-.checkout-league-types button {
-  min-height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #c8c3dd;
-  background: transparent;
-  cursor: pointer;
-  font-weight: 800;
-}
-.checkout-league-types button.selected {
-  color: var(--pl-purple);
-  background: var(--pl-cyan);
-}
-.checkout-plans {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-.checkout-plan h2 {
-  margin: 24px 0 0;
-  font-size: 2.5rem;
-  letter-spacing: -0.06em;
-}
-.checkout-plan p {
-  margin: 2px 0 22px;
-  color: #c8c3dd;
-  font-size: 0.82rem;
-}
-.checkout-plan ul {
-  display: grid;
-  gap: 13px;
-  margin: 0 0 26px;
-  padding: 0;
-  list-style: none;
-  color: #f3f1f7;
-  font-size: 0.88rem;
-}
-.checkout-plan li {
-  display: flex;
-  gap: 9px;
-  align-items: center;
-}
-.checkout-plan li svg {
-  color: var(--pl-green);
-}
-.checkout-plan > button {
-  width: 100%;
-  min-height: 47px;
-  margin-top: auto;
-  border: 0;
-  color: var(--pl-purple);
-  background: #fff;
-  cursor: pointer;
-  font-weight: 900;
-}
-.checkout-plan > button:disabled {
-  cursor: not-allowed;
-  opacity: 0.52;
-}
-.checkout-plan.featured {
-  border-color: var(--pl-cyan);
-  background: linear-gradient(145deg, #3d0050, #25002f);
-}
-.checkout-plan[data-selected='true'] {
-  border-color: #20e6ff;
-}
-.checkout-plan.featured > button {
-  background: var(--pl-cyan);
-}
-.checkout-plan .plan-badge {
-  align-items: center;
-  gap: 5px;
-  width: max-content;
-  font-size: 0.72rem;
-  display: block;
-  padding: 0;
-  color: var(--pl-cyan);
-  background: transparent;
-  letter-spacing: 0.12em;
-}
-.checkout-notice {
-  margin: 22px auto 0;
-  color: #c8c3dd;
-  text-align: center;
-  max-width: 700px;
-  padding: 12px;
-  border: 1px solid rgba(32, 230, 255, 0.35);
-  font-size: 0.86rem;
-}
-.checkout-security {
-  margin: 22px auto 0;
-  color: #c8c3dd;
-  text-align: center;
-  font-size: 0.76rem;
 }
 
-/* Collapse desktop league controls and plans before they overflow a phone. */
-@media (max-width: 700px) {
-  .checkout-plans {
-    grid-template-columns: 1fr;
-  }
+.league-verified {
+  flex: 0 0 23px;
+  color: var(--pl-green);
+}
+
+.checkout-league-summary > span:not(.checkout-eyebrow),
+.checkout-review p,
+.checkout-consent {
+  color: #c8c3dd;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.checkout-review {
+  min-width: 0;
+  padding: clamp(16px, 4vw, 28px);
+  border: 1px solid #ffffff24;
+  background: #31003a;
+  box-shadow: 0 18px 45px #0a00143d;
+}
+
+.checkout-action {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  color: var(--pl-cyan);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.checkout-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr));
+  gap: 10px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.checkout-plans legend {
+  margin-bottom: 8px;
+  font-weight: 750;
+}
+
+.checkout-review .checkout-plan {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #ffffff24;
+  background: #25002f;
+  cursor: pointer;
+}
+
+.checkout-plan:has(input:checked) {
+  border-color: var(--pl-cyan);
+}
+
+.checkout-plan:has(input:disabled),
+.checkout-pay:disabled,
+.checkout-action:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.checkout-plan input,
+.checkout-consent input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--pl-cyan);
+}
+
+.checkout-plan > span {
+  display: grid;
+  gap: 3px;
+}
+
+.checkout-plan small {
+  color: #c8c3dd;
+}
+
+.checkout-totals {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 0;
+  border-block: 1px solid #ffffff24;
+}
+
+.checkout-totals > div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.checkout-totals dd {
+  margin: 0;
+  font-weight: 750;
 }
 
 .checkout-consent {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px 10px;
   align-items: start;
-  gap: 10px;
-  max-width: 700px;
-  margin: 22px auto 0;
-  color: #c8c3dd;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  text-align: left;
 }
-.checkout-consent input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  min-height: 18px;
-  padding: 0;
-  margin: 2px 0 0;
-  accent-color: var(--pl-cyan);
-  cursor: pointer;
-}
-.checkout-consent[data-required='true'] {
-  outline: 2px solid #ffb86b;
-  outline-offset: 10px;
-  border-radius: 2px;
-}
-.checkout-consent[data-required='true'] input {
-  box-shadow: 0 0 0 4px #ffb86b40;
-}
-#checkout-consent-error {
-  grid-column: 2;
-  color: #ffca92;
-  margin: 0;
-}
+
 .checkout-consent label {
   display: block;
-  min-width: 0;
-  color: inherit;
-  font: inherit;
   cursor: pointer;
 }
+
 .checkout-consent a {
-  display: inline;
-  padding: 0 2px;
-  border: 0;
   color: var(--pl-cyan);
-  background: transparent;
-  font: inherit;
   font-weight: 750;
-  text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.checkout-consent [role='alert'] {
+  grid-column: 2;
+}
+
+.checkout-league-error,
+.checkout-review p[role='alert'],
+.register-league-card .checkout-league-error {
+  color: #ffb5c2;
+  overflow-wrap: anywhere;
+}
+
+.checkout-pay {
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 0;
+  color: var(--pl-purple);
+  background: var(--pl-cyan);
+  font: inherit;
+  font-weight: 900;
   cursor: pointer;
 }
-@media (max-width: 700px) {
-  .league-checkout-page {
-    width: 100%;
-    min-height: calc(100svh - 122px);
-    margin: 0;
-    padding: 28px 16px 48px;
-  }
 
-  .checkout-back {
-    min-height: 40px;
-    padding: 0;
-  }
-
-  .checkout-heading {
-    margin: 30px 0 28px;
-    text-align: left;
-  }
-
-  .checkout-heading h1 {
-    max-width: 11ch;
-    font-size: clamp(2.3rem, 12vw, 3.3rem);
-  }
-
-  .checkout-heading p {
-    max-width: 34rem;
-    font-size: 1rem;
-  }
-
-  .checkout-layout,
-  .checkout-plans {
-    gap: 14px;
-  }
-
-  .checkout-league-card {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 20px;
-    padding: 0 0 20px;
-  }
-
-  .checkout-league-controls {
-    flex-basis: auto;
-    grid-template-columns: 1fr;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .checkout-league-card label {
-    grid-column: auto;
-  }
-
-  .checkout-id-field,
-  .checkout-id-field input,
-  .checkout-league-types {
-    width: 100%;
-  }
-
-  .checkout-plan {
-    min-height: 0;
-    padding: 26px;
-  }
-
-  .checkout-plan h2 {
-    font-size: 2.6rem;
-  }
-
-  .checkout-plan ul {
-    margin-bottom: 28px;
-  }
-
-  .checkout-notice,
-  .checkout-security {
-    margin-top: 18px;
-  }
-}
 .league-subscription-settings > h2 {
   margin: 32px 0 8px;
 }
@@ -599,12 +445,4 @@
   font: inherit;
   font-weight: 750;
   cursor: pointer;
-}
-
-.checkout-plan[aria-disabled='true'] {
-  filter: grayscale(1);
-  opacity: 0.65;
-}
-.checkout-plan[aria-disabled='true'] button {
-  cursor: not-allowed;
 }

@@ -11,7 +11,7 @@ const validLeague = {
 const previewUrl = '**/api/customer/league-payment/preview**'
 
 async function layout(page: Page) {
-  return page.locator('.checkout-league-card, .checkout-plans').evaluateAll((elements) =>
+  return page.locator('.checkout-layout').evaluateAll((elements) =>
     elements.map((element) => {
       const rect = element.getBoundingClientRect()
       return {
@@ -61,10 +61,6 @@ test('unavailable leagues show stable visible errors without hover movement or o
   )
   await page.goto('/leagues/checkout?fplLeagueId=999&leagueType=DRAFT')
   await expect(page.getByRole('alert')).toHaveText(message)
-  await expect(page.getByLabel('FPL league ID', { exact: true })).toHaveAttribute(
-    'aria-invalid',
-    'true',
-  )
   await page.evaluate(() => document.fonts.ready)
   const before = await layout(page)
   for (const selector of [
@@ -76,13 +72,8 @@ test('unavailable leagues show stable visible errors without hover movement or o
     expect(await layout(page)).toEqual(before)
     await expect(page.getByRole('alert')).toBeVisible()
   }
-  await checkConsent(page)
-  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeEnabled()
-  await page.getByRole('button', { name: 'Choose Standard', exact: true }).click()
-  await expect(page.locator('.notification-host')).toContainText('Check your league ID')
-  await expect(
-    page.getByRole('button', { name: 'Choose AI Broadcaster', exact: true }),
-  ).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Continue to payment' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Edit league' })).toBeEnabled()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath('unavailable-league.png'), fullPage: true })
   expect(errors).toEqual([])
@@ -108,13 +99,8 @@ test('closed registrations explain unavailable checkout without creating a payme
     'New league registrations are temporarily unavailable. Please try again later.',
   )
   await expect(page.getByLabel('League verified', { exact: true })).toBeVisible()
-  await checkConsent(page)
-  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeEnabled()
-  await expect(
-    page.getByRole('button', { name: 'Choose AI Broadcaster', exact: true }),
-  ).toBeEnabled()
-  await page.getByRole('button', { name: 'Choose Standard', exact: true }).click()
-  await expect(page.locator('.notification-host')).toContainText('temporarily unavailable')
+  await expect(page.getByRole('button', { name: 'Continue to payment' })).toBeDisabled()
+  await expect(page.getByRole('checkbox')).toHaveCount(0)
   await expect(page.getByText(/sandbox credentials|payment testing|price IDs/)).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath('registrations-closed.png'), fullPage: true })
@@ -130,18 +116,24 @@ test('missing and malformed league IDs prompt for correction without verificatio
     return route.fulfill({ json: validLeague })
   })
   await page.goto('/leagues/checkout')
-  await expect(page.getByText('Enter your league ID', { exact: true })).toBeVisible()
-  const input = page.getByLabel('FPL league ID', { exact: true })
+  await expect(page.getByRole('alert')).toHaveText('Enter a valid, positive FPL league ID.')
+  await page.getByRole('button', { name: 'Edit league' }).click()
+  const input = page.getByLabel('League ID', { exact: true })
+  const verify = page.getByRole('button', { name: 'Verify league' })
   for (const value of ['-1', 'not-an-id', '9007199254740992']) {
     await input.fill(value)
+    await verify.click()
     await expect(page.getByRole('alert')).toHaveText('Enter a valid, positive FPL league ID.')
   }
   expect(requests).toBe(0)
   await input.fill('42')
-  await expect(page.getByText(validLeague.displayName, { exact: true })).toBeVisible()
+  await verify.click()
+  await expect(page.getByRole('status')).toContainText(validLeague.displayName)
   await expect(page.getByRole('alert')).toHaveCount(0)
-  await checkConsent(page)
-  await expect(page.getByRole('button', { name: 'Choose Standard', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: 'Continue to review' }).click()
+  await expect(page.getByRole('region', { name: 'Your league' })).toContainText(
+    validLeague.displayName,
+  )
 })
 
 test('verification can retry and payment failures appear separately from league verification', async ({
@@ -174,8 +166,9 @@ test('verification can retry and payment failures appear separately from league 
   await expect(page.getByRole('alert')).toContainText('could not verify this league')
   await page.getByRole('button', { name: 'Try verification again', exact: true }).click()
   await expect(page.getByLabel('League verified', { exact: true })).toBeVisible()
+  await page.getByRole('radio', { name: /Standard/ }).check()
   await checkConsent(page)
-  await page.getByRole('button', { name: 'Choose Standard', exact: true }).click()
+  await page.getByRole('button', { name: 'Continue to payment' }).click()
   await expect(page.getByRole('alert')).toHaveText(
     'We could not start this payment. Please try again.',
   )

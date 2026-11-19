@@ -12,7 +12,7 @@ vi.mock('./api', () => ({
 vi.mock('./paddleCheckout', () => ({ openPaddleCheckout: vi.fn() }))
 beforeEach(() => {
   vi.clearAllMocks()
-  HTMLElement.prototype.scrollIntoView = vi.fn()
+  vi.mocked(openPaddleCheckout).mockResolvedValue({ status: 'closed' })
 })
 
 it('requires consent and submits the explicit selected plan', async () => {
@@ -33,11 +33,18 @@ it('requires consent and submits the explicit selected plan', async () => {
     plan: 'AI_BROADCASTER',
     paymentSignature: 'signature',
   })
-  render(<LeagueCheckoutPage search="?fplLeagueId=42&leagueType=DRAFT" onNavigate={vi.fn()} />)
+  render(
+    <LeagueCheckoutPage
+      leagueId="42"
+      leagueType="DRAFT"
+      selectedPlan="AI_BROADCASTER"
+      onNavigate={vi.fn()}
+    />,
+  )
   await screen.findByText('Test league')
-  const plan = screen.getByRole('button', { name: 'Choose AI Broadcaster' }) as HTMLButtonElement
-  expect(plan.disabled).toBe(false)
-  fireEvent.click(plan)
+  const payment = screen.getByRole('button', { name: 'Continue to payment' }) as HTMLButtonElement
+  await waitFor(() => expect(payment.disabled).toBe(false))
+  fireEvent.click(payment)
   const consent = screen.getByRole('checkbox')
   await waitFor(() => expect(document.activeElement).toBe(consent))
   expect(consent.getAttribute('aria-invalid')).toBe('true')
@@ -46,7 +53,7 @@ it('requires consent and submits the explicit selected plan', async () => {
   fireEvent.click(screen.getByRole('checkbox'))
   expect(consent.getAttribute('aria-invalid')).toBe('false')
   expect(createPaddleCheckout).not.toHaveBeenCalled()
-  fireEvent.click(plan)
+  fireEvent.click(payment)
   await waitFor(() =>
     expect(createPaddleCheckout).toHaveBeenCalledWith(
       '42',
@@ -70,10 +77,21 @@ it.each([false, true])(
       checkoutReady: false,
       validationMessage: registrationEligible ? null : 'Check league details.',
     })
-    render(<LeagueCheckoutPage search="?fplLeagueId=42" onNavigate={vi.fn()} />)
+    render(
+      <LeagueCheckoutPage
+        leagueId="42"
+        leagueType="DRAFT"
+        selectedPlan="STANDARD"
+        onNavigate={vi.fn()}
+      />,
+    )
     await screen.findByText('Unavailable league')
-    fireEvent.click(screen.getByRole('checkbox'))
-    fireEvent.click(screen.getByRole('button', { name: 'Choose Standard' }))
+    expect(screen.queryByRole('checkbox')).toBeNull()
+    const payment = screen.queryByRole('button', {
+      name: 'Continue to payment',
+    }) as HTMLButtonElement | null
+    if (registrationEligible) expect(payment?.disabled).toBe(true)
+    else expect(payment).toBeNull()
     expect(createPaddleCheckout).not.toHaveBeenCalled()
     expect(openPaddleCheckout).not.toHaveBeenCalled()
   },
@@ -89,13 +107,21 @@ it('offers Standard only when AI is disabled', async () => {
     validationMessage: null,
   })
   vi.mocked(createPaddleCheckout).mockClear()
-  render(<LeagueCheckoutPage search="?fplLeagueId=42" onNavigate={vi.fn()} />)
+  render(
+    <LeagueCheckoutPage
+      leagueId="42"
+      leagueType="DRAFT"
+      selectedPlan="STANDARD"
+      onNavigate={vi.fn()}
+    />,
+  )
   await screen.findByText('Standard league')
-  expect(
-    (screen.getByRole('button', { name: 'Currently unavailable' }) as HTMLButtonElement).disabled,
-  ).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Change plan' }))
+  expect((screen.getByRole('radio', { name: /AI Broadcaster/ }) as HTMLInputElement).disabled).toBe(
+    true,
+  )
   fireEvent.click(screen.getByRole('checkbox'))
-  fireEvent.click(screen.getByRole('button', { name: 'Choose Standard' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Continue to payment' }))
   await waitFor(() =>
     expect(createPaddleCheckout).toHaveBeenCalledWith(
       '42',

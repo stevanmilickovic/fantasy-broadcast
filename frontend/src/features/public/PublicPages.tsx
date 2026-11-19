@@ -1,3 +1,4 @@
+import { monthlyPlanPrice } from '../billing/billingPlans'
 import { usePlanAvailability } from '../billing/usePlanAvailability'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
@@ -42,7 +43,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
         <article>
           <span>Standard</span>
           <h2>
-            €6.99 <small>/ league / month</small>
+            {monthlyPlanPrice.STANDARD} <small>/ league / month</small>
           </h2>
           <p>Live matchday coverage, billed monthly per league.</p>
           <ul>
@@ -55,7 +56,7 @@ function Pricing({ onNavigate }: { onNavigate: Navigate }) {
         <article className="public-featured" aria-disabled={!aiBroadcasterEnabled}>
           <span>AI Broadcaster</span>
           <h2>
-            €19.99 <small>/ league / month</small>
+            {monthlyPlanPrice.AI_BROADCASTER} <small>/ league / month</small>
           </h2>
           <p>Live coverage with AI voice commentary, billed monthly per league.</p>
           <ul>

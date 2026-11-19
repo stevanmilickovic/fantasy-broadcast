@@ -32,9 +32,24 @@ test('Get started opens registration for an existing user and retains the select
     .click()
   await expect(page).toHaveURL('/leagues/new?plan=STANDARD')
   await page.getByLabel('League ID', { exact: true }).fill('123')
-  await page.getByRole('button', { name: 'Register my league' }).click()
+  await page.getByRole('button', { name: 'Verify league' }).click()
+  await page.getByRole('button', { name: 'Continue to review' }).click()
   await expect(page).toHaveURL('/leagues/checkout?fplLeagueId=123&leagueType=DRAFT&plan=STANDARD')
-  await expect(page.locator('.checkout-plan[data-selected="true"]')).toContainText('Standard')
+  await expect(page.getByRole('heading', { name: 'Standard', exact: true })).toBeVisible()
+  await expect(page.getByRole('radio')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Change plan' }).click()
+  await page.getByRole('radio', { name: /AI Broadcaster/ }).check()
+  await expect(page.getByRole('heading', { name: 'AI Broadcaster', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Edit league' }).click()
+  await expect(page.getByLabel('League ID', { exact: true })).toHaveValue('123')
+  await expect(page.getByRole('button', { name: 'Draft' })).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('button', { name: 'Verify league' }).click()
+  await expect(page.getByRole('status')).toContainText('Sunday League Elite')
+  await page.getByRole('button', { name: 'Continue to review' }).click()
+  await expect(page).toHaveURL(
+    '/leagues/checkout?fplLeagueId=123&leagueType=DRAFT&plan=AI_BROADCASTER',
+  )
+  await expect(page.getByRole('heading', { name: 'AI Broadcaster', exact: true })).toBeVisible()
 })
 
 test('guest registration intent survives switching to login and refreshing', async ({ page }) => {
