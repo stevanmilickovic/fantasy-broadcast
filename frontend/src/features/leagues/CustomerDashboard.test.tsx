@@ -5,9 +5,8 @@ import { loadRegisteredLeagues } from './api'
 
 vi.mock('./api', () => ({ loadRegisteredLeagues: vi.fn() }))
 vi.mock('./CustomerNavigation', () => ({ CustomerNavigation: () => null }))
-vi.mock('./LeagueRegistrationPage', () => ({ LeagueRegistrationPage: () => null }))
+vi.mock('./LeagueRegistrationPage', () => ({ LeagueRegistrationPage: () => <p>Checkout page</p> }))
 vi.mock('./LeagueDetailPage', () => ({ LeagueDetailPage: () => null }))
-vi.mock('../billing/LeagueCheckoutPage', () => ({ LeagueCheckoutPage: () => <p>Checkout page</p> }))
 const user = { id: 1, email: 'user@example.test', displayName: 'User', role: 'USER' as const }
 
 it('redirects followers away from owner-only league management', async () => {

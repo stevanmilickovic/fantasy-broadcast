@@ -38,7 +38,7 @@ test('paid registration waits for confirmation and opens the purchased league', 
   const successPath = `/leagues/checkout?fplLeagueId=${leagues[0].fplLeagueId}&leagueType=DRAFT&payment=completed`
   await expect
     .poll(() => page.evaluate(() => Reflect.get(window, 'paymentSuccessUrl')))
-    .toBe(`http://127.0.0.1:4173${successPath}`)
+    .toBe(new URL(successPath, page.url()).href)
   await page.evaluate(() => Reflect.get(window, 'completePayment')())
   await expect(page).toHaveURL(successPath)
   await expect(page.getByRole('status')).toContainText('Waiting for payment confirmation')

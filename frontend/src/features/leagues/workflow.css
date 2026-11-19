@@ -63,10 +63,6 @@
 .customer-shell[data-workflow='register'] .register-league-card .kicker {
   color: var(--workflow-accent);
 }
-.customer-shell[data-workflow='checkout'] .checkout-heading .kicker {
-  display: block;
-  color: var(--workflow-accent);
-}
 .customer-shell[data-workflow='league'] .league-identity {
   padding-bottom: 20px;
   border-bottom: 1px solid #ffffff20;

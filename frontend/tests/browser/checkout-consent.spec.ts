@@ -20,21 +20,27 @@ for (const plan of ['STANDARD', 'AI_BROADCASTER']) {
     await page.goto(`/leagues/checkout?fplLeagueId=42&leagueType=DRAFT&plan=${plan}`)
     const payment = page.getByRole('button', { name: 'Continue to payment' })
     await expect(payment).toBeEnabled()
-    await expect(page.getByRole('radio')).toHaveCount(0)
+    await expect(page.locator(`input[value=${plan}]`)).toBeChecked()
+    await expect(page.getByLabel('League verified')).toBeVisible()
     await payment.click()
     const checkbox = page.getByRole('checkbox')
     await expect(checkbox).toBeFocused()
     await expect(checkbox).not.toBeChecked()
     await expect(checkbox).toHaveAttribute('aria-invalid', 'true')
-    await expect(page.getByRole('alert')).toContainText('Accept the terms')
+    await expect(page.getByRole('alert')).toContainText('Agree to the terms')
     expect(requests).toBe(0)
 
     await checkbox.check()
-    const policy = page.getByRole('link', { name: 'Terms of Service' })
-    const [policyPage] = await Promise.all([page.waitForEvent('popup'), policy.click()])
-    await expect(policyPage).toHaveURL(/\/terms$/)
-    await policyPage.close()
-    await expect(checkbox).toBeChecked()
+    for (const [name, path] of [
+      ['Terms and Conditions', '/terms'],
+      ['Privacy Policy', '/privacy'],
+    ]) {
+      const policy = page.getByRole('link', { name, exact: true })
+      const [policyPage] = await Promise.all([page.waitForEvent('popup'), policy.click()])
+      await expect(policyPage).toHaveURL((url) => url.pathname === path)
+      await policyPage.close()
+      await expect(checkbox).toBeChecked()
+    }
     await expect(page.getByRole('alert')).toHaveCount(0)
     const consent = await page.locator('.checkout-consent').boundingBox()
     const button = await payment.boundingBox()

@@ -54,7 +54,8 @@ preserved. This policy is opt-in; other environments retain their existing admin
 
 Email delivery and AI narration are disabled in this isolated test setup, so email
 verification/reset flows need separately configured mail delivery. FPL access uses the
-real upstream API. Local development endpoints and league registration are enabled.
+real upstream API. Local development endpoints are enabled. For regular accounts,
+set `BROADCAST_LEAGUE_REGISTRATION_ENABLED=true` in `.env.testing` to open registration.
 The stack does not import the host's private application configuration.
 
 View logs or stop the stack without removing its database:

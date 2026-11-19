@@ -90,7 +90,7 @@ test('league selection, standings, matchups and team views remain usable', async
   expect(unexpectedRequests).toEqual([])
 })
 
-test('registration opens checkout and both plans update the subscription review', async ({
+test('registration keeps league, plans, consent, and payment in document order', async ({
   page,
 }) => {
   const { errors, unexpectedRequests } = await mockApp(page)
@@ -98,19 +98,29 @@ test('registration opens checkout and both plans update the subscription review'
   await expect(page.getByRole('heading', { name: 'Register a league' })).toBeVisible()
   await checkViewport(page)
   await screenshot(page, 'registration')
-  await page.getByLabel('League ID', { exact: true }).fill('24024')
-  await page.getByRole('button', { name: 'Verify league' }).click()
-  await page.getByRole('button', { name: 'Continue to review' }).click()
-  await expect(page.getByRole('heading', { name: 'Review your subscription' })).toBeVisible()
+  const leagueId = page.getByRole('textbox', { name: 'FPL league ID' })
+  await leagueId.fill('24024')
+  await expect(page.getByLabel('League verified')).toBeVisible()
+  const standard = page.getByRole('radio', { name: /Standard/ })
+  const ai = page.getByRole('radio', { name: /AI Broadcaster/ })
+  const consent = page.getByRole('checkbox')
+  const summary = page.getByRole('region', { name: 'Selected plan' })
   const pay = page.getByRole('button', { name: 'Continue to payment' })
-  await expect(pay).toBeDisabled()
-  await page.getByRole('radio', { name: /Standard/ }).check()
-  await expect(page.locator('.checkout-totals')).toContainText('€6.99')
-  await expect(page.getByText(/Each open broadcast tab or device/)).toBeVisible()
-  await page.getByRole('radio', { name: /AI Broadcaster/ }).check()
-  await expect(page.locator('.checkout-totals')).toContainText('€19.99')
-  await expect(page.getByRole('checkbox')).not.toBeChecked()
+  await pay.click()
+  await expect(standard).toBeFocused()
+  await standard.check()
+  await expect(summary).toContainText('€6.99')
+  await ai.check()
+  await expect(summary).toContainText('€19.99')
+  await expect(consent).not.toBeChecked()
   await expect(pay).toBeEnabled()
+  const positions = await Promise.all(
+    [leagueId, standard, consent, summary, pay].map((element) =>
+      element.evaluate((node) => node.getBoundingClientRect().top + window.scrollY),
+    ),
+  )
+  expect(positions).toEqual([...positions].sort((left, right) => left - right))
+  await expect(page).toHaveURL('/leagues/new')
   await checkViewport(page)
   await screenshot(page, 'checkout')
   expect(errors).toEqual([])

@@ -1,7 +1,8 @@
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useQuery } from '../../shared/api/useQuery'
 import { loadLeagueRegistrationAccess } from './api'
-import { LeagueRegistrationForm } from './LeagueRegistrationForm'
+import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
+import { readBillingPlan } from '../billing/billingPlans'
 
 export function LeagueRegistrationPage({
   navigate,
@@ -11,6 +12,18 @@ export function LeagueRegistrationPage({
   search: string
 }) {
   const access = useQuery('registration-access', loadLeagueRegistrationAccess)
+  const parameters = new URLSearchParams(search)
+  if (access.data?.canRegisterLeague) {
+    return (
+      <LeagueCheckoutPage
+        key={search}
+        leagueId={parameters.get('fplLeagueId') ?? ''}
+        leagueType={parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT'}
+        selectedPlan={readBillingPlan(parameters.get('plan'))}
+        onNavigate={navigate}
+      />
+    )
+  }
   return (
     <section className="customer-empty league-onboarding">
       {access.status === 'loading' ? (
@@ -19,8 +32,6 @@ export function LeagueRegistrationPage({
         <p role="alert">
           {access.error} <button onClick={access.refresh}>Retry</button>
         </p>
-      ) : access.data?.canRegisterLeague ? (
-        <LeagueRegistrationForm key={search} search={search} navigate={navigate} />
       ) : (
         <div className="register-league-card">
           <h1>League registration is closed</h1>

@@ -1,4 +1,4 @@
-import { CircleCheck } from 'lucide-react'
+import { Check, ChevronRight, CircleAlert, CircleCheck, LoaderCircle } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { positiveId } from '../../app/routes'
 import type { Navigate } from '../../app/useBrowserNavigation'
@@ -14,10 +14,23 @@ import { openPaddleCheckout } from './paddleCheckout'
 import type { BillingPlan } from './types'
 import { usePlanAvailability } from './usePlanAvailability'
 
+function revealOnMobile(element: HTMLElement | null) {
+  if (!element || !window.matchMedia('(max-width: 700px), (max-height: 500px)').matches) return
+  window.requestAnimationFrame(() => {
+    if (!element.isConnected) return
+    const viewport = window.visualViewport
+    const viewportBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight
+    const distance = element.getBoundingClientRect().bottom - viewportBottom
+    if (distance <= 0) return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollBy({ top: distance + 12, behavior: reducedMotion ? 'instant' : 'smooth' })
+  })
+}
+
 export function LeagueCheckoutPage({
-  leagueId,
-  leagueType,
-  selectedPlan,
+  leagueId: initialLeagueId,
+  leagueType: initialLeagueType,
+  selectedPlan: initialPlan,
   onNavigate,
 }: {
   leagueId: string
@@ -26,52 +39,79 @@ export function LeagueCheckoutPage({
   onNavigate: Navigate
 }) {
   const { aiBroadcasterEnabled, checkingAvailability, notice } = usePlanAvailability()
-  const [showPlans, setShowPlans] = useState(!selectedPlan)
+  const [leagueInputValue, setLeagueInputValue] = useState(initialLeagueId)
+  const leagueId = leagueInputValue.trim()
+  const [leagueType, setLeagueType] = useState(initialLeagueType)
+  const [selectedPlan, setSelectedPlan] = useState(initialPlan)
   const [acceptedPolicies, setAcceptedPolicies] = useState(false)
-  const [consentRequired, setConsentRequired] = useState(false)
+  const [validation, setValidation] = useState<'league' | 'plan' | 'consent' | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<'opening' | 'opened' | 'closed'>('opening')
+  const leagueInput = useRef<HTMLInputElement>(null)
+  const firstPlanInput = useRef<HTMLInputElement>(null)
   const policyInput = useRef<HTMLInputElement>(null)
+  const consentLabel = useRef<HTMLLabelElement>(null)
   const paymentButton = useRef<HTMLButtonElement>(null)
   const checkout = useMutation()
 
-  const validLeagueId = Boolean(positiveId(leagueId))
+  const [lookupId, setLookupId] = useState(initialLeagueId.trim())
+  useEffect(() => {
+    if (lookupId === leagueId) return
+    const timeout = window.setTimeout(() => setLookupId(leagueId), 400)
+    return () => window.clearTimeout(timeout)
+  }, [leagueId, lookupId])
   const loadPreview = useCallback(
     (signal: AbortSignal) =>
-      validLeagueId ? previewLeaguePayment(leagueId, leagueType, signal) : Promise.resolve(null),
-    [leagueId, leagueType, validLeagueId],
+      positiveId(lookupId)
+        ? previewLeaguePayment(lookupId, leagueType, signal)
+        : Promise.resolve(null),
+    [lookupId, leagueType],
   )
-  const previewQuery = useQuery(`${leagueId}:${leagueType}`, loadPreview)
-  const preview = previewQuery.data
-  const leagueError = !validLeagueId
-    ? 'Enter a valid, positive FPL league ID.'
-    : (previewQuery.error ?? preview?.validationMessage)
+  const previewQuery = useQuery(`${lookupId}:${leagueType}`, loadPreview)
+  const validLeagueId = Boolean(positiveId(leagueId))
+  const lookupCurrent = lookupId === leagueId
+  const checkingLeague = validLeagueId && (!lookupCurrent || previewQuery.status === 'loading')
+  const preview = lookupCurrent ? previewQuery.data : undefined
+  const leagueError = validLeagueId
+    ? lookupCurrent
+      ? (previewQuery.error ?? preview?.validationMessage)
+      : null
+    : validation === 'league' || leagueId
+      ? 'Enter a valid, positive FPL league ID.'
+      : null
   const verified = preview?.registrationEligible === true
   const selectedAvailable =
     selectedPlan === 'STANDARD' || (selectedPlan === 'AI_BROADCASTER' && aiBroadcasterEnabled)
-  const canPay = verified && preview.checkoutReady && selectedAvailable
+  const paymentUnavailable = verified && !preview.checkoutReady
 
   useEffect(() => {
     if (paymentStatus === 'closed' && !checkout.busy) paymentButton.current?.focus()
   }, [checkout.busy, paymentStatus])
 
-  const draft = new URLSearchParams({
-    ...(leagueId && { fplLeagueId: leagueId }),
-    leagueType,
-  }).toString()
-  const choosePlan = (plan: BillingPlan) => {
+  const resetPayment = () => {
     checkout.reset()
     setPaymentStatus('opening')
-    onNavigate(`/leagues/checkout?${draft}&plan=${plan}`, true)
+    setValidation(null)
   }
 
   const openCheckout = async (event: FormEvent) => {
     event.preventDefault()
-    if (!canPay || !selectedPlan || checkout.busy) return
+    if (checkout.busy || checkingLeague || paymentUnavailable) return
+    if (!verified) {
+      setValidation('league')
+      leagueInput.current?.focus()
+      return
+    }
+    if (!selectedAvailable || !selectedPlan) {
+      setValidation('plan')
+      firstPlanInput.current?.focus()
+      return
+    }
     if (!acceptedPolicies) {
-      setConsentRequired(true)
+      setValidation('consent')
       policyInput.current?.focus()
       return
     }
+    setValidation(null)
     setPaymentStatus('opening')
     const result = await checkout.run(async (signal) =>
       openPaddleCheckout(
@@ -92,205 +132,254 @@ export function LeagueCheckoutPage({
 
   return (
     <section className="league-checkout-page">
-      <header className="checkout-heading">
-        <span className="kicker">Checkout</span>
-        <h1>Review your subscription</h1>
-      </header>
-      <div className="checkout-layout">
-        <section className="checkout-league-card" aria-label="Your league">
-          <div className="checkout-league-summary">
-            <span className="checkout-eyebrow">Your league</span>
-            {preview && (
-              <>
-                <div className="checkout-league-name">
-                  <strong>{preview.displayName}</strong>
-                  {verified && (
-                    <CircleCheck
-                      className="league-verified"
-                      size={23}
-                      aria-label="League verified"
-                    />
-                  )}
-                </div>
-                {verified && (
-                  <span>
-                    {leagueType === 'CLASSIC' ? 'Classic' : 'Draft'} league #{leagueId} ·{' '}
-                    {preview.managerCount} managers
-                  </span>
-                )}
-              </>
-            )}
-            {leagueError && (
-              <p className="checkout-league-error" role="alert">
-                {leagueError}
-              </p>
-            )}
-            {validLeagueId && previewQuery.status === 'loading' && (
-              <p role="status">Verifying league…</p>
-            )}
-            {previewQuery.error && (
-              <button className="checkout-action" type="button" onClick={previewQuery.refresh}>
-                Try verification again
-              </button>
-            )}
-          </div>
-          <button
-            className="checkout-action"
-            type="button"
+      <form className="checkout-review" onSubmit={(event) => void openCheckout(event)} noValidate>
+        <section className="checkout-league-panel">
+          <h1 id="checkout-league-heading">Register a league</h1>
+          <fieldset
+            className="checkout-fields"
+            aria-labelledby="checkout-league-heading"
             disabled={checkout.busy}
-            onClick={() =>
-              onNavigate(`/leagues/new?${draft}${selectedPlan ? `&plan=${selectedPlan}` : ''}`)
-            }
           >
-            Edit league
-          </button>
-        </section>
-        {verified && (
-          <form className="checkout-review" onSubmit={(event) => void openCheckout(event)}>
-            {selectedPlan && (
-              <div className="checkout-plan-heading">
-                <h2>{planName(selectedPlan)}</h2>
-                {selectedAvailable && (
-                  <button
-                    className="checkout-action"
-                    type="button"
-                    aria-expanded={showPlans}
-                    aria-controls={showPlans ? 'checkout-plan-options' : undefined}
-                    disabled={checkout.busy}
-                    onClick={() => setShowPlans(!showPlans)}
-                  >
-                    {showPlans ? 'Hide plan options' : 'Change plan'}
-                  </button>
-                )}
-              </div>
-            )}
-            {(showPlans || !selectedAvailable) && (
-              <fieldset
-                id="checkout-plan-options"
-                className="checkout-plans"
-                disabled={checkout.busy}
-              >
-                <legend>Choose a plan</legend>
-                {(['STANDARD', 'AI_BROADCASTER'] as const).map((plan) => {
-                  const ai = plan === 'AI_BROADCASTER'
-                  return (
-                    <label className="checkout-plan" key={plan}>
-                      <input
-                        type="radio"
-                        name="plan"
-                        value={plan}
-                        checked={plan === selectedPlan}
-                        disabled={ai && !aiBroadcasterEnabled}
-                        onChange={() => choosePlan(plan)}
-                      />
-                      <span>
-                        <strong>{planName(plan)}</strong>
-                        <span>{monthlyPlanPrice[plan]} / month</span>
-                        <small>
-                          {ai
-                            ? checkingAvailability
-                              ? 'Checking availability…'
-                              : aiBroadcasterEnabled
-                                ? 'Includes AI voice commentary'
-                                : 'Currently unavailable'
-                            : 'Live matchday broadcast'}
-                        </small>
-                      </span>
-                    </label>
-                  )
-                })}
-              </fieldset>
-            )}
-            {notice && <p role="status">{notice}</p>}
-            {selectedAvailable && selectedPlan && (
-              <>
-                <p>
-                  Live matchday broadcast for up to {MAX_BROADCAST_VIEWERS} simultaneous viewers,
-                  plus league standings and teams
-                  {selectedPlan === 'AI_BROADCASTER' && ' and AI voice commentary'}. Each open
-                  broadcast tab or device counts as one viewer.
-                </p>
-                <dl className="checkout-totals">
-                  <div>
-                    <dt>Due today (estimated)</dt>
-                    <dd>{monthlyPlanPrice[selectedPlan]}</dd>
-                  </div>
-                  <div>
-                    <dt>Monthly renewal (estimated)</dt>
-                    <dd>{monthlyPlanPrice[selectedPlan]}</dd>
-                  </div>
-                </dl>
-                <p>Paddle shows the final total and any applicable tax before you pay.</p>
-                <p>
-                  Renews monthly during the Premier League season. Cancel any time to stop renewal
-                  after the current paid period. No off-season renewal is due.
-                </p>
-              </>
-            )}
-            {!preview.checkoutReady && (
-              <p role="status">
-                New league registrations are temporarily unavailable. Please try again later.
-              </p>
-            )}
-            {canPay && (
-              <div className="checkout-consent">
+            <div className="checkout-league-fields">
+              <label>
+                FPL league ID
                 <input
-                  ref={policyInput}
-                  id="checkout-policy-consent"
-                  type="checkbox"
-                  disabled={checkout.busy}
-                  checked={acceptedPolicies}
-                  aria-invalid={consentRequired}
-                  aria-describedby={consentRequired ? 'checkout-consent-error' : undefined}
+                  ref={leagueInput}
+                  inputMode="numeric"
+                  value={leagueInputValue}
+                  required
+                  aria-invalid={Boolean(leagueError)}
+                  aria-describedby={leagueError ? 'checkout-league-error' : undefined}
                   onChange={(event) => {
-                    setAcceptedPolicies(event.target.checked)
-                    setConsentRequired(false)
+                    resetPayment()
+                    setLeagueInputValue(event.target.value)
                   }}
                 />
-                <label htmlFor="checkout-policy-consent">
-                  I agree to the{' '}
-                  <a href="/terms" target="_blank" rel="noopener noreferrer">
-                    Terms of Service
-                  </a>{' '}
-                  and acknowledge the{' '}
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer">
-                    Privacy Policy
-                  </a>
-                  . Policy links open in a new tab.
-                </label>
-                {consentRequired && (
-                  <p id="checkout-consent-error" role="alert">
-                    Accept the terms and acknowledge the privacy policy to continue.
-                  </p>
-                )}
+              </label>
+              <div className="checkout-league-type">
+                <span id="checkout-league-type-label">League type</span>
+                <div
+                  className="checkout-type-options"
+                  role="group"
+                  aria-labelledby="checkout-league-type-label"
+                >
+                  {(['DRAFT', 'CLASSIC'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      aria-pressed={type === leagueType}
+                      onClick={() => {
+                        if (type === leagueType) return
+                        resetPayment()
+                        setLeagueType(type)
+                      }}
+                    >
+                      {type === 'CLASSIC' ? 'Classic' : 'Draft'}
+                    </button>
+                  ))}
+                </div>
               </div>
+            </div>
+            <div className="checkout-league-result">
+              <div role="status">
+                {verified ? (
+                  <div className="checkout-league-status" data-state="verified">
+                    <CircleCheck size={18} role="img" aria-label="League verified" />
+                    <div className="checkout-league-identity">
+                      <strong>{preview.displayName}</strong>
+                      <span>
+                        {leagueType === 'CLASSIC' ? 'Classic' : 'Draft'} · {preview.managerCount}{' '}
+                        {preview.managerCount === 1 ? 'manager' : 'managers'}
+                      </span>
+                    </div>
+                  </div>
+                ) : checkingLeague ? (
+                  <div className="checkout-league-status" data-state="checking">
+                    <LoaderCircle size={18} aria-hidden="true" />
+                    <p>Verifying league…</p>
+                  </div>
+                ) : null}
+              </div>
+              {leagueError && (
+                <div className="checkout-league-status" data-state="error">
+                  <CircleAlert size={18} aria-hidden="true" />
+                  <p id="checkout-league-error" role="alert">
+                    {leagueError}
+                  </p>
+                  {lookupCurrent && previewQuery.error && (
+                    <button
+                      className="checkout-action"
+                      type="button"
+                      onClick={() => {
+                        leagueInput.current?.focus({ preventScroll: true })
+                        previewQuery.refresh()
+                      }}
+                    >
+                      Try league lookup again
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </fieldset>
+        </section>
+        <fieldset
+          className="checkout-fields checkout-plans"
+          disabled={checkout.busy}
+          aria-describedby={validation === 'plan' ? 'checkout-plan-error' : undefined}
+        >
+          <legend>Choose a plan</legend>
+          <div className="checkout-plan-options">
+            {(['STANDARD', 'AI_BROADCASTER'] as const).map((plan) => {
+              const ai = plan === 'AI_BROADCASTER'
+              const unavailable = ai && !aiBroadcasterEnabled
+              const nameId = `checkout-plan-${plan}-name`
+              const detailsId = `checkout-plan-${plan}-details`
+              const availabilityId = `checkout-plan-${plan}-availability`
+              return (
+                <label key={plan} className="checkout-plan" data-plan={plan}>
+                  <span className="checkout-plan-header">
+                    <strong className="checkout-plan-name" id={nameId}>
+                      {planName(plan)}
+                    </strong>
+                    <input
+                      ref={ai ? undefined : firstPlanInput}
+                      type="radio"
+                      name="plan"
+                      value={plan}
+                      checked={!unavailable && plan === selectedPlan}
+                      disabled={unavailable}
+                      aria-labelledby={nameId}
+                      aria-describedby={unavailable ? `${detailsId} ${availabilityId}` : detailsId}
+                      onClick={(event) => {
+                        if (event.detail > 0 && verified && !acceptedPolicies)
+                          revealOnMobile(consentLabel.current)
+                      }}
+                      onChange={() => {
+                        resetPayment()
+                        setSelectedPlan(plan)
+                      }}
+                    />
+                  </span>
+                  <span id={detailsId} className="checkout-plan-details">
+                    <span className="checkout-plan-price">
+                      <strong>{monthlyPlanPrice[plan]}</strong> <small>per league / month</small>
+                    </span>
+                    <span className="checkout-plan-benefit">
+                      {ai ? (
+                        <>
+                          Everything in Standard, plus <strong>AI voice commentary.</strong>
+                        </>
+                      ) : (
+                        'Live matchday broadcast, league standings and teams.'
+                      )}
+                    </span>
+                  </span>
+                  {unavailable && (
+                    <span className="checkout-plan-availability" id={availabilityId}>
+                      {checkingAvailability
+                        ? 'Checking availability…'
+                        : (notice ?? 'Currently unavailable')}
+                    </span>
+                  )}
+                </label>
+              )
+            })}
+          </div>
+          <p>
+            Both plans include up to {MAX_BROADCAST_VIEWERS} simultaneous viewers. Each open tab or
+            device counts as one viewer.
+          </p>
+          {validation === 'plan' && (
+            <p id="checkout-plan-error" role="alert">
+              Choose an available plan.
+            </p>
+          )}
+        </fieldset>
+        <div className="checkout-consent">
+          <label ref={consentLabel}>
+            <span className="checkout-checkbox">
+              <input
+                ref={policyInput}
+                type="checkbox"
+                required
+                disabled={checkout.busy}
+                checked={acceptedPolicies}
+                aria-invalid={validation === 'consent'}
+                aria-describedby={validation === 'consent' ? 'checkout-consent-error' : undefined}
+                onClick={(event) => {
+                  if (event.detail > 0 && event.currentTarget.checked)
+                    revealOnMobile(paymentButton.current)
+                }}
+                onChange={(event) => {
+                  setAcceptedPolicies(event.target.checked)
+                  setValidation(null)
+                }}
+              />
+              <Check size={14} strokeWidth={3} aria-hidden="true" />
+            </span>
+            <span className="checkout-consent-copy">
+              I agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer">
+                Terms and Conditions
+              </a>{' '}
+              and acknowledge the{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
+              .
+            </span>
+          </label>
+          {validation === 'consent' && (
+            <p id="checkout-consent-error" role="alert">
+              Agree to the terms and acknowledge the privacy policy to continue.
+            </p>
+          )}
+        </div>
+        <section className="checkout-summary" aria-labelledby="checkout-summary-heading">
+          <div className="checkout-summary-copy">
+            <h2 id="checkout-summary-heading">Selected plan</h2>
+            <div className="checkout-summary-plan" aria-live="polite">
+              {selectedAvailable && selectedPlan ? (
+                <strong>
+                  {planName(selectedPlan)} · {monthlyPlanPrice[selectedPlan]} / month
+                </strong>
+              ) : (
+                <span>Choose a plan</span>
+              )}
+            </div>
+            {selectedAvailable && (
+              <p>
+                Renews monthly per league during the Premier League season. Cancel to stop the next
+                renewal. Checkout shows today’s total, the renewal amount and any tax before you
+                pay.
+              </p>
+            )}
+          </div>
+          <div className="checkout-summary-action">
+            {paymentUnavailable && (
+              <p role="status">Payment is temporarily unavailable. Please try again later.</p>
+            )}
+            {checkout.error && <p role="alert">{checkout.error}</p>}
+            {!checkout.busy && paymentStatus === 'closed' && (
+              <p role="status">Checkout closed. Your selections have been kept.</p>
             )}
             <button
               ref={paymentButton}
               className="checkout-pay"
               type="submit"
-              disabled={!canPay || checkout.busy}
+              disabled={checkout.busy || checkingLeague || paymentUnavailable}
             >
-              Continue to payment
+              {checkout.busy
+                ? paymentStatus === 'opened'
+                  ? 'Payment window open'
+                  : 'Opening payment…'
+                : 'Continue to payment'}
+              <ChevronRight size={17} aria-hidden="true" />
             </button>
-            {checkout.error && (
-              <p className="checkout-league-error" role="alert">
-                {checkout.error}
-              </p>
-            )}
-            {checkout.busy && (
-              <p role="status">
-                {paymentStatus === 'opened'
-                  ? 'Complete or close the secure Paddle window.'
-                  : 'Opening secure checkout…'}
-              </p>
-            )}
-            {!checkout.busy && paymentStatus === 'closed' && (
-              <p role="status">Checkout closed. Your selections have been kept.</p>
-            )}
-          </form>
-        )}
-      </div>
+          </div>
+        </section>
+      </form>
     </section>
   )
 }

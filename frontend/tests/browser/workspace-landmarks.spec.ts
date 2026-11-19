@@ -30,16 +30,9 @@ test('workspace landmarks distinguish collection discovery registration checkout
     'aria-current',
     'page',
   )
-  await page.getByLabel('League ID', { exact: true }).fill('42')
+  await page.getByRole('textbox', { name: 'FPL league ID' }).fill('42')
   await page.screenshot({ path: test.info().outputPath('03-register.png'), fullPage: true })
-  await page.getByRole('button', { name: 'Verify league', exact: true }).click()
-  await page.getByRole('button', { name: 'Continue to review' }).click()
-  await expect(workspace.getByRole('link', { name: 'Register', exact: true })).toHaveAttribute(
-    'aria-current',
-    'step',
-  )
-  await expect(page.getByRole('list', { name: 'League registration progress' })).toHaveCount(0)
-  await expect(page.getByText('Selected plan', { exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('League verified')).toBeVisible()
   await expect(page.getByRole('radio', { name: /Standard/ })).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('04-checkout.png'), fullPage: true })
   await page.getByLabel('Account menu').click()

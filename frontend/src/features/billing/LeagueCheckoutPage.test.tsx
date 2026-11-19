@@ -85,13 +85,13 @@ it.each([false, true])(
         onNavigate={vi.fn()}
       />,
     )
-    await screen.findByText('Unavailable league')
-    expect(screen.queryByRole('checkbox')).toBeNull()
+    await screen.findByText(registrationEligible ? 'Unavailable league' : 'Check league details.')
+    expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
     const payment = screen.queryByRole('button', {
       name: 'Continue to payment',
     }) as HTMLButtonElement | null
     if (registrationEligible) expect(payment?.disabled).toBe(true)
-    else expect(payment).toBeNull()
+    else expect(payment?.disabled).toBe(false)
     expect(createPaddleCheckout).not.toHaveBeenCalled()
     expect(openPaddleCheckout).not.toHaveBeenCalled()
   },
@@ -116,7 +116,6 @@ it('offers Standard only when AI is disabled', async () => {
     />,
   )
   await screen.findByText('Standard league')
-  fireEvent.click(screen.getByRole('button', { name: 'Change plan' }))
   expect((screen.getByRole('radio', { name: /AI Broadcaster/ }) as HTMLInputElement).disabled).toBe(
     true,
   )

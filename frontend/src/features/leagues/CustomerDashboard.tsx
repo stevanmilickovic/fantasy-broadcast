@@ -4,8 +4,6 @@ import type { Navigate } from '../../app/useBrowserNavigation'
 import { useQuery } from '../../shared/api/useQuery'
 import { LegalFooter } from '../../shared/ui/LegalFooter'
 import type { AuthUser } from '../auth/types'
-import { readBillingPlan } from '../billing/billingPlans'
-import { LeagueCheckoutPage } from '../billing/LeagueCheckoutPage'
 import { LeaguePaymentConfirmation } from '../billing/LeaguePaymentConfirmation'
 import { LeagueManagementPage } from './LeagueManagementPage'
 import { loadRegisteredLeagues } from './api'
@@ -36,7 +34,6 @@ export function CustomerDashboard({
   const confirmed = useRef(new Set<number>())
   const leagues = query.data
   const parameters = new URLSearchParams(search)
-  const leagueId = parameters.get('fplLeagueId')?.trim() ?? ''
   const leagueType = parameters.get('leagueType') === 'CLASSIC' ? 'CLASSIC' : 'DRAFT'
   const paymentLeagueId = positiveId(parameters.get('fplLeagueId'))
   const confirmingPayment =
@@ -99,7 +96,8 @@ export function CustomerDashboard({
       {query.status === 'loading' && (pathname === '/leagues' || pathname === '/league') && (
         <p>Loading leagues…</p>
       )}
-      {pathname === '/leagues/new' && (
+      {(pathname === '/leagues/new' ||
+        (pathname === '/leagues/checkout' && !confirmingPayment)) && (
         <LeagueRegistrationPage search={search} navigate={onNavigate} />
       )}
       {pathname === '/leagues/find' && (
@@ -111,25 +109,16 @@ export function CustomerDashboard({
           onFollowed={query.refresh}
         />
       )}
-      {pathname === '/leagues/checkout' &&
-        (confirmingPayment ? (
-          <LeaguePaymentConfirmation
-            key={search}
-            fplLeagueId={paymentLeagueId}
-            leagueType={leagueType}
-            userId={user.id}
-            onConfirmed={paymentConfirmed}
-            onNavigate={onNavigate}
-          />
-        ) : (
-          <LeagueCheckoutPage
-            key={`${leagueId}:${leagueType}`}
-            leagueId={leagueId}
-            leagueType={leagueType}
-            selectedPlan={readBillingPlan(parameters.get('plan'))}
-            onNavigate={onNavigate}
-          />
-        ))}
+      {pathname === '/leagues/checkout' && confirmingPayment && (
+        <LeaguePaymentConfirmation
+          key={search}
+          fplLeagueId={paymentLeagueId}
+          leagueType={leagueType}
+          userId={user.id}
+          onConfirmed={paymentConfirmed}
+          onNavigate={onNavigate}
+        />
+      )}
       {pathname === '/leagues' && leagues && (
         <LeaguePicker leagues={leagues} user={user} onNavigate={onNavigate} />
       )}

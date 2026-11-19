@@ -1,8 +1,7 @@
 .league-checkout-page {
-  width: min(700px, calc(100% - 32px));
-  min-height: calc(100svh - 72px);
+  width: min(940px, calc(100% - 32px));
   margin: 0 auto;
-  padding: clamp(24px, 4vw, 46px) 0 48px;
+  padding: clamp(20px, 3vw, 34px) 0 44px;
   color: #fff;
 }
 
@@ -26,97 +25,34 @@
   }
 }
 
-.checkout-heading {
-  margin: 0 0 24px;
-}
-
-.checkout-heading h1 {
-  margin: 8px 0 0;
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.045em;
-}
-
-.checkout-layout,
 .checkout-review {
+  --checkout-error: #ffb5c2;
+  --checkout-control-border: #9a829f;
+  --checkout-duration: 140ms;
   display: grid;
-  gap: 16px;
-}
-
-.checkout-league-card,
-.checkout-plan-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-}
-
-.checkout-league-card {
-  padding: 0 0 16px;
-  border-bottom: 1px solid #ffffff33;
-}
-
-.checkout-league-summary {
-  display: grid;
-  flex: 1 1 200px;
-  gap: 6px;
+  gap: 20px;
   min-width: 0;
-  overflow-wrap: anywhere;
 }
 
-.checkout-eyebrow {
-  color: var(--pl-cyan);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.checkout-league-name {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.35rem;
-}
-
-.league-verified {
-  flex: 0 0 23px;
-  color: var(--pl-green);
-}
-
-.checkout-league-summary > span:not(.checkout-eyebrow),
-.checkout-review p,
-.checkout-consent {
-  color: #c8c3dd;
-  font-size: 0.88rem;
-  line-height: 1.5;
-}
-
-.checkout-review {
+.checkout-league-panel,
+.checkout-summary {
+  padding: clamp(16px, 2.4vw, 22px);
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--workflow-accent, #cbb8ef);
+  border-radius: 6px;
+  background: #2b1735;
   min-width: 0;
-  padding: clamp(16px, 4vw, 28px);
-  border: 1px solid #ffffff24;
-  background: #31003a;
-  box-shadow: 0 18px 45px #0a00143d;
 }
 
-.checkout-action {
-  justify-self: start;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  color: var(--pl-cyan);
-  background: transparent;
-  font: inherit;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.checkout-league-panel h1 {
+  margin: 0 0 16px;
+  font-size: clamp(1.625rem, 4vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
-.checkout-plans {
+.checkout-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr));
   gap: 10px;
   min-inline-size: 0;
   margin: 0;
@@ -124,110 +60,448 @@
   border: 0;
 }
 
-.checkout-plans legend {
-  margin-bottom: 8px;
+.checkout-fields legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 1.125rem;
   font-weight: 750;
 }
 
+.checkout-league-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 13rem);
+  gap: 12px;
+  align-items: end;
+}
+
+.checkout-league-fields input[aria-invalid='true'] {
+  border-color: var(--checkout-error);
+}
+
+.checkout-league-type {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.checkout-type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 5px;
+  background: #18001d;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.checkout-type-options button {
+  position: relative;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  transition:
+    background-color var(--checkout-duration) ease,
+    border-color var(--checkout-duration) ease,
+    color var(--checkout-duration) ease;
+}
+
+.checkout-type-options button[aria-pressed='true'] {
+  border-color: #cbb8ef66;
+  background: #cbb8ef21;
+  color: #fff;
+}
+
+.checkout-type-options button:focus-visible {
+  z-index: 1;
+}
+
+.checkout-league-result {
+  min-block-size: 24px;
+}
+
+.checkout-league-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.checkout-league-status > svg {
+  flex: 0 0 18px;
+  align-self: flex-start;
+  margin-top: 1px;
+  color: var(--muted);
+}
+
+.checkout-league-status > :is(p, div) {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.checkout-league-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+
+.checkout-league-identity strong {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.checkout-league-identity span {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.checkout-league-status[data-state='verified'] {
+  animation: checkout-verified 160ms ease-out both;
+}
+
+.checkout-league-status[data-state='verified'] svg {
+  color: var(--pl-green);
+}
+
+.checkout-league-status[data-state='checking'] svg {
+  animation: checkout-spin 750ms linear infinite;
+}
+
+.checkout-league-status[data-state='error'] svg {
+  color: var(--checkout-error);
+}
+
+@keyframes checkout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes checkout-verified {
+  from {
+    opacity: 0.5;
+  }
+}
+
+.checkout-review p {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.checkout-review p[role='alert'] {
+  color: var(--checkout-error);
+  overflow-wrap: anywhere;
+}
+
+.checkout-action {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  color: var(--pl-cyan);
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.checkout-plan-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .checkout-review .checkout-plan {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: clamp(16px, 2.4vw, 20px);
+  border: 1px solid #ffffff30;
+  border-radius: 6px;
+  background-color: var(--surface-strong);
+  color: var(--text);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition:
+    background-color var(--checkout-duration) ease,
+    border-color var(--checkout-duration) ease;
+}
+
+.checkout-plan[data-plan='AI_BROADCASTER'] {
+  background-image: linear-gradient(140deg, #a748c625, transparent 70%);
+}
+
+.checkout-review .checkout-plan:has(input:checked) {
+  border-color: var(--pl-cyan);
+  background-color: #35164a;
+}
+
+.checkout-plan:has(input:focus-visible) {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.checkout-review .checkout-plan:has(input:disabled) {
+  border-style: dashed;
+  cursor: default;
+}
+
+.checkout-plan-header {
   display: flex;
   align-items: start;
+  justify-content: space-between;
   gap: 10px;
-  padding: 12px;
-  border: 1px solid #ffffff24;
-  background: #25002f;
-  cursor: pointer;
 }
 
-.checkout-plan:has(input:checked) {
-  border-color: var(--pl-cyan);
+.checkout-plan-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
 }
 
-.checkout-plan:has(input:disabled),
-.checkout-pay:disabled,
-.checkout-action:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+.checkout-plan-details {
+  display: grid;
+  gap: 8px;
 }
 
-.checkout-plan input,
-.checkout-consent input {
+.checkout-plan-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.checkout-plan-price strong {
+  font-size: clamp(1.875rem, 4vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout-plan-price small,
+.checkout-plan-availability {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.checkout-plan-benefit {
+  color: #eee4f1;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.checkout-plan-benefit strong {
+  color: #fff;
+}
+
+.checkout-review :is(.checkout-plan input, .checkout-checkbox input) {
+  appearance: none;
   flex: none;
   width: 18px;
   height: 18px;
   min-height: 18px;
-  margin: 2px 0 0;
+  margin: 0;
   padding: 0;
-  accent-color: var(--pl-cyan);
+  border: 1px solid var(--checkout-control-border);
+  background: #18001d;
+  cursor: inherit;
+  transition:
+    background-color var(--checkout-duration) ease,
+    border-color var(--checkout-duration) ease,
+    box-shadow var(--checkout-duration) ease;
 }
 
-.checkout-plan > span {
-  display: grid;
-  gap: 3px;
+.checkout-review .checkout-plan input {
+  border-radius: 50%;
+  margin-top: 2px;
 }
 
-.checkout-plan small {
-  color: #c8c3dd;
+.checkout-plan input:checked {
+  border-color: var(--pl-cyan);
+  background-color: var(--pl-cyan);
+  box-shadow: inset 0 0 0 4px #18001d;
 }
 
-.checkout-totals {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 12px 0;
-  border-block: 1px solid #ffffff24;
-}
-
-.checkout-totals > div {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-}
-
-.checkout-totals dd {
-  margin: 0;
-  font-weight: 750;
+.checkout-review .checkout-plan input:focus-visible {
+  outline: none;
 }
 
 .checkout-consent {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 6px 10px;
-  align-items: start;
+  margin-bottom: -10px;
 }
 
 .checkout-consent label {
-  display: block;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  align-content: center;
+  min-height: 44px;
+  padding-block: 7px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
   cursor: pointer;
+}
+
+.checkout-checkbox {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  margin-top: 1.5px;
+}
+
+.checkout-checkbox > * {
+  grid-area: 1 / 1;
+}
+
+.checkout-checkbox svg {
+  color: var(--pl-purple);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--checkout-duration) ease;
+}
+
+.checkout-checkbox input:checked {
+  border-color: var(--pl-cyan);
+  background-color: var(--pl-cyan);
+}
+
+.checkout-checkbox input:checked + svg {
+  opacity: 1;
+}
+
+.checkout-checkbox input[aria-invalid='true'] {
+  border-color: var(--checkout-error);
 }
 
 .checkout-consent a {
   color: var(--pl-cyan);
-  font-weight: 750;
+  font-weight: 700;
   text-underline-offset: 2px;
 }
 
 .checkout-consent [role='alert'] {
-  grid-column: 2;
+  margin-inline-start: 28px;
 }
 
-.checkout-league-error,
-.checkout-review p[role='alert'],
-.register-league-card .checkout-league-error {
-  color: #ffb5c2;
+.checkout-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 15rem);
+  gap: 14px 24px;
+  align-items: center;
+}
+
+.checkout-summary-copy,
+.checkout-summary-action {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.checkout-summary h2 {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.checkout-summary-plan {
+  font-size: 1.125rem;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .checkout-pay {
-  min-height: 46px;
-  padding: 10px 16px;
-  border: 0;
+  display: flex;
+  justify-self: end;
+  max-inline-size: 100%;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 4px;
   color: var(--pl-purple);
   background: var(--pl-cyan);
   font: inherit;
-  font-weight: 900;
-  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  transition: background-color var(--checkout-duration) ease;
+}
+
+.checkout-pay svg {
+  flex: none;
+}
+
+@media (hover: hover) {
+  .checkout-type-options button:not(:disabled, [aria-pressed='true']):hover {
+    background: #ffffff0d;
+    color: #fff;
+  }
+
+  .checkout-review .checkout-plan:not(:has(input:checked, input:disabled)):hover {
+    background-color: #40094a;
+    border-color: #cbb8ef8c;
+  }
+
+  .checkout-pay:not(:disabled):hover {
+    background-color: #84f8ff;
+  }
+}
+
+@media (max-width: 660px) {
+  .checkout-plan-options,
+  .checkout-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .checkout-pay {
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 350px) {
+  .checkout-league-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-review {
+    --checkout-duration: 0ms;
+  }
+
+  .checkout-league-status[data-state='verified'],
+  .checkout-league-status[data-state='checking'] svg {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .checkout-review :is(.checkout-plan input, .checkout-checkbox input) {
+    appearance: auto;
+    box-shadow: none;
+  }
+
+  .checkout-checkbox svg {
+    display: none;
+  }
+
+  .checkout-plan:has(input:focus-visible) {
+    outline-color: Highlight;
+  }
+
+  .checkout-pay {
+    border-color: ButtonText;
+  }
 }
 
 .league-subscription-settings > h2 {
