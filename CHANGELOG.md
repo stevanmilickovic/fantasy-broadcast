@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1 - 2026-11-20
+
+- Bring league verification, the two subscription plans, required policy consent, and payment review into one responsive registration flow.
+- Show league lookup and payment feedback inline, preserve selections when checkout closes, and bring the next action into view on short screens.
+- Honor the configured league registration setting and remove the temporary local checkout bypass.
+
 ## 1.5.0 - 2026-11-09
 
 - Remove the obsolete quick league selector in favor of the league workspace tabs.

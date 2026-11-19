@@ -1,9 +1,10 @@
 # Next-version testing handoff
 
-The requested changes are implemented. Following user acceptance, the coordinated
-version is **1.5.0**, including league image creation, matchup improvements and broadcast score persistence. No release tag or production deployment was made. The implementation
-and acceptance checks below ran before the version-only update. The local rebuilt application is available at
-<http://localhost:5173>.
+Version **1.5.1** updates the league registration and checkout flow. Frontend checks
+passed with 108 unit tests. After the registration override was removed, 39 targeted
+browser checks passed on phone and laptop, and the local stack was rebuilt using the
+environment setting. In the wider run from the redesigned build, representative TV
+broadcast and PNG export failures also reproduced on the pre-redesign build.
 
 The 1.5.0 changes were verified before the version-only update: frontend formatting,
 lint, 108 unit tests and the production build passed. Broadcast checks passed 123
