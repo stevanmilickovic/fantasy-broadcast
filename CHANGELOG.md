@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.2 - 2026-11-20
+
+- Add an account subscriptions overview with each owned league’s plan and billing status. Open it from the account menu or Account settings and manage billing with the existing league controls.
+- Add a Draft FPL discovery endpoint for waiver recommendations based on available players and projected points gains.
+
 ## 1.5.1 - 2026-11-20
 
 - Bring league verification, the two subscription plans, required policy consent, and payment review into one responsive registration flow.

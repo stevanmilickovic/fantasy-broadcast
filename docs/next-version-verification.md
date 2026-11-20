@@ -1,6 +1,11 @@
 # Next-version testing handoff
 
-Version **1.5.1** updates the league registration and checkout flow. Frontend checks
+Version **1.5.2** adds the account subscriptions overview and Draft FPL waiver
+recommendations. Verification of the subscriptions change passed 174 backend tests,
+108 frontend tests, and 61 browser checks across six viewports. The running test stack
+returned the overview for a signed-in user and rejected anonymous requests.
+
+Version 1.5.1 updates the league registration and checkout flow. Frontend checks
 passed with 108 unit tests. After the registration override was removed, 39 targeted
 browser checks passed on phone and laptop, and the local stack was rebuilt using the
 environment setting. In the wider run from the redesigned build, representative TV

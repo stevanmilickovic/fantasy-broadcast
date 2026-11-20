@@ -4,7 +4,7 @@ Status: steps 1–19 are implemented and the integrated testing handoff is compl
 No implementation steps remain. Physical-device and provider release checks are recorded
 in [the verification handoff](next-version-verification.md) for acceptance testing.
 After testing, the user authorized a separate coordinated version-update commit to 1.4.0.
-Version 1.5.1 updates the league registration and checkout flow. See the [registration design brief](league-registration-design-brief.md).
+Version 1.5.2 adds an account subscriptions overview and Draft FPL waiver recommendations through the discovery API.
 
 Each numbered step below represents one implementation commit, including its relevant
 tests and documentation. Commit messages are suggested titles. Apply Ponytail in full
