@@ -6,6 +6,7 @@ import com.fantasybroadcast.backend.fpl.FplDraftElementStatus;
 import com.fantasybroadcast.backend.fpl.FplDraftEventLive;
 import com.fantasybroadcast.backend.fpl.FplDraftLeague;
 import com.fantasybroadcast.backend.fpl.FplDraftMapper;
+import com.fantasybroadcast.backend.fpl.FplDraftWaivers;
 import com.fantasybroadcast.backend.fpl.FplEntryEvent;
 import com.fantasybroadcast.backend.fpl.FplLivePlayer;
 import com.fantasybroadcast.backend.fpl.FplPlayer;
@@ -29,10 +30,12 @@ public class FplDiscoveryController {
 
 	private final FplDraftClient client;
 	private final FplDraftMapper mapper;
+	private final FplDraftWaivers waivers;
 
-	public FplDiscoveryController(FplDraftClient client, FplDraftMapper mapper) {
+	public FplDiscoveryController(FplDraftClient client, FplDraftMapper mapper, FplDraftWaivers waivers) {
 		this.client = client;
 		this.mapper = mapper;
+		this.waivers = waivers;
 	}
 
 	@GetMapping("/league/{leagueId}")
@@ -61,6 +64,11 @@ public class FplDiscoveryController {
 	@GetMapping("/league/{leagueId}/transactions/raw")
 	public JsonNode rawLeagueTransactions(@PathVariable long leagueId) {
 		return client.getLeagueTransactions(leagueId);
+	}
+
+	@GetMapping("/league/{leagueId}/waivers")
+	public FplDraftWaivers.Snapshot waivers(@PathVariable long leagueId, @RequestParam long entryId) {
+		return waivers.load(leagueId, entryId);
 	}
 
 	@GetMapping("/draft/{draftId}/choices/raw")
