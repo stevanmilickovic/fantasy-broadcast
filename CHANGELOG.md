@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.3 - 2026-11-20
+
+- Add a signed-out league preview with four demo clubs, three completed gameweeks, player scoring breakdowns, and a looping Gameweek 4 replay.
+- Let visitors create and download Square and Story images for sample standings, clubs, and matchups.
+- Improve homepage description and Preview League button contrast over the broadcast demo.
+
 ## 1.5.2 - 2026-11-20
 
 - Add an account subscriptions overview with each owned league’s plan and billing status. Open it from the account menu or Account settings and manage billing with the existing league controls.

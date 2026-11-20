@@ -1,6 +1,11 @@
 # Next-version testing handoff
 
-Version **1.5.2** adds the account subscriptions overview and Draft FPL waiver
+Version **1.5.3** adds the public league preview and improves homepage text contrast
+over the broadcast demo. Verification covered 110 frontend unit tests, the signed-out
+preview across six Chromium viewports, a sample PNG download, and the homepage
+description and button across two replay frames.
+
+Version 1.5.2 adds the account subscriptions overview and Draft FPL waiver
 recommendations. Verification of the subscriptions change passed 174 backend tests,
 108 frontend tests, and 61 browser checks across six viewports. The running test stack
 returned the overview for a signed-in user and rejected anonymous requests.
