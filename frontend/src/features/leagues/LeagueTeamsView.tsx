@@ -1,7 +1,8 @@
 import { LeagueSelect } from './LeagueSelect'
 import { TeamEmblem } from './TeamEmblem'
 import { useState } from 'react'
-import type { LeagueDiscoveryState } from '../../shared/fpl/types'
+import type { FplClubShirt, LeagueDiscoveryState } from '../../shared/fpl/types'
+import type { PlayerDetails } from '../players/types'
 import { useShirtCodes } from '../../shared/fpl/useShirtCodes'
 import { managerName, standingEntryId } from './leagueData'
 import { LeagueTeamVisual } from './LeagueTeamVisual'
@@ -11,14 +12,18 @@ export function LeagueTeamsView({
   leagueId,
   selectedId,
   onSelect,
+  shirtCodes,
+  samplePlayerDetails,
 }: {
   discovery: LeagueDiscoveryState
-  leagueId: number
+  leagueId?: number
   selectedId: number
   onSelect: (id: number) => void
+  shirtCodes?: FplClubShirt[]
+  samplePlayerDetails?: Record<number, PlayerDetails>
 }) {
   const [search, setSearch] = useState('')
-  const shirts = useShirtCodes()
+  const shirts = useShirtCodes(shirtCodes)
   const entries = discovery.details.league_entries
   const firstStanding = [...discovery.details.standings].sort((a, b) => a.rank - b.rank)[0]
   const selected =
@@ -86,6 +91,7 @@ export function LeagueTeamsView({
         manager={managerName(selected.player_first_name, selected.player_last_name)}
         shirtCodes={shirts}
         leagueId={leagueId}
+        samplePlayerDetails={samplePlayerDetails}
       />
     </section>
   )

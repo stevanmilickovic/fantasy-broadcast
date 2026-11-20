@@ -27,6 +27,9 @@ export function WelcomePage({ onNavigate }: Props) {
             <button type="button" onClick={() => onNavigate('/register')}>
               Create your account <ChevronRight size={19} />
             </button>
+            <a className="welcome-preview-link" href="/preview-league">
+              Preview league <ChevronRight size={17} aria-hidden="true" />
+            </a>
           </div>
           <small>
             <span>Draft</span>

@@ -31,7 +31,7 @@ export type LiveLeagueProjection = {
   standingsUnavailableReason: string | null
 }
 
-export function useLiveLeague(leagueId: number, enabled: boolean) {
+export function useLiveLeague(leagueId: number | undefined, enabled: boolean) {
   const [snapshot, setSnapshot] = useState<{
     leagueId: number
     data?: LiveLeagueProjection
@@ -40,7 +40,7 @@ export function useLiveLeague(leagueId: number, enabled: boolean) {
   }>()
   const retry = useRef<() => void>(() => {})
   useEffect(() => {
-    if (!enabled) return
+    if (leagueId === undefined || !enabled) return
     let active: AbortController | null = null
     let timer: ReturnType<typeof setTimeout> | undefined
     let stopped = false

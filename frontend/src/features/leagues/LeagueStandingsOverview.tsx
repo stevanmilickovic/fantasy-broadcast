@@ -1,5 +1,6 @@
 import type { Navigate } from '../../app/useBrowserNavigation'
-import type { FplLeagueScoring, LeagueDiscoveryState } from '../../shared/fpl/types'
+import type { FplClubShirt, FplLeagueScoring, LeagueDiscoveryState } from '../../shared/fpl/types'
+import type { PlayerDetails } from '../players/types'
 import { LeagueStandingsTable } from './LeagueStandingsTable'
 import { LeagueTeamsView } from './LeagueTeamsView'
 import { LeagueMatchupsView } from './LeagueMatchupsView'
@@ -20,26 +21,33 @@ export function LeagueStandingsOverview({
   search,
   navigate,
   onRefresh,
+  sample,
 }: {
   discovery?: LeagueDiscoveryState
   scoringType: FplLeagueScoring
-  leagueId: number
   leagueName: string
   search: string
   navigate: Navigate
   onRefresh?: () => void
-}) {
+} & (
+  | { leagueId: number; sample?: never }
+  | {
+      leagueId?: never
+      sample: { shirtCodes: FplClubShirt[]; playerDetails: Record<number, PlayerDetails> }
+    }
+)) {
   const [image, setImage] = useState<LeagueImage>()
   const emblems = useTeamEmblems()
   const params = new URLSearchParams(search)
-  const tabs =
-    scoringType === 'H2H'
+  const tabs = sample
+    ? ['standings', 'teams', 'matchups']
+    : scoringType === 'H2H'
       ? ['standings', 'teams', 'matchups', 'insights', 'chat']
       : ['standings', 'teams', 'insights', 'chat']
   const requested = params.get('view') ?? 'standings'
   const mode = tabs.includes(requested) ? requested : 'standings'
-  const liveStandings = params.get('standings') === 'live'
-  const liveMatchups = params.get('matchups') === 'live'
+  const liveStandings = !sample && params.get('standings') === 'live'
+  const liveMatchups = !sample && params.get('matchups') === 'live'
   const liveResults = mode === 'matchups' ? liveMatchups : liveStandings
   const live = useLiveLeague(leagueId, mode === 'standings' || mode === 'matchups')
   const refreshedSnapshot = useRef<string | null>(null)
@@ -70,6 +78,7 @@ export function LeagueStandingsOverview({
         emblems: emblems.teams,
         live: live.data,
         liveSelected: liveResults,
+        resultsSource: sample ? 'Sample results' : 'FPL',
         stale,
       }),
     )
@@ -84,7 +93,7 @@ export function LeagueStandingsOverview({
     }
   }, [live.data, discovery?.gameweek, onRefresh])
   const link = (view: string, entryId?: number, week?: number) =>
-    `/league?${new URLSearchParams({ leagueId: String(leagueId), view, ...(liveStandings ? { standings: 'live' } : {}), ...(liveMatchups ? { matchups: 'live' } : {}), ...(entryId ? { entryId: String(entryId) } : {}), ...(week ? { week: String(week) } : {}) })}`
+    `${sample ? '/preview-league' : '/league'}?${new URLSearchParams({ ...(sample ? {} : { leagueId: String(leagueId) }), view, ...(liveStandings ? { standings: 'live' } : {}), ...(liveMatchups ? { matchups: 'live' } : {}), ...(entryId ? { entryId: String(entryId) } : {}), ...(week ? { week: String(week) } : {}) })}`
   return (
     <section className="selected-league-standings">
       <div className="league-view-toggle" role="tablist" aria-label="League display">
@@ -119,7 +128,7 @@ export function LeagueStandingsOverview({
           </button>
         ))}
       </div>
-      {(mode === 'standings' || mode === 'matchups') && (
+      {!sample && (mode === 'standings' || mode === 'matchups') && (
         <aside className="league-live-status">
           <div
             role="group"
@@ -195,8 +204,10 @@ export function LeagueStandingsOverview({
         id={`league-panel-${mode}`}
         aria-labelledby={`league-tab-${mode}`}
       >
-        {mode === 'chat' && <LeagueChat key={leagueId} leagueId={leagueId} />}
-        {mode === 'insights' && discovery && (
+        {mode === 'chat' && leagueId !== undefined && (
+          <LeagueChat key={leagueId} leagueId={leagueId} />
+        )}
+        {mode === 'insights' && discovery && leagueId !== undefined && (
           <LeagueInsightsView
             discovery={discovery}
             scoringType={scoringType}
@@ -219,6 +230,8 @@ export function LeagueStandingsOverview({
           <LeagueTeamsView
             discovery={discovery}
             leagueId={leagueId}
+            shirtCodes={sample?.shirtCodes}
+            samplePlayerDetails={sample?.playerDetails}
             selectedId={Number(params.get('entryId'))}
             onSelect={(id) => navigate(link('teams', id))}
           />

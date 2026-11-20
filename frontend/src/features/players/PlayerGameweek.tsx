@@ -1,7 +1,13 @@
 ﻿import type { PlayerDetails } from './types'
 import { PlayerFixtureResult } from './PlayerFixtures'
 
-export function PlayerGameweek({ details }: { details: PlayerDetails }) {
+export function PlayerGameweek({
+  details,
+  showFixtures = true,
+}: {
+  details: PlayerDetails
+  showFixtures?: boolean
+}) {
   const fixtures = details.fixtureSchedule?.current ?? []
   const unassigned = details.changes.filter(
     (change) => !fixtures.some((fixture) => fixture.id === change.fixture),
@@ -24,7 +30,7 @@ export function PlayerGameweek({ details }: { details: PlayerDetails }) {
           />
         </section>
       ))}
-      {(!details.fixtureSchedule || details.fixtureSchedule.unavailableReason) && (
+      {showFixtures && (!details.fixtureSchedule || details.fixtureSchedule.unavailableReason) && (
         <p>{details.fixtureSchedule?.unavailableReason ?? 'Fixture details are unavailable.'}</p>
       )}
       {details.fixtureSchedule &&

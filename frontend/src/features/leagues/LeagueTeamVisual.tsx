@@ -2,6 +2,7 @@ import { Shirt } from 'lucide-react'
 import { TeamEmblem } from './TeamEmblem'
 import { useState } from 'react'
 import { PlayerDetailsModal, type SelectedPlayer } from '../players/PlayerDetailsModal'
+import type { PlayerDetails } from '../players/types'
 import { shirtCodeFor, shirtUrlFor } from '../../shared/fpl/shirts'
 import type { FplClubShirt, LeagueDiscoveryState } from '../../shared/fpl/types'
 import { type LeaguePlayer, leaguePlayersForEntry } from './leagueData'
@@ -13,6 +14,7 @@ export function LeagueTeamVisual({
   manager,
   shirtCodes,
   leagueId,
+  samplePlayerDetails,
 }: {
   discovery: LeagueDiscoveryState
   entryId: number
@@ -20,6 +22,7 @@ export function LeagueTeamVisual({
   manager: string
   shirtCodes: FplClubShirt[]
   leagueId?: number
+  samplePlayerDetails?: Record<number, PlayerDetails>
 }) {
   const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayer | null>(null)
   const players = leaguePlayersForEntry(discovery, entryId)
@@ -76,12 +79,13 @@ export function LeagueTeamVisual({
             ),
         )}
       </div>
-      {selectedPlayer && leagueId && discovery.gameweek && (
+      {selectedPlayer && (leagueId || samplePlayerDetails) && discovery.gameweek && (
         <PlayerDetailsModal
           key={selectedPlayer.id}
           player={selectedPlayer}
           leagueId={leagueId}
           gameweek={discovery.gameweek}
+          sampleDetails={samplePlayerDetails?.[Number(selectedPlayer.id)]}
           onClose={() => setSelectedPlayer(null)}
         />
       )}

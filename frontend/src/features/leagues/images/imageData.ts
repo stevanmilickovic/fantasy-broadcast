@@ -32,7 +32,7 @@ export type ImageClub = {
 export type ImageMatch = {
   clubs: ImageClub[]
   scores: Array<number | null>
-  source: 'FPL' | 'Live'
+  source: 'FPL' | 'Live' | 'Sample results'
   status: string
   result: 'first' | 'second' | 'draw' | null
 }
@@ -63,6 +63,7 @@ export function createLeagueImage({
   emblems,
   live,
   liveSelected,
+  resultsSource = 'FPL',
   stale = false,
   capturedAt = new Date().toISOString(),
 }: {
@@ -73,6 +74,7 @@ export function createLeagueImage({
   emblems: TeamEmblemData[]
   live?: LiveLeagueProjection
   liveSelected: boolean
+  resultsSource?: 'FPL' | 'Sample results'
   stale?: boolean
   capturedAt?: string
 }): LeagueImage {
@@ -136,7 +138,7 @@ export function createLeagueImage({
             club(match.league_entry_2 ?? match.secondLeagueEntryId),
           ],
           scores,
-          source: isLive ? 'Live' : 'FPL',
+          source: isLive ? 'Live' : resultsSource,
           status: upcoming
             ? 'Upcoming'
             : first === null || second === null
@@ -158,10 +160,10 @@ export function createLeagueImage({
       })
     : []
   const source = matchCategory
-    ? [...new Set(matches.map((match) => match.source))].join(' + ') || 'FPL'
+    ? [...new Set(matches.map((match) => match.source))].join(' + ') || resultsSource
     : liveStandings
       ? 'Live'
-      : 'FPL'
+      : resultsSource
   return {
     kind: request.kind,
     league,

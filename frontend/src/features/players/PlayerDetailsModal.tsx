@@ -18,26 +18,31 @@ export function PlayerDetailsModal({
   player,
   leagueId,
   gameweek,
+  sampleDetails,
   onClose,
 }: {
   player: SelectedPlayer
   leagueId?: number
   gameweek: number
+  sampleDetails?: PlayerDetails
   onClose: () => void
 }) {
   const { dialog: dialogRef, closing, close, show, onClose: handleNativeClose } = useDialogMotion()
   const [snapshot, setDetails] = useState<PlayerDetails | null>(null)
   const details =
-    snapshot?.id === Number(player.id) && snapshot.gameweek === gameweek ? snapshot : null
+    sampleDetails ??
+    (snapshot?.id === Number(player.id) && snapshot.gameweek === gameweek ? snapshot : null)
   const [error, setError] = useState<string | null>(null)
   const [revision, retry] = useReducer((value) => value + 1, 0)
   const [tab, setTab] = useState<'current' | 'fixtures' | 'history'>('current')
   const tabId = useId()
-  const tabs = [
-    { id: 'current', label: `Gameweek ${gameweek}` },
-    { id: 'fixtures', label: 'Upcoming fixtures' },
-    { id: 'history', label: 'Previous gameweeks' },
-  ] as const
+  const tabs = (
+    [
+      { id: 'current', label: `Gameweek ${gameweek}` },
+      { id: 'fixtures', label: 'Upcoming fixtures' },
+      { id: 'history', label: 'Previous gameweeks' },
+    ] as const
+  ).filter((item) => !sampleDetails || item.id !== 'fixtures')
 
   useEffect(() => {
     show()
@@ -45,7 +50,13 @@ export function PlayerDetailsModal({
   const dismiss = () => close(onClose)
 
   useEffect(() => {
-    if (!leagueId || !Number.isSafeInteger(Number(player.id)) || Number(player.id) <= 0) return
+    if (
+      sampleDetails ||
+      !leagueId ||
+      !Number.isSafeInteger(Number(player.id)) ||
+      Number(player.id) <= 0
+    )
+      return
     let controller: AbortController | null = null
     let timer: ReturnType<typeof setTimeout> | undefined
     let stopped = false
@@ -79,7 +90,7 @@ export function PlayerDetailsModal({
       document.removeEventListener('visibilitychange', load)
       window.removeEventListener('focus', load)
     }
-  }, [leagueId, player.id, gameweek, revision])
+  }, [leagueId, player.id, gameweek, revision, sampleDetails])
 
   const photoUrl = details?.photoCode
     ? `https://resources.premierleague.com/premierleague/photos/players/110x140/p${details.photoCode}.png`
@@ -211,7 +222,9 @@ export function PlayerDetailsModal({
                 : 'Detailed points and fixtures are available in registered league views.'}
             </p>
           )}
-          {details && tab === 'current' && <PlayerGameweek details={details} />}
+          {details && tab === 'current' && (
+            <PlayerGameweek details={details} showFixtures={!sampleDetails} />
+          )}
           {details && tab === 'fixtures' && <PlayerFixtures schedule={details.fixtureSchedule} />}
           {details &&
             tab === 'history' &&

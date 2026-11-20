@@ -4,6 +4,7 @@ import { registrationDestination } from '../features/auth/registrationIntent'
 export type PublicPageName = 'pricing' | 'privacy' | 'terms' | 'refunds'
 export type Route =
   | { page: 'welcome' }
+  | { page: 'preview-league' }
   | { page: 'payment-link' }
   | { page: 'public'; name: PublicPageName }
   | { page: 'auth'; pathname: string }
@@ -23,6 +24,7 @@ export function positiveId(value: string | null): number | undefined {
 
 export function resolveRoute(pathname: string, search: string, user: AuthUser | null): Route {
   if (pathname === '/pay') return { page: 'payment-link' }
+  if (pathname === '/preview-league') return { page: 'preview-league' }
   if (pathname === '/reset-password') return { page: 'auth', pathname }
   switch (pathname) {
     case '/pricing':

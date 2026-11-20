@@ -94,8 +94,9 @@
 }
 .welcome-hero-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
   margin-top: 34px;
 }
 .welcome-hero-actions > button {
@@ -110,6 +111,57 @@
   background: #20e6ff;
   cursor: pointer;
   font-weight: 900;
+}
+.welcome-hero-actions > .welcome-preview-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 0 18px;
+  border: 1px solid #20e6ff66;
+  background: #20e6ff0a;
+  color: #20e6ff;
+  font-weight: 750;
+  text-decoration: none;
+}
+.welcome-preview-link:hover {
+  background: #20e6ff1a;
+  border-color: var(--pl-cyan);
+}
+.preview-league-shell .league-back {
+  min-height: 44px;
+  margin-bottom: 12px;
+}
+.preview-league-shell .league-identity {
+  margin-bottom: 24px;
+}
+.preview-league-shell .league-primary {
+  justify-self: start;
+}
+.preview-league-replay .broadcast-connection {
+  display: flex;
+  color: var(--pl-cyan);
+}
+.preview-league-replay .broadcast-connection svg {
+  display: none;
+}
+@media (max-width: 700px) {
+  .preview-league-shell .league-h2h-table th.league-form-column {
+    width: 70px;
+  }
+  .preview-league-shell .league-h2h-table th:last-child {
+    width: 54px;
+  }
+  .preview-league-shell .league-table .team-emblem {
+    width: 1.4em;
+    height: 1.4em;
+  }
+}
+@media (max-width: 440px) {
+  .preview-league-shell .league-club-image-action {
+    flex-direction: column;
+  }
 }
 .welcome-final-cta > div > button {
   display: inline-flex;

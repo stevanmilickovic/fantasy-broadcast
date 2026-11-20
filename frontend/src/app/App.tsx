@@ -10,6 +10,7 @@ import { AccountSubscriptionsPage } from '../features/billing/AccountSubscriptio
 import { PaymentLinkPage } from '../features/billing/PaymentLinkPage'
 import { CustomerDashboard } from '../features/leagues/CustomerDashboard'
 import { PublicPage } from '../features/public/PublicPages'
+import { PreviewLeaguePage } from '../features/public/PreviewLeaguePage'
 import { WelcomePage } from '../features/public/WelcomePage'
 import { resolveRoute } from './routes'
 import { useBrowserNavigation, type Navigate } from './useBrowserNavigation'
@@ -47,6 +48,8 @@ function AppContent({
   }
   if (route.page === 'payment-link')
     return <PaymentLinkPage search={location.search} navigate={navigate} />
+  if (route.page === 'preview-league')
+    return <PreviewLeaguePage search={location.search} navigate={navigate} />
   if (session.isLoading)
     return (
       <main className="account-shell">
