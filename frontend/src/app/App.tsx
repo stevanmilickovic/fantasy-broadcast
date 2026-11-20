@@ -6,6 +6,7 @@ import { AccountSettings } from '../features/auth/AccountSettings'
 import { AccountDeletionPage } from '../features/auth/AccountDeletionPage'
 import { useAuthSession } from '../features/auth/useAuthSession'
 import { BroadcastPage } from '../features/broadcast/BroadcastPage'
+import { AccountSubscriptionsPage } from '../features/billing/AccountSubscriptionsPage'
 import { PaymentLinkPage } from '../features/billing/PaymentLinkPage'
 import { CustomerDashboard } from '../features/leagues/CustomerDashboard'
 import { PublicPage } from '../features/public/PublicPages'
@@ -92,6 +93,16 @@ function AppContent({
           </button>
           <AccountDeletionPage />
         </main>
+      )
+    case 'subscriptions':
+      return (
+        <AccountSubscriptionsPage
+          key={`${session.user.id}:${route.leagueId ?? 'overview'}`}
+          leagueId={route.leagueId}
+          user={session.user}
+          navigate={navigate}
+          onSignOut={() => void session.signOut()}
+        />
       )
     case 'administration':
       return (

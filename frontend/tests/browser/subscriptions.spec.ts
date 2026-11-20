@@ -16,6 +16,104 @@ const initialSubscription = {
   renewalTotal: '699',
 }
 
+test('account subscriptions opens from both entry points and lets owners manage each league', async ({
+  page,
+}, info) => {
+  if (info.project.name === 'phone') await page.setViewportSize({ width: 320, height: 750 })
+  const { errors, unexpectedRequests } = await mockApp(page)
+  let sunday = { ...initialSubscription }
+  const classicName = 'Midweek Classic Championship with a long league name'
+  const midweek = { ...initialSubscription, status: 'canceled', accessActive: false }
+  await page.route('**/api/customer/subscriptions', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...sunday,
+          leagueId: 1,
+          leagueName: 'Sunday League Elite',
+          fplLeagueId: 42,
+          leagueType: 'DRAFT',
+        },
+        {
+          ...midweek,
+          leagueId: 2,
+          leagueName: classicName,
+          fplLeagueId: 1234,
+          leagueType: 'CLASSIC',
+        },
+      ],
+    }),
+  )
+  const openedLeagues: string[] = []
+  await page.route(/\/api\/customer\/leagues\/[12]\/subscription(?:\?|\/)/, (route) => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/cancel')) {
+      expect(route.request().postDataJSON()).toMatchObject({ undo: false })
+      sunday = { ...sunday, cancelAt: sunday.accessUntil }
+    } else {
+      openedLeagues.push(path)
+    }
+    return route.fulfill({ json: path.includes('/leagues/1/') ? sunday : midweek })
+  })
+
+  await page.goto('/leagues')
+  await page.getByLabel('Account menu').click()
+  await page.getByRole('button', { name: 'Subscriptions', exact: true }).click()
+  await expect(page).toHaveURL('/account/subscriptions')
+  const sundayCard = page.getByRole('link', { name: /Sunday League Elite/ })
+  await expect(sundayCard).toContainText('Standard')
+  await expect(page.getByRole('link', { name: new RegExp(classicName) })).toContainText('Canceled')
+  expect(openedLeagues).toEqual([])
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({
+    path: info.outputPath('account-subscriptions.png'),
+    fullPage: true,
+    animations: 'disabled',
+  })
+
+  await page.getByRole('button', { name: 'Back to account settings' }).click()
+  await page.getByRole('button', { name: 'Manage subscriptions' }).click()
+  await expect(page).toHaveURL('/account/subscriptions')
+  await sundayCard.click()
+  await expect(page).toHaveURL('/account/subscriptions?leagueId=1')
+  await expect(
+    page.getByRole('heading', { name: 'Sunday League Elite', exact: true }),
+  ).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Payment details & invoices' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Email a refund request' })).toBeVisible()
+  await page.getByRole('button', { name: 'Cancel subscription', exact: true }).click()
+  await page.getByRole('button', { name: 'Confirm cancellation', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Keep subscription', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'All subscriptions', exact: true }).click()
+  await expect(sundayCard).toContainText('Renewal canceled')
+  expect(openedLeagues).toEqual(Array(2).fill('/api/customer/leagues/1/subscription'))
+
+  await page.getByRole('link', { name: new RegExp(classicName) }).click()
+  await page.getByRole('button', { name: 'Subscribe again' }).click()
+  await expect(page).toHaveURL('/leagues/checkout?fplLeagueId=1234&leagueType=CLASSIC')
+  expect(errors).toEqual([])
+  expect(unexpectedRequests).toEqual([])
+})
+
+test('account subscriptions handles errors, an empty list, and unavailable deep links', async ({
+  page,
+}) => {
+  const { unexpectedRequests } = await mockApp(page)
+  let requests = 0
+  await page.route('**/api/customer/subscriptions', (route) =>
+    ++requests === 1
+      ? route.fulfill({ status: 503, json: { detail: 'Could not load subscriptions.' } })
+      : route.fulfill({ json: [] }),
+  )
+  await page.goto('/account/subscriptions')
+  await expect(page.getByRole('alert')).toContainText('Could not load subscriptions.')
+  await page.getByRole('button', { name: 'Try again' }).click()
+  await expect(page.getByText('You don’t have any league subscriptions yet.')).toBeVisible()
+  await page.goto('/account/subscriptions?leagueId=99')
+  await expect(page.getByText('This subscription is unavailable for your account.')).toBeVisible()
+  expect(unexpectedRequests).toEqual([])
+})
+
 test('owners can review upgrades, schedule downgrades and undo cancellation', async ({ page }) => {
   const { errors, unexpectedRequests } = await mockApp(page)
   let subscription = { ...initialSubscription }

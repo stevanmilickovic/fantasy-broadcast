@@ -1,3 +1,5 @@
+import type { FplLeagueType } from '../../shared/fpl/types'
+
 export type LeaguePaymentPreview = {
   displayName: string
   managerCount: number
@@ -31,6 +33,15 @@ export type Subscription = {
   awaitingConfirmation: boolean
   currencyCode: string | null
   renewalTotal: string | null
+}
+export type LeagueSubscriptionOverview = Pick<
+  Subscription,
+  'plan' | 'status' | 'accessUntil' | 'cancelAt' | 'accessActive'
+> & {
+  leagueId: number
+  leagueName: string
+  fplLeagueId: number
+  leagueType: FplLeagueType
 }
 export type PlanPreview = {
   target: BillingPlan

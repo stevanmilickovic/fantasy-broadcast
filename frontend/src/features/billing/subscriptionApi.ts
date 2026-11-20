@@ -3,6 +3,7 @@ import { requestJson } from '../../shared/api/http'
 import type {
   AdminSubscription,
   BillingPlan,
+  LeagueSubscriptionOverview,
   Payment,
   PlanPreview,
   Refund,
@@ -12,6 +13,9 @@ import type {
 const base = (id: number) => `/api/customer/leagues/${id}/subscription`
 const post = <T>(url: string, body: object, signal?: AbortSignal) =>
   requestJson<T>(url, { method: 'POST', body: JSON.stringify(body), signal })
+
+export const loadSubscriptionOverview = (signal: AbortSignal) =>
+  requestJson<LeagueSubscriptionOverview[]>('/api/customer/subscriptions', { signal })
 
 export const loadSubscription = (id: number, signal: AbortSignal) =>
   requestJson<Subscription>(`${base(id)}?refresh=true`, { signal })

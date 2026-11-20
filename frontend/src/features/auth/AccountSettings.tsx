@@ -67,6 +67,16 @@ export function AccountSettings({
         <button disabled={saving.busy}>{saving.busy ? 'Saving…' : 'Save username'}</button>
       </form>
       <PasswordSettings onChanged={onPasswordChanged} />
+      <section className="account-card" aria-labelledby="account-subscriptions-title">
+        <h2 id="account-subscriptions-title">Subscriptions</h2>
+        <button
+          type="button"
+          className="secondary-action"
+          onClick={() => navigate('/account/subscriptions')}
+        >
+          Manage subscriptions
+        </button>
+      </section>
       <section className="account-card" aria-labelledby="account-deletion-title">
         <h2 id="account-deletion-title">Account deletion</h2>
         <p>

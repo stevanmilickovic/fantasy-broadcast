@@ -36,6 +36,15 @@ export function CustomerNavigation({
             <button type="button" onClick={() => onNavigate('/account')}>
               Account settings
             </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.currentTarget.closest('details')?.removeAttribute('open')
+                onNavigate('/account/subscriptions')
+              }}
+            >
+              Subscriptions
+            </button>
             <button type="button" onClick={onSignOut}>
               Sign out
             </button>

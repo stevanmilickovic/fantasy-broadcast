@@ -504,6 +504,64 @@
   }
 }
 
+.account-subscriptions-page {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+.account-subscriptions-page .checkout-back {
+  min-height: 44px;
+  padding-inline: 0;
+}
+.account-subscriptions-heading {
+  margin: 16px 0 24px;
+  overflow-wrap: anywhere;
+}
+.account-subscriptions-heading h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+.account-subscriptions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.account-subscription {
+  min-height: 100%;
+  padding: clamp(16px, 3vw, 24px);
+}
+.account-subscription strong {
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+.account-subscription-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 6px 12px;
+}
+.account-subscription-meta > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.account-subscription-meta > span:last-child {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  text-transform: capitalize;
+}
+.account-subscription-meta > [data-active='true'] {
+  color: var(--pl-green);
+}
+.account-subscriptions-page .billing-refresh {
+  justify-self: start;
+}
+
 .league-subscription-settings > h2 {
   margin: 32px 0 8px;
 }

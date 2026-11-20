@@ -15,14 +15,19 @@ import {
 import { usePlanAvailability } from './usePlanAvailability'
 import type { PlanPreview, Subscription } from './types'
 
+type SubscriptionLeague = Pick<
+  RegisteredLeague,
+  'id' | 'displayName' | 'fplLeagueId' | 'leagueType'
+>
+
 export function LeagueSubscriptionSettings({
   league,
   navigate,
   onChanged,
 }: {
-  league: RegisteredLeague
+  league: SubscriptionLeague
   navigate: Navigate
-  onChanged: () => void
+  onChanged?: () => void
 }) {
   const load = useCallback(
     (signal: AbortSignal) => loadSubscription(league.id, signal),
@@ -46,7 +51,7 @@ export function LeagueSubscriptionSettings({
           subscription={query.data}
           refresh={() => {
             query.refresh()
-            onChanged()
+            onChanged?.()
           }}
           navigate={navigate}
         />
@@ -61,7 +66,7 @@ function SubscriptionDetails({
   refresh,
   navigate,
 }: {
-  league: RegisteredLeague
+  league: SubscriptionLeague
   subscription: Subscription
   refresh: () => void
   navigate: Navigate

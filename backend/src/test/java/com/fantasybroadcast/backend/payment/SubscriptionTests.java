@@ -25,6 +25,42 @@ class SubscriptionTests {
 	private final CurrentUser owner = new CurrentUser(1, "owner@example.com", "Owner", UserRole.USER);
 
 	@Test
+	void overviewListsTheLatestSubscriptionForEachOwnedLeagueWithoutCallingPaddle() throws Exception {
+		var db = new BillingTestDatabase();
+		var paddle = mock(PaddleClient.class);
+		var service = new SubscriptionService(db.repository, paddle, properties(),
+				mock(SubscriptionSyncService.class), mock(LeagueRegistrationService.class), db.operations);
+		db.jdbc.update("insert into league (id, fpl_league_id, display_name, owner_user_id, league_type) values "
+				+ "(2, 200, 'Other account league', 2, 'DRAFT'), (3, 300, 'Unlinked league', 1, 'DRAFT'), "
+				+ "(4, 400, 'Classic league', 1, 'CLASSIC')");
+		var end = now.plus(Duration.ofDays(20));
+		db.repository.saveSubscription(1, subscription("canceled", "ai", now, end), BillingPlan.AI_BROADCASTER);
+		var replacement = subscription("active", "standard", now, end);
+		((tools.jackson.databind.node.ObjectNode) replacement).put("id", "sub_replacement");
+		db.repository.saveSubscription(1, replacement, BillingPlan.STANDARD);
+		var other = subscription("active", "standard", now, end);
+		((tools.jackson.databind.node.ObjectNode) other).put("id", "sub_other");
+		db.repository.saveSubscription(2, other, BillingPlan.STANDARD);
+		var classic = subscription("past_due", "standard", now, end);
+		((tools.jackson.databind.node.ObjectNode) classic).put("id", "sub_classic");
+		db.repository.saveSubscription(4, classic, BillingPlan.STANDARD);
+
+		assertThat(service.overview(owner)).satisfiesExactly(
+				entry -> {
+					assertThat(entry.leagueId()).isEqualTo(4);
+					assertThat(entry.fplLeagueId()).isEqualTo(400);
+					assertThat(entry.leagueType()).isEqualTo(FplLeagueType.CLASSIC);
+					assertThat(entry.status()).isEqualTo("past_due");
+				}, entry -> {
+					assertThat(entry.leagueId()).isEqualTo(1);
+					assertThat(entry.leagueName()).isEqualTo("Test league");
+					assertThat(entry.plan()).isEqualTo(BillingPlan.STANDARD);
+					assertThat(entry.accessActive()).isTrue();
+				});
+		verifyNoInteractions(paddle);
+	}
+
+	@Test
 	void migrationsRunAndDowngradeKeepsPaidAiOnlyUntilTheBoundary() throws Exception {
 		var db = new BillingTestDatabase();
 		db.repository.saveSubscription(1, subscription("active", "ai", now, now.plus(Duration.ofDays(20))), BillingPlan.AI_BROADCASTER);

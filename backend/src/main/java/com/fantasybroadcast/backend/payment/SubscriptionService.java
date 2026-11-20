@@ -2,6 +2,7 @@ package com.fantasybroadcast.backend.payment;
 
 import com.fantasybroadcast.backend.customer.CurrentUser;
 import com.fantasybroadcast.backend.customer.LeagueRegistrationService;
+import com.fantasybroadcast.backend.fpl.FplLeagueType;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -31,6 +32,15 @@ public class SubscriptionService {
 		this.sync = sync;
 		this.leagues = leagues;
 		this.operations = operations;
+	}
+
+	public List<Overview> overview(CurrentUser user) {
+		var now = Instant.now();
+		return repository.forOwner(user.id()).stream().map(entry -> {
+			var subscription = entry.subscription();
+			return new Overview(subscription.leagueId(), entry.leagueName(), entry.fplLeagueId(), entry.leagueType(), subscription.effectivePlan(now),
+					subscription.status(), subscription.accessUntil(), subscription.cancelAt(), subscription.accessible(now));
+		}).toList();
 	}
 
 	public Summary summary(CurrentUser user, long leagueId, boolean refresh) {
@@ -140,6 +150,8 @@ public class SubscriptionService {
 	}
 	private ResponseStatusException conflict(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
 
+	public record Overview(long leagueId, String leagueName, long fplLeagueId, FplLeagueType leagueType, BillingPlan plan, String status,
+			Instant accessUntil, Instant cancelAt, boolean accessActive) { }
 	public record Summary(boolean linked, String subscriptionId, BillingPlan plan, BillingPlan renewalPlan, String status,
 			Instant accessUntil, Instant cancelAt, boolean accessActive, Instant refundUntil, boolean awaitingConfirmation, String currencyCode, String renewalTotal) { }
 	public record ChangePreview(BillingPlan target, Instant version, Instant effectiveAt, String chargeNow, String currencyCode, String renewalTotal, boolean immediate) { }

@@ -1,5 +1,6 @@
 package com.fantasybroadcast.backend.payment;
 
+import com.fantasybroadcast.backend.fpl.FplLeagueType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -33,6 +34,19 @@ public class BillingRepository {
 
 	public Subscription forLeague(long leagueId) {
 		return jdbc.query("select s.*, l.owner_user_id from subscription s join league l on l.id = s.league_id where league_id = ? order by s.id desc limit 1", this::map, leagueId).stream().findFirst().orElse(null);
+	}
+
+	public List<LeagueSubscription> forOwner(long ownerId) {
+		return jdbc.query("""
+				select s.*, l.owner_user_id, l.display_name, l.fpl_league_id, l.league_type
+				from league l
+				join subscription s on s.id = (
+					select max(previous.id) from subscription previous where previous.league_id = l.id
+				)
+				where l.owner_user_id = ?
+				order by l.display_name, l.id
+				""", (rs, row) -> new LeagueSubscription(rs.getString("display_name"), rs.getLong("fpl_league_id"),
+						FplLeagueType.valueOf(rs.getString("league_type")), map(rs, row)), ownerId);
 	}
 
 	public List<Subscription> all() {
@@ -119,6 +133,8 @@ public class BillingRepository {
 				BillingPlan.valueOf(rs.getString("plan_code")), rs.getString("status"), instant(rs, "current_period_end"), instant(rs, "ai_access_until"),
 				instant(rs, "cancel_at"), instant(rs, "past_due_since"), instant(rs, "provider_updated_at"), rs.getBoolean("refund_ends_access"));
 	}
+
+	public record LeagueSubscription(String leagueName, long fplLeagueId, FplLeagueType leagueType, Subscription subscription) { }
 
 	public record Subscription(long leagueId, long ownerId, String id, String customerId, BillingPlan renewalPlan, String status,
 			Instant periodEnd, Instant aiUntil, Instant cancelAt, Instant pastDueSince, Instant version, boolean refunded) {
