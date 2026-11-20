@@ -1,10 +1,11 @@
 .welcome-page {
+  --welcome-background: #18001d;
   /* Opt out of browser auto-darkening; the homepage paints its own dark palette. */
   color-scheme: only light;
   min-height: 100vh;
   overflow: hidden;
   color: #fff;
-  background: #18001d;
+  background: var(--welcome-background);
 }
 .welcome-page button:not(.welcome-brand),
 .welcome-page a {
@@ -128,6 +129,20 @@
 .welcome-preview-link:hover {
   background: #20e6ff1a;
   border-color: var(--pl-cyan);
+}
+@media (width > 900px) {
+  .welcome-hero-copy > p {
+    -webkit-text-stroke: 2px var(--welcome-background);
+    paint-order: stroke fill;
+    text-shadow: 0 0 4px var(--welcome-background);
+  }
+  .welcome-hero-actions > .welcome-preview-link {
+    background-color: color-mix(in srgb, var(--welcome-background) 80%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .welcome-hero-actions > .welcome-preview-link:hover {
+    background-image: linear-gradient(#20e6ff1a, #20e6ff1a);
+  }
 }
 .preview-league-shell .league-back {
   min-height: 44px;
