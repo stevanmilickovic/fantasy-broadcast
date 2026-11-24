@@ -19,11 +19,38 @@ public class LeagueMembershipService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "League was not found.");
 	}
 
-	public void requireOwner(CurrentUser user, long leagueId) {
+	public long requireOwner(CurrentUser user, long leagueId) {
 		var owners = jdbc.queryForList("select owner_user_id from league where id = ?", Long.class, leagueId);
 		if (owners.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "League was not found.");
-		if (owners.getFirst() != user.id() && !user.admin())
+		var ownerId = owners.getFirst();
+		if (ownerId != user.id() && !user.admin())
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the league owner can manage followers.");
+		return ownerId;
+	}
+
+	@Transactional(readOnly = true)
+	public FollowerPage followers(CurrentUser user, long leagueId, int page, int size) {
+		var ownerId = requireOwner(user, leagueId);
+		var total = jdbc.queryForObject("select count(*) from league_registration where league_id = ? and user_id <> ?",
+				Long.class, leagueId, ownerId);
+		var lastPage = Math.max(0, total - 1) / size;
+		var currentPage = (int) Math.min(page, lastPage);
+		var items = jdbc.query("""
+				select u.id, u.display_name
+				from league_registration r join app_user u on u.id = r.user_id
+				where r.league_id = ? and r.user_id <> ?
+				order by r.created_at, r.user_id limit ? offset ?
+				""", (rs, row) -> new Follower(rs.getLong("id"), rs.getString("display_name")),
+				leagueId, ownerId, size, (long) currentPage * size);
+		return new FollowerPage(items, currentPage, size, total);
+	}
+
+	@Transactional
+	public void removeFollower(CurrentUser user, long leagueId, long followerId) {
+		lockLeague(leagueId);
+		if (requireOwner(user, leagueId) == followerId)
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "The purchasing owner cannot be removed.");
+		jdbc.update("delete from league_registration where league_id = ? and user_id = ?", leagueId, followerId);
 	}
 
 	@Transactional
@@ -66,5 +93,7 @@ public class LeagueMembershipService {
 		jdbc.update("delete from league_follow_request where user_id = ? and league_id = ?", user.id(), leagueId);
 	}
 
+	public record Follower(long userId, String displayName) { }
+	public record FollowerPage(List<Follower> items, int page, int size, long totalItems) { }
 	public record FollowRequest(long userId, long leagueId, String leagueName, String displayName, String status, String createdAt) { }
 }

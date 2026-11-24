@@ -57,7 +57,7 @@ public class LeagueRegistrationService {
 			var sourceLeague = resolveLeague(fplLeagueId, leagueType);
 			validateTrackedPlayerCount(sourceLeague);
 			try {
-				jdbcTemplate.update("insert into league (fpl_league_id, display_name, owner_user_id, league_type, scoring_type) values (?, ?, ?, ?, ?)",
+				jdbcTemplate.update("insert into league (fpl_league_id, display_name, owner_user_id, league_type, scoring_type, private_league) values (?, ?, ?, ?, ?, true)",
 						fplLeagueId, sourceLeague.displayName(), user.id(), leagueType.name(), sourceLeague.scoringType().name());
 			}
 			catch (DuplicateKeyException exception) {

@@ -18,6 +18,7 @@ export type RegisteredLeague = {
 }
 
 export type FollowResult = { league: RegisteredLeague; status: 'PENDING' | 'APPROVED' }
+export type LeagueFollower = { userId: number; displayName: string }
 export type FollowRequest = {
   userId: number
   leagueId: number

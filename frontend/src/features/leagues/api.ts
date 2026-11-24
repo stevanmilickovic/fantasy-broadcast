@@ -11,6 +11,7 @@ import type { LiveStateResponse } from '../broadcast/types'
 import type {
   FollowRequest,
   FollowResult,
+  LeagueFollower,
   LeagueRegistrationAccess,
   RegisteredLeague,
 } from './types'
@@ -73,6 +74,22 @@ export const loadLeagueRequests = async (
   signal?: AbortSignal,
 ): Promise<FollowRequest[]> =>
   (await request(`/api/customer/leagues/${leagueId}/follow-requests`, { signal })).json()
+export const loadLeagueFollowers = async (
+  leagueId: number,
+  page: number,
+  signal: AbortSignal,
+): Promise<PageResult<LeagueFollower>> =>
+  (await request(`/api/customer/leagues/${leagueId}/followers?page=${page}`, { signal })).json()
+export const removeLeagueFollower = async (
+  leagueId: number,
+  userId: number,
+  signal: AbortSignal,
+) => {
+  await request(`/api/customer/leagues/${leagueId}/followers/${userId}`, {
+    method: 'DELETE',
+    signal,
+  })
+}
 export const cancelFollowRequest = async (leagueId: number, signal?: AbortSignal) => {
   await request(`/api/customer/leagues/${leagueId}/follow-request`, { signal, method: 'DELETE' })
 }

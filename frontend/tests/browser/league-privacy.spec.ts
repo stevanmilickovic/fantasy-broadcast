@@ -42,6 +42,15 @@ test('owner approval moves a private follow request into accessible leagues', as
   await owner.route('**/api/**', (route) => {
     const path = new URL(route.request().url()).pathname
     if (path === '/api/customer/leagues') return route.fulfill({ json: [league] })
+    if (path.endsWith('/followers'))
+      return route.fulfill({
+        json: {
+          items: approved ? [{ userId: applicant.id, displayName: applicant.displayName }] : [],
+          page: 0,
+          size: 10,
+          totalItems: Number(approved),
+        },
+      })
     if (path.endsWith('/follow-requests')) return route.fulfill({ json: pending ? [request] : [] })
     if (path.endsWith(`/follow-requests/${applicant.id}`)) {
       pending = false
@@ -70,6 +79,7 @@ test('owner approval moves a private follow request into accessible leagues', as
   await expect(owner.getByRole('heading', { name: 'League management', exact: true })).toBeVisible()
   const privacy = owner.getByRole('switch', { name: 'Private league', exact: true })
   await expect(privacy).toHaveAttribute('aria-checked', 'true')
+  await expect(owner.getByText('No followers yet.')).toBeVisible()
   const switchBounds = await privacy.boundingBox()
   expect(switchBounds?.height).toBeGreaterThanOrEqual(44)
   expect(switchBounds?.width).toBeGreaterThanOrEqual(44)
@@ -80,6 +90,9 @@ test('owner approval moves a private follow request into accessible leagues', as
   })
   await owner.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(owner.getByText('No pending requests.')).toBeVisible()
+  await expect(owner.getByRole('region', { name: 'Followers (1)' })).toContainText(
+    applicant.displayName,
+  )
   await privacy.click()
   await expect(privacy).toHaveAttribute('aria-checked', 'false')
   expect(await owner.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -91,4 +104,65 @@ test('owner approval moves a private follow request into accessible leagues', as
   await expect(page.getByRole('switch', { name: 'Private league' })).toHaveCount(0)
   await page.getByLabel('League actions').click()
   await expect(page.getByRole('button', { name: 'League management', exact: true })).toHaveCount(0)
+})
+
+test('site admins can page through and remove public league followers', async ({ page }) => {
+  const { errors, unexpectedRequests } = await mockApp(page, { ...viewer, id: 99, role: 'ADMIN' })
+  const league = leagues[0]
+  let followers = Array.from({ length: 11 }, (_, index) => ({
+    userId: index + 100,
+    displayName: `Follower ${index + 1}`,
+  }))
+  const lastFollower = followers[10]
+  const removed: number[] = []
+  await page.route(`**/api/customer/leagues/${league.id}/followers**`, (route) => {
+    const request = route.request()
+    const url = new URL(request.url())
+    if (request.method() === 'DELETE') {
+      const userId = Number(url.pathname.split('/').at(-1))
+      removed.push(userId)
+      followers = followers.filter((follower) => follower.userId !== userId)
+      return route.fulfill({ status: 204 })
+    }
+    const size = 10
+    const currentPage = Math.min(
+      Number(url.searchParams.get('page')),
+      Math.floor((followers.length - 1) / size),
+    )
+    return route.fulfill({
+      json: {
+        items: followers.slice(currentPage * size, (currentPage + 1) * size),
+        page: currentPage,
+        size,
+        totalItems: followers.length,
+      },
+    })
+  })
+
+  await page.goto(`/league/manage?leagueId=${league.id}`)
+  await expect(page.getByRole('switch', { name: 'Private league' })).toHaveAttribute(
+    'aria-checked',
+    'false',
+  )
+  const list = page.getByRole('region', { name: /^Followers/ })
+  await expect(list.getByRole('listitem')).toHaveCount(10)
+  await list.getByRole('button', { name: 'Next', exact: true }).click()
+  await expect(list.getByText('Page 2 of 2', { exact: false })).toBeVisible()
+  const remove = list.getByRole('button', {
+    name: `Remove ${lastFollower.displayName} (#${lastFollower.userId})`,
+  })
+  page.once('dialog', (dialog) => dialog.dismiss())
+  await remove.click()
+  await expect(remove).toBeVisible()
+  expect(removed).toEqual([])
+  page.once('dialog', (dialog) => dialog.accept())
+  await remove.click()
+  await expect(list.getByRole('heading', { name: 'Followers (10)' })).toBeFocused()
+  await expect(list.getByRole('listitem')).toHaveCount(10)
+  await expect(list.getByRole('navigation')).toHaveCount(0)
+  await expect(remove).toHaveCount(0)
+  expect(removed).toEqual([lastFollower.userId])
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+  expect(unexpectedRequests).toEqual([])
 })

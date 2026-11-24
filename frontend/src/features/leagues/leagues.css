@@ -1524,7 +1524,8 @@
   }
 }
 .league-membership-request button,
-.league-membership-settings > button {
+.league-membership-settings > button,
+.league-followers button {
   min-height: 44px;
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -1539,6 +1540,34 @@
 }
 .league-membership-settings > h3 {
   margin-bottom: 12px;
+}
+.league-followers {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.league-followers ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.league-followers li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-block-start: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.league-followers li small {
+  color: var(--muted);
+}
+.league-followers li button {
+  color: #ffb5c2;
+}
+.league-followers li button:hover:not(:disabled) {
+  background: #ffb5c21a;
 }
 .league-player-token[data-availability] .player-meta strong {
   padding: 3px 6px;

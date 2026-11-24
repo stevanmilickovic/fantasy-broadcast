@@ -96,6 +96,8 @@ export async function mockApp(page: Page, user: AuthUser | null = viewer) {
         return route.fulfill({ json: { message: 'Check your email.' } })
       if (path === '/api/customer/fpl/shirts') return route.fulfill({ json: welcomeShirtCodes })
       if (path.endsWith('/teams/emblems')) return route.fulfill({ json: [] })
+      if (path.endsWith('/followers'))
+        return route.fulfill({ json: { items: [], page: 0, size: 10, totalItems: 0 } })
       if (/^\/api\/customer\/leagues\/\d+\/subscription$/.test(path))
         return route.fulfill({ json: { linked: false } })
       if (path.endsWith('/chat'))
