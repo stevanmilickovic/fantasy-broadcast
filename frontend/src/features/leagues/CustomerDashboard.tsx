@@ -58,7 +58,10 @@ export function CustomerDashboard({
     [refreshLeagues, onNavigate, notify, user.id],
   )
   const selectedId = positiveId(parameters.get('leagueId'))
-  const selectedLeague = leagues?.find((league) => league.id === selectedId) ?? null
+  // Keep management disclosures mounted while a settings change refreshes the league list.
+  const selectableLeagues =
+    leagues ?? (pathname === '/league/manage' ? query.refreshingData : undefined)
+  const selectedLeague = selectableLeagues?.find((league) => league.id === selectedId) ?? null
   useEffect(() => {
     if (!leagues) return
     if ((pathname === '/league' || pathname === '/league/manage') && !selectedLeague)

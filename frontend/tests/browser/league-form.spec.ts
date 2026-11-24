@@ -64,18 +64,17 @@ for (const leagueType of ['DRAFT', 'CLASSIC'] as const) {
     }
     await page.goto('/league?leagueId=1')
     const rows = page.getByRole('table').locator('tbody tr')
-    await expect(page.getByRole('columnheader', { name: 'Form', exact: true })).toBeVisible()
-    const formCell = rows.first().locator('td.league-form-column')
-    const form = formCell.getByRole('group', { name: 'Recent form' })
-    await expect(
-      rows.first().locator('td').nth(1).getByRole('group', { name: 'Recent form' }),
-    ).toHaveCount(0)
+    const header = page.getByRole('columnheader', { name: 'Form', exact: true })
+    await expect(header).toBeVisible()
+    const rowForm = (index: number) => rows.nth(index).getByRole('group', { name: 'Recent form' })
+    const form = rowForm(0)
+    await expect(form).toHaveCount(1)
     await expect(form.locator('.league-form-bubble')).toHaveText(['L', 'L', 'D', 'W', 'W'])
     await expect(
       form.getByRole('img', { name: 'Gameweek 4: Draw, 4–4', exact: true }),
     ).toBeVisible()
-    await expect(rows.nth(1).locator('.league-form-bubble')).toHaveText(['W', 'W', 'D', 'L', 'L'])
-    await expect(rows.nth(2).getByText('No completed results')).toBeVisible()
+    await expect(rowForm(1).locator('.league-form-bubble')).toHaveText(['W', 'W', 'D', 'L', 'L'])
+    await expect(rowForm(2).getByText('No completed results')).toBeVisible()
     await expect(page.getByRole('img', { name: /Gameweek 7:/ })).toHaveCount(0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: test.info().outputPath('standings-form.png'), fullPage: true })

@@ -46,23 +46,6 @@
 .customer-shell[data-workflow='collection'] .league-picker .kicker {
   color: var(--workflow-accent);
 }
-.customer-shell[data-workflow='find'] .find-league-card {
-  background: #21172d;
-  border-inline-start: 3px solid var(--workflow-accent);
-}
-.customer-shell[data-workflow='find'] .find-league-card .kicker {
-  color: var(--workflow-accent);
-}
-.customer-shell[data-workflow='register'] .league-onboarding {
-  max-width: 640px;
-}
-.customer-shell[data-workflow='register'] .register-league-card {
-  background: #2b1735;
-  border-top: 3px solid var(--workflow-accent);
-}
-.customer-shell[data-workflow='register'] .register-league-card .kicker {
-  color: var(--workflow-accent);
-}
 .customer-shell[data-workflow='league'] .league-identity {
   padding-bottom: 20px;
   border-bottom: 1px solid #ffffff20;

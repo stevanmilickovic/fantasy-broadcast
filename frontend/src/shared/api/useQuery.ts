@@ -33,5 +33,7 @@ export function useQuery<T>(key: string, load: (signal: AbortSignal) => Promise<
     snapshot?.key === key && snapshot.revision === revision
       ? snapshot.result
       : { status: 'loading' }
-  return { ...result, refresh: useCallback(() => refresh(), []) }
+  const refreshingData =
+    result.status === 'loading' && snapshot?.key === key ? snapshot.result.data : undefined
+  return { ...result, refreshingData, refresh: useCallback(() => refresh(), []) }
 }

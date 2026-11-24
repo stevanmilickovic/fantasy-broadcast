@@ -156,6 +156,7 @@ test('owners can review upgrades, schedule downgrades and undo cancellation', as
   await expect(page.getByRole('button', { name: 'Delete my league' })).toHaveCount(0)
   await page.getByRole('button', { name: 'League management', exact: true }).click()
   await expect(page).toHaveURL('/league/manage?leagueId=1')
+  await page.locator('summary').filter({ hasText: 'Subscription' }).click()
   await expect(page.getByRole('heading', { name: 'League management', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Upgrade to AI', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Confirm plan change' })).toContainText('€5.00')

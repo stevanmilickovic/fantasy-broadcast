@@ -5,12 +5,7 @@ import { useQuery } from '../../shared/api/useQuery'
 import { Pagination } from '../../shared/ui/Pagination'
 import { useNotifications } from '../../shared/ui/notifications'
 import type { AuthUser } from '../auth/types'
-import {
-  followLeague,
-  loadFollowRequests,
-  loadLeagueRegistrationAccess,
-  searchRegisteredLeagues,
-} from './api'
+import { followLeague, loadFollowRequests, searchRegisteredLeagues } from './api'
 import { LeagueSearchCard } from './LeagueSearchCard'
 import type { RegisteredLeague } from './types'
 
@@ -35,13 +30,13 @@ export function LeagueDiscoveryPage({
   // Synchronize URL navigation without remounting the input and losing focus on clear.
   if (draft.search !== search) setDraft({ search, value: search })
   const { notify } = useNotifications()
-  const access = useQuery('registration-access', loadLeagueRegistrationAccess)
   const load = useCallback(
     (signal: AbortSignal) => searchRegisteredLeagues(search, page, signal),
     [search, page],
   )
   const results = useQuery(`${search}:${page}`, load)
   const following = useMutation()
+  const [followActionId, setFollowActionId] = useState<number>()
   const requests = useQuery('my-requests', loadFollowRequests)
   const changePage = (nextPage: number, term = search, replace = false) => {
     const next = new URLSearchParams()
@@ -54,6 +49,7 @@ export function LeagueDiscoveryPage({
       navigate(`/league?leagueId=${league.id}`)
       return
     }
+    setFollowActionId(league.id)
     const result = await following.run((signal) => followLeague(league.id, signal))
     if (!result) return
     onFollowed()
@@ -63,17 +59,20 @@ export function LeagueDiscoveryPage({
     } else navigate(`/league?leagueId=${league.id}`)
   }
   return (
-    <section className="customer-empty league-onboarding customer-league-discovery">
+    <section className="customer-empty customer-league-discovery">
       <LeagueSearchCard
         busy={following.busy || results.status === 'loading' || !followedLeagues}
-        message={following.error ?? results.error ?? null}
+        message={results.error ?? null}
+        followError={
+          following.error && followActionId !== undefined
+            ? { leagueId: followActionId, message: following.error }
+            : undefined
+        }
         loading={results.status === 'loading'}
-        onRetry={() => {
-          following.reset()
-          results.refresh()
-        }}
+        onRetry={results.refresh}
         user={user}
         query={draft.value}
+        submittedQuery={search}
         onQueryChange={(value) => {
           setDraft({ search, value })
           if (value === '' && (search || page)) changePage(0, '', true)
@@ -91,7 +90,7 @@ export function LeagueDiscoveryPage({
             : requests.data?.find((request) => request.leagueId === league.id)?.status,
         }))}
         pagination={
-          results.data ? (
+          results.data && results.data.totalItems > results.data.size ? (
             <Pagination
               page={page}
               totalItems={results.data.totalItems}
@@ -103,26 +102,6 @@ export function LeagueDiscoveryPage({
           ) : null
         }
       />
-      {access.data?.canRegisterLeague && (
-        <a
-          className="league-workflow-link"
-          href="/leagues/new"
-          onClick={(event) => {
-            if (
-              event.button === 0 &&
-              !event.ctrlKey &&
-              !event.metaKey &&
-              !event.shiftKey &&
-              !event.altKey
-            ) {
-              event.preventDefault()
-              navigate('/leagues/new')
-            }
-          }}
-        >
-          Register a league
-        </a>
-      )}
     </section>
   )
 }

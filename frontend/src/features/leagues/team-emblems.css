@@ -88,3 +88,8 @@
   width: 1.6em;
   height: 1.6em;
 }
+
+.league-emblem-error {
+  flex-basis: 100%;
+  color: #ffb5c2;
+}

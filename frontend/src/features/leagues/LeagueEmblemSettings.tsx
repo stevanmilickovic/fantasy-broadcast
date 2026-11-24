@@ -8,8 +8,11 @@ export function LeagueEmblemSettings({ leagueId }: { leagueId: number }) {
   const { teams, loading, error, refresh } = useTeamEmblems()
   const saving = useMutation()
   const [validation, setValidation] = useState('')
+  const [editedEntry, setEditedEntry] = useState<number>()
   const save = async (entryId: number, file: File) => {
+    setEditedEntry(entryId)
     setValidation('')
+    saving.reset()
     if (!file.name.toLowerCase().endsWith('.png')) {
       setValidation('Choose a PNG image, preferably with a transparent background.')
       return
@@ -21,20 +24,16 @@ export function LeagueEmblemSettings({ leagueId }: { leagueId: number }) {
     if (await saving.run((signal) => uploadTeamEmblem(leagueId, entryId, file, signal))) refresh()
   }
   const remove = async (entryId: number) => {
+    setEditedEntry(entryId)
     setValidation('')
     if (await saving.run((signal) => deleteTeamEmblem(leagueId, entryId, signal))) refresh()
   }
   return (
-    <section className="league-emblem-settings" aria-labelledby="team-emblems-title">
-      <h2 id="team-emblems-title">Team emblems</h2>
+    <section className="league-emblem-settings" aria-label="Team emblem uploads">
       <p>
-        Upload a PNG for each team, preferably with a transparent background. Images are
-        automatically resized and compressed.
+        Use a square PNG up to 5 MB and 4096 pixels per side. For best results, use at least 512 ×
+        512 pixels and a transparent background.
       </p>
-      <small>
-        PNG up to 5 MB and 4096 pixels per side. A square image of at least 512 × 512 pixels works
-        best.
-      </small>
       {loading && <p role="status">Loading teams…</p>}
       {error && (
         <p role="alert">
@@ -44,7 +43,6 @@ export function LeagueEmblemSettings({ leagueId }: { leagueId: number }) {
           </button>
         </p>
       )}
-      {(validation || saving.error) && <p role="alert">{validation || saving.error}</p>}
       {saving.busy && <p role="status">Saving emblem…</p>}
       {saving.status === 'success' && !loading && <p role="status">Team emblem saved.</p>}
       <ul className="league-emblem-list">
@@ -80,6 +78,11 @@ export function LeagueEmblemSettings({ leagueId }: { leagueId: number }) {
                 </button>
               )}
             </div>
+            {editedEntry === team.entryId && (validation || saving.error) && (
+              <p className="league-emblem-error" role="alert">
+                {validation || saving.error}
+              </p>
+            )}
           </li>
         ))}
       </ul>

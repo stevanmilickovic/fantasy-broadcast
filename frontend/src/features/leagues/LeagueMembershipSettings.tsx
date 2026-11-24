@@ -59,17 +59,9 @@ export function LeagueMembershipSettings({
   }
   const pending = requests.data?.filter((request) => request.status === 'PENDING') ?? []
   return (
-    <section className="league-membership-settings" aria-labelledby="league-privacy-title">
-      <h2 id="league-privacy-title">Privacy and followers</h2>
+    <section className="league-membership-settings" aria-label="Privacy and followers">
       <div className="league-privacy-control">
-        <div>
-          <h3 id="league-private-label">Private league</h3>
-          <p id="league-private-description">
-            {league.privateLeague
-              ? 'New followers need your approval. Existing followers keep access.'
-              : 'Anyone signed in can follow this league.'}
-          </p>
-        </div>
+        <h2 id="league-private-label">Private league</h2>
         <button
           className="league-privacy-switch"
           type="button"
@@ -82,11 +74,23 @@ export function LeagueMembershipSettings({
         >
           <span aria-hidden="true" />
         </button>
+        <p id="league-private-description">
+          {league.privateLeague
+            ? 'New followers need approval. Existing followers keep access.'
+            : 'Anyone signed in can follow this league.'}
+        </p>
       </div>
-      <h3>Follow requests ({pending.length})</h3>
-      <button type="button" onClick={requests.refresh}>
-        Refresh requests
-      </button>
+      <div className="league-request-heading">
+        <h2>Follow requests{requests.data ? ` (${pending.length})` : ''}</h2>
+        <button
+          className="secondary-action"
+          type="button"
+          aria-label="Refresh requests"
+          onClick={requests.refresh}
+        >
+          Refresh
+        </button>
+      </div>
       {requests.status === 'loading' && <p role="status">Loading requests…</p>}
       {requests.status === 'success' && pending.length === 0 && <p>No pending requests.</p>}
       {pending.map((request) => (
@@ -106,9 +110,9 @@ export function LeagueMembershipSettings({
       ))}
       {(saving.error || requests.error) && <p role="alert">{saving.error ?? requests.error}</p>}
       <section className="league-followers" aria-labelledby="league-followers-title">
-        <h3 id="league-followers-title" ref={followersHeading} tabIndex={-1}>
+        <h2 id="league-followers-title" ref={followersHeading} tabIndex={-1}>
           Followers{followers.data ? ` (${followers.data.totalItems})` : ''}
-        </h3>
+        </h2>
         {followers.status === 'loading' && <p role="status">Loading followers…</p>}
         {removing.error && <p role="alert">{removing.error}</p>}
         {followers.error && (

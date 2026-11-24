@@ -34,14 +34,23 @@
   min-width: 0;
 }
 
-.checkout-league-panel,
 .checkout-summary {
   padding: clamp(16px, 2.4vw, 22px);
   border: 1px solid var(--border);
-  border-inline-start: 3px solid var(--workflow-accent, #cbb8ef);
   border-radius: 6px;
   background: #2b1735;
   min-width: 0;
+}
+
+.checkout-league-panel {
+  min-width: 0;
+}
+.registration-access {
+  flex: 1;
+}
+.registration-closed p {
+  margin: 8px 0 12px;
+  color: var(--muted);
 }
 
 .checkout-league-panel h1 {
@@ -777,4 +786,25 @@
   font: inherit;
   font-weight: 750;
   cursor: pointer;
+}
+
+.league-management-disclosure > summary small {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-weight: 500;
+}
+.league-management-disclosure .subscription-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.league-management-disclosure .subscription-card {
+  background: none;
+  border: 0;
+  padding: 12px 0;
+}
+.league-management-disclosure .subscription-refunds {
+  border-block-start: 1px solid var(--border);
+}
+.league-management-disclosure .subscription-refunds .kicker {
+  display: none;
 }

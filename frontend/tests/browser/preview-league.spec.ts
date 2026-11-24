@@ -24,6 +24,66 @@ test('a signed-out visitor can browse the preview league and watch the replay', 
   await expect(page.getByRole('img', { name: 'Gameweek 2: Draw, 49–49' })).toHaveCount(2)
   await expect(page.getByRole('table')).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  if (info.project.name === 'phone') {
+    const bubbles = await page
+      .locator('.league-form-column .league-form-bubble')
+      .evaluateAll((items) =>
+        items.map((bubble) => {
+          const range = document.createRange()
+          range.selectNodeContents(bubble)
+          const letter = range.getBoundingClientRect()
+          const circle = bubble.getBoundingClientRect()
+          return {
+            offset: letter.top + letter.height / 2 - (circle.top + circle.height / 2),
+            lineHeight: getComputedStyle(bubble).lineHeight,
+          }
+        }),
+      )
+    const offsets = bubbles.map((bubble) => bubble.offset)
+    expect(bubbles.every((bubble) => bubble.lineHeight === '12px')).toBe(true)
+    expect(Math.max(...offsets) - Math.min(...offsets)).toBeLessThanOrEqual(0.5)
+    const first = page.getByRole('table').locator('tbody tr').first()
+    await expect(first.locator('.league-standings-identity small')).toBeHidden()
+    const geometry = await first.evaluate((row) => {
+      const name = row.querySelector('.league-team-link span')!.getBoundingClientRect()
+      const rank = row.querySelector('.league-rank')!.getBoundingClientRect()
+      const movement = row
+        .querySelector('.league-mobile-detail .league-movement')!
+        .getBoundingClientRect()
+      const crest = row.querySelector('.team-emblem')!
+      const form = row.querySelector('.league-form-column')!
+      const image = row.querySelector('td:nth-child(3) button')!.getBoundingClientRect()
+      const points = row.querySelector('td:last-child strong')!.getBoundingClientRect()
+      return {
+        nameRight: name.right,
+        movementRightOfRank: movement.left >= rank.right,
+        movementAligned: movement.top < rank.bottom && rank.top < movement.bottom,
+        crestOpacity: Number(getComputedStyle(crest).opacity),
+        crestHeightDifference: Math.abs(
+          crest.getBoundingClientRect().height - row.getBoundingClientRect().height,
+        ),
+        formGap: Number.parseFloat(
+          getComputedStyle(form.querySelector('.league-recent-form')!).columnGap,
+        ),
+        imageFormGap:
+          form.querySelector('.league-form-bubble')!.getBoundingClientRect().left - image.right,
+        formLeft: form.getBoundingClientRect().left,
+        scoreInset: row.getBoundingClientRect().right - points.right,
+        imageLeft: image.left,
+        imageRight: image.right,
+        imageHeight: image.height,
+      }
+    })
+    expect(geometry.movementRightOfRank && geometry.movementAligned).toBe(true)
+    expect(geometry.crestOpacity).toBeLessThan(0.5)
+    expect(geometry.crestHeightDifference).toBeLessThanOrEqual(1)
+    expect(geometry.formGap).toBeGreaterThanOrEqual(2)
+    expect(geometry.imageFormGap).toBeGreaterThanOrEqual(6)
+    expect(geometry.imageLeft).toBeGreaterThan(geometry.nameRight)
+    expect(geometry.formLeft).toBeGreaterThanOrEqual(geometry.imageRight)
+    expect(geometry.scoreInset).toBeGreaterThanOrEqual(10)
+    expect(geometry.imageHeight).toBeGreaterThanOrEqual(44)
+  }
   await page.screenshot({
     path: info.outputPath('preview-league.png'),
     fullPage: true,

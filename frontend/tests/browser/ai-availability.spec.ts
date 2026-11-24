@@ -45,7 +45,8 @@ test('disabled AI leaves Standard available on pricing, checkout and subscriptio
     }),
   )
   await page.goto('/league/manage?leagueId=1')
-  const subscription = page.getByRole('region', { name: 'Subscription', exact: true })
+  await page.locator('summary').filter({ hasText: 'Subscription' }).click()
+  const subscription = page.getByRole('region', { name: 'Subscription details', exact: true })
   await expect(subscription.getByRole('status')).toHaveCount(0)
   await expect(subscription.getByRole('button', { name: 'Upgrade to AI' })).toHaveCount(0)
   await expect(

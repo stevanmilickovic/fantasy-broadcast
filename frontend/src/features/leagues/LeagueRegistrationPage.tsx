@@ -25,7 +25,7 @@ export function LeagueRegistrationPage({
     )
   }
   return (
-    <section className="customer-empty league-onboarding">
+    <section className="league-checkout-page registration-access">
       {access.status === 'loading' ? (
         <p role="status">Checking league registration…</p>
       ) : access.error ? (
@@ -33,7 +33,7 @@ export function LeagueRegistrationPage({
           {access.error} <button onClick={access.refresh}>Retry</button>
         </p>
       ) : (
-        <div className="register-league-card">
+        <div className="registration-closed">
           <h1>League registration is closed</h1>
           <p>You can still find and follow registered leagues.</p>
         </div>

@@ -683,9 +683,6 @@
   .league-image-dialog {
     padding: 14px;
   }
-  .league-club-image-action {
-    flex-wrap: wrap;
-  }
 }
 
 .league-art[data-format='square'][data-many-clubs='true'] .art-standing {

@@ -77,11 +77,12 @@ export function LeagueStandingsTable({
           onClick={() => onImage({ kind: 'standings' })}
         />
       </header>
-      <table className={`league-table${h2h ? ' league-h2h-table' : ''}`}>
+      <table className={`league-table league-standings-table${h2h ? ' league-h2h-table' : ''}`}>
         <thead>
           <tr>
             <th scope="col">Rank</th>
             <th scope="col">Club</th>
+            <th scope="col" className="league-standings-image-column" aria-label="Club image" />
             <th scope="col" className="league-desktop-column">
               Movement
             </th>
@@ -96,7 +97,12 @@ export function LeagueStandingsTable({
               </th>
             )}
             <th scope="col" className="numeric">
-              {h2h ? 'League points' : 'Total points'}
+              <span className="league-standings-points-label">
+                {h2h ? 'League points' : 'Total points'}
+              </span>
+              <span className="league-mobile-detail" aria-hidden="true">
+                Pts
+              </span>
             </th>
           </tr>
         </thead>
@@ -124,15 +130,50 @@ export function LeagueStandingsTable({
                 {delta ? Math.abs(delta) : '—'}
               </span>
             )
+            const manager = entry
+              ? managerName(entry.player_first_name, entry.player_last_name)
+              : null
+            const recentForm = (
+              <span className="league-recent-form" role="group" aria-label="Recent form">
+                {form.length ? (
+                  form.map((match) => {
+                    const outcome =
+                      match.result === 'W' ? 'Win' : match.result === 'L' ? 'Loss' : 'Draw'
+                    const label = `${match.provisional ? 'Provisional · ' : ''}Gameweek ${match.event}: ${outcome}, ${match.points}–${match.opponentPoints}`
+                    return (
+                      <span
+                        key={match.id}
+                        className={`league-form-bubble result-${match.result.toLowerCase()}`}
+                        data-provisional={match.provisional}
+                        role="img"
+                        aria-label={label}
+                        title={label}
+                      >
+                        {match.result}
+                      </span>
+                    )
+                  })
+                ) : (
+                  <span className="league-form-empty">No completed results</span>
+                )}
+              </span>
+            )
+            const clubImage = (
+              <ImageButton
+                label={`Create club image for ${entry?.entry_name ?? 'club'}`}
+                disabled={!discovery.gameweek}
+                onClick={() => onImage({ kind: 'club', id: standingEntryId(standing) })}
+              />
+            )
             return (
               <tr key={standingEntryId(standing)}>
-                <td>
+                <td className="league-standings-rank">
                   <span className={`league-rank rank-${standing.rank}`}>{standing.rank}</span>
                   <span className="league-mobile-detail">{movement}</span>
                 </td>
                 <td>
                   <div className="league-club-image-action">
-                    <div>
+                    <div className="league-standings-identity">
                       {entry ? (
                         <LeagueTeamLink
                           entryId={entry.entry_id}
@@ -141,47 +182,18 @@ export function LeagueStandingsTable({
                           navigate={navigate}
                         />
                       ) : (
-                        `Entry ${standingEntryId(standing)}`
+                        <span className="league-standings-fallback">
+                          Entry {standingEntryId(standing)}
+                        </span>
                       )}
-                      <small>
-                        {entry && managerName(entry.player_first_name, entry.player_last_name)}
-                      </small>
+                      {manager && <small>{manager}</small>}
                     </div>
-                    <ImageButton
-                      label={`Create club image for ${entry?.entry_name ?? 'club'}`}
-                      disabled={!discovery.gameweek}
-                      onClick={() => onImage({ kind: 'club', id: standingEntryId(standing) })}
-                    />
+                    <span className="league-standings-desktop-image">{clubImage}</span>
                   </div>
                 </td>
+                <td className="league-standings-image-column">{clubImage}</td>
                 <td className="league-desktop-column">{movement}</td>
-                {h2h && (
-                  <td className="league-form-column">
-                    <span className="league-recent-form" role="group" aria-label="Recent form">
-                      {form.length ? (
-                        form.map((match) => {
-                          const outcome =
-                            match.result === 'W' ? 'Win' : match.result === 'L' ? 'Loss' : 'Draw'
-                          const label = `${match.provisional ? 'Provisional · ' : ''}Gameweek ${match.event}: ${outcome}, ${match.points}–${match.opponentPoints}`
-                          return (
-                            <span
-                              key={match.id}
-                              className={`league-form-bubble result-${match.result.toLowerCase()}`}
-                              data-provisional={match.provisional}
-                              role="img"
-                              aria-label={label}
-                              title={label}
-                            >
-                              {match.result}
-                            </span>
-                          )
-                        })
-                      ) : (
-                        <span className="league-form-empty">No completed results</span>
-                      )}
-                    </span>
-                  </td>
-                )}
+                {h2h && <td className="league-form-column">{recentForm}</td>}
                 {h2h && (
                   <td className="league-desktop-column numeric secondary-score">
                     {standingGamePoints(standing)}
@@ -191,7 +203,7 @@ export function LeagueStandingsTable({
                   <strong>{standingPoints(standing)}</strong>
                   {h2h && (
                     <small className="league-mobile-detail" aria-label="Fantasy points">
-                      {standingGamePoints(standing)}
+                      {standingGamePoints(standing)} FP
                     </small>
                   )}
                 </td>

@@ -54,6 +54,7 @@ test('owner uploads, replaces and removes PNG emblems with mobile-friendly contr
     await route.fulfill({ status: 204 })
   })
   await page.goto('/league/manage?leagueId=1')
+  await page.locator('summary').filter({ hasText: 'Team emblems' }).click()
   const field = page.getByLabel(`Upload PNG for ${data[0].name}`, { exact: true })
   await field.setInputFiles({ name: 'photo.jpg', mimeType: 'image/jpeg', buffer: png })
   await expect(page.getByRole('alert')).toContainText('Choose a PNG')

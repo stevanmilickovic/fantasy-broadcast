@@ -1,4 +1,4 @@
-import { CreditCard } from 'lucide-react'
+import { ChevronDown, CreditCard } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import type { Navigate } from '../../app/useBrowserNavigation'
 import { useMutation } from '../../shared/api/useMutation'
@@ -24,20 +24,20 @@ export function LeagueSubscriptionSettings({
   league,
   navigate,
   onChanged,
+  collapsible = false,
 }: {
   league: SubscriptionLeague
   navigate: Navigate
   onChanged?: () => void
+  collapsible?: boolean
 }) {
   const load = useCallback(
     (signal: AbortSignal) => loadSubscription(league.id, signal),
     [league.id],
   )
   const query = useQuery(`subscription:${league.id}`, load)
-  return (
-    <section className="league-subscription-settings" aria-label="Subscription">
-      <h2>Subscription</h2>
-      <p>Manage your plan, payments and renewal.</p>
+  const content = (
+    <>
       {query.status === 'loading' && <p role="status">Loading subscription…</p>}
       {query.error && (
         <p role="alert">
@@ -56,6 +56,26 @@ export function LeagueSubscriptionSettings({
           navigate={navigate}
         />
       )}
+    </>
+  )
+  return collapsible ? (
+    <details className="league-management-disclosure">
+      <summary>
+        Subscription
+        {query.data && (
+          <small>{query.data.linked ? planName(query.data.plan) : 'No linked subscription'}</small>
+        )}
+        <ChevronDown size={16} aria-hidden="true" />
+      </summary>
+      <section className="league-subscription-settings" aria-label="Subscription details">
+        {content}
+      </section>
+    </details>
+  ) : (
+    <section className="league-subscription-settings" aria-label="Subscription">
+      <h2>Subscription</h2>
+      <p>Manage your plan, payments and renewal.</p>
+      {content}
     </section>
   )
 }
@@ -282,7 +302,7 @@ function SubscriptionDetails({
           Refresh subscription status
         </button>
       </article>
-      <article className="subscription-card">
+      <article className="subscription-card subscription-refunds">
         <span className="kicker">Need help?</span>
         <h2>Refund requests</h2>
         <p>
