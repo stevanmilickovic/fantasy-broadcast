@@ -4,7 +4,7 @@ Status: steps 1–19 are implemented and the integrated testing handoff is compl
 No implementation steps remain. Physical-device and provider release checks are recorded
 in [the verification handoff](next-version-verification.md) for acceptance testing.
 After testing, the user authorized a separate coordinated version-update commit to 1.4.0.
-Version 1.5.3 adds a public preview league with sample results and an interactive broadcast replay.
+Version 1.5.4 adds private-by-default league registration and follower management, and refines the league workspace and mobile standings.
 
 Each numbered step below represents one implementation commit, including its relevant
 tests and documentation. Commit messages are suggested titles. Apply Ponytail in full

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.4 - 2026-11-24
+
+- Start new leagues as private and let league owners and site admins view and remove followers in League Management.
+- Simplify Find leagues, registration, and League Management while preserving verification, plan selection, and checkout.
+- Improve mobile standings with clearer rank movement, club actions, recent form, and aligned scores.
+
 ## 1.5.3 - 2026-11-20
 
 - Add a signed-out league preview with four demo clubs, three completed gameweeks, player scoring breakdowns, and a looping Gameweek 4 replay.

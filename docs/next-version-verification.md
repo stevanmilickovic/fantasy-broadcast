@@ -1,5 +1,7 @@
 # Next-version testing handoff
 
+Version **1.5.4** adds private-by-default league registration and follower management, and refines the league workspace and mobile standings. The release candidate passed 110 frontend unit tests and 66 targeted Chromium checks at phone and laptop widths, including 320px layout checks. The league privacy and follower management change previously passed 180 backend tests.
+
 Version **1.5.3** adds the public league preview and improves homepage text contrast
 over the broadcast demo. Verification covered 110 frontend unit tests, the signed-out
 preview across six Chromium viewports, a sample PNG download, and the homepage
